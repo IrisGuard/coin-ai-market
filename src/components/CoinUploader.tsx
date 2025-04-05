@@ -7,7 +7,8 @@ import MobileCameraUploader from './MobileCameraUploader';
 import ImageGrid from './coin-uploader/ImageGrid';
 import CoinResultCard from './coin-uploader/CoinResultCard';
 
-type CoinData = {
+// Define the CoinData type for better type safety
+export type CoinData = {
   coin: string;
   year: number;
   grade: string;
@@ -73,7 +74,7 @@ const CoinUploader = () => {
     setImages(newImages);
   };
 
-  const identifyCoin = () => {
+  const identifyCoin = async () => {
     if (images.length < 2) {
       toast({
         title: "Not enough images",
@@ -85,10 +86,15 @@ const CoinUploader = () => {
 
     setIsLoading(true);
     
-    // Simulate API call to AI service
-    setTimeout(() => {
-      // Mock response from AI
-      setCoinData({
+    try {
+      // In a real implementation, this would be an API call to your backend
+      // Currently using a mock response for demonstration
+      
+      // Mock API call delay
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Mock response from AI backend
+      const mockResponse: CoinData = {
         coin: "10 Drachmai",
         year: 1959,
         grade: "MS66",
@@ -99,15 +105,24 @@ const CoinUploader = () => {
         weight: "10.000g",
         diameter: "30mm",
         ruler: "Paul I"
-      });
+      };
       
-      setIsLoading(false);
+      setCoinData(mockResponse);
       
       toast({
         title: "Coin Identified!",
         description: "Our AI has successfully identified your coin.",
       });
-    }, 2500);
+    } catch (error) {
+      console.error("Error identifying coin:", error);
+      toast({
+        title: "Identification Failed",
+        description: "There was an error identifying your coin. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

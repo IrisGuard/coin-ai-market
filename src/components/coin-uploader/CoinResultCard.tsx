@@ -1,16 +1,5 @@
 
-type CoinData = {
-  coin: string;
-  year: number;
-  grade: string;
-  error: string;
-  value_usd: number;
-  rarity: string;
-  metal: string;
-  weight: string;
-  diameter: string;
-  ruler: string;
-};
+import { CoinData } from '@/components/CoinUploader';
 
 interface CoinResultCardProps {
   coinData: CoinData | null;
