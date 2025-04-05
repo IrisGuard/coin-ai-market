@@ -2,9 +2,12 @@
 import { useState, ChangeEvent } from 'react';
 import { Upload, X, Plus, Camera, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useMobile } from '@/hooks/use-mobile';
+import MobileCameraUploader from './MobileCameraUploader';
 
 const CoinUploader = () => {
   const { toast } = useToast();
+  const isMobile = useMobile();
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [coinData, setCoinData] = useState<null | {
@@ -38,6 +41,23 @@ const CoinUploader = () => {
       file,
       preview: URL.createObjectURL(file)
     }));
+    
+    setImages([...images, ...newImages]);
+  };
+
+  const handleMobileImagesSelected = (newImages: { file: File; preview: string }[]) => {
+    if (images.length + newImages.length > 5) {
+      toast({
+        title: "Error",
+        description: `You can upload a maximum of 5 images. Only adding the first ${5 - images.length}.`,
+        variant: "destructive",
+      });
+      
+      // Only add up to the maximum allowed
+      const allowedImages = newImages.slice(0, 5 - images.length);
+      setImages([...images, ...allowedImages]);
+      return;
+    }
     
     setImages([...images, ...newImages]);
   };
@@ -93,7 +113,11 @@ const CoinUploader = () => {
       <div className="mb-6">
         <p className="text-gray-600 mb-2">Upload 2-5 images of your coin (front, back, and other angles)</p>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {isMobile ? (
+          <MobileCameraUploader onImagesSelected={handleMobileImagesSelected} maxImages={5} />
+        ) : null}
+        
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           {images.map((image, index) => (
             <div key={index} className="relative h-40 bg-gray-100 rounded-lg overflow-hidden">
               <img 
@@ -110,7 +134,7 @@ const CoinUploader = () => {
             </div>
           ))}
           
-          {images.length < 5 && (
+          {images.length < 5 && !isMobile && (
             <label className="h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
               <div className="flex flex-col items-center justify-center">
                 <Camera size={24} className="text-gray-400 mb-2" />
