@@ -1,27 +1,31 @@
 
 import { useState, ChangeEvent } from 'react';
-import { Upload, X, Plus, Camera, Loader2 } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMobile } from '@/hooks/use-mobile';
 import MobileCameraUploader from './MobileCameraUploader';
+import ImageGrid from './coin-uploader/ImageGrid';
+import CoinResultCard from './coin-uploader/CoinResultCard';
+
+type CoinData = {
+  coin: string;
+  year: number;
+  grade: string;
+  error: string;
+  value_usd: number;
+  rarity: string;
+  metal: string;
+  weight: string;
+  diameter: string;
+  ruler: string;
+};
 
 const CoinUploader = () => {
   const { toast } = useToast();
   const isMobile = useMobile();
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [coinData, setCoinData] = useState<null | {
-    coin: string;
-    year: number;
-    grade: string;
-    error: string;
-    value_usd: number;
-    rarity: string;
-    metal: string;
-    weight: string;
-    diameter: string;
-    ruler: string;
-  }>(null);
+  const [coinData, setCoinData] = useState<CoinData | null>(null);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -117,39 +121,13 @@ const CoinUploader = () => {
           <MobileCameraUploader onImagesSelected={handleMobileImagesSelected} maxImages={5} />
         ) : null}
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-          {images.map((image, index) => (
-            <div key={index} className="relative h-40 bg-gray-100 rounded-lg overflow-hidden">
-              <img 
-                src={image.preview} 
-                alt={`Coin image ${index + 1}`} 
-                className="w-full h-full object-contain"
-              />
-              <button
-                onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-red-50"
-              >
-                <X size={16} className="text-red-500" />
-              </button>
-            </div>
-          ))}
-          
-          {images.length < 5 && !isMobile && (
-            <label className="h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
-              <div className="flex flex-col items-center justify-center">
-                <Camera size={24} className="text-gray-400 mb-2" />
-                <span className="text-sm text-gray-500">Add image</span>
-              </div>
-              <input 
-                type="file" 
-                onChange={handleImageUpload} 
-                className="hidden" 
-                accept="image/*"
-                multiple
-              />
-            </label>
-          )}
-        </div>
+        <ImageGrid 
+          images={images}
+          removeImage={removeImage}
+          onAddImage={handleImageUpload}
+          maxImages={5}
+          isMobile={isMobile}
+        />
       </div>
       
       <button
@@ -170,62 +148,7 @@ const CoinUploader = () => {
         )}
       </button>
       
-      {coinData && (
-        <div className="mt-8 border-t pt-6">
-          <h3 className="text-xl font-semibold text-coin-blue mb-4">Identification Results</h3>
-          
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Coin Type</p>
-                <p className="font-medium">{coinData.coin}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Year</p>
-                <p className="font-medium">{coinData.year}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Grade</p>
-                <p className="font-medium">{coinData.grade}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Errors</p>
-                <p className="font-medium">{coinData.error}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Metal</p>
-                <p className="font-medium">{coinData.metal}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Rarity</p>
-                <p className="font-medium">{coinData.rarity}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Weight</p>
-                <p className="font-medium">{coinData.weight}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Diameter</p>
-                <p className="font-medium">{coinData.diameter}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Ruler</p>
-                <p className="font-medium">{coinData.ruler}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Estimated Value</p>
-                <p className="font-medium text-coin-gold">${coinData.value_usd.toFixed(2)}</p>
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <button className="coin-button w-full">
-                List for Sale / Auction
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CoinResultCard coinData={coinData} />
     </div>
   );
 };

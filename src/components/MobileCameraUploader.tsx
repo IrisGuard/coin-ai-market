@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Camera, Photo } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, Photo, GalleryPhoto } from '@capacitor/camera';
 import { Camera as CameraIcon, X, Image, Loader2 } from 'lucide-react';
 
 interface MobileCameraUploaderProps {
@@ -18,8 +18,8 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
-        resultType: 'uri',
-        source: 'camera'
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera
       });
       
       if (!image.webPath) {
@@ -56,7 +56,7 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
       }
 
       const results = await Promise.all(
-        images.photos.map(async (photo: Photo) => {
+        images.photos.map(async (photo: GalleryPhoto) => {
           if (!photo.webPath) {
             return null;
           }

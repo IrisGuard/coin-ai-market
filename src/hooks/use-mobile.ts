@@ -23,3 +23,6 @@ export function useMobile(breakpoint = 768): boolean {
 
   return isMobile;
 }
+
+// Add an alias for backward compatibility
+export const useIsMobile = useMobile;
