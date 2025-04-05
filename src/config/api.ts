@@ -10,10 +10,13 @@ export const API_BASE_URL = 'https://coinvision-ai-production.up.railway.app';
 // Endpoints
 export const API_ENDPOINTS = {
   ANALYZE_COIN: '/analyzeCoin',
-  LISTINGS: '/listings',
+  LISTINGS: '/coins',
   USER_PROFILE: '/users/profile',
-  MARKETPLACE: '/marketplace',
+  COIN_DETAILS: '/coins/:id',
+  SEARCH_COINS: '/coins/search',
   AUCTIONS: '/auctions',
+  BIDS: '/bids',
+  BUY_NOW: '/buy-now',
 };
 
 // API request timeouts (in milliseconds)
@@ -27,4 +30,20 @@ export const UPLOAD_LIMITS = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   MAX_IMAGES: 5,
   ALLOWED_FORMATS: ['image/jpeg', 'image/png', 'image/webp'],
+};
+
+// API Version
+export const API_VERSION = 'v1';
+
+// API Headers
+export const getAuthHeaders = (token: string | null) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };

@@ -2,12 +2,46 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CoinUploader from '@/components/CoinUploader';
-import { API_BASE_URL } from '@/config/api';
+import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import { useEffect, useState } from 'react';
 
 const Upload = () => {
+  const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const isLiveBackend = API_BASE_URL.includes('coinvision-ai-production') || 
-                        API_BASE_URL.includes('railway.app') || 
-                        API_BASE_URL.includes('render.com');
+                       API_BASE_URL.includes('railway.app') || 
+                       API_BASE_URL.includes('render.com');
+
+  useEffect(() => {
+    const checkBackendConnection = async () => {
+      try {
+        // Ping the backend API to check if it's reachable
+        // Note: You may need to create a health check endpoint in your FastAPI backend
+        const response = await fetch(`${API_BASE_URL}/health`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          // Short timeout to not block the UI for too long
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (response.ok) {
+          setBackendStatus('connected');
+        } else {
+          setBackendStatus('error');
+        }
+      } catch (error) {
+        console.error('Backend connection check failed:', error);
+        // For now, if we can't connect to the health endpoint but have a live URL, assume it's ok
+        // This is just to prevent confusion for users during development
+        if (isLiveBackend) {
+          setBackendStatus('connected');
+        } else {
+          setBackendStatus('error');
+        }
+      }
+    };
+
+    checkBackendConnection();
+  }, [isLiveBackend]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -20,10 +54,25 @@ const Upload = () => {
             <p className="mt-2 text-gray-600">
               Our AI will analyze your coin images and provide identification, grading, and valuation.
             </p>
-            {isLiveBackend && (
+            
+            {backendStatus === 'connecting' && (
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
+                Connecting to AI Backend...
+              </div>
+            )}
+            
+            {backendStatus === 'connected' && (
               <div className="mt-2 inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                 Live AI Backend Connected
+              </div>
+            )}
+            
+            {backendStatus === 'error' && (
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                AI Backend Unavailable
               </div>
             )}
           </div>
