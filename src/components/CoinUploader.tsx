@@ -6,6 +6,7 @@ import { useMobile } from '@/hooks/use-mobile';
 import MobileCameraUploader from './MobileCameraUploader';
 import ImageGrid from './coin-uploader/ImageGrid';
 import CoinResultCard from './coin-uploader/CoinResultCard';
+import { analyzeCoinImages, listCoinForSale } from '@/services/coinAnalysisService';
 
 // Define the CoinData type for better type safety
 export type CoinData = {
@@ -26,6 +27,7 @@ const CoinUploader = () => {
   const isMobile = useMobile();
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isListing, setIsListing] = useState(false);
   const [coinData, setCoinData] = useState<CoinData | null>(null);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -87,32 +89,20 @@ const CoinUploader = () => {
     setIsLoading(true);
     
     try {
-      // In a real implementation, this would be an API call to your backend
-      // Currently using a mock response for demonstration
+      // Extract the file objects from the images array
+      const imageFiles = images.map(img => img.file);
       
-      // Mock API call delay
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      // Call the coin analysis service
+      const result = await analyzeCoinImages(imageFiles);
       
-      // Mock response from AI backend
-      const mockResponse: CoinData = {
-        coin: "10 Drachmai",
-        year: 1959,
-        grade: "MS66",
-        error: "None",
-        value_usd: 55.00,
-        rarity: "Uncommon",
-        metal: "Nickel",
-        weight: "10.000g",
-        diameter: "30mm",
-        ruler: "Paul I"
-      };
-      
-      setCoinData(mockResponse);
-      
-      toast({
-        title: "Coin Identified!",
-        description: "Our AI has successfully identified your coin.",
-      });
+      if (result) {
+        setCoinData(result);
+        
+        toast({
+          title: "Coin Identified!",
+          description: "Our AI has successfully identified your coin.",
+        });
+      }
     } catch (error) {
       console.error("Error identifying coin:", error);
       toast({
@@ -122,6 +112,43 @@ const CoinUploader = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleListCoin = async (isAuction: boolean = false) => {
+    if (!coinData) return;
+    
+    setIsListing(true);
+    
+    try {
+      const result = await listCoinForSale(coinData, isAuction, coinData.value_usd);
+      
+      if (result.success) {
+        toast({
+          title: "Success!",
+          description: result.message,
+        });
+        
+        // In a real app, we might redirect to the listing page or the marketplace
+        // For now, we'll just reset the form after a successful listing
+        setImages([]);
+        setCoinData(null);
+      } else {
+        toast({
+          title: "Listing Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error listing coin:", error);
+      toast({
+        title: "Listing Failed",
+        description: "There was an error listing your coin. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsListing(false);
     }
   };
 
@@ -163,7 +190,12 @@ const CoinUploader = () => {
         )}
       </button>
       
-      <CoinResultCard coinData={coinData} />
+      <CoinResultCard 
+        coinData={coinData} 
+        onListForSale={() => handleListCoin(false)} 
+        onListForAuction={() => handleListCoin(true)} 
+        isListing={isListing}
+      />
     </div>
   );
 };

@@ -1,11 +1,15 @@
 
+import { Loader2 } from 'lucide-react';
 import { CoinData } from '@/components/CoinUploader';
 
 interface CoinResultCardProps {
   coinData: CoinData | null;
+  onListForSale: () => void;
+  onListForAuction: () => void;
+  isListing: boolean;
 }
 
-const CoinResultCard = ({ coinData }: CoinResultCardProps) => {
+const CoinResultCard = ({ coinData, onListForSale, onListForAuction, isListing }: CoinResultCardProps) => {
   if (!coinData) return null;
 
   return (
@@ -56,9 +60,34 @@ const CoinResultCard = ({ coinData }: CoinResultCardProps) => {
           </div>
         </div>
         
-        <div className="mt-6">
-          <button className="coin-button w-full">
-            List for Sale / Auction
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <button 
+            onClick={onListForSale}
+            disabled={isListing}
+            className="coin-button w-full disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isListing ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'List for Sale'
+            )}
+          </button>
+          <button 
+            onClick={onListForAuction}
+            disabled={isListing}
+            className="bg-white border-2 border-coin-gold text-coin-gold font-medium py-2 rounded-lg hover:bg-coin-gold hover:text-white transition-colors w-full flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isListing ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'List for Auction'
+            )}
           </button>
         </div>
       </div>

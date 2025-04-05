@@ -11,7 +11,8 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Camera: {
-      permissionDescription: 'Allow the app to access your camera to take photos of your coins.'
+      cameraPermissionText: "This app needs camera access to take pictures of your coins for analysis",
+      photosPermissionText: "This app needs photo library access to upload coin images for analysis"
     }
   }
 };
