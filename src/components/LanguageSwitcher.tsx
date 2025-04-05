@@ -9,7 +9,7 @@ type Language = {
 };
 
 const languages: Language[] = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'en-US', name: 'English (US)', flag: '🇺🇸' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'zh', name: '中文', flag: '🇨🇳' },
   { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
@@ -24,13 +24,14 @@ const languages: Language[] = [
 
 const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<Language>(languages[0]);
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(languages[0]); // Default to English (US)
 
   const handleLanguageChange = (language: Language) => {
     setCurrentLanguage(language);
     setIsOpen(false);
     // In a real application, you would implement actual language switching logic here
     console.log(`Switching language to: ${language.name}`);
+    document.documentElement.lang = language.code;
   };
 
   return (
@@ -38,6 +39,7 @@ const LanguageSwitcher = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-1 text-gray-600 hover:text-coin-gold"
+        aria-label="Select language"
       >
         <Globe size={18} />
         <span className="hidden md:inline">{currentLanguage.flag}</span>
@@ -54,6 +56,7 @@ const LanguageSwitcher = () => {
                 className={`${
                   currentLanguage.code === language.code ? 'bg-gray-100' : ''
                 } flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left`}
+                aria-current={currentLanguage.code === language.code ? 'true' : 'false'}
               >
                 <span className="mr-2">{language.flag}</span>
                 <span>{language.name}</span>
