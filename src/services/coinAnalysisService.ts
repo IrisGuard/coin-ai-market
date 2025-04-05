@@ -1,9 +1,7 @@
 
 import { CoinData } from '@/components/CoinUploader';
 import { toast } from '@/hooks/use-toast';
-
-// The base URL for the coin analysis API
-const API_URL = 'https://api.coinai-market.com';
+import { API_BASE_URL, API_ENDPOINTS, API_TIMEOUTS } from '@/config/api';
 
 /**
  * Analyzes coin images and returns identification data
@@ -16,48 +14,70 @@ export const analyzeCoinImages = async (images: File[]): Promise<CoinData | null
     // Create a FormData instance to send the images
     const formData = new FormData();
     
-    // Append each image to the FormData
-    images.forEach((image, index) => {
-      formData.append(`image_${index}`, image);
+    // Append each image to the FormData with the same field name
+    // The FastAPI backend expects a List[UploadFile] so we use the same field name for each file
+    images.forEach((image) => {
+      formData.append('images', image);
     });
     
-    // Simulate API call for now with a timeout
-    // In production, this would be replaced with a real fetch call
-    // await fetch(`${API_URL}/analyzeCoin`, {
-    //   method: 'POST',
-    //   body: formData,
-    // });
-
-    // For development, simulate a network delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
-
-    // Simulated response data
-    // In production, this would be replaced with the actual response parsing
-    const mockResponse: CoinData = {
-      coin: "10 Drachmai",
-      year: 1959,
-      grade: "MS66",
-      error: "None",
-      value_usd: 55.00,
-      rarity: "Uncommon",
-      metal: "Silver",
-      weight: "10.000g",
-      diameter: "30mm",
-      ruler: "Paul I"
+    console.log(`Sending ${images.length} images to ${API_BASE_URL}${API_ENDPOINTS.ANALYZE_COIN}`);
+    
+    // Set up fetch with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUTS.ANALYZE_COIN);
+    
+    // Make the actual API call to the FastAPI backend
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ANALYZE_COIN}`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+    
+    // Clear the timeout
+    clearTimeout(timeoutId);
+    
+    // Check if the request was successful
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
+    
+    // Parse the JSON response
+    const data = await response.json();
+    
+    // Map the response to our CoinData type
+    const coinData: CoinData = {
+      coin: data.coin,
+      year: data.year,
+      grade: data.grade,
+      error: data.error,
+      value_usd: data.value_usd,
+      rarity: data.rarity,
+      metal: data.metal,
+      weight: data.weight,
+      diameter: data.diameter,
+      ruler: data.ruler
     };
     
-    // In a real implementation, we would parse the response:
-    // const response = await fetchResponse.json();
-    // return response.data;
-    
-    return mockResponse;
+    return coinData;
   } catch (error) {
     console.error('Error analyzing coin images:', error);
-    toast({
-      title: "Analysis Failed",
-      description: "There was an error analyzing your coin images. Please try again.",
-      variant: "destructive",
-    });
+    
+    // Handle timeout errors specifically
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      toast({
+        title: "Analysis Timeout",
+        description: "The coin analysis is taking too long. Please try again with clearer images.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Analysis Failed",
+        description: `There was an error analyzing your coin images: ${(error as Error).message}`,
+        variant: "destructive",
+      });
+    }
+    
     return null;
   }
 };
@@ -76,26 +96,29 @@ export const listCoinForSale = async (
   price: number
 ): Promise<{ success: boolean; listingId?: string; message: string }> => {
   try {
-    // In a real implementation, this would send the listing data to the backend
-    // const response = await fetch(`${API_URL}/listings`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     coinData,
-    //     isAuction,
-    //     price,
-    //   }),
-    // });
+    const endpoint = isAuction ? API_ENDPOINTS.AUCTIONS : API_ENDPOINTS.LISTINGS;
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        coinData,
+        price,
+      }),
+    });
     
-    // Mock successful response
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
+    
+    const result = await response.json();
+    
     return {
       success: true,
-      listingId: `listing-${Date.now()}`,
+      listingId: result.id || `listing-${Date.now()}`,
       message: "Your coin has been successfully listed for " + 
         (isAuction ? "auction" : "sale") + "."
     };
@@ -103,7 +126,7 @@ export const listCoinForSale = async (
     console.error('Error listing coin:', error);
     return {
       success: false,
-      message: "Failed to list your coin. Please try again."
+      message: `Failed to list your coin: ${(error as Error).message}`
     };
   }
 };

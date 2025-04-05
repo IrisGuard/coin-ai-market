@@ -4,7 +4,8 @@
  */
 
 // Base URL for the CoinAI Market API
-export const API_BASE_URL = 'https://api.coinai-market.com';
+// Change this to your deployed FastAPI backend URL
+export const API_BASE_URL = 'https://coinvision-ai-production.up.railway.app';
 
 // Endpoints
 export const API_ENDPOINTS = {
@@ -17,7 +18,7 @@ export const API_ENDPOINTS = {
 
 // API request timeouts (in milliseconds)
 export const API_TIMEOUTS = {
-  ANALYZE_COIN: 30000, // 30 seconds for image analysis
+  ANALYZE_COIN: 60000, // 60 seconds for image analysis (AI processing can take longer)
   STANDARD: 10000,     // 10 seconds for standard requests
 };
 
