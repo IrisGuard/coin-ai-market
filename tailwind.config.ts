@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				coin: {
+					gold: '#D4AF37',
+					silver: '#C0C0C0',
+					bronze: '#CD7F32',
+					copper: '#B87333',
+					blue: '#1A2B4A'
 				}
 			},
 			borderRadius: {
@@ -84,11 +92,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'spin-slow': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
+				},
+				'floating': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'spin-slow': 'spin-slow 10s linear infinite',
+				'floating': 'floating 3s ease-in-out infinite'
+			},
+			backgroundImage: {
+				'coin-gradient': 'linear-gradient(to right, #D4AF37, #C0C0C0)',
+				'hero-pattern': 'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1) 0%, rgba(26, 43, 74, 0.05) 100%)'
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				serif: ['Playfair Display', 'serif']
 			}
 		}
 	},
