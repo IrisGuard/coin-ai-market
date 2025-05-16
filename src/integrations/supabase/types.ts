@@ -9,13 +9,372 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bids: {
+        Row: {
+          amount: number
+          coin_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          coin_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          coin_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coin_evaluations: {
+        Row: {
+          coin_id: string
+          comments: string | null
+          created_at: string
+          estimated_value: number
+          expert_id: string | null
+          grade: string
+          id: string
+        }
+        Insert: {
+          coin_id: string
+          comments?: string | null
+          created_at?: string
+          estimated_value: number
+          expert_id?: string | null
+          grade: string
+          id?: string
+        }
+        Update: {
+          coin_id?: string
+          comments?: string | null
+          created_at?: string
+          estimated_value?: number
+          expert_id?: string | null
+          grade?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_evaluations_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_evaluations_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coins: {
+        Row: {
+          auction_end: string | null
+          authentication_status: string | null
+          composition: string | null
+          condition: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          diameter: number | null
+          favorites: number | null
+          featured: boolean | null
+          grade: string
+          id: string
+          image: string
+          is_auction: boolean | null
+          mint: string | null
+          model_3d_url: string | null
+          name: string
+          obverse_image: string | null
+          price: number
+          rarity: string
+          reverse_image: string | null
+          tags: string[] | null
+          user_id: string
+          views: number | null
+          weight: number | null
+          year: number
+        }
+        Insert: {
+          auction_end?: string | null
+          authentication_status?: string | null
+          composition?: string | null
+          condition?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          diameter?: number | null
+          favorites?: number | null
+          featured?: boolean | null
+          grade: string
+          id?: string
+          image: string
+          is_auction?: boolean | null
+          mint?: string | null
+          model_3d_url?: string | null
+          name: string
+          obverse_image?: string | null
+          price: number
+          rarity: string
+          reverse_image?: string | null
+          tags?: string[] | null
+          user_id: string
+          views?: number | null
+          weight?: number | null
+          year: number
+        }
+        Update: {
+          auction_end?: string | null
+          authentication_status?: string | null
+          composition?: string | null
+          condition?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          diameter?: number | null
+          favorites?: number | null
+          featured?: boolean | null
+          grade?: string
+          id?: string
+          image?: string
+          is_auction?: boolean | null
+          mint?: string | null
+          model_3d_url?: string | null
+          name?: string
+          obverse_image?: string | null
+          price?: number
+          rarity?: string
+          reverse_image?: string | null
+          tags?: string[] | null
+          user_id?: string
+          views?: number | null
+          weight?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          related_coin_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_coin_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_coin_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_coin_id_fkey"
+            columns: ["related_coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string | null
+          id: string
+          location: string | null
+          name: string | null
+          reputation: number | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          location?: string | null
+          name?: string | null
+          reputation?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          location?: string | null
+          name?: string | null
+          reputation?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          buyer_id: string
+          coin_id: string
+          created_at: string
+          id: string
+          seller_id: string
+          status: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          coin_id: string
+          created_at?: string
+          id?: string
+          seller_id: string
+          status?: string
+          transaction_type?: string
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          coin_id?: string
+          created_at?: string
+          id?: string
+          seller_id?: string
+          status?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorites: {
+        Row: {
+          coin_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          coin_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          coin_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_auction_end: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

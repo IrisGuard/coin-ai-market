@@ -4,7 +4,7 @@ import { X, Camera } from 'lucide-react';
 interface ImageGridProps {
   images: { file: File; preview: string }[];
   removeImage: (index: number) => void;
-  onAddImage: (e: React.ChangeEvent<HTMLInputElement>) => void; // Updated the type definition here
+  onAddImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
   maxImages: number;
   isMobile: boolean;
 }

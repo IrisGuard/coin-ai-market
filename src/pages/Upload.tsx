@@ -15,7 +15,6 @@ const Upload = () => {
     const checkBackendConnection = async () => {
       try {
         // Ping the backend API to check if it's reachable
-        // Note: You may need to create a health check endpoint in your FastAPI backend
         const response = await fetch(`${API_BASE_URL}/health`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
