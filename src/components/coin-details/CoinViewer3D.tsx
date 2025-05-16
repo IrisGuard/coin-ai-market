@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Maximize2, Minimize2, RefreshCw, RotateCcw, ZoomIn, ZoomOut, X } from 'lucide-react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface CoinViewer3DProps {
   obverseImage?: string;
