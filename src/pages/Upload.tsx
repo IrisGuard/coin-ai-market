@@ -4,9 +4,12 @@ import Footer from '@/components/Footer';
 import CoinUploader from '@/components/CoinUploader';
 import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
 import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Upload = () => {
   const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
+  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
+  
   const isLiveBackend = API_BASE_URL.includes('coinvision-ai-production') || 
                        API_BASE_URL.includes('railway.app') || 
                        API_BASE_URL.includes('render.com');
@@ -39,7 +42,18 @@ const Upload = () => {
       }
     };
 
+    const checkAuthStatus = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setAuthStatus(data.session ? 'authenticated' : 'unauthenticated');
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setAuthStatus('unauthenticated');
+      }
+    };
+
     checkBackendConnection();
+    checkAuthStatus();
   }, [isLiveBackend]);
 
   return (
@@ -72,6 +86,13 @@ const Upload = () => {
               <div className="mt-2 inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
                 <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
                 AI Backend Unavailable
+              </div>
+            )}
+            
+            {authStatus === 'unauthenticated' && (
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                Note: Login to save your coins
               </div>
             )}
           </div>

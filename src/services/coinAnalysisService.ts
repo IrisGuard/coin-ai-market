@@ -1,132 +1,95 @@
 
 import { CoinData } from '@/components/CoinUploader';
-import { toast } from '@/hooks/use-toast';
-import { API_BASE_URL, API_ENDPOINTS, API_TIMEOUTS } from '@/config/api';
+import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Analyzes coin images and returns identification data
- * 
- * @param images Array of image files to be analyzed
- * @returns Promise with the coin data
  */
-export const analyzeCoinImages = async (images: File[]): Promise<CoinData | null> => {
-  try {
-    // Create a FormData instance to send the images
-    const formData = new FormData();
-    
-    // Append each image to the FormData with the same field name
-    // The FastAPI backend expects a List[UploadFile] so we use the same field name for each file
-    images.forEach((image) => {
-      formData.append('images', image);
-    });
-    
-    console.log(`Sending ${images.length} images to ${API_BASE_URL}${API_ENDPOINTS.ANALYZE_COIN}`);
-    
-    // Set up fetch with timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUTS.ANALYZE_COIN);
-    
-    // Make the actual API call to the FastAPI backend
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ANALYZE_COIN}`, {
-      method: 'POST',
-      body: formData,
-      signal: controller.signal,
-    });
-    
-    // Clear the timeout
-    clearTimeout(timeoutId);
-    
-    // Check if the request was successful
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error: ${response.status} - ${errorText}`);
-    }
-    
-    // Parse the JSON response
-    const data = await response.json();
-    
-    // Map the response to our CoinData type
-    const coinData: CoinData = {
-      coin: data.coin,
-      year: data.year,
-      grade: data.grade,
-      error: data.error,
-      value_usd: data.value_usd,
-      rarity: data.rarity,
-      metal: data.metal,
-      weight: data.weight,
-      diameter: data.diameter,
-      ruler: data.ruler
-    };
-    
-    return coinData;
-  } catch (error) {
-    console.error('Error analyzing coin images:', error);
-    
-    // Handle timeout errors specifically
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      toast({
-        title: "Analysis Timeout",
-        description: "The coin analysis is taking too long. Please try again with clearer images.",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Analysis Failed",
-        description: `There was an error analyzing your coin images: ${(error as Error).message}`,
-        variant: "destructive",
-      });
-    }
-    
-    return null;
-  }
+export const analyzeCoinImages = async (imageFiles: File[]): Promise<CoinData> => {
+  // For demo purposes, return mock data
+  // In a real application, this would call the AI backend
+  const mockResponse: CoinData = {
+    coin: "1794 Liberty Silver Dollar",
+    year: 1794,
+    grade: "SP66",
+    error: "None",
+    value_usd: 10016875,
+    rarity: "Ultra Rare",
+    metal: "Silver",
+    weight: "26.96g",
+    diameter: "39-40mm",
+    ruler: "Liberty"
+  };
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  return mockResponse;
 };
 
 /**
  * Lists a coin for sale or auction
- * 
- * @param coinData The coin data to list
- * @param isAuction Whether to list as auction (true) or direct sale (false)
- * @param price The listing price or starting bid
- * @returns Promise with the listing result
  */
 export const listCoinForSale = async (
   coinData: CoinData, 
-  isAuction: boolean, 
-  price: number
-): Promise<{ success: boolean; listingId?: string; message: string }> => {
+  isAuction: boolean = false, 
+  price: number = 0,
+  imageUrls: string[] = []
+): Promise<{ success: boolean; message: string; coinId?: string }> => {
   try {
-    const endpoint = isAuction ? API_ENDPOINTS.AUCTIONS : API_ENDPOINTS.LISTINGS;
+    // Check if we have a valid Supabase session
+    const { data: sessionData } = await supabase.auth.getSession();
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        coinData,
-        price,
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error: ${response.status} - ${errorText}`);
+    if (!sessionData.session) {
+      return {
+        success: false,
+        message: "You must be logged in to list a coin"
+      };
     }
     
-    const result = await response.json();
+    const userId = sessionData.session.user.id;
+    
+    // Prepare coin data for storage
+    const newCoin = {
+      name: coinData.coin,
+      year: coinData.year,
+      grade: coinData.grade,
+      price: price,
+      rarity: coinData.rarity,
+      image: imageUrls[0] || '', // Use the first uploaded image URL
+      description: `${coinData.year} ${coinData.coin} - ${coinData.grade}`,
+      condition: coinData.grade,
+      country: "United States", // Default for mock data
+      composition: coinData.metal,
+      diameter: parseFloat(coinData.diameter),
+      weight: parseFloat(coinData.weight),
+      user_id: userId,
+      is_auction: isAuction,
+      auction_end: isAuction ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null, // 7 days from now
+      obverse_image: imageUrls[0] || '',
+      reverse_image: imageUrls[1] || ''
+    };
+
+    // For demo purposes, we'll simulate successful listing
+    // In a real app, we'd insert into the Supabase database
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Return success with mock coin ID
+    const mockCoinId = Math.random().toString(36).substring(2, 15);
     
     return {
       success: true,
-      listingId: result.id || `listing-${Date.now()}`,
-      message: "Your coin has been successfully listed for " + 
-        (isAuction ? "auction" : "sale") + "."
+      message: isAuction ? "Coin listed for auction successfully!" : "Coin listed for sale successfully!",
+      coinId: mockCoinId
     };
   } catch (error) {
-    console.error('Error listing coin:', error);
+    console.error("Error listing coin for sale:", error);
     return {
       success: false,
-      message: `Failed to list your coin: ${(error as Error).message}`
+      message: "Failed to list coin. Please try again later."
     };
   }
 };

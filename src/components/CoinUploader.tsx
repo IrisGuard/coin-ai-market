@@ -7,6 +7,7 @@ import MobileCameraUploader from './MobileCameraUploader';
 import ImageGrid from './coin-uploader/ImageGrid';
 import CoinResultCard from './coin-uploader/CoinResultCard';
 import { analyzeCoinImages, listCoinForSale } from '@/services/coinAnalysisService';
+import { uploadCoinImage } from '@/integrations/supabase/client';
 
 // Define the CoinData type for better type safety
 export type CoinData = {
@@ -20,6 +21,7 @@ export type CoinData = {
   weight: string;
   diameter: string;
   ruler: string;
+  image_url?: string;
 };
 
 const CoinUploader = () => {
@@ -29,6 +31,7 @@ const CoinUploader = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isListing, setIsListing] = useState(false);
   const [coinData, setCoinData] = useState<CoinData | null>(null);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -76,6 +79,26 @@ const CoinUploader = () => {
     setImages(newImages);
   };
 
+  const uploadImagesToStorage = async () => {
+    if (images.length === 0) return [];
+    
+    const uploadPromises = images.map(img => uploadCoinImage(img.file));
+    const results = await Promise.all(uploadPromises);
+    
+    // Filter out any null values (failed uploads)
+    const validUrls = results.filter((url): url is string => url !== null);
+    
+    if (validUrls.length !== images.length) {
+      toast({
+        title: "Upload Warning",
+        description: "Some images failed to upload.",
+        variant: "destructive",
+      });
+    }
+    
+    return validUrls;
+  };
+
   const identifyCoin = async () => {
     if (images.length < 2) {
       toast({
@@ -89,6 +112,10 @@ const CoinUploader = () => {
     setIsLoading(true);
     
     try {
+      // First upload images to Supabase storage
+      const imageUrls = await uploadImagesToStorage();
+      setUploadedImageUrls(imageUrls);
+      
       // Extract the file objects from the images array
       const imageFiles = images.map(img => img.file);
       
@@ -96,6 +123,11 @@ const CoinUploader = () => {
       const result = await analyzeCoinImages(imageFiles);
       
       if (result) {
+        // Add the first image URL to the result
+        if (imageUrls.length > 0) {
+          result.image_url = imageUrls[0];
+        }
+        
         setCoinData(result);
         
         toast({
@@ -121,7 +153,13 @@ const CoinUploader = () => {
     setIsListing(true);
     
     try {
-      const result = await listCoinForSale(coinData, isAuction, coinData.value_usd);
+      // Pass the uploaded image URLs to the listing service
+      const result = await listCoinForSale(
+        coinData,
+        isAuction,
+        coinData.value_usd,
+        uploadedImageUrls
+      );
       
       if (result.success) {
         toast({
@@ -133,6 +171,7 @@ const CoinUploader = () => {
         // For now, we'll just reset the form after a successful listing
         setImages([]);
         setCoinData(null);
+        setUploadedImageUrls([]);
       } else {
         toast({
           title: "Listing Failed",

@@ -21,8 +21,8 @@ const CoinResultCard = ({ coinData, onListForSale, onListForAuction, isListing }
           <div className="w-full md:w-1/3 flex justify-center">
             <div className="relative w-48 h-48 bg-white rounded-lg shadow-md overflow-hidden">
               <img 
-                src="/lovable-uploads/fc7c60ba-6810-44ba-b3af-8e1882db04ba.png"
-                alt="1794 Liberty Dollar" 
+                src={coinData.image_url || "/lovable-uploads/fc7c60ba-6810-44ba-b3af-8e1882db04ba.png"}
+                alt={`${coinData.coin}`} 
                 className="w-full h-full object-contain"
               />
             </div>
