@@ -3,18 +3,20 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, ArrowRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const { toast } = useToast();
+  const { login, signup, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password || (!isLogin && !name)) {
@@ -26,16 +28,16 @@ const Login = () => {
       return;
     }
     
-    // In a real application, this would call an authentication API
-    toast({
-      title: isLogin ? "Login Successful" : "Registration Successful",
-      description: isLogin ? "Welcome back to CoinAI!" : "Welcome to CoinAI! Your account has been created.",
-    });
-    
-    // Simulate redirect to home page
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 2000);
+    try {
+      if (isLogin) {
+        await login(email, password);
+      } else {
+        await signup(email, password, name);
+      }
+    } catch (error) {
+      // Error is already handled in the auth context
+      console.error('Authentication error:', error);
+    }
   };
   
   return (
@@ -152,9 +154,19 @@ const Login = () => {
                 <button
                   type="submit"
                   className="coin-button w-full flex items-center justify-center"
+                  disabled={loading}
                 >
-                  {isLogin ? 'Sign In' : 'Create Account'}
-                  <ArrowRight size={18} className="ml-2" />
+                  {loading ? (
+                    <>
+                      <Loader2 size={18} className="mr-2 animate-spin" />
+                      {isLogin ? 'Signing In...' : 'Creating Account...'}
+                    </>
+                  ) : (
+                    <>
+                      {isLogin ? 'Sign In' : 'Create Account'}
+                      <ArrowRight size={18} className="ml-2" />
+                    </>
+                  )}
                 </button>
               </form>
               
