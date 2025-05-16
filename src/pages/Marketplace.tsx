@@ -1,14 +1,16 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { marketplaceCoins } from '@/data/marketplaceCoins';
 import { Coin } from '@/types/coin';
 import MarketplaceHeader from '@/components/marketplace/MarketplaceHeader';
 import MarketplaceFilterPanel from '@/components/marketplace/MarketplaceFilterPanel';
 import MarketplaceGrid from '@/components/marketplace/MarketplaceGrid';
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useCoins, useFeaturedCoins } from '@/hooks/use-coins';
+import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,56 +18,18 @@ const Marketplace = () => {
   const [sortBy, setSortBy] = useState<'price' | 'year'>('price');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [selectedRarity, setSelectedRarity] = useState<string | null>(null);
-  const [featuredCoins, setFeaturedCoins] = useState<Coin[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-      const featured = marketplaceCoins
-        .filter(coin => coin.rarity === 'Rare' || coin.rarity === 'Ultra Rare')
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 5);
-      setFeaturedCoins(featured);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  // Fetch coins with filters
+  const { data: coins = [], isLoading, isError } = useCoins({
+    rarity: selectedRarity,
+    isAuctionOnly,
+    searchTerm,
+    sortBy,
+    sortDirection,
+  });
 
-  const filteredCoins = marketplaceCoins
-    .filter(coin => {
-      // Apply search filter
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        return coin.name.toLowerCase().includes(searchLower) || 
-               coin.year.toString().includes(searchLower) ||
-               coin.grade.toLowerCase().includes(searchLower);
-      }
-      return true;
-    })
-    .filter(coin => {
-      // Apply auction filter
-      if (isAuctionOnly) {
-        return coin.isAuction === true;
-      }
-      return true;
-    })
-    .filter(coin => {
-      // Apply rarity filter
-      if (selectedRarity) {
-        return coin.rarity === selectedRarity;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      // Apply sorting
-      if (sortBy === 'price') {
-        return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
-      } else {
-        return sortDirection === 'asc' ? a.year - b.year : b.year - a.year;
-      }
-    });
+  // Fetch featured coins
+  const { data: featuredCoins = [], isLoading: featuredLoading } = useFeaturedCoins();
 
   const handleSort = useCallback((field: 'price' | 'year') => {
     if (sortBy === field) {
@@ -105,7 +69,7 @@ const Marketplace = () => {
       <motion.main 
         className="flex-grow py-12"
         initial="hidden"
-        animate={isLoaded ? "visible" : "hidden"}
+        animate="visible"
         variants={containerVariants}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,7 +78,7 @@ const Marketplace = () => {
             setSearchTerm={setSearchTerm} 
           />
           
-          {featuredCoins.length > 0 && (
+          {featuredCoins.length > 0 && !featuredLoading && (
             <motion.div 
               variants={itemVariants}
               className="mb-12"
@@ -130,7 +94,7 @@ const Marketplace = () => {
                   <CarouselContent>
                     {featuredCoins.map((coin) => (
                       <CarouselItem key={coin.id} className="md:basis-1/2 lg:basis-1/3">
-                        <div className="p-1">
+                        <Link to={`/coins/${coin.id}`} className="block p-1">
                           <div className="relative h-80 rounded-xl overflow-hidden">
                             <img 
                               src={coin.image} 
@@ -150,7 +114,7 @@ const Marketplace = () => {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
@@ -159,6 +123,12 @@ const Marketplace = () => {
                 </Carousel>
               </div>
             </motion.div>
+          )}
+          
+          {featuredLoading && (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-coin-purple" />
+            </div>
           )}
           
           <motion.div variants={itemVariants}>
@@ -174,25 +144,35 @@ const Marketplace = () => {
           </motion.div>
           
           <motion.div variants={itemVariants}>
-            <MarketplaceGrid 
-              filteredCoins={filteredCoins}
-              searchTerm={searchTerm}
-              isAuctionOnly={isAuctionOnly}
-              selectedRarity={selectedRarity}
-              clearFilters={clearFilters}
-            />
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-coin-purple" />
+              </div>
+            ) : isError ? (
+              <div className="text-center py-12 glassmorphism">
+                <h2 className="text-2xl font-semibold text-coin-purple mb-2">Error loading coins</h2>
+                <p className="text-gray-600 mb-6">
+                  We couldn't load the coin data. Please try again later.
+                </p>
+                <button 
+                  className="px-6 py-2 bg-gradient-to-r from-coin-purple to-coin-skyblue text-white rounded-full hover:shadow-lg transition-shadow"
+                  onClick={() => window.location.reload()}
+                >
+                  Refresh
+                </button>
+              </div>
+            ) : (
+              <MarketplaceGrid 
+                filteredCoins={coins}
+                searchTerm={searchTerm}
+                isAuctionOnly={isAuctionOnly}
+                selectedRarity={selectedRarity}
+                clearFilters={clearFilters}
+              />
+            )}
           </motion.div>
         </div>
       </motion.main>
-      
-      {!isLoaded && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-50">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-t-coin-purple border-r-coin-orange border-b-coin-skyblue border-l-coin-darkpurple rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-lg font-medium text-coin-dark">Loading amazing coins...</p>
-          </div>
-        </div>
-      )}
       
       <Footer />
     </div>

@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Settings, Upload, Heart } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { motion } from 'framer-motion';
 
 const NavbarAuth = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -28,21 +30,17 @@ const NavbarAuth = () => {
   
   if (!isAuthenticated) {
     return (
-      <div className="hidden md:flex items-center gap-2">
-        <Link to="/login" className="text-gray-700 hover:text-coin-gold px-3 py-2 rounded-md text-sm font-medium">
+      <div className="flex items-center gap-2">
+        <Link to="/login" className="text-gray-700 hover:text-coin-purple px-3 py-2 rounded-md text-sm font-medium">
           Login
         </Link>
-        <Link 
-          to="/login" 
-          className="bg-coin-gold hover:bg-coin-gold-dark text-white px-4 py-2 rounded-md text-sm font-medium"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = '/login';
-            // We'll set isLogin to false using URL parameters after Supabase integration
-          }}
-        >
-          Sign Up
-        </Link>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button asChild className="bg-gradient-to-r from-coin-purple to-coin-skyblue text-white">
+            <Link to="/login" state={{ isSignUp: true }}>
+              Sign Up
+            </Link>
+          </Button>
+        </motion.div>
       </div>
     );
   }
@@ -50,25 +48,43 @@ const NavbarAuth = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="outline-none">
-        <Avatar className="h-8 w-8 cursor-pointer">
+        <Avatar className="h-10 w-10 cursor-pointer border-2 border-coin-purple/20 hover:border-coin-purple/50 transition-all">
           {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
-          <AvatarFallback className="bg-coin-gold text-white text-xs">
+          <AvatarFallback className="bg-gradient-to-r from-coin-purple to-coin-skyblue text-white">
             {getUserInitials()}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="glassmorphism">
+        <DropdownMenuLabel className="font-serif">
+          <div className="flex flex-col">
+            <span className="font-medium">{user.name || 'User'}</span>
+            <span className="text-xs text-muted-foreground">{user.email}</span>
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link to="/profile" className="w-full cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <User className="mr-2 h-4 w-4 text-coin-purple" />
+            <span>My Profile</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/upload" className="w-full cursor-pointer">
+            <Upload className="mr-2 h-4 w-4 text-coin-purple" />
             <span>Upload Coin</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/favorites" className="w-full cursor-pointer">
+            <Heart className="mr-2 h-4 w-4 text-coin-purple" />
+            <span>Favorites</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/settings" className="w-full cursor-pointer">
+            <Settings className="mr-2 h-4 w-4 text-coin-purple" />
+            <span>Settings</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

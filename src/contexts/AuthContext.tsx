@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 // Define user type
 export interface User {
@@ -20,6 +22,8 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
+  session: Session | null;
 }
 
 // Create the context with a default value
@@ -28,19 +32,45 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Auth provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // Check if user is already logged in on mount
   useEffect(() => {
-    const checkSession = async () => {
+    const getSession = async () => {
       try {
-        // This is a placeholder until Supabase is integrated
-        // We'll check localStorage for now
-        const storedUser = localStorage.getItem('coinai-user');
+        setLoading(true);
         
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        // Get current session and user
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (session) {
+          setSession(session);
+          
+          // Get user profile data
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching user profile:', profileError);
+          }
+          
+          // Combine auth data with profile data
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profileData?.name || session.user.email?.split('@')[0] || 'User',
+            avatar_url: profileData?.avatar_url || null,
+            created_at: profileData?.created_at || session.user.created_at,
+          });
         }
       } catch (error) {
         console.error('Session check failed:', error);
@@ -49,7 +79,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
     
-    checkSession();
+    // Initial session check
+    getSession();
+    
+    // Setup auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      
+      if (session && event === 'SIGNED_IN') {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'User',
+          avatar_url: session.user.user_metadata.avatar_url || null,
+          created_at: session.user.created_at,
+        });
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+    
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
   // Login function
@@ -57,29 +109,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      // This is a placeholder until Supabase is integrated
-      // We'll simulate a login for now
-      if (email && password) {
-        // Simulate successful login with mock user
-        const mockUser: User = {
-          id: '123456',
-          email,
-          name: email.split('@')[0],
-          created_at: new Date().toISOString()
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('coinai-user', JSON.stringify(mockUser));
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome back to CoinAI!",
-        });
-        
-        navigate('/');
-      } else {
-        throw new Error('Invalid credentials');
-      }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Login Successful",
+        description: "Welcome back to CoinAI!",
+      });
+      
+      navigate('/');
     } catch (error) {
       toast({
         title: "Login Failed",
@@ -97,29 +139,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      // This is a placeholder until Supabase is integrated
-      // We'll simulate a signup for now
-      if (email && password && name) {
-        // Simulate successful signup with mock user
-        const mockUser: User = {
-          id: '123456',
-          email,
-          name,
-          created_at: new Date().toISOString()
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('coinai-user', JSON.stringify(mockUser));
-        
-        toast({
-          title: "Registration Successful",
-          description: "Welcome to CoinAI! Your account has been created.",
-        });
-        
-        navigate('/');
-      } else {
-        throw new Error('Please provide all required fields');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data.user) {
+        // Create a profile record
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{ 
+            id: data.user.id, 
+            name, 
+            email,
+            created_at: new Date().toISOString()
+          }]);
+          
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+        }
       }
+      
+      toast({
+        title: "Registration Successful",
+        description: "Welcome to CoinAI! Please check your email to confirm your account.",
+      });
+      
+      navigate('/');
     } catch (error) {
       toast({
         title: "Registration Failed",
@@ -137,10 +190,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      // This is a placeholder until Supabase is integrated
-      // We'll clear localStorage for now
-      localStorage.removeItem('coinai-user');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
       setUser(null);
+      setSession(null);
       
       toast({
         title: "Logout Successful",
@@ -159,6 +214,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Update user profile
+  const updateProfile = async (updates: Partial<User>) => {
+    try {
+      if (!user) throw new Error('User not authenticated');
+      
+      setLoading(true);
+      
+      // Update auth metadata if name is provided
+      if (updates.name) {
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: { name: updates.name }
+        });
+        
+        if (metadataError) throw metadataError;
+      }
+      
+      // Update profile in the database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+      
+      if (profileError) throw profileError;
+      
+      // Update local user state
+      setUser({ ...user, ...updates });
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Provide auth context
   return (
     <AuthContext.Provider 
@@ -168,7 +266,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login, 
         signup, 
         logout,
-        isAuthenticated: !!user 
+        isAuthenticated: !!user,
+        updateProfile,
+        session
       }}
     >
       {children}
