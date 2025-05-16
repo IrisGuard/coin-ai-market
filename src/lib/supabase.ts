@@ -1,14 +1,25 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Provide default placeholder values for development
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.warn('Missing Supabase environment variables. Using placeholder values for development. Some functionality will be limited.');
+  console.warn('Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
+// Create a singleton Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Add a simple function to check if we have real credentials
+export const hasValidSupabaseCredentials = () => {
+  return import.meta.env.VITE_SUPABASE_URL && 
+         import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder-project.supabase.co' &&
+         import.meta.env.VITE_SUPABASE_ANON_KEY && 
+         import.meta.env.VITE_SUPABASE_ANON_KEY !== 'placeholder-key';
+};
 
 export type Database = {
   public: {

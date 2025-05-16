@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, hasValidSupabaseCredentials } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -20,9 +20,12 @@ export function useNotifications() {
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
   
+  // Check if we can use Supabase features
+  const canUseSupabase = hasValidSupabaseCredentials();
+  
   // Fetch notifications for the current user
   const fetchNotifications = async () => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !user || !canUseSupabase) {
       setNotifications([]);
       setUnreadCount(0);
       setIsLoading(false);
@@ -54,7 +57,7 @@ export function useNotifications() {
   
   // Mark a notification as read
   const markAsRead = async (notificationId: string) => {
-    if (!user) return;
+    if (!user || !canUseSupabase) return;
     
     try {
       const { error } = await supabase
@@ -81,7 +84,7 @@ export function useNotifications() {
   
   // Mark all notifications as read
   const markAllAsRead = async () => {
-    if (!user) return;
+    if (!user || !canUseSupabase) return;
     
     try {
       const { error } = await supabase
@@ -106,7 +109,7 @@ export function useNotifications() {
   
   // Delete a notification
   const deleteNotification = async (notificationId: string) => {
-    if (!user) return;
+    if (!user || !canUseSupabase) return;
     
     try {
       const { error } = await supabase
@@ -135,7 +138,7 @@ export function useNotifications() {
   
   // Subscribe to real-time notifications
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user || !canUseSupabase) return;
     
     // Initial fetch
     fetchNotifications();
@@ -166,7 +169,7 @@ export function useNotifications() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, canUseSupabase]);
   
   // Helper to get notification title
   const getNotificationTitle = (type: string) => {
