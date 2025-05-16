@@ -76,17 +76,46 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: 
+      radial-gradient(at 100% 100%, rgba(155, 135, 245, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 0%, rgba(51, 195, 240, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 }
 
 @layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl shadow-xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+  }
+  
   .coin-card {
-    @apply relative overflow-hidden bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300;
-    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+    @apply relative overflow-hidden rounded-xl shadow-lg transition-all duration-500;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+    backdrop-filter: blur(10px);
+    transform-style: preserve-3d;
+    perspective: 1000px;
   }
   
   .coin-card:before {
-    @apply content-[''] absolute top-0 left-0 w-full h-1 bg-coin-gradient;
+    @apply content-[''] absolute top-0 left-0 w-full h-1;
+    background: linear-gradient(90deg, #9b87f5, #F97316, #33C3F0);
+    background-size: 200% auto;
+    animation: gradient-shift 3s ease infinite;
+  }
+  
+  .coin-card:hover {
+    @apply shadow-2xl;
+    transform: translateY(-5px);
+  }
+  
+  .coin-card:hover .coin-image {
+    transform: rotateY(180deg);
+  }
+  
+  .coin-image {
+    @apply transition-all duration-1000;
+    transform-style: preserve-3d;
   }
   
   .gold-text {
@@ -99,15 +128,27 @@
   
   .coin-button {
     @apply px-6 py-3 rounded-full font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300;
-    background: linear-gradient(135deg, #D4AF37 0%, #C0C0C0 100%);
+    background: linear-gradient(135deg, #9b87f5 0%, #33C3F0 100%);
+    background-size: 200% auto;
+    animation: gradient-shift 5s ease infinite;
   }
   
   .coin-button-outline {
-    @apply px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300 border-2 border-coin-gold text-coin-blue hover:bg-coin-gold hover:text-white;
+    @apply px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300 border-2 border-coin-purple text-coin-dark hover:text-white;
+    background-size: 300% 100%;
+    background-position: right bottom;
+    transition: all .5s ease-out;
+  }
+  
+  .coin-button-outline:hover {
+    background-position: left bottom;
+    background-image: linear-gradient(to right, #9b87f5 0%, #F97316 50%, #33C3F0 100%);
   }
   
   .coin-input {
-    @apply border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-coin-gold focus:border-transparent transition-all duration-300;
+    @apply border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-coin-purple focus:border-transparent transition-all duration-300;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
   }
   
   .coin-section {
@@ -115,7 +156,10 @@
   }
   
   .section-heading {
-    @apply font-serif text-3xl md:text-4xl font-bold mb-6 text-coin-blue;
+    @apply font-serif text-3xl md:text-4xl font-bold mb-6;
+    background: linear-gradient(90deg, #1A1F2C, #9b87f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   
   .rarity-common {
@@ -133,4 +177,96 @@
   .rarity-ultra-rare {
     @apply bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium;
   }
+  
+  /* 3D effect classes */
+  .rotate-3d {
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  
+  .rotate-3d:hover {
+    transform: rotateY(180deg);
+  }
+  
+  .flip-card {
+    @apply relative w-full h-full;
+    perspective: 1000px;
+  }
+  
+  .flip-card-inner {
+    @apply relative w-full h-full transition-transform duration-700;
+    transform-style: preserve-3d;
+  }
+  
+  .flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flip-card-front, .flip-card-back {
+    @apply absolute w-full h-full backface-hidden;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  .flip-card-back {
+    transform: rotateY(180deg);
+  }
+  
+  /* Glassmorphism */
+  .glassmorphism {
+    @apply bg-white/30 backdrop-blur-sm border border-white/20 rounded-xl;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  }
+  
+  /* Glow effects */
+  .glow {
+    @apply relative;
+  }
+  
+  .glow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 25px rgba(155, 135, 245, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: -1;
+  }
+  
+  .glow:hover::after {
+    opacity: 1;
+  }
+}
+
+/* Animation for backgrounds with gradients */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animation for smooth fades */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
 }
