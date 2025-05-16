@@ -368,12 +368,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      marketplace_stats: {
+        Row: {
+          active_auctions: number | null
+          listed_coins: number | null
+          registered_users: number | null
+          total_volume: number | null
+          weekly_transactions: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_auction_end: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_presigned_url: {
+        Args: { bucket_name: string; file_name: string }
+        Returns: string
       }
     }
     Enums: {

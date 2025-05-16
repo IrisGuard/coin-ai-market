@@ -22,6 +22,7 @@ const ImageGrid = ({ images, removeImage, onAddImage, maxImages, isMobile }: Ima
           <button
             onClick={() => removeImage(index)}
             className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-red-50"
+            type="button"
           >
             <X size={16} className="text-red-500" />
           </button>
