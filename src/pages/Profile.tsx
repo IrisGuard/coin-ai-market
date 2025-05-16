@@ -7,11 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { User, Settings, CreditCard, LogOut, Coins } from 'lucide-react';
+import { User, Settings, CreditCard, LogOut, Coins, Heart } from 'lucide-react';
 
-const Profile = () => {
+interface ProfileProps {
+  activeTab?: string;
+}
+
+const Profile = ({ activeTab = "my-coins" }: ProfileProps) => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("my-coins");
+  const [currentTab, setCurrentTab] = useState(activeTab);
   
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -47,7 +51,7 @@ const Profile = () => {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start" 
-                      onClick={() => setActiveTab("my-coins")}
+                      onClick={() => setCurrentTab("my-coins")}
                     >
                       <Coins className="mr-2 h-4 w-4" />
                       My Coins
@@ -55,7 +59,15 @@ const Profile = () => {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start" 
-                      onClick={() => setActiveTab("account")}
+                      onClick={() => setCurrentTab("favorites")}
+                    >
+                      <Heart className="mr-2 h-4 w-4" />
+                      Favorites
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start" 
+                      onClick={() => setCurrentTab("account")}
                     >
                       <User className="mr-2 h-4 w-4" />
                       Account
@@ -63,7 +75,7 @@ const Profile = () => {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start" 
-                      onClick={() => setActiveTab("settings")}
+                      onClick={() => setCurrentTab("settings")}
                     >
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
@@ -71,7 +83,7 @@ const Profile = () => {
                     <Button 
                       variant="outline" 
                       className="w-full justify-start" 
-                      onClick={() => setActiveTab("billing")}
+                      onClick={() => setCurrentTab("billing")}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       Billing
@@ -91,9 +103,10 @@ const Profile = () => {
             
             {/* Right content area */}
             <div className="w-full md:w-3/4">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <Tabs value={currentTab} onValueChange={setCurrentTab}>
                 <TabsList className="mb-8">
                   <TabsTrigger value="my-coins">My Coins</TabsTrigger>
+                  <TabsTrigger value="favorites">Favorites</TabsTrigger>
                   <TabsTrigger value="account">Account</TabsTrigger>
                   <TabsTrigger value="settings">Settings</TabsTrigger>
                   <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -110,6 +123,23 @@ const Profile = () => {
                         <p className="text-gray-500">You haven't added any coins to your collection yet.</p>
                         <Button className="mt-4" onClick={() => window.location.href = '/upload'}>
                           Upload Your First Coin
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="favorites">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Favorite Coins</CardTitle>
+                      <CardDescription>Your saved favorite coins from the marketplace.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">You haven't added any coins to your favorites yet.</p>
+                        <Button className="mt-4" onClick={() => window.location.href = '/marketplace'}>
+                          Browse Marketplace
                         </Button>
                       </div>
                     </CardContent>

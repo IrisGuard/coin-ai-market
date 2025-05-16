@@ -119,9 +119,13 @@ export function useNotifications() {
         throw error;
       }
       
+      // Find the notification to check if it was unread
+      const wasUnread = notifications.some(n => n.id === notificationId && !n.is_read);
+      
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
-      if (prev => prev.find(n => n.id === notificationId && !n.is_read)) {
+      // Only decrement unreadCount if the deleted notification was unread
+      if (wasUnread) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
