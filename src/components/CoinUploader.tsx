@@ -1,13 +1,8 @@
 
-import { useState, ChangeEvent } from 'react';
-import { Upload, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useMobile } from '@/hooks/use-mobile';
-import MobileCameraUploader from './MobileCameraUploader';
-import ImageGrid from './coin-uploader/ImageGrid';
+import { useCoinImages } from '@/hooks/use-coin-images';
+import { useCoinIdentification } from '@/hooks/use-coin-identification';
+import CoinUploadSection from './coin-uploader/CoinUploadSection';
 import CoinResultCard from './coin-uploader/CoinResultCard';
-import { analyzeCoinImages, listCoinForSale } from '@/services/coinAnalysisService';
-import { uploadCoinImage } from '@/integrations/supabase/client';
 
 // Define the CoinData type for better type safety
 export type CoinData = {
@@ -25,169 +20,49 @@ export type CoinData = {
 };
 
 const CoinUploader = () => {
-  const { toast } = useToast();
-  const isMobile = useMobile();
-  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isListing, setIsListing] = useState(false);
-  const [coinData, setCoinData] = useState<CoinData | null>(null);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const {
+    images,
+    uploadedImageUrls,
+    handleImageUpload,
+    handleMobileImagesSelected,
+    removeImage,
+    uploadImagesToStorage,
+    resetImages
+  } = useCoinImages(5);
 
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
+  const {
+    coinData,
+    isLoading,
+    isListing,
+    identifyCoin,
+    handleListCoin,
+    resetCoinData
+  } = useCoinIdentification();
+
+  const handleIdentifyCoin = async () => {
+    // First upload images to Supabase storage
+    const imageUrls = await uploadImagesToStorage();
     
-    const newFiles = Array.from(e.target.files);
+    // Extract the file objects from the images array
+    const imageFiles = images.map(img => img.file);
     
-    if (images.length + newFiles.length > 5) {
-      toast({
-        title: "Error",
-        description: "You can upload a maximum of 5 images.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const newImages = newFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-    
-    setImages([...images, ...newImages]);
+    // Call the coin analysis service
+    await identifyCoin(imageFiles, imageUrls);
   };
 
-  const handleMobileImagesSelected = (newImages: { file: File; preview: string }[]) => {
-    if (images.length + newImages.length > 5) {
-      toast({
-        title: "Error",
-        description: `You can upload a maximum of 5 images. Only adding the first ${5 - images.length}.`,
-        variant: "destructive",
-      });
-      
-      // Only add up to the maximum allowed
-      const allowedImages = newImages.slice(0, 5 - images.length);
-      setImages([...images, ...allowedImages]);
-      return;
-    }
-    
-    setImages([...images, ...newImages]);
-  };
-
-  const removeImage = (index: number) => {
-    const newImages = [...images];
-    URL.revokeObjectURL(newImages[index].preview);
-    newImages.splice(index, 1);
-    setImages(newImages);
-  };
-
-  const uploadImagesToStorage = async () => {
-    if (images.length === 0) return [];
-    
-    const uploadPromises = images.map(img => uploadCoinImage(img.file));
-    const results = await Promise.all(uploadPromises);
-    
-    // Filter out any null values (failed uploads)
-    const validUrls = results.filter((url): url is string => url !== null);
-    
-    if (validUrls.length !== images.length) {
-      toast({
-        title: "Upload Warning",
-        description: "Some images failed to upload.",
-        variant: "destructive",
-      });
-    }
-    
-    return validUrls;
-  };
-
-  const identifyCoin = async () => {
-    if (images.length < 2) {
-      toast({
-        title: "Not enough images",
-        description: "Please upload at least 2 images of your coin (front and back).",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      // First upload images to Supabase storage
-      const imageUrls = await uploadImagesToStorage();
-      setUploadedImageUrls(imageUrls);
-      
-      // Extract the file objects from the images array
-      const imageFiles = images.map(img => img.file);
-      
-      // Call the coin analysis service
-      const result = await analyzeCoinImages(imageFiles);
-      
-      if (result) {
-        // Add the first image URL to the result
-        if (imageUrls.length > 0) {
-          result.image_url = imageUrls[0];
-        }
-        
-        setCoinData(result);
-        
-        toast({
-          title: "Coin Identified!",
-          description: "Our AI has successfully identified your coin.",
-        });
-      }
-    } catch (error) {
-      console.error("Error identifying coin:", error);
-      toast({
-        title: "Identification Failed",
-        description: "There was an error identifying your coin. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+  const handleListForSale = async () => {
+    const success = await handleListCoin(false, uploadedImageUrls);
+    if (success) {
+      resetImages();
+      resetCoinData();
     }
   };
 
-  const handleListCoin = async (isAuction: boolean = false) => {
-    if (!coinData) return;
-    
-    setIsListing(true);
-    
-    try {
-      // Pass the uploaded image URLs to the listing service
-      const result = await listCoinForSale(
-        coinData,
-        isAuction,
-        coinData.value_usd,
-        uploadedImageUrls
-      );
-      
-      if (result.success) {
-        toast({
-          title: "Success!",
-          description: result.message,
-        });
-        
-        // In a real app, we might redirect to the listing page or the marketplace
-        // For now, we'll just reset the form after a successful listing
-        setImages([]);
-        setCoinData(null);
-        setUploadedImageUrls([]);
-      } else {
-        toast({
-          title: "Listing Failed",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error listing coin:", error);
-      toast({
-        title: "Listing Failed",
-        description: "There was an error listing your coin. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsListing(false);
+  const handleListForAuction = async () => {
+    const success = await handleListCoin(true, uploadedImageUrls);
+    if (success) {
+      resetImages();
+      resetCoinData();
     }
   };
 
@@ -195,44 +70,19 @@ const CoinUploader = () => {
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-serif font-bold text-coin-blue mb-6">Upload Coin Images</h2>
       
-      <div className="mb-6">
-        <p className="text-gray-600 mb-2">Upload 2-5 images of your coin (front, back, and other angles)</p>
-        
-        {isMobile ? (
-          <MobileCameraUploader onImagesSelected={handleMobileImagesSelected} maxImages={5} />
-        ) : null}
-        
-        <ImageGrid 
-          images={images}
-          removeImage={removeImage}
-          onAddImage={handleImageUpload}
-          maxImages={5}
-          isMobile={isMobile}
-        />
-      </div>
-      
-      <button
-        onClick={identifyCoin}
-        disabled={images.length < 2 || isLoading}
-        className="coin-button w-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 size={20} className="mr-2 animate-spin" />
-            Analyzing Images...
-          </>
-        ) : (
-          <>
-            <Upload size={20} className="mr-2" />
-            Identify Coin
-          </>
-        )}
-      </button>
+      <CoinUploadSection
+        images={images}
+        onImageUpload={handleImageUpload}
+        onMobileImagesSelected={handleMobileImagesSelected}
+        onRemoveImage={removeImage}
+        onIdentifyCoin={handleIdentifyCoin}
+        isLoading={isLoading}
+      />
       
       <CoinResultCard 
         coinData={coinData} 
-        onListForSale={() => handleListCoin(false)} 
-        onListForAuction={() => handleListCoin(true)} 
+        onListForSale={handleListForSale} 
+        onListForAuction={handleListForAuction} 
         isListing={isListing}
       />
     </div>
