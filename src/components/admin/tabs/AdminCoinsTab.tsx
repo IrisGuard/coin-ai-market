@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Edit, Search, Star, Check, X } from 'lucide-react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Coin {
@@ -31,37 +30,8 @@ const AdminCoinsTab = () => {
 
   const fetchCoins = async () => {
     try {
-      // Mock coins data
-      const mockCoins = [
-        {
-          id: '1',
-          name: '1794 Liberty Dollar',
-          year: 1794,
-          price: 10000000,
-          rarity: 'Ultra Rare',
-          grade: 'SP66',
-          image: 'https://images.unsplash.com/photo-1541597455068-49e3562bdfa4?w=300',
-          featured: true,
-          authentication_status: 'verified',
-          user_id: 'user1',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: '1933 Double Eagle',
-          year: 1933,
-          price: 18900000,
-          rarity: 'Ultra Rare',
-          grade: 'MS65',
-          image: 'https://images.unsplash.com/photo-1541597455068-49e3562bdfa4?w=300',
-          featured: false,
-          authentication_status: 'pending',
-          user_id: 'user2',
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setCoins(mockCoins);
+      // Ready for real API implementation
+      setCoins([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -248,7 +218,7 @@ const AdminCoinsTab = () => {
 
       {filteredCoins.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          No coins found matching your criteria.
+          {coins.length === 0 ? 'No coins found. Connect your database to see coins.' : 'No coins found matching your criteria.'}
         </div>
       )}
     </div>

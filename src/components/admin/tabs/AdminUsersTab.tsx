@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trash2, Edit, Search, UserCheck, UserX } from 'lucide-react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface User {
@@ -25,26 +24,8 @@ const AdminUsersTab = () => {
 
   const fetchUsers = async () => {
     try {
-      const mockUsers = [
-        {
-          id: '1',
-          email: 'john@example.com',
-          name: 'John Smith',
-          avatar_url: '',
-          reputation: 85,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          email: 'jane@example.com',
-          name: 'Jane Doe',
-          avatar_url: '',
-          reputation: 92,
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setUsers(mockUsers);
+      // Ready for real API implementation
+      setUsers([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -176,7 +157,7 @@ const AdminUsersTab = () => {
 
       {filteredUsers.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          No users found matching your search.
+          {users.length === 0 ? 'No users found. Connect your database to see users.' : 'No users found matching your search.'}
         </div>
       )}
     </div>

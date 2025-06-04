@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { Clock, DollarSign, Award, Rotate3d, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 type CoinCardProps = {
@@ -45,18 +44,6 @@ const CoinCard = ({
   
   const { isAuthenticated, user } = useAuth();
 
-  // Check if the coin is in the user's favorites
-  const checkFavoriteStatus = async () => {
-    if (!isAuthenticated || !user) return;
-    
-    try {
-      const isFav = await mockApi.checkFavorite(user.id, id);
-      setIsFavorite(isFav);
-    } catch (error) {
-      console.error('Error checking favorite status:', error);
-    }
-  };
-
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -72,9 +59,6 @@ const CoinCard = ({
     
     try {
       if (isFavorite) {
-        // Remove from favorites
-        await mockApi.removeFavorite(user!.id, id);
-        
         setFavoritesCount(prev => Math.max(0, prev - 1));
         setIsFavorite(false);
         
@@ -83,9 +67,6 @@ const CoinCard = ({
           description: `${name} has been removed from your favorites`,
         });
       } else {
-        // Add to favorites
-        await mockApi.addFavorite(user!.id, id);
-        
         setFavoritesCount(prev => prev + 1);
         setIsFavorite(true);
         
@@ -193,11 +174,7 @@ const CoinCard = ({
                 
                 <motion.button 
                   className="bg-white/80 p-1 rounded-full backdrop-blur-sm"
-                  onClick={(e) => { 
-                    e.preventDefault(); 
-                    e.stopPropagation();
-                    setIsFlipped(!isFlipped); 
-                  }}
+                  onClick={toggleFavorite}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Coins, DollarSign, TrendingUp, Activity } from 'lucide-react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Stats {
@@ -20,16 +19,8 @@ const AdminAnalyticsTab = () => {
 
   const fetchStats = async () => {
     try {
-      // Mock stats data
-      const mockStats = {
-        listed_coins: 1245,
-        active_auctions: 126,
-        registered_users: 45729,
-        total_volume: 1200000,
-        weekly_transactions: 342
-      };
-      
-      setStats(mockStats);
+      // Ready for real API implementation
+      setStats(null);
     } catch (error) {
       console.error('Error fetching stats:', error);
       toast({
@@ -51,7 +42,17 @@ const AdminAnalyticsTab = () => {
   }
 
   if (!stats) {
-    return <div className="p-4">Failed to load analytics data.</div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-6">
+          <BarChart3 className="h-6 w-6 text-blue-600" />
+          <h3 className="text-lg font-semibold">Platform Analytics</h3>
+        </div>
+        <div className="text-center py-8 text-gray-500">
+          Connect your database to view analytics data.
+        </div>
+      </div>
+    );
   }
 
   const statCards = [

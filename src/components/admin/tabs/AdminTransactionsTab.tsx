@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, DollarSign } from 'lucide-react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Transaction {
@@ -26,31 +25,8 @@ const AdminTransactionsTab = () => {
 
   const fetchTransactions = async () => {
     try {
-      // Mock transactions data
-      const mockTransactions = [
-        {
-          id: '1',
-          coin_id: 'coin1',
-          seller_id: 'user1',
-          buyer_id: 'user2',
-          amount: 1500,
-          status: 'completed',
-          transaction_type: 'purchase',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          coin_id: 'coin2',
-          seller_id: 'user2',
-          buyer_id: 'user3',
-          amount: 2500,
-          status: 'pending',
-          transaction_type: 'auction',
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setTransactions(mockTransactions);
+      // Ready for real API implementation
+      setTransactions([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -176,7 +152,7 @@ const AdminTransactionsTab = () => {
 
       {filteredTransactions.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          No transactions found matching your criteria.
+          {transactions.length === 0 ? 'No transactions found. Connect your database to see transactions.' : 'No transactions found matching your criteria.'}
         </div>
       )}
     </div>

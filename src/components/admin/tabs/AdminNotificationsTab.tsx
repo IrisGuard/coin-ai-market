@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, Bell, Users } from 'lucide-react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Notification {
@@ -28,27 +27,8 @@ const AdminNotificationsTab = () => {
 
   const fetchNotifications = async () => {
     try {
-      // Mock notifications data
-      const mockNotifications = [
-        {
-          id: '1',
-          user_id: 'user1',
-          message: 'Welcome to CoinVision AI!',
-          type: 'announcement',
-          is_read: false,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          user_id: 'user2',
-          message: 'Your coin has been verified!',
-          type: 'system',
-          is_read: true,
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setNotifications(mockNotifications);
+      // Ready for real API implementation
+      setNotifications([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -194,7 +174,7 @@ const AdminNotificationsTab = () => {
 
         {notifications.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            No notifications found.
+            No notifications found. Create your first notification above.
           </div>
         )}
       </div>

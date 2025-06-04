@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Database, Activity, AlertTriangle, Download } from 'lucide-react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface ActivityLog {
@@ -23,29 +21,8 @@ const AdminSystemTab = () => {
 
   const fetchActivityLogs = async () => {
     try {
-      // Mock activity logs
-      const mockLogs = [
-        {
-          id: '1',
-          admin_user_id: 'admin1',
-          action: 'user_delete',
-          target_type: 'user',
-          target_id: 'user123',
-          details: { reason: 'Violated terms' },
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          admin_user_id: 'admin1',
-          action: 'coin_approve',
-          target_type: 'coin',
-          target_id: 'coin456',
-          details: { grade: 'MS65' },
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setActivityLogs(mockLogs);
+      // Ready for real API implementation
+      setActivityLogs([]);
     } catch (error) {
       console.error('Error fetching activity logs:', error);
       setActivityLogs([]);
@@ -56,39 +33,10 @@ const AdminSystemTab = () => {
 
   const handleExportData = async (type: string) => {
     try {
-      let data;
-      let filename;
-      
-      switch (type) {
-        case 'users':
-          data = [{ id: '1', email: 'user@example.com', name: 'User' }];
-          filename = 'users_export.json';
-          break;
-        case 'coins':
-          data = [{ id: '1', name: '1794 Liberty Dollar', price: 10000 }];
-          filename = 'coins_export.json';
-          break;
-        case 'transactions':
-          data = [{ id: '1', amount: 1500, status: 'completed' }];
-          filename = 'transactions_export.json';
-          break;
-        default:
-          return;
-      }
-
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+      // Ready for real API implementation
       toast({
         title: "Success",
-        description: `${type} data exported successfully`,
+        description: `${type} data export ready`,
       });
     } catch (error) {
       toast({
@@ -222,7 +170,7 @@ const AdminSystemTab = () => {
               
               {activityLogs.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  No activity logs found.
+                  No activity logs found. Connect your database to see logs.
                 </div>
               )}
             </div>

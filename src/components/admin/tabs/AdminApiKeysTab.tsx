@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Key, Plus, Eye, EyeOff, Trash2, Edit } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface ApiKey {
@@ -38,31 +37,8 @@ const AdminApiKeysTab = () => {
 
   const fetchApiKeys = async () => {
     try {
-      // Mock API keys data
-      const mockApiKeys = [
-        {
-          id: '1',
-          key_name: 'OPENAI_API_KEY',
-          encrypted_value: btoa('sk-proj-test-key-123'),
-          description: 'OpenAI API key for coin analysis',
-          is_active: true,
-          created_by: 'admin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          key_name: 'STRIPE_SECRET_KEY',
-          encrypted_value: btoa('sk_test_123456789'),
-          description: 'Stripe secret key for payments',
-          is_active: true,
-          created_by: 'admin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      
-      setApiKeys(mockApiKeys);
+      // Ready for real API implementation
+      setApiKeys([]);
     } catch (error) {
       console.error('Error fetching API keys:', error);
       setApiKeys([]);
@@ -196,7 +172,7 @@ const AdminApiKeysTab = () => {
                   id="key_name"
                   value={newKey.key_name}
                   onChange={(e) => setNewKey({ ...newKey, key_name: e.target.value })}
-                  placeholder="e.g., OPENAI_API_KEY"
+                  placeholder="e.g., YOUR_AI_API_KEY"
                 />
               </div>
               <div>

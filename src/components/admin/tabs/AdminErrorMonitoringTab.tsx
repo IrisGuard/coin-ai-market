@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Bug, RefreshCw, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface ErrorLog {
@@ -42,21 +41,8 @@ const AdminErrorMonitoringTab = () => {
 
   const fetchErrorLogs = async () => {
     try {
-      // Mock error logs
-      const mockErrorLogs = [
-        {
-          id: '1',
-          error_type: 'runtime',
-          message: 'Cannot read property of undefined',
-          stack_trace: 'Error: Cannot read property...\n  at Component.render',
-          user_id: 'user1',
-          page_url: '/coins/123',
-          user_agent: 'Mozilla/5.0...',
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setErrorLogs(mockErrorLogs);
+      // Ready for real API implementation
+      setErrorLogs([]);
     } catch (error) {
       console.error('Error fetching error logs:', error);
       setErrorLogs([]);
@@ -65,22 +51,8 @@ const AdminErrorMonitoringTab = () => {
 
   const fetchConsoleErrors = async () => {
     try {
-      // Mock console errors
-      const mockConsoleErrors = [
-        {
-          id: '1',
-          error_level: 'error',
-          message: 'Failed to load resource',
-          source_file: 'app.js',
-          line_number: 123,
-          column_number: 45,
-          user_id: 'user1',
-          session_id: 'session123',
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      setConsoleErrors(mockConsoleErrors);
+      // Ready for real API implementation
+      setConsoleErrors([]);
     } catch (error) {
       console.error('Error fetching console errors:', error);
       setConsoleErrors([]);
@@ -244,7 +216,7 @@ const AdminErrorMonitoringTab = () => {
                 
                 {filteredErrorLogs.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    No error logs found.
+                    No error logs found. Connect your error monitoring to see logs.
                   </div>
                 )}
               </div>
@@ -290,7 +262,7 @@ const AdminErrorMonitoringTab = () => {
                 
                 {filteredConsoleErrors.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    No console errors found.
+                    No console errors found. Connect your error monitoring to see logs.
                   </div>
                 )}
               </div>

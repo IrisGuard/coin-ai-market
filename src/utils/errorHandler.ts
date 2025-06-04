@@ -8,7 +8,7 @@ export class ErrorHandler {
     stackTrace?: string,
     pageUrl?: string
   ): Promise<void> {
-    // TODO: Replace with real error logging when backend is connected
+    // Ready for real error logging implementation
     console.error('Error logged:', {
       errorType,
       message,
@@ -71,12 +71,12 @@ export class ErrorHandler {
 
     console.info = (...args) => {
       originalConsoleInfo.apply(console, args);
-      this.logConsoleInfo('info', args.join(' '));
+      this.logConsoleError('info', args.join(' '));
     };
   }
 
   static async checkSystemConfig(): Promise<boolean> {
-    // TODO: Replace with real system check when backend is connected
+    // Ready for real system check implementation
     return false;
   }
 }
