@@ -2,11 +2,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Coin } from '@/types/coin';
-import { marketplaceCoins } from '@/data/marketplaceCoins';
-import { mapDbCoinToCoin, filterAndSortStaticData } from '@/utils/coinMappers';
+import { mapDbCoinToCoin } from '@/utils/coinMappers';
 
 /**
- * Hook for fetching and filtering marketplace coins
+ * Hook for fetching and filtering marketplace coins from Supabase only
  */
 export const useMarketplaceCoins = (options?: {
   rarity?: string | null;
@@ -23,7 +22,6 @@ export const useMarketplaceCoins = (options?: {
     sortDirection = 'desc'
   } = options || {};
 
-  // Fetch coins from Supabase
   const fetchCoins = async (): Promise<Coin[]> => {
     try {
       let query = supabase
@@ -57,16 +55,8 @@ export const useMarketplaceCoins = (options?: {
       return data.map(mapDbCoinToCoin) as Coin[];
     } catch (error) {
       console.error('Error fetching coins:', error);
-      
-      // Return static data as fallback
-      console.log('Using fallback data');
-      return filterAndSortStaticData(marketplaceCoins, {
-        rarity,
-        isAuctionOnly,
-        searchTerm,
-        sortBy,
-        sortDirection
-      });
+      // Return empty array instead of fallback mock data
+      return [];
     }
   };
 

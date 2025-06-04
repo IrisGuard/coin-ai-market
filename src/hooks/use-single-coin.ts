@@ -2,11 +2,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Coin } from '@/types/coin';
-import { marketplaceCoins } from '@/data/marketplaceCoins';
 import { mapDbCoinWithBidsToCoin } from '@/utils/coinMappers';
 
 /**
- * Hook for fetching a single coin by ID
+ * Hook for fetching a single coin by ID from Supabase only
  */
 export const useSingleCoin = (id: string) => {
   const fetchCoin = async (): Promise<Coin> => {
@@ -33,15 +32,7 @@ export const useSingleCoin = (id: string) => {
       return mapDbCoinWithBidsToCoin(data) as Coin;
     } catch (error) {
       console.error('Error fetching coin:', error);
-      
-      // Return static data as fallback
-      const staticCoin = marketplaceCoins.find(c => c.id === id);
-      
-      if (!staticCoin) {
-        throw new Error('Coin not found');
-      }
-      
-      return staticCoin;
+      throw new Error('Coin not found');
     }
   };
 

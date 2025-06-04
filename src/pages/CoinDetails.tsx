@@ -1,39 +1,73 @@
-import { useParams } from 'react-router-dom';
+
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Clock, ChevronLeft, ShoppingCart, Star, Eye, Shield } from 'lucide-react';
+import { Clock, ChevronLeft, ShoppingCart, Star, Eye, Shield, Loader2 } from 'lucide-react';
+import { useSingleCoin } from '@/hooks/use-single-coin';
 
 const CoinDetails = () => {
   const { id } = useParams();
+  
+  if (!id) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow py-12 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-red-600">Invalid coin ID</h1>
+              <Link to="/marketplace" className="text-coin-blue hover:text-coin-gold mt-4 inline-block">
+                Return to Marketplace
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
-  // Mock coin data for demonstration
-  const coin = {
-    id: '1',
-    name: '10 Drachmai',
-    year: 1959,
-    grade: 'MS66',
-    price: 55.00,
-    rarity: 'Uncommon',
-    image: 'https://www.karamitsos.com/img/lots/559/127028.jpg',
-    isAuction: true,
-    timeLeft: '2d 5h',
-    description: 'A beautiful example of a 1959 Greek 10 Drachmai coin, graded MS66 by NGC. This coin features a stunning design and is a great addition to any collection.',
-    condition: 'Mint State',
-    origin: 'Greece',
-    material: 'Nickel',
-    weight: '10 grams',
-    dimensions: '30mm diameter',
-    ruler: 'Paul I',
-    certifications: ['NGC Certified', 'PCGS Graded'],
-    authenticityGuarantee: true,
-    shippingOptions: ['Worldwide', 'Insured'],
-    returnsAccepted: true,
-    sellerInfo: {
-      username: 'CoinCollector123',
-      feedbackScore: 4.8,
-      location: 'Athens, Greece'
-    }
-  };
+  const { data: coin, isLoading, isError } = useSingleCoin(id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow py-12 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-coin-purple" />
+              <span className="ml-2 text-gray-600">Loading coin details...</span>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isError || !coin) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow py-12 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center py-12">
+              <h1 className="text-2xl font-bold text-red-600 mb-4">Coin not found</h1>
+              <p className="text-gray-600 mb-6">
+                The coin you're looking for doesn't exist or has been removed.
+              </p>
+              <Link to="/marketplace" className="coin-button inline-flex items-center px-6 py-3">
+                <ChevronLeft size={20} className="mr-2" />
+                Back to Marketplace
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,10 +76,10 @@ const CoinDetails = () => {
       <main className="flex-grow py-12 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <a href="/marketplace" className="inline-flex items-center text-coin-blue hover:text-coin-gold">
+            <Link to="/marketplace" className="inline-flex items-center text-coin-blue hover:text-coin-gold">
               <ChevronLeft size={20} className="mr-2" />
               Back to Marketplace
-            </a>
+            </Link>
           </div>
           
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -73,93 +107,41 @@ const CoinDetails = () => {
                   </button>
                 </div>
                 
-                {coin.isAuction && (
+                {coin.isAuction && coin.timeLeft && (
                   <div className="flex items-center text-sm text-gray-500 mb-4">
                     <Clock size={16} className="mr-2" />
                     Time Left: {coin.timeLeft}
                   </div>
                 )}
                 
-                <p className="text-gray-700 leading-relaxed mb-6">{coin.description}</p>
+                <p className="text-gray-700 leading-relaxed mb-6">
+                  {coin.description || `A beautiful ${coin.year} ${coin.name} in ${coin.grade} condition.`}
+                </p>
                 
                 <div className="border-t border-gray-200 pt-4">
                   <h2 className="text-xl font-semibold text-coin-blue mb-3">Coin Details</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-gray-500 text-sm">Condition</p>
-                      <p className="font-medium">{coin.condition}</p>
+                      <p className="font-medium">{coin.condition || coin.grade}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-sm">Origin</p>
-                      <p className="font-medium">{coin.origin}</p>
+                      <p className="text-gray-500 text-sm">Country</p>
+                      <p className="font-medium">{coin.country || 'Not specified'}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-sm">Material</p>
-                      <p className="font-medium">{coin.material}</p>
+                      <p className="text-gray-500 text-sm">Composition</p>
+                      <p className="font-medium">{coin.composition || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-gray-500 text-sm">Weight</p>
-                      <p className="font-medium">{coin.weight}</p>
+                      <p className="font-medium">{coin.weight ? `${coin.weight}g` : 'Not specified'}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-sm">Dimensions</p>
-                      <p className="font-medium">{coin.dimensions}</p>
-                    </div>
-                     <div>
-                      <p className="text-gray-500 text-sm">Ruler</p>
-                      <p className="font-medium">{coin.ruler}</p>
+                      <p className="text-gray-500 text-sm">Diameter</p>
+                      <p className="font-medium">{coin.diameter ? `${coin.diameter}mm` : 'Not specified'}</p>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-6 border-t border-gray-200">
-              <h2 className="text-xl font-semibold text-coin-blue mb-3">Seller Information</h2>
-              <div className="flex items-center">
-                <div className="mr-4">
-                  <svg className="h-10 w-10 rounded-full bg-gray-300 text-gray-600">
-                    {/* Placeholder for user avatar */}
-                    <Shield size={40} />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">{coin.sellerInfo.username}</p>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Star size={14} className="mr-1" />
-                    {coin.sellerInfo.feedbackScore} ({Math.floor(Math.random() * 500)} Feedback)
-                  </div>
-                  <p className="text-sm text-gray-500">Location: {coin.sellerInfo.location}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-6 border-t border-gray-200">
-              <h2 className="text-xl font-semibold text-coin-blue mb-3">Purchase Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-500 text-sm">Certifications</p>
-                  <ul className="list-disc pl-5">
-                    {coin.certifications.map((cert, index) => (
-                      <li key={index} className="font-medium">{cert}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm">Authenticity Guarantee</p>
-                  <p className="font-medium">{coin.authenticityGuarantee ? 'Yes' : 'No'}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm">Shipping Options</p>
-                  <ul className="list-disc pl-5">
-                    {coin.shippingOptions.map((option, index) => (
-                      <li key={index} className="font-medium">{option}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm">Returns Accepted</p>
-                  <p className="font-medium">{coin.returnsAccepted ? 'Yes' : 'No'}</p>
                 </div>
               </div>
             </div>

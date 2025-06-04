@@ -1,0 +1,26 @@
+
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm ci",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "@vite_supabase_url",
+    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
+    "VITE_OPENAI_API_KEY": "@vite_openai_api_key",
+    "VITE_STRIPE_PUBLISHABLE_KEY": "@vite_stripe_publishable_key",
+    "VITE_STRIPE_SECRET_KEY": "@vite_stripe_secret_key",
+    "VITE_SENTRY_DSN": "@vite_sentry_dsn"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
