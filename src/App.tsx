@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
+import { TenantProvider } from "@/contexts/TenantContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
@@ -16,6 +17,7 @@ import CoinDetails from "./pages/CoinDetails";
 import Upload from "./pages/Upload";
 import CoinUpload from "./pages/CoinUpload";
 import MobileUpload from "./pages/MobileUpload";
+import TenantDashboard from "./components/tenant/TenantDashboard";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -30,31 +32,38 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-              <AdminProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/coins/:id" element={<CoinDetails />} />
-                  <Route path="/upload" element={
-                    <ProtectedRoute>
-                      <Upload />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/coin-upload" element={
-                    <ProtectedRoute>
-                      <CoinUpload />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/mobile-upload" element={
-                    <ProtectedRoute>
-                      <MobileUpload />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AdminProvider>
+              <TenantProvider>
+                <AdminProvider>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/coins/:id" element={<CoinDetails />} />
+                    <Route path="/upload" element={
+                      <ProtectedRoute>
+                        <Upload />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/coin-upload" element={
+                      <ProtectedRoute>
+                        <CoinUpload />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/mobile-upload" element={
+                      <ProtectedRoute>
+                        <MobileUpload />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/tenant-dashboard" element={
+                      <ProtectedRoute>
+                        <TenantDashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AdminProvider>
+              </TenantProvider>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

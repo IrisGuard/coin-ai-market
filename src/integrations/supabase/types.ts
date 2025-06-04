@@ -220,6 +220,7 @@ export type Database = {
           coin_id: string
           created_at: string | null
           id: string
+          tenant_id: string | null
           user_id: string
         }
         Insert: {
@@ -227,6 +228,7 @@ export type Database = {
           coin_id: string
           created_at?: string | null
           id?: string
+          tenant_id?: string | null
           user_id: string
         }
         Update: {
@@ -234,6 +236,7 @@ export type Database = {
           coin_id?: string
           created_at?: string | null
           id?: string
+          tenant_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -242,6 +245,13 @@ export type Database = {
             columns: ["coin_id"]
             isOneToOne: false
             referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_tenants"
             referencedColumns: ["id"]
           },
           {
@@ -421,6 +431,7 @@ export type Database = {
           reserve_price: number | null
           reverse_image: string | null
           tags: string[] | null
+          tenant_id: string | null
           updated_at: string | null
           user_id: string
           views: number | null
@@ -457,6 +468,7 @@ export type Database = {
           reserve_price?: number | null
           reverse_image?: string | null
           tags?: string[] | null
+          tenant_id?: string | null
           updated_at?: string | null
           user_id: string
           views?: number | null
@@ -493,6 +505,7 @@ export type Database = {
           reserve_price?: number | null
           reverse_image?: string | null
           tags?: string[] | null
+          tenant_id?: string | null
           updated_at?: string | null
           user_id?: string
           views?: number | null
@@ -500,6 +513,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "coins_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_tenants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coins_user_id_fkey"
             columns: ["user_id"]
@@ -549,6 +569,47 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_domains: {
+        Row: {
+          created_at: string | null
+          domain: string
+          id: string
+          is_verified: boolean | null
+          ssl_status: string | null
+          tenant_id: string | null
+          verification_code: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain: string
+          id?: string
+          is_verified?: boolean | null
+          ssl_status?: string | null
+          tenant_id?: string | null
+          verification_code?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string
+          id?: string
+          is_verified?: boolean | null
+          ssl_status?: string | null
+          tenant_id?: string | null
+          verification_code?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_domains_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1022,6 +1083,51 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_tenants: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          owner_id: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          subdomain: string
+          tenant_slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          owner_id?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          subdomain: string
+          tenant_slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          subdomain?: string
+          tenant_slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -1082,6 +1188,7 @@ export type Database = {
           ngc_member_id: string | null
           pcgs_member_id: string | null
           reputation: number | null
+          tenant_id: string | null
           updated_at: string | null
           verified_dealer: boolean | null
           website: string | null
@@ -1097,6 +1204,7 @@ export type Database = {
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
           reputation?: number | null
+          tenant_id?: string | null
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
@@ -1112,11 +1220,20 @@ export type Database = {
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
           reputation?: number | null
+          tenant_id?: string | null
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proxy_rotation_log: {
         Row: {
@@ -1490,6 +1607,94 @@ export type Database = {
           },
         ]
       }
+      tenant_subscriptions: {
+        Row: {
+          annual_fee: number | null
+          created_at: string | null
+          currency: string | null
+          expires_at: string | null
+          id: string
+          status: string | null
+          stripe_subscription_id: string | null
+          subscription_type: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          annual_fee?: number | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          subscription_type?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          annual_fee?: number | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          subscription_type?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_themes: {
+        Row: {
+          created_at: string | null
+          custom_css: string | null
+          favicon_url: string | null
+          id: string
+          logo_url: string | null
+          tenant_id: string | null
+          theme_config: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_css?: string | null
+          favicon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          tenant_id?: string | null
+          theme_config?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_css?: string | null
+          favicon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          tenant_id?: string | null
+          theme_config?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_themes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -1667,6 +1872,10 @@ export type Database = {
         Args: { bucket_name: string; file_name: string }
         Returns: string
       }
+      get_tenant_from_domain: {
+        Args: { domain_name: string }
+        Returns: string
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
@@ -1700,6 +1909,10 @@ export type Database = {
           user_agent_param?: string
         }
         Returns: string
+      }
+      set_tenant_context: {
+        Args: { tenant_uuid: string }
+        Returns: undefined
       }
     }
     Enums: {

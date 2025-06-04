@@ -5,11 +5,14 @@ import { toast } from '@/hooks/use-toast';
 
 export const useAICoinRecognition = () => {
   return useMutation({
-    mutationFn: async (imageData: { image: string; additionalImages?: string[] }) => {
+    mutationFn: async (imageData: { image: string; additionalImages?: string[]; aiProvider?: string }) => {
       console.log('Starting AI coin recognition...');
       
-      const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
-        body: imageData
+      const { data, error } = await supabase.functions.invoke('custom-ai-recognition', {
+        body: {
+          ...imageData,
+          aiProvider: imageData.aiProvider || 'custom'
+        }
       });
 
       if (error) {
@@ -24,7 +27,7 @@ export const useAICoinRecognition = () => {
       if (data.success) {
         toast({
           title: "AI Analysis Complete",
-          description: `${data.name} identified with ${Math.round(data.confidence * 100)}% confidence`,
+          description: `${data.name || 'Coin'} identified using ${data.provider} with ${Math.round((data.confidence || 0.5) * 100)}% confidence`,
         });
       }
     },

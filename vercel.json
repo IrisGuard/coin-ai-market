@@ -1,25 +1,33 @@
 
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm ci",
-  "framework": "vite",
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-  "env": {
-    "VITE_SENTRY_DSN": "@vite_sentry_dsn",
-    "VITE_AI_API_KEY": "@vite_ai_api_key",
-    "VITE_AI_API_URL": "@vite_ai_api_url",
-    "VITE_PAYMENT_API_KEY": "@vite_payment_api_key",
-    "VITE_PAYMENT_API_URL": "@vite_payment_api_url"
-  },
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
     }
-  }
+  ]
 }

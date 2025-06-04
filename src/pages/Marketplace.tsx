@@ -1,14 +1,28 @@
-
 import React, { useState, useMemo } from 'react';
 import { useCoins } from '@/hooks/useCoins';
+import { useTenant } from '@/contexts/TenantContext';
 import Navbar from '@/components/Navbar';
 import CoinGrid from '@/components/CoinGrid';
+import TenantMarketplace from '@/components/tenant/TenantMarketplace';
 import { motion } from 'framer-motion';
 import { Search, Filter, SlidersHorizontal, Grid3x3, List, TrendingUp, Clock, Star, Sparkles, Target, Users, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 const Marketplace = () => {
+  const { currentTenant } = useTenant();
+  
+  // If we're in a tenant context, show the tenant marketplace
+  if (currentTenant) {
+    return (
+      <div>
+        <Navbar />
+        <TenantMarketplace />
+      </div>
+    );
+  }
+
+  // Otherwise show the main marketplace with all the existing functionality
   const { data: coins = [], isLoading } = useCoins();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRarity, setSelectedRarity] = useState<string>('');
@@ -94,7 +108,7 @@ const Marketplace = () => {
             </div>
             
             <h1 className="section-title mb-6">
-              Coin Marketplace
+              Global Coin Marketplace
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto text-balance leading-relaxed">
               Discover, buy, and sell authenticated coins from collectors worldwide. 
