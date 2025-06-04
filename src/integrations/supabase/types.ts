@@ -43,213 +43,64 @@ export type Database = {
           target_type?: string
           user_agent?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_activity_logs_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       admin_roles: {
         Row: {
           created_at: string | null
           created_by: string | null
           id: string
-          role: string
+          role: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          role?: string
+          role?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          role?: string
+          role?: string | null
           user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "admin_roles_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      aggregated_coin_prices: {
-        Row: {
-          coin_identifier: string
-          confidence_level: number | null
-          current_avg_price: number | null
-          grade: string | null
-          id: string
-          last_updated: string | null
-          price_sources: string[] | null
-          price_trend: string | null
-          sample_size: number | null
-          trend_percentage: number | null
-        }
-        Insert: {
-          coin_identifier: string
-          confidence_level?: number | null
-          current_avg_price?: number | null
-          grade?: string | null
-          id?: string
-          last_updated?: string | null
-          price_sources?: string[] | null
-          price_trend?: string | null
-          sample_size?: number | null
-          trend_percentage?: number | null
-        }
-        Update: {
-          coin_identifier?: string
-          confidence_level?: number | null
-          current_avg_price?: number | null
-          grade?: string | null
-          id?: string
-          last_updated?: string | null
-          price_sources?: string[] | null
-          price_trend?: string | null
-          sample_size?: number | null
-          trend_percentage?: number | null
-        }
-        Relationships: []
-      }
-      ai_recognition_cache: {
-        Row: {
-          confidence_score: number | null
-          created_at: string | null
-          error_detected: boolean | null
-          expires_at: string | null
-          grade_estimation: string | null
-          id: string
-          image_hash: string
-          price_estimate: number | null
-          processing_time_ms: number | null
-          recognition_results: Json
-          sources_consulted: string[] | null
-        }
-        Insert: {
-          confidence_score?: number | null
-          created_at?: string | null
-          error_detected?: boolean | null
-          expires_at?: string | null
-          grade_estimation?: string | null
-          id?: string
-          image_hash: string
-          price_estimate?: number | null
-          processing_time_ms?: number | null
-          recognition_results: Json
-          sources_consulted?: string[] | null
-        }
-        Update: {
-          confidence_score?: number | null
-          created_at?: string | null
-          error_detected?: boolean | null
-          expires_at?: string | null
-          grade_estimation?: string | null
-          id?: string
-          image_hash?: string
-          price_estimate?: number | null
-          processing_time_ms?: number | null
-          recognition_results?: Json
-          sources_consulted?: string[] | null
-        }
-        Relationships: []
-      }
-      api_key_categories: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          icon: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name?: string
         }
         Relationships: []
       }
       api_keys: {
         Row: {
-          category_id: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           encrypted_value: string
-          encryption_version: number | null
           id: string
           is_active: boolean | null
           key_name: string
           updated_at: string | null
         }
         Insert: {
-          category_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           encrypted_value: string
-          encryption_version?: number | null
           id?: string
           is_active?: boolean | null
           key_name: string
           updated_at?: string | null
         }
         Update: {
-          category_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           encrypted_value?: string
-          encryption_version?: number | null
           id?: string
           is_active?: boolean | null
           key_name?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "api_keys_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "api_key_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "api_keys_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       bids: {
         Row: {
@@ -257,7 +108,6 @@ export type Database = {
           coin_id: string
           created_at: string | null
           id: string
-          tenant_id: string | null
           user_id: string
         }
         Insert: {
@@ -265,7 +115,6 @@ export type Database = {
           coin_id: string
           created_at?: string | null
           id?: string
-          tenant_id?: string | null
           user_id: string
         }
         Update: {
@@ -273,7 +122,6 @@ export type Database = {
           coin_id?: string
           created_at?: string | null
           id?: string
-          tenant_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -284,60 +132,7 @@ export type Database = {
             referencedRelation: "coins"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "bids_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bids_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
-      }
-      coin_data_cache: {
-        Row: {
-          coin_identifier: string
-          confidence_score: number | null
-          created_at: string | null
-          data_type: string
-          expires_at: string | null
-          id: string
-          last_updated: string | null
-          processed_data: Json | null
-          raw_data: Json
-          source_name: string
-        }
-        Insert: {
-          coin_identifier: string
-          confidence_score?: number | null
-          created_at?: string | null
-          data_type: string
-          expires_at?: string | null
-          id?: string
-          last_updated?: string | null
-          processed_data?: Json | null
-          raw_data: Json
-          source_name: string
-        }
-        Update: {
-          coin_identifier?: string
-          confidence_score?: number | null
-          created_at?: string | null
-          data_type?: string
-          expires_at?: string | null
-          id?: string
-          last_updated?: string | null
-          processed_data?: Json | null
-          raw_data?: Json
-          source_name?: string
-        }
-        Relationships: []
       }
       coin_evaluations: {
         Row: {
@@ -375,66 +170,6 @@ export type Database = {
             referencedRelation: "coins"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "coin_evaluations_expert_id_fkey"
-            columns: ["expert_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coin_price_history: {
-        Row: {
-          coin_identifier: string
-          condition_notes: string | null
-          confidence_score: number | null
-          created_at: string | null
-          currency: string | null
-          grade: string | null
-          id: string
-          price: number
-          raw_listing_data: Json | null
-          sale_date: string | null
-          sale_type: string | null
-          source_id: string | null
-        }
-        Insert: {
-          coin_identifier: string
-          condition_notes?: string | null
-          confidence_score?: number | null
-          created_at?: string | null
-          currency?: string | null
-          grade?: string | null
-          id?: string
-          price: number
-          raw_listing_data?: Json | null
-          sale_date?: string | null
-          sale_type?: string | null
-          source_id?: string | null
-        }
-        Update: {
-          coin_identifier?: string
-          condition_notes?: string | null
-          confidence_score?: number | null
-          created_at?: string | null
-          currency?: string | null
-          grade?: string | null
-          id?: string
-          price?: number
-          raw_listing_data?: Json | null
-          sale_date?: string | null
-          sale_type?: string | null
-          source_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coin_price_history_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_price_sources"
-            referencedColumns: ["id"]
-          },
         ]
       }
       coins: {
@@ -468,7 +203,6 @@ export type Database = {
           reserve_price: number | null
           reverse_image: string | null
           tags: string[] | null
-          tenant_id: string | null
           updated_at: string | null
           user_id: string
           views: number | null
@@ -505,7 +239,6 @@ export type Database = {
           reserve_price?: number | null
           reverse_image?: string | null
           tags?: string[] | null
-          tenant_id?: string | null
           updated_at?: string | null
           user_id: string
           views?: number | null
@@ -542,29 +275,13 @@ export type Database = {
           reserve_price?: number | null
           reverse_image?: string | null
           tags?: string[] | null
-          tenant_id?: string | null
           updated_at?: string | null
           user_id?: string
           views?: number | null
           weight?: number | null
           year?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "coins_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       console_errors: {
         Row: {
@@ -600,315 +317,7 @@ export type Database = {
           source_file?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "console_errors_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      custom_domains: {
-        Row: {
-          created_at: string | null
-          domain: string
-          id: string
-          is_verified: boolean | null
-          ssl_status: string | null
-          tenant_id: string | null
-          verification_code: string | null
-          verified_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          domain: string
-          id?: string
-          is_verified?: boolean | null
-          ssl_status?: string | null
-          tenant_id?: string | null
-          verification_code?: string | null
-          verified_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          domain?: string
-          id?: string
-          is_verified?: boolean | null
-          ssl_status?: string | null
-          tenant_id?: string | null
-          verification_code?: string | null
-          verified_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "custom_domains_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      data_sources: {
-        Row: {
-          config: Json | null
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          last_used: string | null
-          name: string
-          priority: number | null
-          rate_limit: number | null
-          success_rate: number | null
-          type: string
-          updated_at: string | null
-          url: string | null
-        }
-        Insert: {
-          config?: Json | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_used?: string | null
-          name: string
-          priority?: number | null
-          rate_limit?: number | null
-          success_rate?: number | null
-          type: string
-          updated_at?: string | null
-          url?: string | null
-        }
-        Update: {
-          config?: Json | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_used?: string | null
-          name?: string
-          priority?: number | null
-          rate_limit?: number | null
-          success_rate?: number | null
-          type?: string
-          updated_at?: string | null
-          url?: string | null
-        }
         Relationships: []
-      }
-      error_coins_db: {
-        Row: {
-          base_coin_id: string | null
-          created_at: string | null
-          error_description: string
-          error_type: string
-          id: string
-          identification_markers: string[] | null
-          image_examples: string[] | null
-          rarity_multiplier: number | null
-          value_premium_percent: number | null
-        }
-        Insert: {
-          base_coin_id?: string | null
-          created_at?: string | null
-          error_description: string
-          error_type: string
-          id?: string
-          identification_markers?: string[] | null
-          image_examples?: string[] | null
-          rarity_multiplier?: number | null
-          value_premium_percent?: number | null
-        }
-        Update: {
-          base_coin_id?: string | null
-          created_at?: string | null
-          error_description?: string
-          error_type?: string
-          id?: string
-          identification_markers?: string[] | null
-          image_examples?: string[] | null
-          rarity_multiplier?: number | null
-          value_premium_percent?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "error_coins_db_base_coin_id_fkey"
-            columns: ["base_coin_id"]
-            isOneToOne: false
-            referencedRelation: "static_coins_db"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      error_coins_knowledge: {
-        Row: {
-          ai_detection_markers: Json | null
-          common_mistakes: string[] | null
-          created_at: string | null
-          description: string
-          diagnostic_images: string[] | null
-          error_category: string
-          error_name: string
-          error_type: string
-          id: string
-          identification_techniques: string[] | null
-          rarity_score: number | null
-          reference_links: string[] | null
-          severity_level: number | null
-          technical_specifications: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          ai_detection_markers?: Json | null
-          common_mistakes?: string[] | null
-          created_at?: string | null
-          description: string
-          diagnostic_images?: string[] | null
-          error_category: string
-          error_name: string
-          error_type: string
-          id?: string
-          identification_techniques?: string[] | null
-          rarity_score?: number | null
-          reference_links?: string[] | null
-          severity_level?: number | null
-          technical_specifications?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          ai_detection_markers?: Json | null
-          common_mistakes?: string[] | null
-          created_at?: string | null
-          description?: string
-          diagnostic_images?: string[] | null
-          error_category?: string
-          error_name?: string
-          error_type?: string
-          id?: string
-          identification_techniques?: string[] | null
-          rarity_score?: number | null
-          reference_links?: string[] | null
-          severity_level?: number | null
-          technical_specifications?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      error_coins_market_data: {
-        Row: {
-          base_coin_id: string | null
-          created_at: string | null
-          data_confidence: number | null
-          grade: string
-          id: string
-          knowledge_base_id: string | null
-          last_sale_date: string | null
-          last_sale_price: number | null
-          market_trend: string | null
-          market_value_avg: number | null
-          market_value_high: number | null
-          market_value_low: number | null
-          premium_percentage: number | null
-          source_references: string[] | null
-          updated_at: string | null
-        }
-        Insert: {
-          base_coin_id?: string | null
-          created_at?: string | null
-          data_confidence?: number | null
-          grade: string
-          id?: string
-          knowledge_base_id?: string | null
-          last_sale_date?: string | null
-          last_sale_price?: number | null
-          market_trend?: string | null
-          market_value_avg?: number | null
-          market_value_high?: number | null
-          market_value_low?: number | null
-          premium_percentage?: number | null
-          source_references?: string[] | null
-          updated_at?: string | null
-        }
-        Update: {
-          base_coin_id?: string | null
-          created_at?: string | null
-          data_confidence?: number | null
-          grade?: string
-          id?: string
-          knowledge_base_id?: string | null
-          last_sale_date?: string | null
-          last_sale_price?: number | null
-          market_trend?: string | null
-          market_value_avg?: number | null
-          market_value_high?: number | null
-          market_value_low?: number | null
-          premium_percentage?: number | null
-          source_references?: string[] | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "error_coins_market_data_base_coin_id_fkey"
-            columns: ["base_coin_id"]
-            isOneToOne: false
-            referencedRelation: "static_coins_db"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "error_coins_market_data_knowledge_base_id_fkey"
-            columns: ["knowledge_base_id"]
-            isOneToOne: false
-            referencedRelation: "error_coins_knowledge"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      error_coins_price_history: {
-        Row: {
-          auction_house: string | null
-          condition_notes: string | null
-          created_at: string | null
-          grade: string | null
-          id: string
-          lot_number: string | null
-          market_data_id: string | null
-          price: number
-          sale_date: string
-          source_url: string | null
-        }
-        Insert: {
-          auction_house?: string | null
-          condition_notes?: string | null
-          created_at?: string | null
-          grade?: string | null
-          id?: string
-          lot_number?: string | null
-          market_data_id?: string | null
-          price: number
-          sale_date: string
-          source_url?: string | null
-        }
-        Update: {
-          auction_house?: string | null
-          condition_notes?: string | null
-          created_at?: string | null
-          grade?: string | null
-          id?: string
-          lot_number?: string | null
-          market_data_id?: string | null
-          price?: number
-          sale_date?: string
-          source_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "error_coins_price_history_market_data_id_fkey"
-            columns: ["market_data_id"]
-            isOneToOne: false
-            referencedRelation: "error_coins_market_data"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       error_logs: {
         Row: {
@@ -940,228 +349,6 @@ export type Database = {
           stack_trace?: string | null
           user_agent?: string | null
           user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "error_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      error_reference_sources: {
-        Row: {
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          last_scraped: string | null
-          reliability_score: number | null
-          scraping_config: Json | null
-          source_name: string
-          source_type: string
-          source_url: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_scraped?: string | null
-          reliability_score?: number | null
-          scraping_config?: Json | null
-          source_name: string
-          source_type: string
-          source_url: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_scraped?: string | null
-          reliability_score?: number | null
-          scraping_config?: Json | null
-          source_name?: string
-          source_type?: string
-          source_url?: string
-        }
-        Relationships: []
-      }
-      external_price_sources: {
-        Row: {
-          ai_detection_rules: Json | null
-          auto_config_enabled: boolean | null
-          avg_response_time: number | null
-          base_url: string
-          category_id: string | null
-          created_at: string | null
-          discovery_method: string | null
-          failed_scrapes: number | null
-          id: string
-          last_config_update: string | null
-          last_successful_scrape: string | null
-          market_focus: string[] | null
-          obfuscation_level: number | null
-          priority_score: number | null
-          rate_limit_per_hour: number | null
-          region_id: string | null
-          reliability_score: number | null
-          requires_proxy: boolean | null
-          scraping_config: Json | null
-          scraping_enabled: boolean | null
-          source_name: string
-          source_type: string
-          supported_currencies: string[] | null
-          template_id: string | null
-          total_scrapes: number | null
-        }
-        Insert: {
-          ai_detection_rules?: Json | null
-          auto_config_enabled?: boolean | null
-          avg_response_time?: number | null
-          base_url: string
-          category_id?: string | null
-          created_at?: string | null
-          discovery_method?: string | null
-          failed_scrapes?: number | null
-          id?: string
-          last_config_update?: string | null
-          last_successful_scrape?: string | null
-          market_focus?: string[] | null
-          obfuscation_level?: number | null
-          priority_score?: number | null
-          rate_limit_per_hour?: number | null
-          region_id?: string | null
-          reliability_score?: number | null
-          requires_proxy?: boolean | null
-          scraping_config?: Json | null
-          scraping_enabled?: boolean | null
-          source_name: string
-          source_type: string
-          supported_currencies?: string[] | null
-          template_id?: string | null
-          total_scrapes?: number | null
-        }
-        Update: {
-          ai_detection_rules?: Json | null
-          auto_config_enabled?: boolean | null
-          avg_response_time?: number | null
-          base_url?: string
-          category_id?: string | null
-          created_at?: string | null
-          discovery_method?: string | null
-          failed_scrapes?: number | null
-          id?: string
-          last_config_update?: string | null
-          last_successful_scrape?: string | null
-          market_focus?: string[] | null
-          obfuscation_level?: number | null
-          priority_score?: number | null
-          rate_limit_per_hour?: number | null
-          region_id?: string | null
-          reliability_score?: number | null
-          requires_proxy?: boolean | null
-          scraping_config?: Json | null
-          scraping_enabled?: boolean | null
-          source_name?: string
-          source_type?: string
-          supported_currencies?: string[] | null
-          template_id?: string | null
-          total_scrapes?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_price_sources_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "source_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "external_price_sources_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "geographic_regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "external_price_sources_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "source_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      geographic_regions: {
-        Row: {
-          code: string
-          continent: string | null
-          country_codes: string[] | null
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          code: string
-          continent?: string | null
-          country_codes?: string[] | null
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          code?: string
-          continent?: string | null
-          country_codes?: string[] | null
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      marketplace_tenants: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          logo_url: string | null
-          name: string
-          owner_id: string | null
-          primary_color: string | null
-          secondary_color: string | null
-          subdomain: string
-          tenant_slug: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
-          name: string
-          owner_id?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          subdomain: string
-          tenant_slug: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
-          name?: string
-          owner_id?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          subdomain?: string
-          tenant_slug?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1204,13 +391,6 @@ export type Database = {
             referencedRelation: "coins"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       profiles: {
@@ -1225,7 +405,6 @@ export type Database = {
           ngc_member_id: string | null
           pcgs_member_id: string | null
           reputation: number | null
-          tenant_id: string | null
           updated_at: string | null
           verified_dealer: boolean | null
           website: string | null
@@ -1241,7 +420,6 @@ export type Database = {
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
           reputation?: number | null
-          tenant_id?: string | null
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
@@ -1257,385 +435,9 @@ export type Database = {
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
           reputation?: number | null
-          tenant_id?: string | null
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      proxy_rotation_log: {
-        Row: {
-          avg_response_time: number | null
-          blocked_until: string | null
-          created_at: string | null
-          id: string
-          last_used: string | null
-          proxy_id: string | null
-          request_count: number | null
-          source_id: string | null
-          success_rate: number | null
-        }
-        Insert: {
-          avg_response_time?: number | null
-          blocked_until?: string | null
-          created_at?: string | null
-          id?: string
-          last_used?: string | null
-          proxy_id?: string | null
-          request_count?: number | null
-          source_id?: string | null
-          success_rate?: number | null
-        }
-        Update: {
-          avg_response_time?: number | null
-          blocked_until?: string | null
-          created_at?: string | null
-          id?: string
-          last_used?: string | null
-          proxy_id?: string | null
-          request_count?: number | null
-          source_id?: string | null
-          success_rate?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "proxy_rotation_log_proxy_id_fkey"
-            columns: ["proxy_id"]
-            isOneToOne: false
-            referencedRelation: "vpn_proxies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "proxy_rotation_log_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_price_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rate_limits: {
-        Row: {
-          action_type: string
-          created_at: string | null
-          id: string
-          ip_address: unknown | null
-          request_count: number | null
-          user_id: string | null
-          window_start: string | null
-        }
-        Insert: {
-          action_type: string
-          created_at?: string | null
-          id?: string
-          ip_address?: unknown | null
-          request_count?: number | null
-          user_id?: string | null
-          window_start?: string | null
-        }
-        Update: {
-          action_type?: string
-          created_at?: string | null
-          id?: string
-          ip_address?: unknown | null
-          request_count?: number | null
-          user_id?: string | null
-          window_start?: string | null
-        }
-        Relationships: []
-      }
-      scraping_jobs: {
-        Row: {
-          completed_at: string | null
-          created_at: string | null
-          error_message: string | null
-          id: string
-          job_type: string
-          proxy_id: string | null
-          results: Json | null
-          source_id: string | null
-          started_at: string | null
-          status: string
-          target_url: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          job_type: string
-          proxy_id?: string | null
-          results?: Json | null
-          source_id?: string | null
-          started_at?: string | null
-          status?: string
-          target_url: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          job_type?: string
-          proxy_id?: string | null
-          results?: Json | null
-          source_id?: string | null
-          started_at?: string | null
-          status?: string
-          target_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scraping_jobs_proxy_id_fkey"
-            columns: ["proxy_id"]
-            isOneToOne: false
-            referencedRelation: "vpn_proxies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scraping_jobs_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "data_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      scraping_schedules: {
-        Row: {
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          last_run: string | null
-          max_pages_per_run: number | null
-          next_run: string | null
-          priority: number | null
-          schedule_pattern: string
-          source_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_run?: string | null
-          max_pages_per_run?: number | null
-          next_run?: string | null
-          priority?: number | null
-          schedule_pattern: string
-          source_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_run?: string | null
-          max_pages_per_run?: number | null
-          next_run?: string | null
-          priority?: number | null
-          schedule_pattern?: string
-          source_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scraping_schedules_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_price_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      source_categories: {
-        Row: {
-          created_at: string
-          description: string | null
-          icon: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      source_performance_metrics: {
-        Row: {
-          avg_response_time: number | null
-          coins_discovered: number | null
-          created_at: string
-          data_quality_score: number | null
-          date: string
-          failed_requests: number | null
-          id: string
-          source_id: string | null
-          successful_requests: number | null
-        }
-        Insert: {
-          avg_response_time?: number | null
-          coins_discovered?: number | null
-          created_at?: string
-          data_quality_score?: number | null
-          date?: string
-          failed_requests?: number | null
-          id?: string
-          source_id?: string | null
-          successful_requests?: number | null
-        }
-        Update: {
-          avg_response_time?: number | null
-          coins_discovered?: number | null
-          created_at?: string
-          data_quality_score?: number | null
-          date?: string
-          failed_requests?: number | null
-          id?: string
-          source_id?: string | null
-          successful_requests?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "source_performance_metrics_source_id_fkey"
-            columns: ["source_id"]
-            isOneToOne: false
-            referencedRelation: "external_price_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      source_templates: {
-        Row: {
-          created_at: string
-          default_config: Json
-          description: string | null
-          id: string
-          name: string
-          supported_features: Json | null
-        }
-        Insert: {
-          created_at?: string
-          default_config: Json
-          description?: string | null
-          id?: string
-          name: string
-          supported_features?: Json | null
-        }
-        Update: {
-          created_at?: string
-          default_config?: Json
-          description?: string | null
-          id?: string
-          name?: string
-          supported_features?: Json | null
-        }
-        Relationships: []
-      }
-      static_coins_db: {
-        Row: {
-          base_value: number | null
-          category: string | null
-          composition: string | null
-          country: string | null
-          created_at: string | null
-          denomination: string | null
-          design_type: string | null
-          designer: string | null
-          diameter: number | null
-          edge_type: string | null
-          error_variations: string[] | null
-          id: string
-          mint_location: string | null
-          mint_marks: string[] | null
-          mintage: number | null
-          name: string
-          obverse_designer: string | null
-          rarity_score: number | null
-          reverse_designer: string | null
-          specifications: Json | null
-          subcategory: string | null
-          updated_at: string | null
-          variety_notes: string | null
-          weight: number | null
-          world_region: string | null
-          year_end: number | null
-          year_start: number | null
-        }
-        Insert: {
-          base_value?: number | null
-          category?: string | null
-          composition?: string | null
-          country?: string | null
-          created_at?: string | null
-          denomination?: string | null
-          design_type?: string | null
-          designer?: string | null
-          diameter?: number | null
-          edge_type?: string | null
-          error_variations?: string[] | null
-          id?: string
-          mint_location?: string | null
-          mint_marks?: string[] | null
-          mintage?: number | null
-          name: string
-          obverse_designer?: string | null
-          rarity_score?: number | null
-          reverse_designer?: string | null
-          specifications?: Json | null
-          subcategory?: string | null
-          updated_at?: string | null
-          variety_notes?: string | null
-          weight?: number | null
-          world_region?: string | null
-          year_end?: number | null
-          year_start?: number | null
-        }
-        Update: {
-          base_value?: number | null
-          category?: string | null
-          composition?: string | null
-          country?: string | null
-          created_at?: string | null
-          denomination?: string | null
-          design_type?: string | null
-          designer?: string | null
-          diameter?: number | null
-          edge_type?: string | null
-          error_variations?: string[] | null
-          id?: string
-          mint_location?: string | null
-          mint_marks?: string[] | null
-          mintage?: number | null
-          name?: string
-          obverse_designer?: string | null
-          rarity_score?: number | null
-          reverse_designer?: string | null
-          specifications?: Json | null
-          subcategory?: string | null
-          updated_at?: string | null
-          variety_notes?: string | null
-          weight?: number | null
-          world_region?: string | null
-          year_end?: number | null
-          year_start?: number | null
         }
         Relationships: []
       }
@@ -1664,103 +466,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "system_config_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tenant_subscriptions: {
-        Row: {
-          annual_fee: number | null
-          created_at: string | null
-          currency: string | null
-          expires_at: string | null
-          id: string
-          status: string | null
-          stripe_subscription_id: string | null
-          subscription_type: string | null
-          tenant_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          annual_fee?: number | null
-          created_at?: string | null
-          currency?: string | null
-          expires_at?: string | null
-          id?: string
-          status?: string | null
-          stripe_subscription_id?: string | null
-          subscription_type?: string | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          annual_fee?: number | null
-          created_at?: string | null
-          currency?: string | null
-          expires_at?: string | null
-          id?: string
-          status?: string | null
-          stripe_subscription_id?: string | null
-          subscription_type?: string | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tenant_subscriptions_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tenant_themes: {
-        Row: {
-          created_at: string | null
-          custom_css: string | null
-          favicon_url: string | null
-          id: string
-          logo_url: string | null
-          tenant_id: string | null
-          theme_config: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          custom_css?: string | null
-          favicon_url?: string | null
-          id?: string
-          logo_url?: string | null
-          tenant_id?: string | null
-          theme_config?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          custom_css?: string | null
-          favicon_url?: string | null
-          id?: string
-          logo_url?: string | null
-          tenant_id?: string | null
-          theme_config?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tenant_themes_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_tenants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       transactions: {
         Row: {
@@ -1770,9 +476,9 @@ export type Database = {
           created_at: string | null
           id: string
           seller_id: string
-          status: string
+          status: string | null
           stripe_payment_intent_id: string | null
-          transaction_type: string
+          transaction_type: string | null
         }
         Insert: {
           amount: number
@@ -1781,9 +487,9 @@ export type Database = {
           created_at?: string | null
           id?: string
           seller_id: string
-          status?: string
+          status?: string | null
           stripe_payment_intent_id?: string | null
-          transaction_type?: string
+          transaction_type?: string | null
         }
         Update: {
           amount?: number
@@ -1792,30 +498,16 @@ export type Database = {
           created_at?: string | null
           id?: string
           seller_id?: string
-          status?: string
+          status?: string | null
           stripe_payment_intent_id?: string | null
-          transaction_type?: string
+          transaction_type?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "transactions_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "transactions_coin_id_fkey"
             columns: ["coin_id"]
             isOneToOne: false
             referencedRelation: "coins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1847,183 +539,14 @@ export type Database = {
             referencedRelation: "coins"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "user_favorites_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
-      }
-      vpn_proxies: {
-        Row: {
-          country_code: string | null
-          created_at: string | null
-          encrypted_password: string | null
-          endpoint: string
-          id: string
-          is_active: boolean | null
-          last_used: string | null
-          name: string
-          port: number | null
-          success_rate: number | null
-          type: string
-          username: string | null
-        }
-        Insert: {
-          country_code?: string | null
-          created_at?: string | null
-          encrypted_password?: string | null
-          endpoint: string
-          id?: string
-          is_active?: boolean | null
-          last_used?: string | null
-          name: string
-          port?: number | null
-          success_rate?: number | null
-          type: string
-          username?: string | null
-        }
-        Update: {
-          country_code?: string | null
-          created_at?: string | null
-          encrypted_password?: string | null
-          endpoint?: string
-          id?: string
-          is_active?: boolean | null
-          last_used?: string | null
-          name?: string
-          port?: number | null
-          success_rate?: number | null
-          type?: string
-          username?: string | null
-        }
-        Relationships: []
       }
     }
     Views: {
-      marketplace_stats: {
-        Row: {
-          active_auctions: number | null
-          listed_coins: number | null
-          registered_users: number | null
-          total_volume: number | null
-          weekly_transactions: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      bulk_import_sources: {
-        Args: { sources_data: Json }
-        Returns: {
-          imported_count: number
-          failed_count: number
-          errors: string[]
-        }[]
-      }
-      check_auction_end: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      check_rate_limit: {
-        Args: {
-          action_type_param: string
-          max_requests?: number
-          window_minutes?: number
-        }
-        Returns: boolean
-      }
-      create_first_admin: {
-        Args: { admin_email: string }
-        Returns: string
-      }
-      decrypt_api_key: {
-        Args: { encrypted_key: string }
-        Returns: string
-      }
-      decrypt_api_key_secure: {
-        Args: { encrypted_key: string }
-        Returns: string
-      }
-      encrypt_api_key: {
-        Args: { plain_key: string }
-        Returns: string
-      }
-      encrypt_api_key_secure: {
-        Args: { plain_key: string }
-        Returns: string
-      }
-      generate_presigned_url: {
-        Args: { bucket_name: string; file_name: string }
-        Returns: string
-      }
-      get_tenant_from_domain: {
-        Args: { domain_name: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      is_admin_secure: {
-        Args: { user_id?: string }
-        Returns: boolean
-      }
-      log_admin_activity: {
-        Args: {
-          action_type: string
-          target_type: string
-          target_id?: string
-          details?: Json
-        }
-        Returns: undefined
-      }
-      log_admin_activity_secure: {
-        Args: {
-          action_type: string
-          target_type: string
-          target_id?: string
-          details?: Json
-        }
-        Returns: undefined
-      }
-      log_console_error: {
-        Args: {
-          error_level_param: string
-          message_param: string
-          source_file_param?: string
-          line_number_param?: number
-          column_number_param?: number
-          session_id_param?: string
-        }
-        Returns: string
-      }
-      log_error: {
-        Args: {
-          error_type_param: string
-          message_param: string
-          stack_trace_param?: string
-          page_url_param?: string
-          user_agent_param?: string
-        }
-        Returns: string
-      }
-      log_error_secure: {
-        Args: {
-          error_type_param: string
-          message_param: string
-          stack_trace_param?: string
-          page_url_param?: string
-          user_agent_param?: string
-        }
-        Returns: string
-      }
-      set_tenant_context: {
-        Args: { tenant_uuid: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
