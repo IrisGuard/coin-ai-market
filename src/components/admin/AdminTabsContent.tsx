@@ -14,10 +14,15 @@ import AdminScrapingTab from './tabs/AdminScrapingTab';
 import AdminExternalSourcesTab from './tabs/AdminExternalSourcesTab';
 import AdminPriceAggregationTab from './tabs/AdminPriceAggregationTab';
 import AdminErrorCoinsTab from './tabs/AdminErrorCoinsTab';
+import AdminAIBrainTab from './tabs/AdminAIBrainTab';
 
 const AdminTabsContent = () => {
   return (
     <>
+      <TabsContent value="ai-brain">
+        <AdminAIBrainTab />
+      </TabsContent>
+
       <TabsContent value="external-sources">
         <AdminExternalSourcesTab />
       </TabsContent>

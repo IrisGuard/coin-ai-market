@@ -21,7 +21,7 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
         <div className="space-y-6">
           <AdminStatsOverview />
 
-          <Tabs defaultValue="external-sources" className="space-y-4">
+          <Tabs defaultValue="ai-brain" className="space-y-4">
             <AdminTabsList />
             <AdminTabsContent />
           </Tabs>

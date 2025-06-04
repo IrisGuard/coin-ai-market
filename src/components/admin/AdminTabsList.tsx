@@ -13,12 +13,17 @@ import {
   Shield,
   Globe,
   DollarSign,
-  Target
+  Target,
+  Brain
 } from 'lucide-react';
 
 const AdminTabsList = () => {
   return (
-    <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12">
+    <TabsList className="grid w-full grid-cols-6 lg:grid-cols-13">
+      <TabsTrigger value="ai-brain" className="flex items-center gap-2">
+        <Brain className="h-4 w-4" />
+        <span className="hidden sm:inline">AI Brain</span>
+      </TabsTrigger>
       <TabsTrigger value="external-sources" className="flex items-center gap-2">
         <Globe className="h-4 w-4" />
         <span className="hidden sm:inline">External</span>
