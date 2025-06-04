@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -132,6 +131,22 @@ export const useConsoleErrors = () => {
   });
 };
 
+// Hook for API key categories
+export const useApiKeyCategories = () => {
+  return useQuery({
+    queryKey: ['api-key-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_key_categories')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
 // Hook for API keys
 export const useApiKeys = () => {
   return useQuery({
@@ -208,18 +223,68 @@ export const useUpdateCoinStatus = () => {
   });
 };
 
-// Mutation for creating API key
+// Mutation for bulk creating API keys
+export const useBulkCreateApiKeys = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (keys: Array<{ name: string; value: string; description?: string; category_id?: string | null }>) => {
+      let imported = 0;
+      let failed = 0;
+      
+      for (const key of keys) {
+        try {
+          const { error } = await supabase
+            .from('api_keys')
+            .insert({
+              key_name: key.name,
+              encrypted_value: key.value,
+              description: key.description,
+              category_id: key.category_id,
+              created_by: (await supabase.auth.getUser()).data.user?.id
+            });
+          
+          if (error) throw error;
+          imported++;
+        } catch (error) {
+          failed++;
+          console.error(`Failed to import key ${key.name}:`, error);
+        }
+      }
+      
+      return { imported, failed };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Bulk import failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Mutation for creating API key with category support
 export const useCreateApiKey = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ name, value, description }: { name: string; value: string; description?: string }) => {
+    mutationFn: async ({ name, value, description, category_id }: { 
+      name: string; 
+      value: string; 
+      description?: string; 
+      category_id?: string | null;
+    }) => {
       const { error } = await supabase
         .from('api_keys')
         .insert({
           key_name: name,
           encrypted_value: value,
           description,
+          category_id,
           created_by: (await supabase.auth.getUser()).data.user?.id
         });
       

@@ -7,27 +7,86 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Key, Plus, Copy, Eye, EyeOff } from 'lucide-react';
-import { useApiKeys, useCreateApiKey } from '@/hooks/useAdminData';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Key, Plus, Copy, Eye, EyeOff, Database, Globe, Brain, CreditCard, Upload } from 'lucide-react';
+import { useApiKeys, useCreateApiKey, useApiKeyCategories, useBulkCreateApiKeys } from '@/hooks/useAdminData';
 import { toast } from '@/hooks/use-toast';
 
 const AdminApiKeysTab = () => {
   const { data: apiKeys = [], isLoading } = useApiKeys();
+  const { data: categories = [], isLoading: categoriesLoading } = useApiKeyCategories();
   const createApiKey = useCreateApiKey();
+  const bulkCreateApiKeys = useBulkCreateApiKeys();
   const [showForm, setShowForm] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: '',
     value: '',
     description: '',
+    category_id: '',
   });
+
+  const categoryIcons = {
+    'Database': Database,
+    'Authentication': Key,
+    'External APIs': Globe,
+    'AI Services': Brain,
+    'Payment': CreditCard
+  };
+
+  const supabaseKeys = [
+    {
+      name: 'Supabase URL',
+      value: 'https://wdgnllgbfvjgurbqhfqb.supabase.co',
+      description: 'Main Supabase project URL',
+      category: 'Database'
+    },
+    {
+      name: 'Supabase Anon Key',
+      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU',
+      description: 'Supabase anonymous access key for client-side operations',
+      category: 'Authentication'
+    },
+    {
+      name: 'Supabase Service Role Key',
+      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTA1Mzg2NSwiZXhwIjoyMDY0NjI5ODY1fQ.O7_DPBmNmL-YOUUnFnr0Stxaz4D64CyAfMCcf_GWuoY',
+      description: 'Supabase service role key for server-side operations',
+      category: 'Database'
+    }
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createApiKey.mutate(formData, {
+    const selectedCategory = categories.find(c => c.id === formData.category_id);
+    createApiKey.mutate({
+      ...formData,
+      category_id: formData.category_id || null
+    }, {
       onSuccess: () => {
-        setFormData({ name: '', value: '', description: '' });
+        setFormData({ name: '', value: '', description: '', category_id: '' });
         setShowForm(false);
+        toast({
+          title: "API Key created successfully",
+          description: `Added to ${selectedCategory?.name || 'Uncategorized'}`,
+        });
+      },
+    });
+  };
+
+  const handleBulkImportSupabase = () => {
+    const keysToImport = supabaseKeys.map(key => ({
+      ...key,
+      category_id: categories.find(c => c.name === key.category)?.id || null
+    }));
+
+    bulkCreateApiKeys.mutate(keysToImport, {
+      onSuccess: (result) => {
+        setShowBulkImport(false);
+        toast({
+          title: "Bulk import completed",
+          description: `Successfully imported ${result.imported} keys`,
+        });
       },
     });
   };
@@ -59,19 +118,77 @@ const AdminApiKeysTab = () => {
     setFormData(prev => ({ ...prev, value: result }));
   };
 
+  const getCategoryIcon = (categoryName: string) => {
+    const IconComponent = categoryIcons[categoryName as keyof typeof categoryIcons] || Key;
+    return <IconComponent className="h-4 w-4" />;
+  };
+
+  const groupedKeys = apiKeys.reduce((acc, key) => {
+    const categoryName = categories.find(c => c.id === key.category_id)?.name || 'Uncategorized';
+    if (!acc[categoryName]) {
+      acc[categoryName] = [];
+    }
+    acc[categoryName].push(key);
+    return acc;
+  }, {} as Record<string, typeof apiKeys>);
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">API Key Management</h3>
-          <p className="text-sm text-muted-foreground">Manage API keys for external integrations</p>
+          <h3 className="text-lg font-semibold">Enhanced API Key Management</h3>
+          <p className="text-sm text-muted-foreground">Manage API keys with categories and bulk operations</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add API Key
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowBulkImport(!showBulkImport)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import Supabase Keys
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add API Key
+          </Button>
+        </div>
       </div>
+
+      {/* Bulk Import Supabase Keys */}
+      {showBulkImport && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Import Supabase Keys</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Import the Supabase project keys automatically with proper categorization:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {supabaseKeys.map((key, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      {getCategoryIcon(key.category)}
+                      <span className="font-medium text-sm">{key.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{key.description}</p>
+                    <Badge variant="outline" className="mt-2 text-xs">
+                      {key.category}
+                    </Badge>
+                  </Card>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleBulkImportSupabase} disabled={bulkCreateApiKeys.isPending}>
+                  {bulkCreateApiKeys.isPending ? 'Importing...' : 'Import All Keys'}
+                </Button>
+                <Button variant="outline" onClick={() => setShowBulkImport(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Add New API Key Form */}
       {showForm && (
@@ -81,15 +198,35 @@ const AdminApiKeysTab = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Key Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., OpenAI API Key"
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Key Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., OpenAI API Key"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={formData.category_id} onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          <div className="flex items-center gap-2">
+                            {getCategoryIcon(category.name)}
+                            {category.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <Label htmlFor="value">API Key Value</Label>
@@ -99,6 +236,7 @@ const AdminApiKeysTab = () => {
                     value={formData.value}
                     onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
                     placeholder="Enter the API key value"
+                    type="password"
                     required
                   />
                   <Button type="button" variant="outline" onClick={generateRandomKey}>
@@ -128,18 +266,16 @@ const AdminApiKeysTab = () => {
         </Card>
       )}
 
-      {/* API Keys Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            Existing API Keys
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div>Loading API keys...</div>
-          ) : (
+      {/* Categorized API Keys Display */}
+      {Object.entries(groupedKeys).map(([categoryName, keys]) => (
+        <Card key={categoryName}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {getCategoryIcon(categoryName)}
+              {categoryName} ({keys.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -152,7 +288,7 @@ const AdminApiKeysTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {apiKeys.map((key) => (
+                {keys.map((key) => (
                   <TableRow key={key.id}>
                     <TableCell>
                       <div className="font-medium">{key.key_name}</div>
@@ -164,7 +300,7 @@ const AdminApiKeysTab = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                        <code className="text-sm bg-gray-100 px-2 py-1 rounded max-w-[200px] truncate">
                           {visibleKeys.has(key.id) 
                             ? key.encrypted_value 
                             : '••••••••••••••••'
@@ -203,9 +339,13 @@ const AdminApiKeysTab = () => {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ))}
+
+      {(isLoading || categoriesLoading) && (
+        <div className="text-center py-8">Loading API keys...</div>
+      )}
     </div>
   );
 };

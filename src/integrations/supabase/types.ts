@@ -173,8 +173,33 @@ export type Database = {
         }
         Relationships: []
       }
+      api_key_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
+          category_id: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -185,6 +210,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          category_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -195,6 +221,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          category_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -205,6 +232,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "api_keys_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "api_key_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "api_keys_created_by_fkey"
             columns: ["created_by"]
