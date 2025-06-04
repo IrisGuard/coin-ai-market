@@ -3,7 +3,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/HeroSection';
 import FeatureSection from '@/components/FeatureSection';
-import MarketplacePreview from '@/components/MarketplacePreview';
 import { ArrowRight, Shield, Users, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -15,7 +14,6 @@ const Index = () => {
       <main className="flex-grow">
         <HeroSection />
         <FeatureSection />
-        <MarketplacePreview />
         
         {/* Testimonials */}
         <section className="coin-section bg-gray-50">
@@ -124,12 +122,12 @@ const Index = () => {
                   </p>
                 </div>
                 <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                  <Link to="/upload" className="coin-button text-center">
-                    Upload Your Coin
-                  </Link>
-                  <Link to="/marketplace" className="coin-button-outline text-center">
-                    Browse Marketplace
-                  </Link>
+                  <button className="coin-button text-center">
+                    Get Started
+                  </button>
+                  <button className="coin-button-outline text-center">
+                    Learn More
+                  </button>
                 </div>
               </div>
               <div className="px-6 py-8 sm:px-16 bg-gray-50 border-t">

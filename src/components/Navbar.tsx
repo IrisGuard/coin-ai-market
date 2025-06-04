@@ -16,7 +16,8 @@ const Navbar = () => {
     e.preventDefault();
     
     if (searchQuery.trim()) {
-      window.location.href = `/marketplace?search=${encodeURIComponent(searchQuery)}`;
+      // For now, just log the search query since marketplace is removed
+      console.log('Search query:', searchQuery);
     }
   };
 
@@ -42,12 +43,6 @@ const Navbar = () => {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link to="/" className="border-transparent text-gray-500 hover:text-coin-purple hover:border-coin-purple inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                 Home
-              </Link>
-              <Link to="/marketplace" className="border-transparent text-gray-500 hover:text-coin-purple hover:border-coin-purple inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                Marketplace
-              </Link>
-              <Link to="/upload" className="border-transparent text-gray-500 hover:text-coin-purple hover:border-coin-purple inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                Upload Coin
               </Link>
             </div>
           </div>
@@ -105,20 +100,6 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               Home
-            </Link>
-            <Link 
-              to="/marketplace" 
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-coin-purple hover:text-coin-purple"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Marketplace
-            </Link>
-            <Link 
-              to="/upload" 
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-coin-purple hover:text-coin-purple"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Upload Coin
             </Link>
             <div className="pl-3 pr-4 py-2 flex items-center justify-between">
               <NavbarAuth />

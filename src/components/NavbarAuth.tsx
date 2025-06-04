@@ -19,13 +19,17 @@ const NavbarAuth = () => {
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
-    if (!user?.name) return "U";
-    return user.name
+    const displayName = user?.user_metadata?.name || user?.email || "User";
+    return displayName
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
       .substring(0, 2);
+  };
+
+  const getDisplayName = () => {
+    return user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
   };
   
   if (!isAuthenticated) {
@@ -49,7 +53,7 @@ const NavbarAuth = () => {
     <DropdownMenu>
       <DropdownMenuTrigger className="outline-none">
         <Avatar className="h-10 w-10 cursor-pointer border-2 border-coin-purple/20 hover:border-coin-purple/50 transition-all">
-          {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
+          {user?.user_metadata?.avatar_url && <AvatarImage src={user.user_metadata.avatar_url} />}
           <AvatarFallback className="bg-gradient-to-r from-coin-purple to-coin-skyblue text-white">
             {getUserInitials()}
           </AvatarFallback>
@@ -58,35 +62,10 @@ const NavbarAuth = () => {
       <DropdownMenuContent align="end" className="glassmorphism">
         <DropdownMenuLabel className="font-serif">
           <div className="flex flex-col">
-            <span className="font-medium">{user.name || 'User'}</span>
-            <span className="text-xs text-muted-foreground">{user.email}</span>
+            <span className="font-medium">{getDisplayName()}</span>
+            <span className="text-xs text-muted-foreground">{user?.email}</span>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/profile" className="w-full cursor-pointer">
-            <User className="mr-2 h-4 w-4 text-coin-purple" />
-            <span>My Profile</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/upload" className="w-full cursor-pointer">
-            <Upload className="mr-2 h-4 w-4 text-coin-purple" />
-            <span>Upload Coin</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/favorites" className="w-full cursor-pointer">
-            <Heart className="mr-2 h-4 w-4 text-coin-purple" />
-            <span>Favorites</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/settings" className="w-full cursor-pointer">
-            <Settings className="mr-2 h-4 w-4 text-coin-purple" />
-            <span>Settings</span>
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500">
           <LogOut className="mr-2 h-4 w-4" />
