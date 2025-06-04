@@ -1,262 +1,165 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Search, Star, Check, X } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Coin {
-  id: string;
-  name: string;
-  year: number;
-  price: number;
-  rarity: string;
-  grade: string;
-  image: string;
-  featured: boolean;
-  authentication_status: string;
-  user_id: string;
-  created_at: string;
-  profiles?: {
-    name: string;
-  };
-}
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Coins, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/useAdminData';
 
 const AdminCoinsTab = () => {
-  const [coins, setCoins] = useState<Coin[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const { data: coins = [], isLoading } = useAdminCoins();
+  const updateCoinStatus = useUpdateCoinStatus();
 
-  const fetchCoins = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('coins')
-        .select(`
-          *,
-          profiles:user_id (name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCoins(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch coins: " + error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleUpdateStatus = (coinId: string, status: string) => {
+    updateCoinStatus.mutate({ coinId, status });
   };
 
-  const handleDeleteCoin = async (coinId: string) => {
-    if (!confirm('Are you sure you want to delete this coin?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('coins')
-        .delete()
-        .eq('id', coinId);
-
-      if (error) throw error;
-
-      setCoins(coins.filter(coin => coin.id !== coinId));
-      
-      toast({
-        title: "Success",
-        description: "Coin deleted successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to delete coin: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleUpdateCoinStatus = async (coinId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('coins')
-        .update({ authentication_status: status })
-        .eq('id', coinId);
-
-      if (error) throw error;
-
-      setCoins(coins.map(coin => 
-        coin.id === coinId ? { ...coin, authentication_status: status } : coin
-      ));
-
-      toast({
-        title: "Success",
-        description: `Coin ${status} successfully`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update coin status: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleToggleFeatured = async (coinId: string, featured: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('coins')
-        .update({ featured })
-        .eq('id', coinId);
-
-      if (error) throw error;
-
-      setCoins(coins.map(coin => 
-        coin.id === coinId ? { ...coin, featured } : coin
-      ));
-
-      toast({
-        title: "Success",
-        description: `Coin ${featured ? 'featured' : 'unfeatured'} successfully`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update coin: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchCoins();
-  }, []);
-
-  const filteredCoins = coins.filter(coin => {
-    const matchesSearch = coin.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || coin.authentication_status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  if (loading) {
+  if (isLoading) {
     return <div className="p-4">Loading coins...</div>;
   }
 
+  const stats = {
+    total: coins.length,
+    verified: coins.filter(c => c.authentication_status === 'verified').length,
+    pending: coins.filter(c => c.authentication_status === 'pending').length,
+    rejected: coins.filter(c => c.authentication_status === 'rejected').length,
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'verified':
+        return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+      default:
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Coin Management</h3>
-        <div className="flex items-center gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="verified">Verified</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search coins..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
+            <Coins className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Verified</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.verified}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-4">
-        {filteredCoins.map((coin) => (
-          <Card key={coin.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <img 
-                    src={coin.image} 
-                    alt={coin.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
-                  <div>
-                    <div className="font-medium">{coin.name}</div>
-                    <div className="text-sm text-gray-500">
-                      {coin.year} • Grade: {coin.grade} • ${coin.price.toLocaleString()}
+      {/* Coins Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5" />
+            Coin Authentication
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Coin</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Year</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Submitted</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {coins.map((coin) => (
+                <TableRow key={coin.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={coin.image} 
+                        alt={coin.name}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <div className="font-medium">{coin.name}</div>
+                        <div className="text-sm text-gray-500">{coin.grade}</div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge 
-                        variant={
-                          coin.authentication_status === 'verified' ? 'default' :
-                          coin.authentication_status === 'pending' ? 'secondary' : 'destructive'
-                        }
-                      >
-                        {coin.authentication_status}
-                      </Badge>
-                      {coin.featured && (
-                        <Badge variant="outline" className="text-yellow-600">
-                          <Star className="h-3 w-3 mr-1" />
-                          Featured
-                        </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{coin.profiles?.name || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">{coin.profiles?.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{coin.year}</TableCell>
+                  <TableCell>${coin.price}</TableCell>
+                  <TableCell>{getStatusBadge(coin.authentication_status || 'pending')}</TableCell>
+                  <TableCell>
+                    {coin.created_at ? new Date(coin.created_at).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {coin.authentication_status !== 'verified' && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleUpdateStatus(coin.id, 'verified')}
+                          disabled={updateCoinStatus.isPending}
+                        >
+                          Verify
+                        </Button>
                       )}
-                      <Badge variant="outline">{coin.rarity}</Badge>
-                      <span className="text-xs text-gray-400">
-                        by {coin.profiles?.name || 'Unknown'}
-                      </span>
+                      {coin.authentication_status !== 'rejected' && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleUpdateStatus(coin.id, 'rejected')}
+                          disabled={updateCoinStatus.isPending}
+                        >
+                          Reject
+                        </Button>
+                      )}
                     </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleToggleFeatured(coin.id, !coin.featured)}
-                    className={coin.featured ? 'text-yellow-600' : ''}
-                  >
-                    <Star className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleUpdateCoinStatus(coin.id, 'verified')}
-                    className="text-green-600"
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleUpdateCoinStatus(coin.id, 'rejected')}
-                    className="text-red-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDeleteCoin(coin.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredCoins.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {coins.length === 0 ? 'No coins found.' : 'No coins found matching your criteria.'}
-        </div>
-      )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

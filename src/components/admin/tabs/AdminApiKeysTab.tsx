@@ -1,298 +1,211 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Key, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Key, Plus, Copy, Eye, EyeOff } from 'lucide-react';
+import { useApiKeys, useCreateApiKey } from '@/hooks/useAdminData';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-
-interface ApiKey {
-  id: string;
-  key_name: string;
-  encrypted_value: string;
-  description: string | null;
-  is_active: boolean;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 const AdminApiKeysTab = () => {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
-
-  const [newKey, setNewKey] = useState({
-    key_name: '',
-    key_value: '',
-    description: ''
+  const { data: apiKeys = [], isLoading } = useApiKeys();
+  const createApiKey = useCreateApiKey();
+  const [showForm, setShowForm] = useState(false);
+  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [formData, setFormData] = useState({
+    name: '',
+    value: '',
+    description: '',
   });
 
-  const fetchApiKeys = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setApiKeys(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch API keys: " + error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createApiKey.mutate(formData, {
+      onSuccess: () => {
+        setFormData({ name: '', value: '', description: '' });
+        setShowForm(false);
+      },
+    });
   };
 
-  const createApiKey = async () => {
-    if (!newKey.key_name || !newKey.key_value) {
-      toast({
-        title: "Error",
-        description: "Key name and value are required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('api_keys')
-        .insert({
-          key_name: newKey.key_name,
-          encrypted_value: btoa(newKey.key_value), // Basic encoding for demo
-          description: newKey.description || null,
-          is_active: true
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "API key created successfully",
-      });
-
-      setNewKey({ key_name: '', key_value: '', description: '' });
-      setShowCreateDialog(false);
-      fetchApiKeys();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to create API key: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleKeyStatus = async (keyId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('api_keys')
-        .update({ 
-          is_active: !currentStatus, 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', keyId);
-
-      if (error) throw error;
-
-      setApiKeys(apiKeys.map(key => 
-        key.id === keyId ? { ...key, is_active: !currentStatus } : key
-      ));
-
-      toast({
-        title: "Success",
-        description: `API key ${!currentStatus ? 'activated' : 'deactivated'}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update API key status: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteApiKey = async (keyId: string, keyName: string) => {
-    if (!confirm(`Are you sure you want to delete the API key "${keyName}"?`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', keyId);
-
-      if (error) throw error;
-
-      setApiKeys(apiKeys.filter(key => key.id !== keyId));
-
-      toast({
-        title: "Success",
-        description: "API key deleted successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to delete API key: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleKeyReveal = (keyId: string) => {
-    const newRevealed = new Set(revealedKeys);
-    if (newRevealed.has(keyId)) {
-      newRevealed.delete(keyId);
+  const toggleKeyVisibility = (keyId: string) => {
+    const newVisible = new Set(visibleKeys);
+    if (newVisible.has(keyId)) {
+      newVisible.delete(keyId);
     } else {
-      newRevealed.add(keyId);
+      newVisible.add(keyId);
     }
-    setRevealedKeys(newRevealed);
+    setVisibleKeys(newVisible);
   };
 
-  const getDecryptedValue = (encryptedValue: string) => {
-    try {
-      return atob(encryptedValue);
-    } catch {
-      return '[Invalid key]';
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: "API key has been copied to your clipboard.",
+    });
   };
 
-  useEffect(() => {
-    fetchApiKeys();
-  }, []);
+  const generateRandomKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'coinai_';
+    for (let i = 0; i < 32; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData(prev => ({ ...prev, value: result }));
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Key className="h-6 w-6 text-blue-600" />
-        <h3 className="text-lg font-semibold">API Keys Management</h3>
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="ml-auto">
-              <Plus className="h-4 w-4 mr-1" />
-              Add API Key
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New API Key</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">API Key Management</h3>
+          <p className="text-sm text-muted-foreground">Manage API keys for external integrations</p>
+        </div>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add API Key
+        </Button>
+      </div>
+
+      {/* Add New API Key Form */}
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New API Key</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="key_name">Key Name</Label>
+                <Label htmlFor="name">Key Name</Label>
                 <Input
-                  id="key_name"
-                  value={newKey.key_name}
-                  onChange={(e) => setNewKey({ ...newKey, key_name: e.target.value })}
-                  placeholder="e.g., OPENAI_API_KEY"
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., OpenAI API Key"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="key_value">Key Value</Label>
-                <Input
-                  id="key_value"
-                  type="password"
-                  value={newKey.key_value}
-                  onChange={(e) => setNewKey({ ...newKey, key_value: e.target.value })}
-                  placeholder="Enter the API key value"
-                />
+                <Label htmlFor="value">API Key Value</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="value"
+                    value={formData.value}
+                    onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+                    placeholder="Enter the API key value"
+                    required
+                  />
+                  <Button type="button" variant="outline" onClick={generateRandomKey}>
+                    Generate
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label htmlFor="description">Description (Optional)</Label>
                 <Textarea
                   id="description"
-                  value={newKey.description}
-                  onChange={(e) => setNewKey({ ...newKey, description: e.target.value })}
-                  placeholder="Description of what this key is used for"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe what this API key is used for"
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={createApiKey} className="flex-1">
-                  Create Key
+                <Button type="submit" disabled={createApiKey.isPending}>
+                  {createApiKey.isPending ? 'Creating...' : 'Create API Key'}
                 </Button>
-                <Button onClick={() => setShowCreateDialog(false)} variant="outline">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                   Cancel
                 </Button>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
-      {loading ? (
-        <div className="py-8 text-center">Loading API keys...</div>
-      ) : (
-        <div className="grid gap-4">
-          {apiKeys.map((key) => (
-            <Card key={key.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{key.key_name}</h4>
+      {/* API Keys Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="h-5 w-5" />
+            Existing API Keys
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div>Loading API keys...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {apiKeys.map((key) => (
+                  <TableRow key={key.id}>
+                    <TableCell>
+                      <div className="font-medium">{key.key_name}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={key.description || 'N/A'}>
+                        {key.description || 'No description'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                          {visibleKeys.has(key.id) 
+                            ? key.encrypted_value 
+                            : '••••••••••••••••'
+                          }
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleKeyVisibility(key.id)}
+                        >
+                          {visibleKeys.has(key.id) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyToClipboard(key.encrypted_value)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <Badge variant={key.is_active ? "default" : "secondary"}>
                         {key.is_active ? "Active" : "Inactive"}
                       </Badge>
-                    </div>
-                    {key.description && (
-                      <p className="text-sm text-gray-600 mt-1">{key.description}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        type={revealedKeys.has(key.id) ? "text" : "password"}
-                        value={revealedKeys.has(key.id) ? getDecryptedValue(key.encrypted_value) : "••••••••••••••••"}
-                        readOnly
-                        className="text-xs font-mono"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleKeyReveal(key.id)}
-                      >
-                        {revealedKeys.has(key.id) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </TableCell>
+                    <TableCell>
+                      {key.created_at ? new Date(key.created_at).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="outline">
+                        Edit
                       </Button>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-2">
-                      Created: {new Date(key.created_at).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={key.is_active}
-                      onCheckedChange={() => toggleKeyStatus(key.id, key.is_active)}
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => deleteApiKey(key.id, key.key_name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {apiKeys.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No API keys found. Create your first API key to get started.
-            </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

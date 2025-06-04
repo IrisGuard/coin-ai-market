@@ -1,275 +1,180 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Bug, RefreshCw, Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-
-interface ErrorLog {
-  id: string;
-  error_type: string;
-  message: string;
-  stack_trace: string | null;
-  user_id: string | null;
-  page_url: string | null;
-  user_agent: string | null;
-  created_at: string;
-}
-
-interface ConsoleError {
-  id: string;
-  error_level: string;
-  message: string;
-  source_file: string | null;
-  line_number: number | null;
-  column_number: number | null;
-  user_id: string | null;
-  session_id: string | null;
-  created_at: string;
-}
+import { AlertTriangle, Bug, XCircle, AlertCircle } from 'lucide-react';
+import { useErrorLogs, useConsoleErrors } from '@/hooks/useAdminData';
 
 const AdminErrorMonitoringTab = () => {
-  const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
-  const [consoleErrors, setConsoleErrors] = useState<ConsoleError[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [errorTypeFilter, setErrorTypeFilter] = useState('all');
-  const [errorLevelFilter, setErrorLevelFilter] = useState('all');
+  const { data: errorLogs = [], isLoading: errorLogsLoading } = useErrorLogs();
+  const { data: consoleErrors = [], isLoading: consoleErrorsLoading } = useConsoleErrors();
 
-  const fetchErrorLogs = async () => {
-    try {
-      // Ready for real API implementation
-      setErrorLogs([]);
-    } catch (error) {
-      console.error('Error fetching error logs:', error);
-      setErrorLogs([]);
+  const getErrorSeverityBadge = (level: string) => {
+    switch (level.toLowerCase()) {
+      case 'error':
+        return <Badge className="bg-red-100 text-red-800">Error</Badge>;
+      case 'warn':
+        return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>;
+      case 'info':
+        return <Badge className="bg-blue-100 text-blue-800">Info</Badge>;
+      default:
+        return <Badge variant="outline">{level}</Badge>;
     }
   };
 
-  const fetchConsoleErrors = async () => {
-    try {
-      // Ready for real API implementation
-      setConsoleErrors([]);
-    } catch (error) {
-      console.error('Error fetching console errors:', error);
-      setConsoleErrors([]);
-    }
-  };
-
-  const clearErrorLogs = async () => {
-    try {
-      setErrorLogs([]);
-      
-      toast({
-        title: "Success",
-        description: "Error logs cleared successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to clear error logs",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const clearConsoleErrors = async () => {
-    try {
-      setConsoleErrors([]);
-      
-      toast({
-        title: "Success",
-        description: "Console errors cleared successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to clear console errors",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const refreshData = () => {
-    setLoading(true);
-    Promise.all([fetchErrorLogs(), fetchConsoleErrors()]).finally(() => {
-      setLoading(false);
-    });
-  };
-
-  useEffect(() => {
-    refreshData();
-  }, []);
-
-  const filteredErrorLogs = errorLogs.filter(log => {
-    const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.error_type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = errorTypeFilter === 'all' || log.error_type === errorTypeFilter;
-    return matchesSearch && matchesType;
-  });
-
-  const filteredConsoleErrors = consoleErrors.filter(error => {
-    const matchesSearch = error.message.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = errorLevelFilter === 'all' || error.error_level === errorLevelFilter;
-    return matchesSearch && matchesLevel;
-  });
-
-  const getErrorBadgeVariant = (level: string) => {
-    switch (level) {
-      case 'error': return 'destructive';
-      case 'warn': return 'outline';
-      case 'info': return 'secondary';
-      default: return 'outline';
-    }
+  const stats = {
+    totalErrors: errorLogs.length,
+    consoleErrors: consoleErrors.length,
+    criticalErrors: errorLogs.filter(e => e.error_type === 'critical').length,
+    todayErrors: errorLogs.filter(e => {
+      const today = new Date().toDateString();
+      return new Date(e.created_at || '').toDateString() === today;
+    }).length,
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Bug className="h-6 w-6 text-red-600" />
-        <h3 className="text-lg font-semibold">Error Monitoring Dashboard</h3>
-        <Button onClick={refreshData} size="sm" variant="outline" className="ml-auto">
-          <RefreshCw className="h-4 w-4 mr-1" />
-          Refresh
-        </Button>
-      </div>
-
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1">
-          <Input
-            placeholder="Search errors..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        <Select value={errorTypeFilter} onValueChange={setErrorTypeFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="runtime">Runtime</SelectItem>
-            <SelectItem value="network">Network</SelectItem>
-            <SelectItem value="database">Database</SelectItem>
-            <SelectItem value="authentication">Authentication</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={errorLevelFilter} onValueChange={setErrorLevelFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
-            <SelectItem value="error">Error</SelectItem>
-            <SelectItem value="warn">Warning</SelectItem>
-            <SelectItem value="info">Info</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Application Errors ({filteredErrorLogs.length})
-            </CardTitle>
-            <Button size="sm" variant="outline" onClick={clearErrorLogs}>
-              Clear All
-            </Button>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Errors</CardTitle>
+            <Bug className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="py-4">Loading error logs...</div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredErrorLogs.map((log) => (
-                  <div key={log.id} className="border-l-4 border-red-500 pl-4 py-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="destructive">{log.error_type}</Badge>
-                      <span className="text-xs text-gray-500">
-                        {new Date(log.created_at).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="text-sm font-medium mt-1">{log.message}</div>
-                    {log.page_url && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Page: {log.page_url}
-                      </div>
-                    )}
-                    {log.stack_trace && (
-                      <details className="mt-2">
-                        <summary className="text-xs cursor-pointer text-blue-600">
-                          Stack Trace
-                        </summary>
-                        <pre className="text-xs bg-gray-100 p-2 mt-1 rounded overflow-x-auto">
-                          {log.stack_trace}
-                        </pre>
-                      </details>
-                    )}
-                  </div>
-                ))}
-                
-                {filteredErrorLogs.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    No error logs found. Connect your error monitoring to see logs.
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="text-2xl font-bold">{stats.totalErrors}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Bug className="h-5 w-5" />
-              Console Errors ({filteredConsoleErrors.length})
-            </CardTitle>
-            <Button size="sm" variant="outline" onClick={clearConsoleErrors}>
-              Clear All
-            </Button>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Console Errors</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="py-4">Loading console errors...</div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredConsoleErrors.map((error) => (
-                  <div key={error.id} className="border-l-4 border-yellow-500 pl-4 py-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={getErrorBadgeVariant(error.error_level)}>
-                        {error.error_level.toUpperCase()}
-                      </Badge>
-                      <span className="text-xs text-gray-500">
-                        {new Date(error.created_at).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="text-sm font-medium mt-1">{error.message}</div>
-                    {error.source_file && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        File: {error.source_file}
-                        {error.line_number && `:${error.line_number}`}
-                        {error.column_number && `:${error.column_number}`}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                
-                {filteredConsoleErrors.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    No console errors found. Connect your error monitoring to see logs.
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="text-2xl font-bold text-red-600">{stats.consoleErrors}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Critical Errors</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.criticalErrors}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Errors</CardTitle>
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.todayErrors}</div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Error Logs */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bug className="h-5 w-5" />
+            Application Error Logs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {errorLogsLoading ? (
+            <div>Loading error logs...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Page URL</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {errorLogs.map((error) => (
+                  <TableRow key={error.id}>
+                    <TableCell>
+                      <Badge variant="destructive">{error.error_type}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-md truncate" title={error.message}>
+                        {error.message}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={error.page_url || 'N/A'}>
+                        {error.page_url || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>{error.user_id ? 'Authenticated' : 'Anonymous'}</TableCell>
+                    <TableCell>
+                      {error.created_at ? new Date(error.created_at).toLocaleString() : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Console Errors */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <XCircle className="h-5 w-5" />
+            Console Error Logs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {consoleErrorsLoading ? (
+            <div>Loading console errors...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Level</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Source File</TableHead>
+                  <TableHead>Line</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {consoleErrors.map((error) => (
+                  <TableRow key={error.id}>
+                    <TableCell>{getErrorSeverityBadge(error.error_level)}</TableCell>
+                    <TableCell>
+                      <div className="max-w-md truncate" title={error.message}>
+                        {error.message}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={error.source_file || 'N/A'}>
+                        {error.source_file || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>{error.line_number || 'N/A'}</TableCell>
+                    <TableCell>
+                      {error.created_at ? new Date(error.created_at).toLocaleString() : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,185 +1,124 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trash2, Edit, Search } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar_url: string;
-  reputation: number;
-  created_at: string;
-}
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Users, UserCheck, UserX, Shield } from 'lucide-react';
+import { useAdminUsers, useUpdateUserStatus } from '@/hooks/useAdminData';
 
 const AdminUsersTab = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { data: users = [], isLoading } = useAdminUsers();
+  const updateUserStatus = useUpdateUserStatus();
 
-  const fetchUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch users: " + error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleVerifyUser = (userId: string, verified: boolean) => {
+    updateUserStatus.mutate({ userId, verified });
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setUsers(users.filter(user => user.id !== userId));
-      
-      toast({
-        title: "Success",
-        description: "User deleted successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to delete user: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleUpdateReputation = async (userId: string, newReputation: number) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ reputation: newReputation })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, reputation: newReputation } : user
-      ));
-
-      toast({
-        title: "Success",
-        description: "User reputation updated",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update reputation: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const filteredUsers = users.filter(user =>
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
+  if (isLoading) {
     return <div className="p-4">Loading users...</div>;
   }
 
+  const stats = {
+    total: users.length,
+    verified: users.filter(u => u.verified_dealer).length,
+    pending: users.filter(u => !u.verified_dealer).length,
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">User Management</h3>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Verified Dealers</CardTitle>
+            <UserCheck className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.verified}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Verification</CardTitle>
+            <UserX className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-4">
-        {filteredUsers.map((user) => (
-          <Card key={user.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Avatar>
-                    <AvatarImage src={user.avatar_url} />
-                    <AvatarFallback>{user.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{user.name || 'No name'}</div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary">
-                        Reputation: {user.reputation || 0}
-                      </Badge>
-                      <span className="text-xs text-gray-400">
-                        Joined: {new Date(user.created_at).toLocaleDateString()}
-                      </span>
+      {/* Users Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            User Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Reputation</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-coin-purple to-coin-skyblue flex items-center justify-center text-white text-sm">
+                        {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                      </div>
+                      <span className="font-medium">{user.name || 'Unknown'}</span>
                     </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const newRep = prompt('Enter new reputation:', (user.reputation || 0).toString());
-                      if (newRep && !isNaN(Number(newRep))) {
-                        handleUpdateReputation(user.id, Number(newRep));
-                      }
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredUsers.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {users.length === 0 ? 'No users found.' : 'No users found matching your search.'}
-        </div>
-      )}
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{user.reputation || 0}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.verified_dealer ? "default" : "secondary"}>
+                      {user.verified_dealer ? "Verified Dealer" : "Regular User"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant={user.verified_dealer ? "destructive" : "default"}
+                      onClick={() => handleVerifyUser(user.id, !user.verified_dealer)}
+                      disabled={updateUserStatus.isPending}
+                    >
+                      {user.verified_dealer ? "Revoke" : "Verify"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

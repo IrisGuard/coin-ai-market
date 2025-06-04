@@ -1,205 +1,172 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BarChart3, Users, Coins, DollarSign, TrendingUp, Activity } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Stats {
-  listed_coins: number;
-  active_auctions: number;
-  registered_users: number;
-  total_volume: number;
-  weekly_transactions: number;
-}
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, Users, Coins, DollarSign } from 'lucide-react';
+import { useMarketplaceStats } from '@/hooks/useAdminData';
 
 const AdminAnalyticsTab = () => {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: stats, isLoading } = useMarketplaceStats();
 
-  const fetchStats = async () => {
-    try {
-      // Fetch real stats from Supabase
-      const [coinsResult, usersResult, transactionsResult] = await Promise.all([
-        supabase.from('coins').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('transactions').select('amount, status, created_at')
-      ]);
-
-      if (coinsResult.error) throw coinsResult.error;
-      if (usersResult.error) throw usersResult.error;
-      if (transactionsResult.error) throw transactionsResult.error;
-
-      const transactions = transactionsResult.data || [];
-      const completedTransactions = transactions.filter(t => t.status === 'completed');
-      const totalVolume = completedTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
-      
-      // Calculate weekly transactions (last 7 days)
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const weeklyTransactions = transactions.filter(t => 
-        new Date(t.created_at) >= weekAgo
-      ).length;
-
-      setStats({
-        listed_coins: coinsResult.count || 0,
-        active_auctions: 0, // Would need auction-specific logic
-        registered_users: usersResult.count || 0,
-        total_volume: totalVolume,
-        weekly_transactions: weeklyTransactions
-      });
-    } catch (error: any) {
-      console.error('Error fetching stats:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load analytics data: " + error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <div className="p-4">Loading analytics...</div>;
   }
 
-  if (!stats) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-2 mb-6">
-          <BarChart3 className="h-6 w-6 text-blue-600" />
-          <h3 className="text-lg font-semibold">Platform Analytics</h3>
-        </div>
-        <div className="text-center py-8 text-gray-500">
-          Failed to load analytics data.
-        </div>
-      </div>
-    );
-  }
+  // Mock data for charts
+  const monthlyData = [
+    { month: 'Jan', transactions: 45, revenue: 12000 },
+    { month: 'Feb', transactions: 52, revenue: 15000 },
+    { month: 'Mar', transactions: 48, revenue: 14000 },
+    { month: 'Apr', transactions: 61, revenue: 18000 },
+    { month: 'May', transactions: 55, revenue: 16000 },
+    { month: 'Jun', transactions: 67, revenue: 20000 },
+  ];
 
-  const statCards = [
-    {
-      title: 'Total Users',
-      value: stats.registered_users.toLocaleString(),
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Listed Coins',
-      value: stats.listed_coins.toLocaleString(),
-      icon: Coins,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50'
-    },
-    {
-      title: 'Active Auctions',
-      value: stats.active_auctions.toLocaleString(),
-      icon: Activity,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Total Volume',
-      value: `$${stats.total_volume.toLocaleString()}`,
-      icon: DollarSign,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    },
-    {
-      title: 'Weekly Transactions',
-      value: stats.weekly_transactions.toLocaleString(),
-      icon: TrendingUp,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50'
-    }
+  const categoryData = [
+    { name: 'Rare Coins', value: 45, color: '#8884d8' },
+    { name: 'Common Coins', value: 30, color: '#82ca9d' },
+    { name: 'Ultra Rare', value: 15, color: '#ffc658' },
+    { name: 'Commemorative', value: 10, color: '#ff7300' },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <BarChart3 className="h-6 w-6 text-blue-600" />
-        <h3 className="text-lg font-semibold">Platform Analytics</h3>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Registered Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.registered_users || 0}</div>
+            <p className="text-xs text-muted-foreground">+12% from last month</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Listed Coins</CardTitle>
+            <Coins className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.listed_coins || 0}</div>
+            <p className="text-xs text-muted-foreground">+8% from last month</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Auctions</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.active_auctions || 0}</div>
+            <p className="text-xs text-muted-foreground">+5% from last month</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Volume</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${(stats?.total_volume || 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">+15% from last month</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statCards.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Monthly Transactions */}
         <Card>
           <CardHeader>
-            <CardTitle>Platform Health</CardTitle>
+            <CardTitle>Monthly Transactions</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Active Users (24h)</span>
-              <Badge variant="default" className="bg-green-100 text-green-800">
-                {Math.floor(stats.registered_users * 0.1).toLocaleString()}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Average Transaction Value</span>
-              <Badge variant="outline">
-                ${Math.floor(stats.total_volume / Math.max(stats.weekly_transactions * 52, 1)).toLocaleString()}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Auction Success Rate</span>
-              <Badge variant="default" className="bg-blue-100 text-blue-800">
-                85%
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">User Retention Rate</span>
-              <Badge variant="default" className="bg-purple-100 text-purple-800">
-                72%
-              </Badge>
-            </div>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="transactions" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
+        {/* Revenue Trend */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>Revenue Trend</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="p-3 border rounded-lg">
-              <div className="text-sm font-medium">Featured Coins</div>
-              <div className="text-xs text-gray-500 mt-1">
-                Manage and promote high-value coins
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="revenue" stroke="#82ca9d" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Coin Categories */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Coin Categories</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Weekly Transactions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">This Week</span>
+                <span className="text-2xl font-bold">{stats?.weekly_transactions || 0}</span>
               </div>
-            </div>
-            <div className="p-3 border rounded-lg">
-              <div className="text-sm font-medium">User Verification</div>
-              <div className="text-xs text-gray-500 mt-1">
-                Review pending user verifications
-              </div>
-            </div>
-            <div className="p-3 border rounded-lg">
-              <div className="text-sm font-medium">Transaction Monitoring</div>
-              <div className="text-xs text-gray-500 mt-1">
-                Monitor suspicious activities
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Transactions</span>
+                  <span className="text-green-600">+23%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>New Users</span>
+                  <span className="text-green-600">+12%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>New Listings</span>
+                  <span className="text-green-600">+8%</span>
+                </div>
               </div>
             </div>
           </CardContent>
