@@ -1,14 +1,18 @@
 import { useState, useRef, useCallback } from 'react';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
-import { Camera as CameraIcon, X, Image, Loader2, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
+import { Camera as CameraIcon, X, Image, Loader2, CheckCircle, AlertCircle, RotateCcw, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { compressImage, getBandwidthQuality } from '@/utils/imageCompression';
 
 interface ImageWithQuality {
   file: File;
   preview: string;
   quality: 'excellent' | 'good' | 'poor';
   blurScore: number;
+  originalSize: number;
+  compressedSize: number;
 }
 
 interface EnhancedMobileCameraUploaderProps {
@@ -26,6 +30,7 @@ const EnhancedMobileCameraUploader = ({
   const [capturedImages, setCapturedImages] = useState<ImageWithQuality[]>([]);
   const [currentStep, setCurrentStep] = useState<'front' | 'back' | 'error' | 'complete'>('front');
   const [showSquareGuide, setShowSquareGuide] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const requiredPhotos = coinType === 'error' ? 4 : 2;
   const minRequiredPhotos = coinType === 'error' ? 2 : 2;
@@ -96,9 +101,16 @@ const EnhancedMobileCameraUploader = ({
 
       const response = await fetch(image.webPath);
       const blob = await response.blob();
-      const file = new File([blob], `coin-${step}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
+      const originalFile = new File([blob], `coin-${step}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
+      const originalSize = originalFile.size;
       
-      const { quality, blurScore } = await analyzeImageQuality(file);
+      // Compress the image based on network conditions
+      setIsCompressing(true);
+      const compressionOptions = getBandwidthQuality();
+      const compressedFile = await compressImage(originalFile, compressionOptions);
+      const compressedSize = compressedFile.size;
+      
+      const { quality, blurScore } = await analyzeImageQuality(compressedFile);
       
       if (quality === 'poor') {
         toast({
@@ -107,11 +119,19 @@ const EnhancedMobileCameraUploader = ({
           variant: "destructive",
         });
         setShowSquareGuide(false);
+        setIsCompressing(false);
         return;
       }
       
-      const preview = URL.createObjectURL(file);
-      const newImage: ImageWithQuality = { file, preview, quality, blurScore };
+      const preview = URL.createObjectURL(compressedFile);
+      const newImage: ImageWithQuality = { 
+        file: compressedFile, 
+        preview, 
+        quality, 
+        blurScore,
+        originalSize,
+        compressedSize
+      };
       
       setCapturedImages(prev => [...prev, newImage]);
       
@@ -123,9 +143,11 @@ const EnhancedMobileCameraUploader = ({
         setCurrentStep('complete');
       }
       
+      const compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
+      
       toast({
-        title: "Photo Captured",
-        description: `${quality === 'excellent' ? 'Excellent' : 'Good'} quality photo captured!`,
+        title: "Photo Captured & Compressed",
+        description: `${quality === 'excellent' ? 'Excellent' : 'Good'} quality photo saved (${compressionRatio}% smaller)`,
       });
       
     } catch (error) {
@@ -138,6 +160,7 @@ const EnhancedMobileCameraUploader = ({
     } finally {
       setIsLoading(false);
       setShowSquareGuide(false);
+      setIsCompressing(false);
     }
   };
 
@@ -180,6 +203,12 @@ const EnhancedMobileCameraUploader = ({
       case 'poor': return 'text-red-600';
       default: return 'text-gray-600';
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    return bytes < 1024 * 1024 
+      ? `${Math.round(bytes / 1024)}KB`
+      : `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
   return (
@@ -228,13 +257,13 @@ const EnhancedMobileCameraUploader = ({
         {currentStep !== 'complete' && (
           <Button
             onClick={() => takePicture(currentStep)}
-            disabled={isLoading}
+            disabled={isLoading || isCompressing}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg"
           >
-            {isLoading ? (
+            {isLoading || isCompressing ? (
               <>
                 <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                Taking Photo...
+                {isCompressing ? 'Compressing...' : 'Taking Photo...'}
               </>
             ) : (
               <>
@@ -272,8 +301,14 @@ const EnhancedMobileCameraUploader = ({
                       <X className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="absolute bottom-1 left-1 text-xs text-white bg-black bg-opacity-50 px-1 rounded">
-                    {image.quality}
+                  <div className="absolute bottom-1 left-1 flex gap-1">
+                    <Badge className="text-xs bg-black bg-opacity-70 text-white">
+                      {image.quality}
+                    </Badge>
+                    <Badge className="text-xs bg-green-600 text-white">
+                      <Zap className="w-2 h-2 mr-1" />
+                      {formatFileSize(image.compressedSize)}
+                    </Badge>
                   </div>
                 </div>
               ))}
@@ -307,12 +342,13 @@ const EnhancedMobileCameraUploader = ({
 
         {/* Quality Tips */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h4 className="font-medium text-blue-800 mb-2">📸 Quality Tips:</h4>
+          <h4 className="font-medium text-blue-800 mb-2">📸 Optimization Tips:</h4>
           <ul className="text-sm text-blue-700 space-y-1">
+            <li>• Images are automatically compressed for faster upload</li>
+            <li>• Works offline - uploads sync when connection returns</li>
             <li>• Use good lighting (natural light is best)</li>
             <li>• Keep camera steady and focused</li>
             <li>• Fill the square frame with the coin</li>
-            <li>• Avoid shadows and reflections</li>
             {coinType === 'error' && (
               <li>• Capture error details from multiple angles</li>
             )}

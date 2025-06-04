@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MobileCoinUploadForm from '@/components/mobile/MobileCoinUploadForm';
 import BulkCoinUploadManager from '@/components/mobile/BulkCoinUploadManager';
+import OfflineStatusIndicator from '@/components/mobile/OfflineStatusIndicator';
 
 const MobileUpload = () => {
   const { isAuthenticated } = useAuth();
@@ -29,6 +30,9 @@ const MobileUpload = () => {
             AI-Powered • Professional Quality • Instant Listing
           </p>
         </div>
+        
+        {/* Offline Status Indicator */}
+        <OfflineStatusIndicator />
       </div>
 
       {/* Stats Bar */}
@@ -90,7 +94,7 @@ const MobileUpload = () => {
             <div className="flex justify-center space-x-6 text-sm">
               <div className="flex items-center gap-2 text-green-600">
                 <Camera className="w-4 h-4" />
-                <span>Square Frame</span>
+                <span>Auto Compress</span>
               </div>
               <div className="flex items-center gap-2 text-blue-600">
                 <Zap className="w-4 h-4" />
@@ -98,7 +102,7 @@ const MobileUpload = () => {
               </div>
               <div className="flex items-center gap-2 text-purple-600">
                 <TrendingUp className="w-4 h-4" />
-                <span>Instant Price</span>
+                <span>Offline Sync</span>
               </div>
             </div>
           ) : (
@@ -148,7 +152,7 @@ const MobileUpload = () => {
         <div className="text-center">
           <p className="text-xs opacity-90">
             {activeTab === 'single' 
-              ? '💡 Pro Tip: Use natural lighting for best AI recognition results'
+              ? '💡 Pro Tip: Images auto-compress and sync offline for optimal mobile experience'
               : '⚡ Bulk Tip: Group 2-6 images per coin for optimal processing'
             }
           </p>
