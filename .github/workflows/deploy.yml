@@ -27,11 +27,25 @@ jobs:
     - name: Build project
       run: npm run build
       env:
+        # Supabase Configuration
+        VITE_SUPABASE_URL: https://blvujdcdiwtgvmbuavgi.supabase.co
+        VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdnVqZGNkaXd0Z3ZtYnVhdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjU0NTUsImV4cCI6MjA2NDY0MTQ1NX0.WxGcy3GHqxir7Jo49nbE1z88ED8BNw3LnAHyPUROG_A
+        
+        # Optional API Keys (will be set if available)
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         VITE_AI_API_KEY: ${{ secrets.VITE_AI_API_KEY }}
         VITE_AI_API_URL: ${{ secrets.VITE_AI_API_URL }}
         VITE_PAYMENT_API_KEY: ${{ secrets.VITE_PAYMENT_API_KEY }}
         VITE_PAYMENT_API_URL: ${{ secrets.VITE_PAYMENT_API_URL }}
+        
+        # Production Database Configuration
+        POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_DATABASE: ${{ secrets.POSTGRES_DATABASE }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
       
     - name: Deploy to Vercel
       uses: vercel/action@v1

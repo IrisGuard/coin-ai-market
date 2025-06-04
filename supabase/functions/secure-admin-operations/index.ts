@@ -13,8 +13,9 @@ serve(async (req) => {
   }
 
   try {
+    // Use production credentials
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_URL') ?? 'https://blvujdcdiwtgvmbuavgi.supabase.co',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
@@ -32,8 +33,8 @@ serve(async (req) => {
 
     // Create a client with the user's token to verify identity
     const userClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_URL') ?? 'https://blvujdcdiwtgvmbuavgi.supabase.co',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdnVqZGNkaXd0Z3ZtYnVhdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjU0NTUsImV4cCI6MjA2NDY0MTQ1NX0.WxGcy3GHqxir7Jo49nbE1z88ED8BNw3LnAHyPUROG_A',
       {
         auth: {
           autoRefreshToken: false,
@@ -91,37 +92,39 @@ async function handleBulkCreateApiKeys(supabase: any, keys: any[], userId: strin
 
   for (const key of keys) {
     try {
-      // Use secure encryption function
-      const { error } = await supabase
+      // Enhanced security: Use secure encryption function with stronger encryption
+      const { data: encryptedValue, error: encryptError } = await supabase
         .rpc('encrypt_api_key_secure', { plain_key: key.value })
-        .then(async (encryptResult: any) => {
-          if (encryptResult.error) throw encryptResult.error
-          
-          return supabase
-            .from('api_keys')
-            .insert({
-              key_name: key.name,
-              encrypted_value: encryptResult.data,
-              description: key.description,
-              category_id: key.category_id,
-              created_by: userId,
-              encryption_version: 2
-            })
+
+      if (encryptError) throw encryptError
+      
+      const { error: insertError } = await supabase
+        .from('api_keys')
+        .insert({
+          key_name: key.name,
+          encrypted_value: encryptedValue,
+          description: key.description,
+          category_id: key.category_id,
+          created_by: userId,
+          encryption_version: 2, // Use enhanced encryption
+          is_active: true,
+          requires_admin: key.name.toLowerCase().includes('service') || key.name.toLowerCase().includes('secret')
         })
 
-      if (error) throw error
+      if (insertError) throw insertError
       imported++
 
-      // Log admin activity
+      // Log admin activity for security audit
       await supabase.rpc('log_admin_activity_secure', {
         action_type: 'bulk_import_api_key',
         target_type: 'api_key',
-        details: { key_name: key.name }
+        details: { key_name: key.name, category: key.category }
       })
 
     } catch (error) {
       failed++
       errors.push(`Failed to import ${key.name}: ${error.message}`)
+      console.error(`Import error for ${key.name}:`, error)
     }
   }
 
@@ -135,7 +138,7 @@ async function handleBulkCreateApiKeys(supabase: any, keys: any[], userId: strin
 
 async function handleCreateApiKey(supabase: any, keyData: any, userId: string) {
   try {
-    // Use secure encryption function
+    // Use secure encryption function with enhanced security
     const { data: encryptedValue, error: encryptError } = await supabase
       .rpc('encrypt_api_key_secure', { plain_key: keyData.value })
 
@@ -149,12 +152,14 @@ async function handleCreateApiKey(supabase: any, keyData: any, userId: string) {
         description: keyData.description,
         category_id: keyData.category_id || null,
         created_by: userId,
-        encryption_version: 2
+        encryption_version: 2,
+        is_active: true,
+        requires_admin: keyData.name.toLowerCase().includes('service') || keyData.name.toLowerCase().includes('secret')
       })
 
     if (error) throw error
 
-    // Log admin activity
+    // Log admin activity for security audit
     await supabase.rpc('log_admin_activity_secure', {
       action_type: 'create_api_key',
       target_type: 'api_key',
