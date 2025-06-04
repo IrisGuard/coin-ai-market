@@ -272,7 +272,7 @@ const CoinViewer3D = ({ obverseImage, reverseImage, model3dUrl, name }: CoinView
       return (
         <div className="flex flex-col items-center justify-center h-full">
           <div className="h-12 w-12 rounded-full border-4 border-t-coin-purple border-r-transparent border-b-transparent border-l-transparent animate-spin mb-4"></div>
-          <p className="text-coin-purple font-medium">Φόρτωση {activeView === 'obverse' ? 'εμπρόσθιας' : activeView === 'reverse' ? 'οπίσθιας' : 'τρισδιάστατης'} όψης...</p>
+          <p className="text-coin-purple font-medium">Loading {activeView === 'obverse' ? 'front' : activeView === 'reverse' ? 'back' : '3d'} view...</p>
         </div>
       );
     }
@@ -346,7 +346,7 @@ const CoinViewer3D = ({ obverseImage, reverseImage, model3dUrl, name }: CoinView
               setActiveView('obverse');
             }}
           >
-            Εμπρός Όψη
+            Front Side
           </button>
           <button
             className={`px-4 py-2 rounded-full text-sm transition-all ${
@@ -359,7 +359,7 @@ const CoinViewer3D = ({ obverseImage, reverseImage, model3dUrl, name }: CoinView
               setActiveView('reverse');
             }}
           >
-            Πίσω Όψη
+            Back Side
           </button>
           <button
             className={`px-4 py-2 rounded-full text-sm transition-all ${
@@ -372,7 +372,7 @@ const CoinViewer3D = ({ obverseImage, reverseImage, model3dUrl, name }: CoinView
               setActiveView('3d');
             }}
           >
-            3D Προβολή
+            3D View
           </button>
         </div>
         
@@ -387,7 +387,7 @@ const CoinViewer3D = ({ obverseImage, reverseImage, model3dUrl, name }: CoinView
               onClick={() => setAutoRotate(!autoRotate)}
             >
               <RefreshCw size={16} className="mr-1 inline" />
-              Αυτόματη Περιστροφή
+              Auto Rotate
             </button>
           ) : (
             <>

@@ -36,7 +36,22 @@ const CoinGrid = ({ coins, loading }: CoinGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {coins.map((coin) => (
-        <CoinCard key={coin.id} coin={coin} />
+        <CoinCard 
+          key={coin.id}
+          id={coin.id}
+          name={coin.name}
+          year={coin.year}
+          grade={coin.grade}
+          price={coin.price}
+          rarity={coin.rarity}
+          image={coin.image}
+          isAuction={coin.is_auction}
+          timeLeft={coin.auction_end ? new Date(coin.auction_end).toLocaleDateString() : undefined}
+          model3d={coin.model_3d_url}
+          obverseImage={coin.obverse_image}
+          reverseImage={coin.reverse_image}
+          favorites={coin.favorites}
+        />
       ))}
     </div>
   );

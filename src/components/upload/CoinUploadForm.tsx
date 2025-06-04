@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -100,7 +99,6 @@ const CoinUploadForm = () => {
         name: formData.name,
         year: parseInt(formData.year),
         country: formData.country,
-        denomination: formData.denomination,
         grade: formData.grade,
         price: parseFloat(formData.price),
         rarity: formData.rarity as any,

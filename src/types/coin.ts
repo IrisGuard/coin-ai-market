@@ -11,42 +11,49 @@ export interface Coin {
   price: number;
   rarity: Rarity;
   image: string;
-  isAuction?: boolean;
-  timeLeft?: string;
-  description?: string;
-  condition?: CoinCondition;
+  user_id: string;
   country?: string;
-  mint?: string;
-  diameter?: number; // in mm
-  weight?: number; // in grams
+  denomination?: string;
+  pcgs_number?: string;
+  ngc_number?: string;
+  pcgs_grade?: string;
+  ngc_grade?: string;
+  condition?: CoinCondition;
   composition?: string;
-  seller?: {
-    id: string;
-    name: string;
-    rating: number;
-    totalSales?: number;
-    avatarUrl?: string;
-    reputation?: number;
-  };
-  obverseImage?: string; // front side
-  reverseImage?: string; // back side
-  model3d?: string; // URL to 3D model if available
+  diameter?: number;
+  weight?: number;
+  mint?: string;
+  mintage?: number;
+  description?: string;
+  obverse_image?: string;
+  reverse_image?: string;
+  model_3d_url?: string;
+  tags?: string[];
   views?: number;
   favorites?: number;
   featured?: boolean;
-  authenticationStatus?: 'pending' | 'verified' | 'rejected';
-  tags?: string[];
+  authentication_status?: 'pending' | 'verified' | 'rejected';
+  is_auction?: boolean;
+  auction_end?: string;
+  reserve_price?: number;
+  created_at?: string;
+  updated_at?: string;
+  profiles?: {
+    id: string;
+    name: string;
+    reputation: number;
+    verified_dealer?: boolean;
+    avatar_url?: string;
+  };
   bids?: {
     id: string;
     amount: number;
-    bidder: string;
-    bidderName?: string;
-    time: string;
+    user_id: string;
+    created_at: string;
+    profiles?: {
+      name: string;
+    };
   }[];
-  estimatedValue?: {
-    min: number;
-    max: number;
-  };
 }
 
 export interface CoinEvaluation {

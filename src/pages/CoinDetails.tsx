@@ -89,7 +89,12 @@ const CoinDetails = () => {
             </div>
             
             {coin.model_3d_url && (
-              <CoinViewer3D modelUrl={coin.model_3d_url} />
+              <CoinViewer3D 
+                obverseImage={coin.obverse_image} 
+                reverseImage={coin.reverse_image}
+                model3dUrl={coin.model_3d_url} 
+                name={coin.name}
+              />
             )}
           </div>
 
@@ -145,7 +150,20 @@ const CoinDetails = () => {
                     <div className="text-sm text-gray-600 mb-4">
                       Reserve price: ${coin.reserve_price?.toFixed(2)}
                     </div>
-                    <CoinBidForm coinId={coin.id} currentBid={highestBid} />
+                    <CoinBidForm 
+                      coinId={coin.id} 
+                      coinName={coin.name}
+                      currentPrice={highestBid}
+                      isAuction={isAuction}
+                      timeLeft={timeLeft || undefined}
+                      auctionEndDate={coin.auction_end}
+                      bids={bids.map(bid => ({
+                        amount: bid.amount,
+                        bidder: bid.user_id,
+                        time: bid.created_at
+                      }))}
+                      onBidPlaced={() => {}}
+                    />
                   </>
                 )}
               </CardContent>

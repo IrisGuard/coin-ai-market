@@ -18,7 +18,7 @@ const Marketplace = () => {
     year: '',
     country: '',
   });
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'year-old' | 'year-new' | 'name'>('newest');
 
   // Filter and sort coins
   const filteredCoins = coins
@@ -68,15 +68,53 @@ const Marketplace = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <MarketplaceFilters filters={filters} onFiltersChange={setFilters} />
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold mb-4">Filters</h3>
+              {/* Simplified filters for now */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rarity</label>
+                  <select 
+                    value={filters.rarity} 
+                    onChange={(e) => setFilters(prev => ({ ...prev, rarity: e.target.value }))}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">All Rarities</option>
+                    <option value="Common">Common</option>
+                    <option value="Uncommon">Uncommon</option>
+                    <option value="Rare">Rare</option>
+                    <option value="Ultra Rare">Ultra Rare</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Search and Sort */}
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <MarketplaceSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-              <MarketplaceSorting sortBy={sortBy} onSortChange={setSortBy} />
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search coins..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md"
+                />
+              </div>
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="p-3 border border-gray-300 rounded-md"
+              >
+                <option value="newest">Newest First</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="year-old">Year: Oldest First</option>
+                <option value="year-new">Year: Newest First</option>
+                <option value="name">Name: A to Z</option>
+              </select>
             </div>
 
             {/* Results Count */}
