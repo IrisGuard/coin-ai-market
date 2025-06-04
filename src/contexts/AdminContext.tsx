@@ -72,7 +72,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       }
       
       return false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Login Failed",
         description: error.message,

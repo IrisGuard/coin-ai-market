@@ -109,7 +109,7 @@ export const useCreateScrapingJob = () => {
         description: "Web scraping job has been queued successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
@@ -123,7 +123,7 @@ export const useUpdateDataSource = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: unknown }) => {
       const { error } = await supabase
         .from('data_sources')
         .update(updates)
@@ -138,7 +138,7 @@ export const useUpdateDataSource = () => {
         description: "Data source configuration has been updated.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
@@ -156,7 +156,7 @@ export const useCreateAdvancedScrapingJob = () => {
     mutationFn: async (jobData: {
       target_url: string;
       job_type: string;
-      proxy_config?: any;
+      proxy_config?: unknown;
     }) => {
       const { data, error } = await supabase.functions.invoke('advanced-scraper', {
         body: {
@@ -177,7 +177,7 @@ export const useCreateAdvancedScrapingJob = () => {
         description: "Enhanced scraping job with AI analysis has been started.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Scraping Failed",
         description: error.message,

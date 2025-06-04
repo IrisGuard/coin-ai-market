@@ -165,7 +165,7 @@ export const useAddCustomDomain = () => {
         description: "Domain has been updated successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,

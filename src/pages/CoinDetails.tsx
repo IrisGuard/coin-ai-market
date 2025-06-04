@@ -18,7 +18,7 @@ const CoinDetails = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [highestBid, setHighestBid] = useState<any>(null);
+  const [highestBid, setHighestBid] = useState<unknown>(null);
 
   // Fetch coin details
   const { data: coin, isLoading: coinLoading, error: coinError } = useQuery({

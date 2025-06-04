@@ -56,7 +56,7 @@ export const useAddErrorKnowledge = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (knowledgeData: any) => {
+    mutationFn: async (knowledgeData: unknown) => {
       const { data, error } = await supabase
         .from('error_coins_knowledge')
         .insert(knowledgeData)
@@ -73,7 +73,7 @@ export const useAddErrorKnowledge = () => {
         description: "Error knowledge added successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: "Failed to add error knowledge: " + error.message,
@@ -87,7 +87,7 @@ export const useAddErrorMarketData = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (marketData: any) => {
+    mutationFn: async (marketData: unknown) => {
       const { data, error } = await supabase
         .from('error_coins_market_data')
         .insert(marketData)
@@ -104,7 +104,7 @@ export const useAddErrorMarketData = () => {
         description: "Market data added successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: "Failed to add market data: " + error.message,

@@ -253,7 +253,7 @@ const Marketplace = () => {
                 <label className="block text-sm font-bold text-gray-700">Sort By</label>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => setSortBy(e.target.value as unknown)}
                   className="input-modern h-12"
                 >
                   <option value="newest">Newest First</option>

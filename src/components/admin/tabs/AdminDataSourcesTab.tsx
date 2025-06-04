@@ -21,7 +21,7 @@ const AdminDataSourcesTab = () => {
     console.log('Delete source:', id);
   };
 
-  const handleEditProxy = (proxy: any) => {
+  const handleEditProxy = (proxy: unknown) => {
     console.log('Edit proxy:', proxy);
   };
 

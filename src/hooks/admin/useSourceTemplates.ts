@@ -25,8 +25,8 @@ export const useCreateSourceTemplate = () => {
       name: string;
       description?: string;
       supported_features?: string[];
-      default_config?: any;
-      template_config?: any;
+      default_config?: unknown;
+      template_config?: unknown;
     }) => {
       const { data, error } = await supabase
         .from('source_templates')

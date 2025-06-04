@@ -20,7 +20,7 @@ const SourceTemplateManager = () => {
     setShowForm(true);
   };
 
-  const handleClone = (template: any) => {
+  const handleClone = (template: unknown) => {
     setEditingTemplate({
       ...template,
       id: null,

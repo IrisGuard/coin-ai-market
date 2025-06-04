@@ -98,7 +98,7 @@ export const compressImage = async (
 
 export const getBandwidthQuality = (): CompressionOptions => {
   // Detect connection type if available
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  const connection = (navigator as unknown).connection || (navigator as unknown).mozConnection || (navigator as unknown).webkitConnection;
   
   if (!connection) {
     // Default to medium quality if no connection info

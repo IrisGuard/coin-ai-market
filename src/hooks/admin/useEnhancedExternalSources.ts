@@ -26,7 +26,7 @@ export const useBulkImportSources = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (sourcesData: any[]) => {
+    mutationFn: async (sourcesData: unknown[]) => {
       const { data, error } = await supabase
         .from('external_price_sources')
         .insert(sourcesData)

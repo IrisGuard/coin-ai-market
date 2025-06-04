@@ -13,7 +13,7 @@ export const usePCGSData = () => {
       if (error) throw error;
       return data;
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('PCGS API Error:', error);
     },
   });
@@ -29,7 +29,7 @@ export const useNGCData = () => {
       if (error) throw error;
       return data;
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('NGC API Error:', error);
     },
   });

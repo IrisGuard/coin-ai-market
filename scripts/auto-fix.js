@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
-const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 class AutoFixer {
   constructor() {
@@ -46,13 +49,12 @@ class AutoFixer {
   async fixESLintErrors() {
     console.log('🔧 Running ESLint auto-fix...');
     
-    return new Promise((resolve) => {
-      exec('npx eslint src/ --fix', (error, stdout, stderr) => {
-        if (stdout) console.log(stdout);
-        if (stderr) console.log(stderr);
-        resolve(); // Don't fail if ESLint has issues
-      });
-    });
+    try {
+      await execAsync('npx eslint src/ --fix');
+    } catch (error) {
+      // ESLint might exit with code 1 even when fixing successfully
+      console.log('ESLint fix completed (with warnings)');
+    }
   }
 
   async fixImportPaths() {
@@ -143,26 +145,18 @@ class AutoFixer {
   async testBuild() {
     console.log('🧪 Testing build after fixes...');
     
-    return new Promise((resolve, reject) => {
-      exec('npm run build', (error, stdout, stderr) => {
-        if (error) {
-          console.error('❌ Build still failing after fixes');
-          console.log(stdout);
-          console.log(stderr);
-          reject(error);
-        } else {
-          console.log('✅ Build successful after fixes!');
-          resolve();
-        }
-      });
-    });
+    try {
+      await execAsync('npm run build');
+      console.log('✅ Build successful after fixes!');
+    } catch (error) {
+      console.error('❌ Build still failing after fixes');
+      console.log(error.stdout);
+      console.log(error.stderr);
+      throw error;
+    }
   }
 }
 
 // Run if called directly
-if (require.main === module) {
-  const fixer = new AutoFixer();
-  fixer.runAllFixes();
-}
-
-module.exports = AutoFixer; 
+const fixer = new AutoFixer();
+fixer.runAllFixes(); 

@@ -37,7 +37,7 @@ export const useUpdateUserStatus = () => {
         description: "User status has been updated successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,

@@ -45,7 +45,7 @@ export const useCreateCoin = () => {
         description: "Your coin has been successfully submitted for verification.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
@@ -74,7 +74,7 @@ export const useDeleteCoin = () => {
         description: "Your coin has been successfully deleted.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,

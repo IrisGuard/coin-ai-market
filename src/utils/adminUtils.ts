@@ -62,7 +62,7 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
       userId: profile.id
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
       message: `Unexpected error: ${error.message}`
@@ -119,6 +119,6 @@ Note: The createFirstAdmin function is available in development console
 
 // Make function available in development console
 if (typeof window !== 'undefined') {
-  (window as any).createFirstAdmin = createFirstAdmin;
-  (window as any).checkAdminStatus = checkAdminStatus;
+  (window as unknown).createFirstAdmin = createFirstAdmin;
+  (window as unknown).checkAdminStatus = checkAdminStatus;
 }

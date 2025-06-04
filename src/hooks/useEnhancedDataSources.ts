@@ -119,7 +119,7 @@ export const useCreateExternalSource = () => {
         description: "New external price source has been configured successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
@@ -134,7 +134,7 @@ export const useUpdateExternalSource = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: unknown }) => {
       const { error } = await supabase
         .from('external_price_sources')
         .update(updates)
@@ -149,7 +149,7 @@ export const useUpdateExternalSource = () => {
         description: "External price source has been updated successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
@@ -162,7 +162,7 @@ export const useUpdateExternalSource = () => {
 // Mutation for creating scraping schedule - mock version
 export const useCreateScrapingSchedule = () => {
   return useMutation({
-    mutationFn: async (scheduleData: any) => {
+    mutationFn: async (scheduleData: unknown) => {
       // Mock implementation - return success
       return { success: true };
     },
@@ -172,7 +172,7 @@ export const useCreateScrapingSchedule = () => {
         description: "Scraping schedule has been created successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
@@ -195,7 +195,7 @@ export const useTriggerPriceAggregation = () => {
         description: "Price aggregation process has been triggered.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
         description: error.message,
