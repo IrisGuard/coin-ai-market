@@ -42,6 +42,12 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
       category: 'Database'
     },
     {
+      name: 'Supabase Project ID',
+      value: 'wdgnllgbfvjgurbqhfqb',
+      description: 'Supabase project identifier',
+      category: 'Database'
+    },
+    {
       name: 'Supabase Anon Key',
       value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU',
       description: 'Supabase anonymous access key for client-side operations',
@@ -85,7 +91,7 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
           <p className="text-sm text-muted-foreground">
             Import the Supabase project keys automatically with proper categorization:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {supabaseKeys.map((key, index) => (
               <Card key={index} className="p-4">
                 <div className="flex items-center gap-2 mb-2">
