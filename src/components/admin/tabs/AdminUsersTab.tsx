@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trash2, Edit, Search, UserCheck, UserX } from 'lucide-react';
+import { Trash2, Edit, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface User {
   id: string;
@@ -24,12 +25,17 @@ const AdminUsersTab = () => {
 
   const fetchUsers = async () => {
     try {
-      // Ready for real API implementation
-      setUsers([]);
-    } catch (error) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to fetch users",
+        description: "Failed to fetch users: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -41,16 +47,23 @@ const AdminUsersTab = () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
       setUsers(users.filter(user => user.id !== userId));
       
       toast({
         title: "Success",
         description: "User deleted successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete user",
+        description: "Failed to delete user: " + error.message,
         variant: "destructive",
       });
     }
@@ -58,6 +71,13 @@ const AdminUsersTab = () => {
 
   const handleUpdateReputation = async (userId: string, newReputation: number) => {
     try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ reputation: newReputation })
+        .eq('id', userId);
+
+      if (error) throw error;
+
       setUsers(users.map(user => 
         user.id === userId ? { ...user, reputation: newReputation } : user
       ));
@@ -66,10 +86,10 @@ const AdminUsersTab = () => {
         title: "Success",
         description: "User reputation updated",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update reputation",
+        description: "Failed to update reputation: " + error.message,
         variant: "destructive",
       });
     }
@@ -120,7 +140,7 @@ const AdminUsersTab = () => {
                     <div className="text-sm text-gray-500">{user.email}</div>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary">
-                        Reputation: {user.reputation}
+                        Reputation: {user.reputation || 0}
                       </Badge>
                       <span className="text-xs text-gray-400">
                         Joined: {new Date(user.created_at).toLocaleDateString()}
@@ -133,7 +153,7 @@ const AdminUsersTab = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      const newRep = prompt('Enter new reputation:', user.reputation.toString());
+                      const newRep = prompt('Enter new reputation:', (user.reputation || 0).toString());
                       if (newRep && !isNaN(Number(newRep))) {
                         handleUpdateReputation(user.id, Number(newRep));
                       }
@@ -157,7 +177,7 @@ const AdminUsersTab = () => {
 
       {filteredUsers.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          {users.length === 0 ? 'No users found. Connect your database to see users.' : 'No users found matching your search.'}
+          {users.length === 0 ? 'No users found.' : 'No users found matching your search.'}
         </div>
       )}
     </div>

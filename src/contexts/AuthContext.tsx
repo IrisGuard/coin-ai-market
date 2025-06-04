@@ -2,23 +2,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
 
-// Define user type
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  avatar_url?: string;
-  created_at: string;
-}
-
-// Define session type
-export interface Session {
-  user: User;
-  access_token: string;
-}
-
-// Define auth context state
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -30,58 +16,42 @@ interface AuthContextType {
   session: Session | null;
 }
 
-// Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Auth provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check for existing session on mount
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      setLoading(true);
-      // TODO: Replace with real auth check when backend is connected
-      const storedUser = localStorage.getItem('user_session');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setSession({ user: userData, access_token: 'temp_token' });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-    } finally {
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
-    }
-  };
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
       
-      // TODO: Replace with real API call when backend is connected
-      // For now, simulate login for development
-      const mockUser: User = {
-        id: 'temp_user_id',
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        name: email.split('@')[0],
-        created_at: new Date().toISOString()
-      };
-      
-      setUser(mockUser);
-      setSession({
-        user: mockUser,
-        access_token: 'temp_token'
+        password,
       });
-      
-      localStorage.setItem('user_session', JSON.stringify(mockUser));
+
+      if (error) throw error;
       
       toast({
         title: "Login Successful",
@@ -89,10 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Please check your credentials",
+        description: error.message,
         variant: "destructive",
       });
       throw error;
@@ -105,21 +75,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      // TODO: Replace with real API call when backend is connected
-      const mockUser: User = {
-        id: 'temp_user_id',
+      const { error } = await supabase.auth.signUp({
         email,
-        name,
-        created_at: new Date().toISOString()
-      };
-      
-      setUser(mockUser);
-      setSession({
-        user: mockUser,
-        access_token: 'temp_token'
+        password,
+        options: {
+          data: {
+            name: name,
+          }
+        }
       });
-      
-      localStorage.setItem('user_session', JSON.stringify(mockUser));
+
+      if (error) throw error;
       
       toast({
         title: "Registration Successful",
@@ -127,10 +93,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Registration Failed",
-        description: "Please try again",
+        description: error.message,
         variant: "destructive",
       });
       throw error;
@@ -143,10 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      // TODO: Replace with real API call when backend is connected
-      setUser(null);
-      setSession(null);
-      localStorage.removeItem('user_session');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
       toast({
         title: "Logout Successful",
@@ -154,10 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Logout Error",
-        description: "Please try again",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -171,19 +135,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setLoading(true);
       
-      // TODO: Replace with real API call when backend is connected
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
-      localStorage.setItem('user_session', JSON.stringify(updatedUser));
+      const { error } = await supabase.auth.updateUser({
+        data: updates
+      });
+
+      if (error) throw error;
       
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Update Failed",
-        description: "Please try again",
+        description: error.message,
         variant: "destructive",
       });
       throw error;

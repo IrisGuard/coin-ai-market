@@ -1,4 +1,6 @@
 
+import { supabase } from '@/integrations/supabase/client';
+
 export class ErrorHandler {
   private static sessionId = Math.random().toString(36).substring(2, 15);
 
@@ -8,7 +10,18 @@ export class ErrorHandler {
     stackTrace?: string,
     pageUrl?: string
   ): Promise<void> {
-    // Ready for real error logging implementation
+    try {
+      await supabase.rpc('log_error', {
+        error_type_param: errorType,
+        message_param: message,
+        stack_trace_param: stackTrace,
+        page_url_param: pageUrl || window.location.href,
+        user_agent_param: navigator.userAgent
+      });
+    } catch (error) {
+      console.error('Failed to log error to Supabase:', error);
+    }
+
     console.error('Error logged:', {
       errorType,
       message,
@@ -26,6 +39,19 @@ export class ErrorHandler {
     lineNumber?: number,
     columnNumber?: number
   ): Promise<void> {
+    try {
+      await supabase.rpc('log_console_error', {
+        error_level_param: level,
+        message_param: message,
+        source_file_param: sourceFile,
+        line_number_param: lineNumber,
+        column_number_param: columnNumber,
+        session_id_param: this.sessionId
+      });
+    } catch (error) {
+      console.error('Failed to log console error to Supabase:', error);
+    }
+
     console.error('Console error logged:', {
       level,
       message,
@@ -76,7 +102,17 @@ export class ErrorHandler {
   }
 
   static async checkSystemConfig(): Promise<boolean> {
-    // Ready for real system check implementation
-    return false;
+    try {
+      const { data } = await supabase
+        .from('system_config')
+        .select('config_value')
+        .eq('config_key', 'system_status')
+        .single();
+      
+      return data?.config_value === 'active';
+    } catch (error) {
+      console.error('Error checking system config:', error);
+      return false;
+    }
   }
 }

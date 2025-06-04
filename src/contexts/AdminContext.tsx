@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminContextType {
   isAdminAuthenticated: boolean;
@@ -18,10 +19,26 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const checkAdminStatus = async () => {
     try {
-      // TODO: Replace with real admin check when backend is connected
-      const isAdminUser = localStorage.getItem('admin_authenticated') === 'true';
-      setIsAdmin(isAdminUser);
-      return isAdminUser;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAdmin(false);
+        return false;
+      }
+
+      // Check if user has admin role - this will be implemented later with proper RLS
+      const { data, error } = await supabase
+        .from('admin_roles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !data) {
+        setIsAdmin(false);
+        return false;
+      }
+
+      setIsAdmin(true);
+      return true;
     } catch (error) {
       setIsAdmin(false);
       return false;
@@ -30,29 +47,40 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogin = async (email: string, password: string) => {
     try {
-      // TODO: Replace with real admin authentication when backend is connected
-      if (email === 'admin@coinvision.com' && password === 'admin123') {
-        setIsAdminAuthenticated(true);
-        setIsAdmin(true);
-        localStorage.setItem('admin_authenticated', 'true');
-        
-        toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the admin panel",
-        });
-        return true;
-      } else {
-        toast({
-          title: "Access Denied",
-          description: "Invalid admin credentials",
-          variant: "destructive",
-        });
-        return false;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        const isAdminUser = await checkAdminStatus();
+        if (isAdminUser) {
+          setIsAdminAuthenticated(true);
+          setIsAdmin(true);
+          
+          toast({
+            title: "Admin Access Granted",
+            description: "Welcome to the admin panel",
+          });
+          return true;
+        } else {
+          await supabase.auth.signOut();
+          toast({
+            title: "Access Denied",
+            description: "You don't have admin privileges",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
-    } catch (error) {
+      
+      return false;
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: (error as Error).message,
+        description: error.message,
         variant: "destructive",
       });
       return false;
@@ -61,7 +89,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogout = async () => {
     try {
-      localStorage.removeItem('admin_authenticated');
+      await supabase.auth.signOut();
     } catch (error) {
       console.error('Error during admin logout:', error);
     }
