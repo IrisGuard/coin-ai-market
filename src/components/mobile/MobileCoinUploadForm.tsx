@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCreateCoin, useAICoinRecognition } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +28,7 @@ const MobileCoinUploadForm = () => {
     setImages(selectedImages);
     setStep('analyze');
     
-    // Start AI analysis immediately
+    // Start real AI analysis
     setIsAnalyzing(true);
     try {
       const primaryImage = selectedImages[0];
@@ -47,11 +46,13 @@ const MobileCoinUploadForm = () => {
       setStep('review');
       
     } catch (error) {
+      console.error('AI analysis error:', error);
       toast({
         title: "AI Analysis Failed",
-        description: "Using manual entry mode. Please fill in coin details.",
+        description: "Unable to analyze the coin. Please check your image quality and try again.",
         variant: "destructive",
       });
+      // Still allow manual entry
       setStep('review');
     } finally {
       setIsAnalyzing(false);
@@ -68,24 +69,24 @@ const MobileCoinUploadForm = () => {
   };
 
   const handleQuickList = async () => {
-    if (!aiResult || images.length === 0) return;
+    if (images.length === 0) return;
     
     try {
-      const price = customPrice ? parseFloat(customPrice) : aiResult.estimated_value;
+      const price = customPrice ? parseFloat(customPrice) : (aiResult?.estimated_value || 10);
       
       await createCoin.mutateAsync({
-        name: aiResult.name || 'Unidentified Coin',
-        year: aiResult.year || new Date().getFullYear(),
-        country: aiResult.country || 'Unknown',
-        grade: aiResult.grade || 'Ungraded',
+        name: aiResult?.name || 'Unidentified Coin',
+        year: aiResult?.year || new Date().getFullYear(),
+        country: aiResult?.country || 'Unknown',
+        grade: aiResult?.grade || 'Ungraded',
         price: price,
-        rarity: aiResult.rarity || 'Common',
-        condition: aiResult.condition || 'Good',
-        composition: aiResult.composition || 'Unknown',
-        diameter: aiResult.diameter,
-        weight: aiResult.weight,
-        mint: aiResult.mint || 'Unknown',
-        description: aiResult.description || 'Coin uploaded via mobile app',
+        rarity: aiResult?.rarity || 'Common',
+        condition: aiResult?.condition || 'Good',
+        composition: aiResult?.composition || 'Unknown',
+        diameter: aiResult?.diameter,
+        weight: aiResult?.weight,
+        mint: aiResult?.mint || 'Unknown',
+        description: aiResult?.description || 'Coin uploaded via mobile app',
         image: await convertFileToBase64(images[0].file),
       });
 
@@ -175,7 +176,39 @@ const MobileCoinUploadForm = () => {
                     <span className="text-gray-500">Condition:</span>
                     <p className="font-medium">{aiResult.condition}</p>
                   </div>
+                  {aiResult.mint && (
+                    <div>
+                      <span className="text-gray-500">Mint:</span>
+                      <p className="font-medium">{aiResult.mint}</p>
+                    </div>
+                  )}
+                  {aiResult.composition && (
+                    <div>
+                      <span className="text-gray-500">Composition:</span>
+                      <p className="font-medium">{aiResult.composition}</p>
+                    </div>
+                  )}
                 </div>
+
+                {/* Error Detection */}
+                {aiResult.errors && aiResult.errors.length > 0 && (
+                  <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                    <h4 className="font-medium text-orange-800 mb-2">🔍 Mint Errors Detected:</h4>
+                    <ul className="text-sm text-orange-700 space-y-1">
+                      {aiResult.errors.map((error: string, index: number) => (
+                        <li key={index}>• {error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Authentication Notes */}
+                {aiResult.authentication_notes && (
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                    <h4 className="font-medium text-yellow-800 mb-1">⚠️ Authentication Notes:</h4>
+                    <p className="text-sm text-yellow-700">{aiResult.authentication_notes}</p>
+                  </div>
+                )}
 
                 {/* Price Section */}
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
@@ -206,10 +239,16 @@ const MobileCoinUploadForm = () => {
                       ${customPrice || aiResult.estimated_value}
                     </div>
                   )}
+                  
+                  {aiResult.market_trend && (
+                    <div className="text-xs text-green-600 mt-1">
+                      Market trend: {aiResult.market_trend}
+                    </div>
+                  )}
                 </div>
 
                 <Badge className="w-full justify-center bg-blue-100 text-blue-800">
-                  {Math.round((aiResult.confidence || 0.85) * 100)}% AI Confidence
+                  {Math.round((aiResult.confidence || 0.7) * 100)}% AI Confidence
                 </Badge>
               </>
             ) : (

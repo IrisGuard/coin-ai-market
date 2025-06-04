@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Coin } from '@/types/coin';
@@ -151,41 +150,34 @@ export const useDeleteCoin = () => {
   });
 };
 
-// Enhanced AI coin recognition hook with multiple data sources
+// Enhanced AI coin recognition hook with real OpenAI Vision API
 export const useAICoinRecognition = () => {
   return useMutation({
     mutationFn: async (imageData: { image: string; additionalImages?: string[] }) => {
-      // First, try AI recognition
-      const aiResponse = await supabase.functions.invoke('ai-coin-recognition', {
+      console.log('Starting AI coin recognition...');
+      
+      const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
         body: imageData
       });
 
-      if (aiResponse.error) throw aiResponse.error;
-
-      const recognitionResult = aiResponse.data;
-      
-      // If we got a coin identification, aggregate data from multiple sources
-      if (recognitionResult?.coin_name) {
-        const aggregationResponse = await supabase.functions.invoke('coin-data-aggregator', {
-          body: { 
-            coin_identifier: recognitionResult.coin_name,
-            include_sources: ['static_db', 'coinapi', 'numista', 'scraping_cache']
-          }
-        });
-
-        if (aggregationResponse.data) {
-          return {
-            ...recognitionResult,
-            enhanced_data: aggregationResponse.data,
-            data_sources: aggregationResponse.data.sources_used,
-            confidence_score: aggregationResponse.data.confidence_score
-          };
-        }
+      if (error) {
+        console.error('AI recognition error:', error);
+        throw error;
       }
 
-      return recognitionResult;
+      console.log('AI recognition result:', data);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "AI Analysis Complete",
+          description: `${data.name} identified with ${Math.round(data.confidence * 100)}% confidence`,
+        });
+      }
     },
     onError: (error: any) => {
+      console.error('AI recognition failed:', error);
       toast({
         title: "Recognition Failed",
         description: error.message || "Unable to analyze the coin image. Please try again.",
