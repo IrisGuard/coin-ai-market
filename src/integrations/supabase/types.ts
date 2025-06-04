@@ -69,6 +69,30 @@ export type Database = {
         }
         Relationships: []
       }
+      api_key_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           created_at: string | null
@@ -133,6 +157,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      coin_data_cache: {
+        Row: {
+          cached_data: Json
+          coin_identifier: string
+          expires_at: string | null
+          id: string
+          last_updated: string
+          source_name: string
+        }
+        Insert: {
+          cached_data: Json
+          coin_identifier: string
+          expires_at?: string | null
+          id?: string
+          last_updated?: string
+          source_name: string
+        }
+        Update: {
+          cached_data?: Json
+          coin_identifier?: string
+          expires_at?: string | null
+          id?: string
+          last_updated?: string
+          source_name?: string
+        }
+        Relationships: []
       }
       coin_evaluations: {
         Row: {
@@ -319,6 +370,36 @@ export type Database = {
         }
         Relationships: []
       }
+      data_sources: {
+        Row: {
+          config: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: number | null
+          url: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority?: number | null
+          url: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: number | null
+          url?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           created_at: string | null
@@ -349,6 +430,136 @@ export type Database = {
           stack_trace?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      external_price_sources: {
+        Row: {
+          base_url: string
+          category_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          market_focus: string[] | null
+          priority_score: number | null
+          rate_limit_per_hour: number | null
+          region_id: string | null
+          requires_proxy: boolean | null
+          source_name: string
+          source_type: string
+          supported_currencies: string[] | null
+          template_id: string | null
+        }
+        Insert: {
+          base_url: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          market_focus?: string[] | null
+          priority_score?: number | null
+          rate_limit_per_hour?: number | null
+          region_id?: string | null
+          requires_proxy?: boolean | null
+          source_name: string
+          source_type: string
+          supported_currencies?: string[] | null
+          template_id?: string | null
+        }
+        Update: {
+          base_url?: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          market_focus?: string[] | null
+          priority_score?: number | null
+          rate_limit_per_hour?: number | null
+          region_id?: string | null
+          requires_proxy?: boolean | null
+          source_name?: string
+          source_type?: string
+          supported_currencies?: string[] | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_price_sources_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "source_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_price_sources_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "geographic_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_price_sources_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "source_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geographic_regions: {
+        Row: {
+          code: string
+          continent: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          continent?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          continent?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      marketplace_stats: {
+        Row: {
+          active_auctions: number | null
+          created_at: string
+          id: string
+          listed_coins: number | null
+          registered_users: number | null
+          total_volume: number | null
+          updated_at: string
+          weekly_transactions: number | null
+        }
+        Insert: {
+          active_auctions?: number | null
+          created_at?: string
+          id?: string
+          listed_coins?: number | null
+          registered_users?: number | null
+          total_volume?: number | null
+          updated_at?: string
+          weekly_transactions?: number | null
+        }
+        Update: {
+          active_auctions?: number | null
+          created_at?: string
+          id?: string
+          listed_coins?: number | null
+          registered_users?: number | null
+          total_volume?: number | null
+          updated_at?: string
+          weekly_transactions?: number | null
         }
         Relationships: []
       }
@@ -438,6 +649,182 @@ export type Database = {
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      scraping_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          job_type: string
+          proxy_id: string | null
+          result: Json | null
+          source_id: string | null
+          status: string | null
+          target_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_type: string
+          proxy_id?: string | null
+          result?: Json | null
+          source_id?: string | null
+          status?: string | null
+          target_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_type?: string
+          proxy_id?: string | null
+          result?: Json | null
+          source_id?: string | null
+          status?: string | null
+          target_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraping_jobs_proxy_id_fkey"
+            columns: ["proxy_id"]
+            isOneToOne: false
+            referencedRelation: "vpn_proxies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scraping_jobs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      source_performance_metrics: {
+        Row: {
+          avg_response_time: number | null
+          created_at: string
+          data_quality_score: number | null
+          date: string
+          id: string
+          source_id: string | null
+          success_rate: number | null
+        }
+        Insert: {
+          avg_response_time?: number | null
+          created_at?: string
+          data_quality_score?: number | null
+          date?: string
+          id?: string
+          source_id?: string | null
+          success_rate?: number | null
+        }
+        Update: {
+          avg_response_time?: number | null
+          created_at?: string
+          data_quality_score?: number | null
+          date?: string
+          id?: string
+          source_id?: string | null
+          success_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_performance_metrics_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          template_config: Json | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          template_config?: Json | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          template_config?: Json | null
+        }
+        Relationships: []
+      }
+      static_coins_db: {
+        Row: {
+          composition: string | null
+          country: string | null
+          created_at: string
+          denomination: string | null
+          diameter: number | null
+          id: string
+          mint: string | null
+          name: string
+          reference_data: Json | null
+          weight: number | null
+          year: number | null
+        }
+        Insert: {
+          composition?: string | null
+          country?: string | null
+          created_at?: string
+          denomination?: string | null
+          diameter?: number | null
+          id?: string
+          mint?: string | null
+          name: string
+          reference_data?: Json | null
+          weight?: number | null
+          year?: number | null
+        }
+        Update: {
+          composition?: string | null
+          country?: string | null
+          created_at?: string
+          denomination?: string | null
+          diameter?: number | null
+          id?: string
+          mint?: string | null
+          name?: string
+          reference_data?: Json | null
+          weight?: number | null
+          year?: number | null
         }
         Relationships: []
       }
@@ -540,6 +927,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vpn_proxies: {
+        Row: {
+          config: Json | null
+          country_code: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          success_rate: number | null
+        }
+        Insert: {
+          config?: Json | null
+          country_code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          success_rate?: number | null
+        }
+        Update: {
+          config?: Json | null
+          country_code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          success_rate?: number | null
+        }
+        Relationships: []
       }
     }
     Views: {
