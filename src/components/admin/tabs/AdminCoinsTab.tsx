@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Edit, Search, Star, Check, X } from 'lucide-react';
+import { Trash2, Search, Star, Check, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Coin {
   id: string;
@@ -20,6 +21,9 @@ interface Coin {
   authentication_status: string;
   user_id: string;
   created_at: string;
+  profiles?: {
+    name: string;
+  };
 }
 
 const AdminCoinsTab = () => {
@@ -30,12 +34,20 @@ const AdminCoinsTab = () => {
 
   const fetchCoins = async () => {
     try {
-      // Ready for real API implementation
-      setCoins([]);
-    } catch (error) {
+      const { data, error } = await supabase
+        .from('coins')
+        .select(`
+          *,
+          profiles:user_id (name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCoins(data || []);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to fetch coins",
+        description: "Failed to fetch coins: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -47,16 +59,23 @@ const AdminCoinsTab = () => {
     if (!confirm('Are you sure you want to delete this coin?')) return;
 
     try {
+      const { error } = await supabase
+        .from('coins')
+        .delete()
+        .eq('id', coinId);
+
+      if (error) throw error;
+
       setCoins(coins.filter(coin => coin.id !== coinId));
       
       toast({
         title: "Success",
         description: "Coin deleted successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete coin",
+        description: "Failed to delete coin: " + error.message,
         variant: "destructive",
       });
     }
@@ -64,6 +83,13 @@ const AdminCoinsTab = () => {
 
   const handleUpdateCoinStatus = async (coinId: string, status: string) => {
     try {
+      const { error } = await supabase
+        .from('coins')
+        .update({ authentication_status: status })
+        .eq('id', coinId);
+
+      if (error) throw error;
+
       setCoins(coins.map(coin => 
         coin.id === coinId ? { ...coin, authentication_status: status } : coin
       ));
@@ -72,10 +98,10 @@ const AdminCoinsTab = () => {
         title: "Success",
         description: `Coin ${status} successfully`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update coin status",
+        description: "Failed to update coin status: " + error.message,
         variant: "destructive",
       });
     }
@@ -83,6 +109,13 @@ const AdminCoinsTab = () => {
 
   const handleToggleFeatured = async (coinId: string, featured: boolean) => {
     try {
+      const { error } = await supabase
+        .from('coins')
+        .update({ featured })
+        .eq('id', coinId);
+
+      if (error) throw error;
+
       setCoins(coins.map(coin => 
         coin.id === coinId ? { ...coin, featured } : coin
       ));
@@ -91,10 +124,10 @@ const AdminCoinsTab = () => {
         title: "Success",
         description: `Coin ${featured ? 'featured' : 'unfeatured'} successfully`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update coin",
+        description: "Failed to update coin: " + error.message,
         variant: "destructive",
       });
     }
@@ -174,6 +207,9 @@ const AdminCoinsTab = () => {
                         </Badge>
                       )}
                       <Badge variant="outline">{coin.rarity}</Badge>
+                      <span className="text-xs text-gray-400">
+                        by {coin.profiles?.name || 'Unknown'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -218,7 +254,7 @@ const AdminCoinsTab = () => {
 
       {filteredCoins.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          {coins.length === 0 ? 'No coins found. Connect your database to see coins.' : 'No coins found matching your criteria.'}
+          {coins.length === 0 ? 'No coins found.' : 'No coins found matching your criteria.'}
         </div>
       )}
     </div>

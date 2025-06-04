@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Coins, DollarSign, TrendingUp, Activity } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Stats {
   listed_coins: number;
@@ -19,13 +20,40 @@ const AdminAnalyticsTab = () => {
 
   const fetchStats = async () => {
     try {
-      // Ready for real API implementation
-      setStats(null);
-    } catch (error) {
+      // Fetch real stats from Supabase
+      const [coinsResult, usersResult, transactionsResult] = await Promise.all([
+        supabase.from('coins').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('transactions').select('amount, status, created_at')
+      ]);
+
+      if (coinsResult.error) throw coinsResult.error;
+      if (usersResult.error) throw usersResult.error;
+      if (transactionsResult.error) throw transactionsResult.error;
+
+      const transactions = transactionsResult.data || [];
+      const completedTransactions = transactions.filter(t => t.status === 'completed');
+      const totalVolume = completedTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+      
+      // Calculate weekly transactions (last 7 days)
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weeklyTransactions = transactions.filter(t => 
+        new Date(t.created_at) >= weekAgo
+      ).length;
+
+      setStats({
+        listed_coins: coinsResult.count || 0,
+        active_auctions: 0, // Would need auction-specific logic
+        registered_users: usersResult.count || 0,
+        total_volume: totalVolume,
+        weekly_transactions: weeklyTransactions
+      });
+    } catch (error: any) {
       console.error('Error fetching stats:', error);
       toast({
         title: "Error",
-        description: "Failed to load analytics data",
+        description: "Failed to load analytics data: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -49,7 +77,7 @@ const AdminAnalyticsTab = () => {
           <h3 className="text-lg font-semibold">Platform Analytics</h3>
         </div>
         <div className="text-center py-8 text-gray-500">
-          Connect your database to view analytics data.
+          Failed to load analytics data.
         </div>
       </div>
     );

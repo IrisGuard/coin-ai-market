@@ -1,15 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Key, Plus, Eye, EyeOff, Trash2, Edit } from 'lucide-react';
+import { Key, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ApiKey {
   id: string;
@@ -26,7 +27,6 @@ const AdminApiKeysTab = () => {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
 
   const [newKey, setNewKey] = useState({
@@ -37,11 +37,19 @@ const AdminApiKeysTab = () => {
 
   const fetchApiKeys = async () => {
     try {
-      // Ready for real API implementation
-      setApiKeys([]);
-    } catch (error) {
-      console.error('Error fetching API keys:', error);
-      setApiKeys([]);
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setApiKeys(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch API keys: " + error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -58,18 +66,16 @@ const AdminApiKeysTab = () => {
     }
 
     try {
-      const mockApiKey = {
-        id: Date.now().toString(),
-        key_name: newKey.key_name,
-        encrypted_value: btoa(newKey.key_value),
-        description: newKey.description || null,
-        is_active: true,
-        created_by: 'admin',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      const { error } = await supabase
+        .from('api_keys')
+        .insert({
+          key_name: newKey.key_name,
+          encrypted_value: btoa(newKey.key_value), // Basic encoding for demo
+          description: newKey.description || null,
+          is_active: true
+        });
 
-      setApiKeys([...apiKeys, mockApiKey]);
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -78,10 +84,11 @@ const AdminApiKeysTab = () => {
 
       setNewKey({ key_name: '', key_value: '', description: '' });
       setShowCreateDialog(false);
-    } catch (error) {
+      fetchApiKeys();
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to create API key",
+        description: "Failed to create API key: " + error.message,
         variant: "destructive",
       });
     }
@@ -89,18 +96,28 @@ const AdminApiKeysTab = () => {
 
   const toggleKeyStatus = async (keyId: string, currentStatus: boolean) => {
     try {
+      const { error } = await supabase
+        .from('api_keys')
+        .update({ 
+          is_active: !currentStatus, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', keyId);
+
+      if (error) throw error;
+
       setApiKeys(apiKeys.map(key => 
-        key.id === keyId ? { ...key, is_active: !currentStatus, updated_at: new Date().toISOString() } : key
+        key.id === keyId ? { ...key, is_active: !currentStatus } : key
       ));
 
       toast({
         title: "Success",
         description: `API key ${!currentStatus ? 'activated' : 'deactivated'}`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update API key status",
+        description: "Failed to update API key status: " + error.message,
         variant: "destructive",
       });
     }
@@ -112,16 +129,23 @@ const AdminApiKeysTab = () => {
     }
 
     try {
+      const { error } = await supabase
+        .from('api_keys')
+        .delete()
+        .eq('id', keyId);
+
+      if (error) throw error;
+
       setApiKeys(apiKeys.filter(key => key.id !== keyId));
 
       toast({
         title: "Success",
         description: "API key deleted successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete API key",
+        description: "Failed to delete API key: " + error.message,
         variant: "destructive",
       });
     }
@@ -172,7 +196,7 @@ const AdminApiKeysTab = () => {
                   id="key_name"
                   value={newKey.key_name}
                   onChange={(e) => setNewKey({ ...newKey, key_name: e.target.value })}
-                  placeholder="e.g., YOUR_AI_API_KEY"
+                  placeholder="e.g., OPENAI_API_KEY"
                 />
               </div>
               <div>

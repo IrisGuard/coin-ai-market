@@ -1,0 +1,39 @@
+
+project_id = "saimszsekjafmqqcvcgx"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+jwt_secret = "super-secret-jwt-token-with-at-least-32-characters-long"
+enable_signup = true
+enable_confirmations = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[db]
+port = 54322
+
+[storage]
+enabled = true
+port = 54323
+file_size_limit = "50MiB"
+
+[functions.ai-coin-recognition]
+verify_jwt = false
+
+[edge_runtime]
+enabled = true
+port = 54325

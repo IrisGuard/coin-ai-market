@@ -1,58 +1,80 @@
 
+import { ArrowRight, Camera, Search, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Camera, DollarSign, Coins } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   return (
-    <div className="relative overflow-hidden bg-hero-pattern">
-      <div className="max-w-7xl mx-auto">
-        <div className="relative z-10 pb-8 bg-transparent sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-          <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-            <div className="sm:text-center lg:text-left">
-              <h1 className="text-4xl tracking-tight font-extrabold text-coin-blue sm:text-5xl md:text-6xl">
-                <span className="block">Discover the value of your</span>
-                <span className="block text-coin-gold font-serif">Collectible Coins</span>
-              </h1>
-              <p className="mt-3 text-base text-gray-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                Upload images of your coins and let our AI instantly identify, grade, and value them. Join the world's largest global coin marketplace.
-              </p>
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                <div className="rounded-md shadow">
-                  <Link to="/upload" className="coin-button flex items-center justify-center w-full px-8 py-3 text-base font-medium rounded-md md:py-4 md:text-lg md:px-10">
-                    Upload Coin <Camera size={20} className="ml-2" />
-                  </Link>
+    <section className="coin-section bg-gradient-to-br from-coin-blue via-coin-purple to-coin-skyblue">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-white"
+          >
+            <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">
+              Discover the Value of Your <span className="text-coin-gold">Coins</span>
+            </h1>
+            <p className="text-xl mb-8 opacity-90">
+              Upload a photo and let our AI instantly identify your coin, estimate its value, 
+              and connect you with collectors worldwide.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/upload" className="coin-button inline-flex items-center justify-center">
+                  <Upload className="mr-2 h-5 w-5" />
+                  Upload Coin
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/marketplace" className="coin-button-outline inline-flex items-center justify-center">
+                  <Search className="mr-2 h-5 w-5" />
+                  Browse Market
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="glassmorphism p-8 rounded-2xl">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-24 h-24 bg-coin-gold rounded-full flex items-center justify-center">
+                  <Camera className="w-12 h-12 text-white" />
                 </div>
-                <div className="mt-3 sm:mt-0 sm:ml-3">
-                  <Link to="/marketplace" className="coin-button-outline flex items-center justify-center w-full px-8 py-3 text-base font-medium rounded-md md:py-4 md:text-lg md:px-10">
-                    Browse Market <ArrowRight size={20} className="ml-2" />
-                  </Link>
+              </div>
+              <h3 className="text-2xl font-serif font-bold text-center mb-4 text-white">
+                AI-Powered Recognition
+              </h3>
+              <p className="text-center text-white/80">
+                Our advanced AI can identify over 50,000 coins from around the world with 95% accuracy.
+              </p>
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-coin-gold">50K+</div>
+                  <div className="text-sm text-white/70">Coins in Database</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-coin-gold">95%</div>
+                  <div className="text-sm text-white/70">Accuracy Rate</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-coin-gold">&lt;3s</div>
+                  <div className="text-sm text-white/70">Analysis Time</div>
                 </div>
               </div>
             </div>
-          </main>
+          </motion.div>
         </div>
       </div>
-      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <div className="relative h-64 w-full sm:h-72 md:h-96 lg:w-full lg:h-full">
-          <div className="absolute inset-0 flex justify-center items-center">
-            <div className="relative w-64 h-64 md:w-80 md:h-80">
-              <div className="absolute inset-0 rounded-full bg-coin-gold opacity-20 animate-pulse"></div>
-              <img
-                className="absolute top-4 left-4 w-32 h-32 md:w-40 md:h-40 rounded-full object-cover animate-floating"
-                src="https://upload.wikimedia.org/wikipedia/commons/d/d9/1879S_Morgan_Dollar_NGC_MS67plus_Obverse.png"
-                alt="Gold coin obverse"
-              />
-              <img
-                className="absolute bottom-4 right-4 w-32 h-32 md:w-40 md:h-40 rounded-full object-cover animate-floating"
-                style={{ animationDelay: '1s' }}
-                src="https://upload.wikimedia.org/wikipedia/commons/7/70/1879S_Morgan_Dollar_NGC_MS67plus_Reverse.png"
-                alt="Gold coin reverse"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 };
 

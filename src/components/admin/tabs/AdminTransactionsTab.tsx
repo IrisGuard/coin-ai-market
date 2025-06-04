@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, DollarSign } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Transaction {
   id: string;
@@ -16,6 +16,15 @@ interface Transaction {
   status: string;
   transaction_type: string;
   created_at: string;
+  coins?: {
+    name: string;
+  };
+  seller?: {
+    name: string;
+  };
+  buyer?: {
+    name: string;
+  };
 }
 
 const AdminTransactionsTab = () => {
@@ -25,12 +34,22 @@ const AdminTransactionsTab = () => {
 
   const fetchTransactions = async () => {
     try {
-      // Ready for real API implementation
-      setTransactions([]);
-    } catch (error) {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          coins (name),
+          seller:seller_id (name),
+          buyer:buyer_id (name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to fetch transactions",
+        description: "Failed to fetch transactions: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -40,6 +59,13 @@ const AdminTransactionsTab = () => {
 
   const handleUpdateTransactionStatus = async (transactionId: string, status: string) => {
     try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ status })
+        .eq('id', transactionId);
+
+      if (error) throw error;
+
       setTransactions(transactions.map(transaction => 
         transaction.id === transactionId ? { ...transaction, status } : transaction
       ));
@@ -48,10 +74,10 @@ const AdminTransactionsTab = () => {
         title: "Success",
         description: "Transaction status updated",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update transaction status",
+        description: "Failed to update transaction status: " + error.message,
         variant: "destructive",
       });
     }
@@ -120,9 +146,10 @@ const AdminTransactionsTab = () => {
                     </span>
                   </div>
                   <div className="text-sm text-gray-500">
-                    <div>Transaction ID: {transaction.id.slice(0, 8)}...</div>
-                    <div>Coin ID: {transaction.coin_id.slice(0, 8)}...</div>
-                    <div>Date: {new Date(transaction.created_at).toLocaleString()}</div>
+                    <div><strong>Coin:</strong> {transaction.coins?.name || 'Unknown'}</div>
+                    <div><strong>Seller:</strong> {transaction.seller?.name || 'Unknown'}</div>
+                    <div><strong>Buyer:</strong> {transaction.buyer?.name || 'Unknown'}</div>
+                    <div><strong>Date:</strong> {new Date(transaction.created_at).toLocaleString()}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -140,9 +167,6 @@ const AdminTransactionsTab = () => {
                       <SelectItem value="refunded">Refunded</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -152,7 +176,7 @@ const AdminTransactionsTab = () => {
 
       {filteredTransactions.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          {transactions.length === 0 ? 'No transactions found. Connect your database to see transactions.' : 'No transactions found matching your criteria.'}
+          {transactions.length === 0 ? 'No transactions found.' : 'No transactions found matching your criteria.'}
         </div>
       )}
     </div>
