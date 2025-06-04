@@ -41,9 +41,14 @@ const CoinDetails = () => {
         .single();
 
       if (error) {
-        logError('CoinDetails: Failed to fetch coin', { coinId: id, error });
+        logError(error, 'CoinDetails: Failed to fetch coin');
         throw error;
       }
+      
+      if (!data) {
+        throw new Error('Coin not found');
+      }
+
       return data;
     },
     enabled: !!id
@@ -51,26 +56,26 @@ const CoinDetails = () => {
 
   // Fetch bids for this coin
   const { data: bids = [], isLoading: bidsLoading } = useQuery({
-    queryKey: ['coin-bids', id],
+    queryKey: ['coinBids', id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('bids')
         .select(`
           *,
-          profiles:user_id (
-            id,
-            username,
+          profiles!bids_user_id_fkey (
             avatar_url,
-            name
+            name,
+            verified_dealer
           )
         `)
         .eq('coin_id', id)
-        .order('amount', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
-        logError('CoinDetails: Failed to fetch bids', { coinId: id, error });
+        logError(error, 'CoinDetails: Failed to fetch bids');
         throw error;
       }
+
       return data || [];
     },
     enabled: !!id
@@ -209,18 +214,29 @@ const CoinDetails = () => {
           
           <div className="space-y-4">
             {bids?.map((bid) => (
-              <div key={bid.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <div>
-                  <span className="font-medium">
-                    {bid.profiles && typeof bid.profiles === 'object' && 'name' in bid.profiles 
-                      ? bid.profiles.name 
-                      : 'Anonymous Bidder'}
-                  </span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    {new Date(bid.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="font-bold text-lg">${Number(bid.amount).toFixed(2)}</div>
+              <div key={bid.id} className="border rounded-lg p-4">
+                {bid.profiles && (
+                  <div className="flex items-center mb-2">
+                    {bid.profiles.avatar_url && (
+                      <img
+                        src={bid.profiles.avatar_url}
+                        alt={bid.profiles.name || 'User'}
+                        className="w-8 h-8 rounded-full mr-2"
+                      />
+                    )}
+                    <div>
+                      <span className="font-medium">
+                        {bid.profiles.name || 'Anonymous'}
+                      </span>
+                      {bid.profiles.verified_dealer && (
+                        <span className="ml-2 text-green-600 text-sm">✓ Verified</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <p className="text-sm text-gray-600">
+                  Bid placed: {new Date(bid.created_at).toLocaleDateString()}
+                </p>
               </div>
             ))}
           </div>
