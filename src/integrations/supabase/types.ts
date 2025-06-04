@@ -92,6 +92,87 @@ export type Database = {
           },
         ]
       }
+      aggregated_coin_prices: {
+        Row: {
+          coin_identifier: string
+          confidence_level: number | null
+          current_avg_price: number | null
+          grade: string | null
+          id: string
+          last_updated: string | null
+          price_sources: string[] | null
+          price_trend: string | null
+          sample_size: number | null
+          trend_percentage: number | null
+        }
+        Insert: {
+          coin_identifier: string
+          confidence_level?: number | null
+          current_avg_price?: number | null
+          grade?: string | null
+          id?: string
+          last_updated?: string | null
+          price_sources?: string[] | null
+          price_trend?: string | null
+          sample_size?: number | null
+          trend_percentage?: number | null
+        }
+        Update: {
+          coin_identifier?: string
+          confidence_level?: number | null
+          current_avg_price?: number | null
+          grade?: string | null
+          id?: string
+          last_updated?: string | null
+          price_sources?: string[] | null
+          price_trend?: string | null
+          sample_size?: number | null
+          trend_percentage?: number | null
+        }
+        Relationships: []
+      }
+      ai_recognition_cache: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          error_detected: boolean | null
+          expires_at: string | null
+          grade_estimation: string | null
+          id: string
+          image_hash: string
+          price_estimate: number | null
+          processing_time_ms: number | null
+          recognition_results: Json
+          sources_consulted: string[] | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          error_detected?: boolean | null
+          expires_at?: string | null
+          grade_estimation?: string | null
+          id?: string
+          image_hash: string
+          price_estimate?: number | null
+          processing_time_ms?: number | null
+          recognition_results: Json
+          sources_consulted?: string[] | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          error_detected?: boolean | null
+          expires_at?: string | null
+          grade_estimation?: string | null
+          id?: string
+          image_hash?: string
+          price_estimate?: number | null
+          processing_time_ms?: number | null
+          recognition_results?: Json
+          sources_consulted?: string[] | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           created_at: string | null
@@ -252,6 +333,59 @@ export type Database = {
             columns: ["expert_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coin_price_history: {
+        Row: {
+          coin_identifier: string
+          condition_notes: string | null
+          confidence_score: number | null
+          created_at: string | null
+          currency: string | null
+          grade: string | null
+          id: string
+          price: number
+          raw_listing_data: Json | null
+          sale_date: string | null
+          sale_type: string | null
+          source_id: string | null
+        }
+        Insert: {
+          coin_identifier: string
+          condition_notes?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          currency?: string | null
+          grade?: string | null
+          id?: string
+          price: number
+          raw_listing_data?: Json | null
+          sale_date?: string | null
+          sale_type?: string | null
+          source_id?: string | null
+        }
+        Update: {
+          coin_identifier?: string
+          condition_notes?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          currency?: string | null
+          grade?: string | null
+          id?: string
+          price?: number
+          raw_listing_data?: Json | null
+          sale_date?: string | null
+          sale_type?: string | null
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_price_history_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -464,6 +598,50 @@ export type Database = {
         }
         Relationships: []
       }
+      error_coins_db: {
+        Row: {
+          base_coin_id: string | null
+          created_at: string | null
+          error_description: string
+          error_type: string
+          id: string
+          identification_markers: string[] | null
+          image_examples: string[] | null
+          rarity_multiplier: number | null
+          value_premium_percent: number | null
+        }
+        Insert: {
+          base_coin_id?: string | null
+          created_at?: string | null
+          error_description: string
+          error_type: string
+          id?: string
+          identification_markers?: string[] | null
+          image_examples?: string[] | null
+          rarity_multiplier?: number | null
+          value_premium_percent?: number | null
+        }
+        Update: {
+          base_coin_id?: string | null
+          created_at?: string | null
+          error_description?: string
+          error_type?: string
+          id?: string
+          identification_markers?: string[] | null
+          image_examples?: string[] | null
+          rarity_multiplier?: number | null
+          value_premium_percent?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_coins_db_base_coin_id_fkey"
+            columns: ["base_coin_id"]
+            isOneToOne: false
+            referencedRelation: "static_coins_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           created_at: string | null
@@ -504,6 +682,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      external_price_sources: {
+        Row: {
+          avg_response_time: number | null
+          base_url: string
+          created_at: string | null
+          failed_scrapes: number | null
+          id: string
+          last_successful_scrape: string | null
+          rate_limit_per_hour: number | null
+          reliability_score: number | null
+          requires_proxy: boolean | null
+          scraping_config: Json | null
+          scraping_enabled: boolean | null
+          source_name: string
+          source_type: string
+          total_scrapes: number | null
+        }
+        Insert: {
+          avg_response_time?: number | null
+          base_url: string
+          created_at?: string | null
+          failed_scrapes?: number | null
+          id?: string
+          last_successful_scrape?: string | null
+          rate_limit_per_hour?: number | null
+          reliability_score?: number | null
+          requires_proxy?: boolean | null
+          scraping_config?: Json | null
+          scraping_enabled?: boolean | null
+          source_name: string
+          source_type: string
+          total_scrapes?: number | null
+        }
+        Update: {
+          avg_response_time?: number | null
+          base_url?: string
+          created_at?: string | null
+          failed_scrapes?: number | null
+          id?: string
+          last_successful_scrape?: string | null
+          rate_limit_per_hour?: number | null
+          reliability_score?: number | null
+          requires_proxy?: boolean | null
+          scraping_config?: Json | null
+          scraping_enabled?: boolean | null
+          source_name?: string
+          source_type?: string
+          total_scrapes?: number | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -601,6 +830,57 @@ export type Database = {
         }
         Relationships: []
       }
+      proxy_rotation_log: {
+        Row: {
+          avg_response_time: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          last_used: string | null
+          proxy_id: string | null
+          request_count: number | null
+          source_id: string | null
+          success_rate: number | null
+        }
+        Insert: {
+          avg_response_time?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          last_used?: string | null
+          proxy_id?: string | null
+          request_count?: number | null
+          source_id?: string | null
+          success_rate?: number | null
+        }
+        Update: {
+          avg_response_time?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          last_used?: string | null
+          proxy_id?: string | null
+          request_count?: number | null
+          source_id?: string | null
+          success_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proxy_rotation_log_proxy_id_fkey"
+            columns: ["proxy_id"]
+            isOneToOne: false
+            referencedRelation: "vpn_proxies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proxy_rotation_log_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scraping_jobs: {
         Row: {
           completed_at: string | null
@@ -658,6 +938,50 @@ export type Database = {
           },
         ]
       }
+      scraping_schedules: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_run: string | null
+          max_pages_per_run: number | null
+          next_run: string | null
+          priority: number | null
+          schedule_pattern: string
+          source_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          max_pages_per_run?: number | null
+          next_run?: string | null
+          priority?: number | null
+          schedule_pattern: string
+          source_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          max_pages_per_run?: number | null
+          next_run?: string | null
+          priority?: number | null
+          schedule_pattern?: string
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraping_schedules_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       static_coins_db: {
         Row: {
           base_value: number | null
@@ -669,15 +993,22 @@ export type Database = {
           design_type: string | null
           designer: string | null
           diameter: number | null
+          edge_type: string | null
+          error_variations: string[] | null
           id: string
+          mint_location: string | null
           mint_marks: string[] | null
           mintage: number | null
           name: string
+          obverse_designer: string | null
           rarity_score: number | null
+          reverse_designer: string | null
           specifications: Json | null
           subcategory: string | null
           updated_at: string | null
+          variety_notes: string | null
           weight: number | null
+          world_region: string | null
           year_end: number | null
           year_start: number | null
         }
@@ -691,15 +1022,22 @@ export type Database = {
           design_type?: string | null
           designer?: string | null
           diameter?: number | null
+          edge_type?: string | null
+          error_variations?: string[] | null
           id?: string
+          mint_location?: string | null
           mint_marks?: string[] | null
           mintage?: number | null
           name: string
+          obverse_designer?: string | null
           rarity_score?: number | null
+          reverse_designer?: string | null
           specifications?: Json | null
           subcategory?: string | null
           updated_at?: string | null
+          variety_notes?: string | null
           weight?: number | null
+          world_region?: string | null
           year_end?: number | null
           year_start?: number | null
         }
@@ -713,15 +1051,22 @@ export type Database = {
           design_type?: string | null
           designer?: string | null
           diameter?: number | null
+          edge_type?: string | null
+          error_variations?: string[] | null
           id?: string
+          mint_location?: string | null
           mint_marks?: string[] | null
           mintage?: number | null
           name?: string
+          obverse_designer?: string | null
           rarity_score?: number | null
+          reverse_designer?: string | null
           specifications?: Json | null
           subcategory?: string | null
           updated_at?: string | null
+          variety_notes?: string | null
           weight?: number | null
+          world_region?: string | null
           year_end?: number | null
           year_start?: number | null
         }

@@ -16,6 +16,9 @@ import AdminErrorMonitoringTab from './tabs/AdminErrorMonitoringTab';
 import AdminApiKeysTab from './tabs/AdminApiKeysTab';
 import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
 import AdminScrapingTab from './tabs/AdminScrapingTab';
+import AdminExternalSourcesTab from './tabs/AdminExternalSourcesTab';
+import AdminPriceAggregationTab from './tabs/AdminPriceAggregationTab';
+import AdminErrorCoinsTab from './tabs/AdminErrorCoinsTab';
 import { 
   Users, 
   Coins, 
@@ -28,7 +31,9 @@ import {
   Database,
   Shield,
   X,
-  Globe
+  Globe,
+  DollarSign,
+  Target
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -100,11 +105,11 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Data Sources</CardTitle>
+                <CardTitle className="text-sm font-medium">External Sources</CardTitle>
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">6</div>
+                <div className="text-2xl font-bold">8</div>
                 <p className="text-xs text-muted-foreground">
                   Active data streams
                 </p>
@@ -112,14 +117,26 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             </Card>
           </div>
 
-          <Tabs defaultValue="data-sources" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10">
+          <Tabs defaultValue="external-sources" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12">
+              <TabsTrigger value="external-sources" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline">External</span>
+              </TabsTrigger>
+              <TabsTrigger value="price-aggregation" className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <span className="hidden sm:inline">Prices</span>
+              </TabsTrigger>
+              <TabsTrigger value="error-coins" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline">Errors</span>
+              </TabsTrigger>
               <TabsTrigger value="data-sources" className="flex items-center gap-2">
                 <Database className="h-4 w-4" />
-                <span className="hidden sm:inline">Data Sources</span>
+                <span className="hidden sm:inline">Sources</span>
               </TabsTrigger>
               <TabsTrigger value="scraping" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
+                <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">Scraping</span>
               </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2">
@@ -132,11 +149,11 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
               </TabsTrigger>
               <TabsTrigger value="transactions" className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
-                <span className="hidden sm:inline">Transactions</span>
+                <span className="hidden sm:inline">Trades</span>
               </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
-                <span className="hidden sm:inline">Notifications</span>
+                <span className="hidden sm:inline">Alerts</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
@@ -146,15 +163,23 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">System</span>
               </TabsTrigger>
-              <TabsTrigger value="errors" className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="hidden sm:inline">Errors</span>
-              </TabsTrigger>
               <TabsTrigger value="api-keys" className="flex items-center gap-2">
                 <Key className="h-4 w-4" />
-                <span className="hidden sm:inline">API Keys</span>
+                <span className="hidden sm:inline">Keys</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="external-sources">
+              <AdminExternalSourcesTab />
+            </TabsContent>
+
+            <TabsContent value="price-aggregation">
+              <AdminPriceAggregationTab />
+            </TabsContent>
+
+            <TabsContent value="error-coins">
+              <AdminErrorCoinsTab />
+            </TabsContent>
 
             <TabsContent value="data-sources">
               <AdminDataSourcesTab />
@@ -186,10 +211,6 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
             <TabsContent value="system">
               <AdminSystemTab />
-            </TabsContent>
-
-            <TabsContent value="errors">
-              <AdminErrorMonitoringTab />
             </TabsContent>
 
             <TabsContent value="api-keys">

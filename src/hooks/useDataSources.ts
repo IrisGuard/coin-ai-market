@@ -147,3 +147,42 @@ export const useUpdateDataSource = () => {
     },
   });
 };
+
+// Enhanced scraping job with external sources
+export const useCreateAdvancedScrapingJob = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (jobData: {
+      target_url: string;
+      job_type: string;
+      proxy_config?: any;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('advanced-scraper', {
+        body: {
+          target_url: jobData.target_url,
+          job_type: jobData.job_type,
+          proxy_config: jobData.proxy_config
+        }
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scraping-jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['coin-data-cache'] });
+      toast({
+        title: "Advanced Scraping Started",
+        description: "Enhanced scraping job with AI analysis has been started.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Scraping Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
