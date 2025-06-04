@@ -6,14 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Camera, Loader2 } from 'lucide-react';
+import { Upload, Camera, Loader2, Smartphone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import MobileCameraUploader from '@/components/MobileCameraUploader';
 
 const CoinUploadForm = () => {
   const createCoin = useCreateCoin();
+  const navigate = useNavigate();
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isMobileMode, setIsMobileMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     year: '',
@@ -31,6 +35,53 @@ const CoinUploadForm = () => {
     image: '',
   });
 
+  // Check if device is mobile
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  const handleMobileImagesSelected = async (images: { file: File; preview: string }[]) => {
+    if (images.length === 0) return;
+
+    const primaryImage = images[0];
+    setImagePreview(primaryImage.preview);
+    setFormData(prev => ({ ...prev, image: primaryImage.preview }));
+
+    // Simulate AI analysis
+    setIsAnalyzing(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock AI results
+      setFormData(prev => ({
+        ...prev,
+        name: 'Morgan Silver Dollar',
+        year: '1921',
+        country: 'United States',
+        denomination: 'Dollar',
+        grade: 'MS-63',
+        rarity: 'Common',
+        condition: 'Mint State',
+        composition: '90% Silver, 10% Copper',
+        diameter: '38.1',
+        weight: '26.73',
+        mint: 'Philadelphia',
+        description: 'Morgan Silver Dollar minted in 1921, commonly found in good condition. Features Liberty head on obverse and eagle on reverse.',
+      }));
+
+      toast({
+        title: "AI Analysis Complete",
+        description: "Coin identified with 92% confidence. Please review and adjust the details.",
+      });
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to analyze the coin image. Please fill in the details manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -47,10 +98,9 @@ const CoinUploadForm = () => {
     // Simulate AI analysis
     setIsAnalyzing(true);
     try {
-      // In a real implementation, this would call the AI recognition API
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Mock AI results
+      // Mock AI results - same as before
       setFormData(prev => ({
         ...prev,
         name: 'Morgan Silver Dollar',
@@ -136,6 +186,25 @@ const CoinUploadForm = () => {
               <Upload className="w-6 h-6" />
               Upload Your Coin
             </CardTitle>
+            
+            {/* Mobile Mode Toggle */}
+            {isMobileDevice && (
+              <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">
+                    Enhanced Mobile Experience Available
+                  </span>
+                </div>
+                <Button
+                  onClick={() => navigate('/mobile-upload')}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Try Mobile Mode
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,12 +235,53 @@ const CoinUploadForm = () => {
                       </div>
                     </div>
                   )}
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="mt-4"
-                  />
+                  
+                  {/* Image Upload Options */}
+                  <div className="mt-4 space-y-3">
+                    {!isMobileMode ? (
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                    ) : null}
+                    
+                    <div className="flex flex-col space-y-2">
+                      {!isMobileMode && (
+                        <label htmlFor="file-upload">
+                          <Button type="button" variant="outline" className="cursor-pointer">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose File
+                          </Button>
+                        </label>
+                      )}
+                      
+                      {isMobileDevice && (
+                        <div className="space-y-3">
+                          <Button
+                            type="button"
+                            onClick={() => setIsMobileMode(!isMobileMode)}
+                            variant={isMobileMode ? "default" : "outline"}
+                            className="w-full"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            {isMobileMode ? "Using Mobile Camera" : "Use Mobile Camera"}
+                          </Button>
+                          
+                          {isMobileMode && (
+                            <div className="border rounded-lg p-4">
+                              <MobileCameraUploader
+                                onImagesSelected={handleMobileImagesSelected}
+                                maxImages={5}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
