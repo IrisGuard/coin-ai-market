@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,12 +29,10 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-right" closeButton />
-        <BrowserRouter>
-          <AuthProvider>
-            <AdminProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AdminProvider>
+            <TooltipProvider delayDuration={0}>
               <div className="App">
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -84,10 +83,12 @@ function App() {
                 </Routes>
                 <AdminKeyboardHandler />
               </div>
-            </AdminProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Toaster />
+              <Sonner position="top-right" closeButton />
+            </TooltipProvider>
+          </AdminProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
