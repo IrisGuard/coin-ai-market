@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback } from 'react';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Camera as CameraIcon, X, Image, Loader2, CheckCircle, AlertCircle, RotateCcw, Zap } from 'lucide-react';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { compressImage, getBandwidthQuality } from '@/utils/imageCompression';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 interface ImageWithQuality {
   file: File;
@@ -31,13 +33,15 @@ const EnhancedMobileCameraUploader = ({
   const [currentStep, setCurrentStep] = useState<'front' | 'back' | 'error' | 'complete'>('front');
   const [showSquareGuide, setShowSquareGuide] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  
+  const { isOnline, addPendingItem } = useOfflineSync();
 
   const requiredPhotos = coinType === 'error' ? 4 : 2;
   const minRequiredPhotos = coinType === 'error' ? 2 : 2;
 
   const analyzeImageQuality = useCallback(async (imageFile: File): Promise<{ quality: 'excellent' | 'good' | 'poor', blurScore: number }> => {
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
@@ -135,6 +139,15 @@ const EnhancedMobileCameraUploader = ({
       
       setCapturedImages(prev => [...prev, newImage]);
       
+      // Handle offline storage
+      if (!isOnline) {
+        addPendingItem('coin_upload', {
+          image: newImage,
+          timestamp: Date.now(),
+          step: step
+        });
+      }
+      
       if (step === 'front') {
         setCurrentStep('back');
       } else if (step === 'back' && coinType === 'error') {
@@ -146,8 +159,8 @@ const EnhancedMobileCameraUploader = ({
       const compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
       
       toast({
-        title: "Photo Captured & Compressed",
-        description: `${quality === 'excellent' ? 'Excellent' : 'Good'} quality photo saved (${compressionRatio}% smaller)`,
+        title: isOnline ? "Photo Captured & Compressed" : "Photo Saved Offline",
+        description: `${quality === 'excellent' ? 'Excellent' : 'Good'} quality photo ${isOnline ? 'uploaded' : 'saved'} (${compressionRatio}% smaller)`,
       });
       
     } catch (error) {
@@ -225,6 +238,19 @@ const EnhancedMobileCameraUploader = ({
           />
         ))}
       </div>
+
+      {/* Offline Status */}
+      {!isOnline && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-orange-700">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-sm font-medium">Offline Mode</span>
+          </div>
+          <p className="text-xs text-orange-600 mt-1">
+            Photos will sync automatically when connection returns
+          </p>
+        </div>
+      )}
 
       {/* Square Guide Overlay */}
       {showSquareGuide && (
