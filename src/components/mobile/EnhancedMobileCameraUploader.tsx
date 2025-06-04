@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Camera as CameraIcon, X, Image, Loader2, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
@@ -28,12 +27,12 @@ const EnhancedMobileCameraUploader = ({
   const [currentStep, setCurrentStep] = useState<'front' | 'back' | 'error' | 'complete'>('front');
   const [showSquareGuide, setShowSquareGuide] = useState(false);
 
-  const requiredPhotos = coinType === 'error' ? 4 : 2; // Error coins need more photos
+  const requiredPhotos = coinType === 'error' ? 4 : 2;
   const minRequiredPhotos = coinType === 'error' ? 2 : 2;
 
   const analyzeImageQuality = useCallback(async (imageFile: File): Promise<{ quality: 'excellent' | 'good' | 'poor', blurScore: number }> => {
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
@@ -53,7 +52,7 @@ const EnhancedMobileCameraUploader = ({
         const pixels = imageData.data;
         let sum = 0;
         let sumSquares = 0;
-        const sampleSize = Math.min(10000, pixels.length / 4); // Sample for performance
+        const sampleSize = Math.min(10000, pixels.length / 4);
         
         for (let i = 0; i < sampleSize * 4; i += 4) {
           const intensity = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
@@ -63,7 +62,7 @@ const EnhancedMobileCameraUploader = ({
         
         const mean = sum / sampleSize;
         const variance = (sumSquares / sampleSize) - (mean * mean);
-        const blurScore = Math.min(variance / 1000, 1); // Normalize to 0-1
+        const blurScore = Math.min(variance / 1000, 1);
         
         let quality: 'excellent' | 'good' | 'poor';
         if (blurScore > 0.8) quality = 'excellent';
@@ -88,7 +87,7 @@ const EnhancedMobileCameraUploader = ({
         resultType: CameraResultType.Uri,
         source: CameraSource.Camera,
         width: 1024,
-        height: 1024 // Square format
+        height: 1024
       });
       
       if (!image.webPath) {
@@ -99,7 +98,6 @@ const EnhancedMobileCameraUploader = ({
       const blob = await response.blob();
       const file = new File([blob], `coin-${step}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
       
-      // Analyze image quality
       const { quality, blurScore } = await analyzeImageQuality(file);
       
       if (quality === 'poor') {
@@ -117,7 +115,6 @@ const EnhancedMobileCameraUploader = ({
       
       setCapturedImages(prev => [...prev, newImage]);
       
-      // Move to next step
       if (step === 'front') {
         setCurrentStep('back');
       } else if (step === 'back' && coinType === 'error') {

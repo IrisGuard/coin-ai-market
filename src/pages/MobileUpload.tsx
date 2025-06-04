@@ -1,13 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Camera, Zap, TrendingUp, Target } from 'lucide-react';
+import { Camera, Zap, TrendingUp, Target, Upload, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MobileCoinUploadForm from '@/components/mobile/MobileCoinUploadForm';
+import BulkCoinUploadManager from '@/components/mobile/BulkCoinUploadManager';
 
 const MobileUpload = () => {
   const { isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState('single');
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
@@ -51,7 +55,7 @@ const MobileUpload = () => {
         </div>
       </motion.div>
 
-      {/* Features Strip */}
+      {/* Upload Mode Selector */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,20 +63,60 @@ const MobileUpload = () => {
         className="bg-white py-4 border-b"
       >
         <div className="container mx-auto px-4">
-          <div className="flex justify-center space-x-6 text-sm">
-            <div className="flex items-center gap-2 text-green-600">
-              <Camera className="w-4 h-4" />
-              <span>Square Frame</span>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="single" className="flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                Single Coin
+              </TabsTrigger>
+              <TabsTrigger value="bulk" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Bulk Upload
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </motion.div>
+
+      {/* Features Strip */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white py-4 border-b"
+      >
+        <div className="container mx-auto px-4">
+          {activeTab === 'single' ? (
+            <div className="flex justify-center space-x-6 text-sm">
+              <div className="flex items-center gap-2 text-green-600">
+                <Camera className="w-4 h-4" />
+                <span>Square Frame</span>
+              </div>
+              <div className="flex items-center gap-2 text-blue-600">
+                <Zap className="w-4 h-4" />
+                <span>AI Analysis</span>
+              </div>
+              <div className="flex items-center gap-2 text-purple-600">
+                <TrendingUp className="w-4 h-4" />
+                <span>Instant Price</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-blue-600">
-              <Zap className="w-4 h-4" />
-              <span>AI Analysis</span>
+          ) : (
+            <div className="flex justify-center space-x-6 text-sm">
+              <div className="flex items-center gap-2 text-green-600">
+                <Upload className="w-4 h-4" />
+                <span>Batch Process</span>
+              </div>
+              <div className="flex items-center gap-2 text-blue-600">
+                <BarChart3 className="w-4 h-4" />
+                <span>Progress Track</span>
+              </div>
+              <div className="flex items-center gap-2 text-purple-600">
+                <Target className="w-4 h-4" />
+                <span>100+ Coins/Day</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-purple-600">
-              <TrendingUp className="w-4 h-4" />
-              <span>Instant Price</span>
-            </div>
-          </div>
+          )}
         </div>
       </motion.div>
 
@@ -83,7 +127,15 @@ const MobileUpload = () => {
         transition={{ delay: 0.4 }}
         className="py-6"
       >
-        <MobileCoinUploadForm />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsContent value="single" className="mt-0">
+            <MobileCoinUploadForm />
+          </TabsContent>
+          
+          <TabsContent value="bulk" className="mt-0">
+            <BulkCoinUploadManager />
+          </TabsContent>
+        </Tabs>
       </motion.div>
 
       {/* Bottom Tips */}
@@ -95,7 +147,10 @@ const MobileUpload = () => {
       >
         <div className="text-center">
           <p className="text-xs opacity-90">
-            💡 Pro Tip: Use natural lighting for best AI recognition results
+            {activeTab === 'single' 
+              ? '💡 Pro Tip: Use natural lighting for best AI recognition results'
+              : '⚡ Bulk Tip: Group 2-6 images per coin for optimal processing'
+            }
           </p>
         </div>
       </motion.div>
