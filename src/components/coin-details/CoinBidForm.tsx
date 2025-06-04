@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +9,30 @@ import { toast } from '@/hooks/use-toast';
 
 interface CoinBidFormProps {
   coinId: string;
+  coinName: string;
   currentPrice: number;
   highestBid?: number;
+  isAuction: boolean;
+  timeLeft?: string;
+  auctionEndDate?: string;
+  bids: Array<{
+    amount: number;
+    bidder: string;
+    time: string;
+  }>;
+  onBidPlaced: () => void;
 }
 
 const CoinBidForm: React.FC<CoinBidFormProps> = ({ 
   coinId, 
+  coinName,
   currentPrice, 
-  highestBid 
+  highestBid,
+  isAuction,
+  timeLeft,
+  auctionEndDate,
+  bids,
+  onBidPlaced
 }) => {
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +80,7 @@ const CoinBidForm: React.FC<CoinBidFormProps> = ({
       // Place the bid
       await placeBid.mutateAsync({ coinId, amount });
       setBidAmount('');
+      onBidPlaced();
       
     } catch (error: any) {
       console.error('Bid placement error:', SecurityUtils.sanitizeForLogging(error));
