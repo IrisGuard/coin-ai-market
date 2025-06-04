@@ -204,6 +204,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           encrypted_value: string
+          encryption_version: number | null
           id: string
           is_active: boolean | null
           key_name: string
@@ -215,6 +216,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           encrypted_value: string
+          encryption_version?: number | null
           id?: string
           is_active?: boolean | null
           key_name: string
@@ -226,6 +228,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           encrypted_value?: string
+          encryption_version?: number | null
           id?: string
           is_active?: boolean | null
           key_name?: string
@@ -1320,6 +1323,36 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          request_count: number | null
+          user_id: string | null
+          window_start: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       scraping_jobs: {
         Row: {
           completed_at: string | null
@@ -1894,11 +1927,27 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      check_rate_limit: {
+        Args: {
+          action_type_param: string
+          max_requests?: number
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       decrypt_api_key: {
         Args: { encrypted_key: string }
         Returns: string
       }
+      decrypt_api_key_secure: {
+        Args: { encrypted_key: string }
+        Returns: string
+      }
       encrypt_api_key: {
+        Args: { plain_key: string }
+        Returns: string
+      }
+      encrypt_api_key_secure: {
         Args: { plain_key: string }
         Returns: string
       }
@@ -1914,7 +1963,20 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_admin_secure: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
       log_admin_activity: {
+        Args: {
+          action_type: string
+          target_type: string
+          target_id?: string
+          details?: Json
+        }
+        Returns: undefined
+      }
+      log_admin_activity_secure: {
         Args: {
           action_type: string
           target_type: string
@@ -1935,6 +1997,16 @@ export type Database = {
         Returns: string
       }
       log_error: {
+        Args: {
+          error_type_param: string
+          message_param: string
+          stack_trace_param?: string
+          page_url_param?: string
+          user_agent_param?: string
+        }
+        Returns: string
+      }
+      log_error_secure: {
         Args: {
           error_type_param: string
           message_param: string

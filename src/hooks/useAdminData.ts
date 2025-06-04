@@ -1,6 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { SecurityUtils } from '@/utils/securityUtils';
 
 // Type definitions
 interface ApiKey {
@@ -241,41 +243,46 @@ export const useUpdateCoinStatus = () => {
   });
 };
 
-// Mutation for bulk creating API keys
+// SECURITY FIX: Updated to use secure edge function
 export const useBulkCreateApiKeys = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (keys: Array<{ name: string; value: string; description?: string; category_id?: string | null }>) => {
-      let imported = 0;
-      let failed = 0;
-      
-      for (const key of keys) {
-        try {
-          const { error } = await supabase
-            .from('api_keys')
-            .insert({
-              key_name: key.name,
-              encrypted_value: key.value,
-              description: key.description,
-              category_id: key.category_id,
-              created_by: (await supabase.auth.getUser()).data.user?.id
-            });
-          
-          if (error) throw error;
-          imported++;
-        } catch (error) {
-          failed++;
-          console.error(`Failed to import key ${key.name}:`, error);
-        }
+      // Client-side rate limiting check
+      if (!SecurityUtils.checkClientRateLimit('bulk_create_api_keys', 1, 300000)) { // 1 request per 5 minutes
+        throw new Error('Rate limit exceeded. Please wait before trying again.');
       }
-      
-      return { imported, failed };
+
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      // Call secure edge function instead of direct database access
+      const { data, error } = await supabase.functions.invoke('secure-admin-operations', {
+        body: {
+          operation: 'bulk_create_api_keys',
+          payload: keys
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+      toast({
+        title: "API Keys imported successfully",
+        description: "Keys have been securely encrypted and stored.",
+      });
     },
     onError: (error) => {
+      console.error('Bulk import error:', SecurityUtils.sanitizeForLogging(error));
       toast({
         title: "Bulk import failed",
         description: error.message,
@@ -285,7 +292,7 @@ export const useBulkCreateApiKeys = () => {
   });
 };
 
-// Mutation for creating API key with category support
+// SECURITY FIX: Updated to use secure edge function
 export const useCreateApiKey = () => {
   const queryClient = useQueryClient();
   
@@ -296,26 +303,58 @@ export const useCreateApiKey = () => {
       description?: string; 
       category_id?: string | null;
     }) => {
-      const { error } = await supabase
-        .from('api_keys')
-        .insert({
-          key_name: name,
-          encrypted_value: value,
-          description,
-          category_id,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        });
+      // Input validation
+      if (!name || name.length < 3) {
+        throw new Error('API key name must be at least 3 characters long');
+      }
       
+      if (!value || value.length < 10) {
+        throw new Error('API key value must be at least 10 characters long');
+      }
+
+      // Sanitize inputs
+      const sanitizedName = SecurityUtils.sanitizeText(name);
+      const sanitizedDescription = description ? SecurityUtils.sanitizeText(description) : undefined;
+
+      // Client-side rate limiting
+      if (!SecurityUtils.checkClientRateLimit('create_api_key', 5, 300000)) { // 5 requests per 5 minutes
+        throw new Error('Rate limit exceeded. Please wait before creating more keys.');
+      }
+
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      // Call secure edge function
+      const { data, error } = await supabase.functions.invoke('secure-admin-operations', {
+        body: {
+          operation: 'create_api_key',
+          payload: {
+            name: sanitizedName,
+            value: value,
+            description: sanitizedDescription,
+            category_id
+          }
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
       toast({
         title: "API Key created successfully",
-        description: "New API key has been added to the system.",
+        description: "New API key has been securely encrypted and stored.",
       });
     },
     onError: (error) => {
+      console.error('Create API key error:', SecurityUtils.sanitizeForLogging(error));
       toast({
         title: "Creation failed",
         description: error.message,

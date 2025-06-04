@@ -34,6 +34,8 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
     'Payment': CreditCard
   };
 
+  // SECURITY FIX: Removed hardcoded service role key
+  // These are now public configuration values only, not secrets
   const supabaseKeys = [
     {
       name: 'Supabase URL',
@@ -52,13 +54,9 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
       value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU',
       description: 'Supabase anonymous access key for client-side operations',
       category: 'Authentication'
-    },
-    {
-      name: 'Supabase Service Role Key',
-      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTA1Mzg2NSwiZXhwIjoyMDY0NjI5ODY1fQ.O7_DPBmNmL-YOUUnFnr0Stxaz4D64CyAfMCcf_GWuoY',
-      description: 'Supabase service role key for server-side operations',
-      category: 'Database'
     }
+    // SECURITY FIX: Service role key removed from frontend
+    // This key should never be exposed to the client
   ];
 
   const getCategoryIcon = (categoryName: string) => {
