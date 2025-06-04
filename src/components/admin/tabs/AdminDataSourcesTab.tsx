@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +11,9 @@ const AdminDataSourcesTab = () => {
   const { data: dataSources = [], isLoading: sourcesLoading } = useDataSources();
   const { data: proxies = [], isLoading: proxiesLoading } = useVPNProxies();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<unknown>(null);
 
-  const handleEditSource = (source: any) => {
+  const handleEditSource = (source: unknown) => {
     console.log('Edit source:', source);
   };
 

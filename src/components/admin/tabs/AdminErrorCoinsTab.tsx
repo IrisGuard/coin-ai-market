@@ -1,5 +1,7 @@
-
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -7,13 +9,15 @@ import {
   BookOpen,
   DollarSign,
   Database,
-  Brain
+  Brain,
+  RefreshCw,
+  FileText,
+  Trash2
 } from 'lucide-react';
 import ErrorKnowledgeManager from '../enhanced/ErrorKnowledgeManager';
 import ErrorMarketDataManager from '../enhanced/ErrorMarketDataManager';
 import AdminErrorStatsOverview from '../enhanced/AdminErrorStatsOverview';
 import AdminErrorQuickActions from '../enhanced/AdminErrorQuickActions';
-import AdminErrorLegacyManager from '../enhanced/AdminErrorLegacyManager';
 
 const AdminErrorCoinsTab = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -75,7 +79,7 @@ const AdminErrorCoinsTab = () => {
         </TabsContent>
 
         <TabsContent value="legacy" className="space-y-6">
-          <AdminErrorLegacyManager />
+          {/* Legacy content placeholder */}
         </TabsContent>
       </Tabs>
     </div>

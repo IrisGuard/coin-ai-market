@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,7 @@ import {
   Target
 } from 'lucide-react';
 import { useErrorCoinsKnowledge, useAddErrorKnowledge } from '@/hooks/useErrorCoinsKnowledge';
+import { toast } from '@/components/ui/use-toast';
 
 const ErrorKnowledgeManager = () => {
   const { data: knowledge } = useErrorCoinsKnowledge();
@@ -75,21 +75,45 @@ const ErrorKnowledgeManager = () => {
   });
 
   const handleAddKnowledge = () => {
-    addKnowledge.mutate(newKnowledge);
-    setIsAddDialogOpen(false);
-    setNewKnowledge({
-      error_type: '',
-      error_category: 'die_error',
-      error_name: '',
-      description: '',
-      identification_techniques: [],
-      common_mistakes: [],
-      reference_links: [],
-      severity_level: 1,
-      rarity_score: 1,
-      technical_specifications: {},
-      ai_detection_markers: {}
-    });
+    try {
+      addKnowledge.mutate(newKnowledge, {
+        onSuccess: () => {
+          setIsAddDialogOpen(false);
+          setNewKnowledge({
+            error_type: '',
+            error_category: 'die_error',
+            error_name: '',
+            description: '',
+            identification_techniques: [],
+            common_mistakes: [],
+            reference_links: [],
+            severity_level: 1,
+            rarity_score: 1,
+            technical_specifications: {},
+            ai_detection_markers: {}
+          });
+          toast({
+            title: "Success",
+            description: "Knowledge entry created successfully",
+          });
+        },
+        onError: (error) => {
+          console.error('Error creating knowledge entry:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create knowledge entry",
+            variant: "destructive",
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error creating knowledge entry:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to create knowledge entry",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -252,7 +276,10 @@ const ErrorKnowledgeManager = () => {
                     onChange={(e) => {
                       try {
                         setNewKnowledge({...newKnowledge, technical_specifications: JSON.parse(e.target.value)});
-                      } catch {}
+                      } catch (error) {
+                        // Invalid JSON - keep previous value
+                        console.warn('Invalid JSON for technical specifications:', error);
+                      }
                     }}
                     rows={4}
                   />
@@ -265,7 +292,10 @@ const ErrorKnowledgeManager = () => {
                     onChange={(e) => {
                       try {
                         setNewKnowledge({...newKnowledge, ai_detection_markers: JSON.parse(e.target.value)});
-                      } catch {}
+                      } catch (error) {
+                        // Invalid JSON - keep previous value
+                        console.warn('Invalid JSON for AI detection markers:', error);
+                      }
                     }}
                     rows={4}
                   />

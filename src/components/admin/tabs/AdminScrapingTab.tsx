@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,10 +10,10 @@ import ScrapingJobRow from '../components/ScrapingJobRow';
 
 const AdminScrapingTab = () => {
   const { data: jobs = [], isLoading } = useScrapingJobs();
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<unknown>(null);
   const [showResultDialog, setShowResultDialog] = useState(false);
 
-  const handleViewResult = (job: any) => {
+  const handleViewResult = (job: unknown) => {
     setSelectedJob(job);
     setShowResultDialog(true);
   };

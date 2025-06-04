@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -45,10 +44,10 @@ export const useCreateSourceTemplate = () => {
         description: "Source template has been created successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error as string,
         variant: "destructive",
       });
     },
@@ -59,7 +58,7 @@ export const useUpdateSourceTemplate = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: unknown }) => {
       const { error } = await supabase
         .from('source_templates')
         .update(updates)
@@ -74,10 +73,10 @@ export const useUpdateSourceTemplate = () => {
         description: "Source template has been updated successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error as string,
         variant: "destructive",
       });
     },

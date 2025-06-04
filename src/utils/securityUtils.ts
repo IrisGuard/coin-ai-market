@@ -1,4 +1,3 @@
-
 // Security utilities for input validation and sanitization
 export class SecurityUtils {
   // File upload validation
@@ -20,7 +19,7 @@ export class SecurityUtils {
   // Sanitize text input to prevent XSS
   static sanitizeText(input: string): string {
     return input
-      .replace(/[<>\"']/g, (char) => {
+      .replace(/[<>"']/g, (char) => {
         const map: { [key: string]: string } = {
           '<': '&lt;',
           '>': '&gt;',
@@ -81,7 +80,7 @@ export class SecurityUtils {
   }
 
   // Remove sensitive data from objects for logging
-  static sanitizeForLogging(obj: any): any {
+  static sanitizeForLogging(obj: Record<string, unknown>): Record<string, unknown> {
     const sensitiveKeys = ['password', 'token', 'key', 'secret', 'auth'];
     const sanitized = { ...obj };
 

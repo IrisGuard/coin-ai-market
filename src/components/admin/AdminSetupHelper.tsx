@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,8 +54,8 @@ const AdminSetupHelper: React.FC = () => {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
-      const errorMessage = `Unexpected error: ${error.message}`;
+    } catch (error: unknown) {
+      const errorMessage = `Unexpected error: ${error instanceof Error ? error.message : String(error)}`;
       setResult({ success: false, message: errorMessage });
       toast({
         title: "Error",

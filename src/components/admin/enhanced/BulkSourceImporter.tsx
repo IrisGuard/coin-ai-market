@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ import {
 const BulkSourceImporter = () => {
   const [importData, setImportData] = useState('');
   const [importProgress, setImportProgress] = useState(0);
-  const [importResults, setImportResults] = useState<any>(null);
+  const [importResults, setImportResults] = useState<unknown>(null);
   
   const { data: categories } = useSourceCategories();
   const { data: regions } = useGeographicRegions();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +8,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import CoinBidForm from '@/components/coins/CoinBidForm';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import CoinBidForm from '@/components/coin-details/CoinBidForm';
 import { logError } from '@/utils/errorHandler';
+import CoinViewer3D from '@/components/coin-details/CoinViewer3D';
 
 const CoinDetails = () => {
   const { id } = useParams();
@@ -20,63 +21,59 @@ const CoinDetails = () => {
   const [highestBid, setHighestBid] = useState<any>(null);
 
   // Fetch coin details
-  const { data: coin, isLoading } = useQuery({
+  const { data: coin, isLoading: coinLoading, error: coinError } = useQuery({
     queryKey: ['coin', id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('coins')
         .select(`
           *,
-          profiles(
+          profiles:user_id (
             id,
-            name,
-            email,
+            username,
             avatar_url,
-            verified_dealer
+            verified_dealer,
+            name,
+            created_at
           )
         `)
         .eq('id', id)
         .single();
-      
-      if (error) throw error;
+
+      if (error) {
+        logError('CoinDetails: Failed to fetch coin', { coinId: id, error });
+        throw error;
+      }
       return data;
     },
-    onError: (error) => {
-      logError(error, 'Fetching coin details');
-      toast({
-        title: "Error",
-        description: "Failed to load coin details",
-        variant: "destructive",
-      });
-    }
+    enabled: !!id
   });
 
   // Fetch bids for this coin
-  const { data: bids } = useQuery({
+  const { data: bids = [], isLoading: bidsLoading } = useQuery({
     queryKey: ['coin-bids', id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('bids')
         .select(`
           *,
-          profiles(
+          profiles:user_id (
             id,
-            name,
-            avatar_url
+            username,
+            avatar_url,
+            name
           )
         `)
         .eq('coin_id', id)
         .order('amount', { ascending: false });
-      
-      if (error) throw error;
+
+      if (error) {
+        logError('CoinDetails: Failed to fetch bids', { coinId: id, error });
+        throw error;
+      }
       return data || [];
     },
-    enabled: !!id && !!coin?.is_auction,
-    onSuccess: (data) => {
-      if (data && data.length > 0) {
-        setHighestBid(data[0]);
-      }
-    }
+    enabled: !!id
   });
 
   // Fetch related coins
@@ -96,7 +93,7 @@ const CoinDetails = () => {
     enabled: !!coin?.year
   });
 
-  if (isLoading) {
+  if (coinLoading) {
     return <div className="container mx-auto px-4 py-8">Loading coin details...</div>;
   }
 

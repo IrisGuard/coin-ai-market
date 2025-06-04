@@ -1,16 +1,17 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
-export const logError = async (error: any, context?: string) => {
+export const logError = async (error: unknown, context?: string) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
+    
+    const errorObj = error instanceof Error ? error : new Error(String(error));
     
     const { error: insertError } = await supabase
       .from('error_logs')
       .insert([{
-        message: error.message || String(error),
-        error_type: error.name || 'Unknown',
-        stack_trace: error.stack,
+        message: errorObj.message || String(error),
+        error_type: errorObj.name || 'Unknown',
+        stack_trace: errorObj.stack,
         page_url: window.location.href,
         user_agent: navigator.userAgent,
         user_id: user?.id

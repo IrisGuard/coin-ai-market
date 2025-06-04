@@ -206,7 +206,7 @@ const CoinViewer3D = ({ obverseImage, reverseImage, model3dUrl, name }: CoinView
         controlsRef.current.dispose();
       }
     };
-  }, [activeView, obverseImage, reverseImage]);
+  }, [activeView, obverseImage, reverseImage, autoRotate]);
   
   // Update auto-rotation setting
   useEffect(() => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,9 +13,9 @@ const SourceTemplateManager = () => {
   const createTemplate = useCreateSourceTemplate();
   const updateTemplate = useUpdateSourceTemplate();
   const [showForm, setShowForm] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [editingTemplate, setEditingTemplate] = useState<unknown>(null);
 
-  const handleEdit = (template: any) => {
+  const handleEdit = (template: unknown) => {
     setEditingTemplate(template);
     setShowForm(true);
   };

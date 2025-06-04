@@ -11,18 +11,6 @@ import { Button } from '@/components/ui/button';
 
 const Marketplace = () => {
   const { currentTenant } = useTenant();
-  
-  // If we're in a tenant context, show the tenant marketplace
-  if (currentTenant) {
-    return (
-      <div>
-        <Navbar />
-        <TenantMarketplace />
-      </div>
-    );
-  }
-
-  // Otherwise show the main marketplace with all the existing functionality
   const { data: coins = [], isLoading } = useCoins();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRarity, setSelectedRarity] = useState<string>('');
@@ -86,6 +74,15 @@ const Marketplace = () => {
     featured: coins.filter(c => c.featured).length,
     totalValue: coins.reduce((sum, coin) => sum + coin.price, 0)
   };
+
+  if (currentTenant) {
+    return (
+      <div>
+        <Navbar />
+        <TenantMarketplace />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-brand-light">

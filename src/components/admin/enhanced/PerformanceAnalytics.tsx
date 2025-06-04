@@ -1,169 +1,122 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, TrendingDown, Activity, Target, Clock } from 'lucide-react';
-import { useSourcePerformanceMetrics } from '@/hooks/useEnhancedAdminSources';
+import { Activity, TrendingUp, TrendingDown, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-const PerformanceAnalytics = () => {
-  const { data: metrics } = useSourcePerformanceMetrics();
+interface PerformanceAnalyticsProps {
+  data?: unknown[];
+}
 
-  const mockMetrics = [
+const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({ data = [] }) => {
+  // Calculate basic metrics from data
+  const totalSources = data.length;
+  const activeSources = data.filter((item: unknown) => 
+    (item as { status?: string }).status === 'active'
+  ).length;
+  
+  const metrics = [
     {
-      source_name: "Heritage Auctions",
-      successful_requests: 2847,
-      failed_requests: 23,
-      avg_response_time: 1200,
-      data_quality_score: 0.97,
-      coins_discovered: 456,
-      success_rate: 99.2
+      title: "Total Sources",
+      value: totalSources.toString(),
+      change: "0%",
+      trend: "stable" as const,
+      icon: Activity,
+      color: "blue"
     },
     {
-      source_name: "eBay Coins",
-      successful_requests: 4521,
-      failed_requests: 187,
-      avg_response_time: 3400,
-      data_quality_score: 0.84,
-      coins_discovered: 1203,
-      success_rate: 96.0
+      title: "Active Sources", 
+      value: activeSources.toString(),
+      change: "0%",
+      trend: "stable" as const,
+      icon: CheckCircle2,
+      color: "green"
     },
     {
-      source_name: "PCGS CoinFacts",
-      successful_requests: 1876,
-      failed_requests: 5,
-      avg_response_time: 890,
-      data_quality_score: 0.99,
-      coins_discovered: 234,
-      success_rate: 99.7
+      title: "Response Rate",
+      value: totalSources > 0 ? `${Math.round((activeSources / totalSources) * 100)}%` : "0%",
+      change: "0%", 
+      trend: "stable" as const,
+      icon: TrendingUp,
+      color: "purple"
+    },
+    {
+      title: "Error Rate",
+      value: totalSources > 0 ? `${Math.round(((totalSources - activeSources) / totalSources) * 100)}%` : "0%",
+      change: "0%",
+      trend: "stable" as const,
+      icon: AlertCircle,
+      color: "red"
     }
   ];
 
-  const getPerformanceColor = (score: number) => {
-    if (score >= 95) return 'text-green-600';
-    if (score >= 85) return 'text-yellow-600';
-    return 'text-red-600';
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case 'down':
+        return <TrendingDown className="h-4 w-4 text-red-600" />;
+      default:
+        return <div className="h-4 w-4" />;
+    }
   };
 
-  const getQualityBadge = (score: number) => {
-    if (score >= 0.95) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
-    if (score >= 0.85) return <Badge className="bg-yellow-100 text-yellow-800">Good</Badge>;
-    if (score >= 0.70) return <Badge className="bg-orange-100 text-orange-800">Fair</Badge>;
-    return <Badge className="bg-red-100 text-red-800">Poor</Badge>;
+  const getColorClasses = (color: string) => {
+    const colorMap = {
+      blue: 'text-blue-600 bg-blue-50',
+      green: 'text-green-600 bg-green-50',
+      purple: 'text-purple-600 bg-purple-50',
+      red: 'text-red-600 bg-red-50',
+      orange: 'text-orange-600 bg-orange-50'
+    };
+    return colorMap[color as keyof typeof colorMap] || 'text-gray-600 bg-gray-50';
   };
 
   return (
     <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24.8K</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="inline h-3 w-3 mr-1" />
-              +12% from last week
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">97.8%</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="inline h-3 w-3 mr-1" />
-              +0.3% improvement
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1.8s</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingDown className="inline h-3 w-3 mr-1" />
-              -0.2s faster
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Data Quality</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">92%</div>
-            <p className="text-xs text-muted-foreground">
-              Average quality score
-            </p>
-          </CardContent>
-        </Card>
+      <div>
+        <h3 className="text-lg font-semibold">Performance Analytics</h3>
+        <p className="text-sm text-muted-foreground">
+          Real-time monitoring and performance metrics
+        </p>
       </div>
 
-      {/* Detailed Metrics Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Source Performance Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {mockMetrics.map((metric, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold">{metric.source_name}</h4>
-                  <div className="flex items-center gap-2">
-                    {getQualityBadge(metric.data_quality_score)}
-                    <Badge variant="outline" className={getPerformanceColor(metric.success_rate)}>
-                      {metric.success_rate}% success
-                    </Badge>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {metrics.map((metric, index) => {
+          const IconComponent = metric.icon;
+          return (
+            <Card key={index}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className={`p-2 rounded-lg ${getColorClasses(metric.color)}`}>
+                    <IconComponent className="h-5 w-5" />
                   </div>
+                  {getTrendIcon(metric.trend)}
                 </div>
+                <div className="mt-4">
+                  <div className="text-2xl font-bold">{metric.value}</div>
+                  <div className="text-sm text-muted-foreground">{metric.title}</div>
+                </div>
+                <div className="mt-2 flex items-center gap-1">
+                  <Badge variant="outline" className="text-xs">
+                    {metric.change}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">vs last month</span>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Requests</div>
-                    <div className="font-medium">
-                      {metric.successful_requests.toLocaleString()} / {(metric.successful_requests + metric.failed_requests).toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Avg Response</div>
-                    <div className="font-medium">{metric.avg_response_time}ms</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Coins Found</div>
-                    <div className="font-medium">{metric.coins_discovered}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Quality Score</div>
-                    <div className="font-medium">{(metric.data_quality_score * 100).toFixed(1)}%</div>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Success Rate</span>
-                    <span>{metric.success_rate}%</span>
-                  </div>
-                  <Progress value={metric.success_rate} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {data.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <div className="text-muted-foreground">
+              No performance data available
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

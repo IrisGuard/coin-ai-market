@@ -1,24 +1,26 @@
-
 import React from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, RotateCcw } from 'lucide-react';
 
+interface ScrapingJob {
+  id: string;
+  job_type: string;
+  target_url: string;
+  status: string;
+  started_at?: string;
+  completed_at?: string;
+  created_at: string;
+  data_sources?: { name: string };
+  vpn_proxies?: { name: string; country_code: string };
+  [key: string]: unknown;
+}
+
 interface ScrapingJobRowProps {
-  job: {
-    id: string;
-    job_type: string;
-    target_url: string;
-    status: string;
-    started_at?: string;
-    completed_at?: string;
-    created_at: string;
-    data_sources?: { name: string };
-    vpn_proxies?: { name: string; country_code: string };
-  };
-  onViewResult: (job: any) => void;
-  onRetry: (jobId: string) => void;
+  job: ScrapingJob;
+  onViewResult: (job: ScrapingJob) => void;
+  onRetry: (id: string) => void;
 }
 
 const ScrapingJobRow = ({ job, onViewResult, onRetry }: ScrapingJobRowProps) => {
@@ -31,7 +33,7 @@ const ScrapingJobRow = ({ job, onViewResult, onRetry }: ScrapingJobRowProps) => 
     };
     
     return (
-      <Badge className={statusColors[status] || 'bg-gray-100 text-gray-800'}>
+      <Badge className={statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
         {status}
       </Badge>
     );

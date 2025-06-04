@@ -1,4 +1,3 @@
-
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -31,11 +30,11 @@ export const useAICoinRecognition = () => {
         });
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('AI recognition failed:', error);
       toast({
         title: "Recognition Failed",
-        description: error.message || "Unable to analyze the coin image. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to analyze the coin image. Please try again.",
         variant: "destructive",
       });
     },

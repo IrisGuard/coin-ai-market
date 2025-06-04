@@ -1,9 +1,9 @@
-
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { ErrorHandler } from '@/utils/errorHandler';
+import { logError } from '@/utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -35,15 +35,10 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
+    console.error('Error caught by boundary:', error, errorInfo);
+    
     // Log error to our system
-    ErrorHandler.logError(
-      'react_error_boundary',
-      error.message,
-      error.stack,
-      window.location.href
-    );
-
-    console.error('Error Boundary caught an error:', error, errorInfo);
+    logError(error, 'React Error Boundary');
   }
 
   handleRetry = () => {

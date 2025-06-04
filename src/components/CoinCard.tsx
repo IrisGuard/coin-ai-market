@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Coin } from '@/types/coin';
 import { Heart, Eye, Star, Clock, Verified, TrendingUp } from 'lucide-react';
 
-interface CoinCardProps extends Coin {}
+type CoinCardProps = Coin;
 
 const CoinCard: React.FC<CoinCardProps> = (coin) => {
   const getRarityColor = (rarity: string) => {

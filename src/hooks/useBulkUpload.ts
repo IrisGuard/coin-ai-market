@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,10 +66,10 @@ export const useBulkUpload = () => {
       });
       setUploadProgress(0);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Upload Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
         variant: "destructive",
       });
       setUploadProgress(0);

@@ -1,10 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { MarketplaceTenant } from '@/types/tenant';
 
 interface TenantContextType {
-  currentTenant: any | null;
-  setCurrentTenant: (tenant: any | null) => void;
+  currentTenant: MarketplaceTenant | null;
+  setCurrentTenant: (tenant: MarketplaceTenant | null) => void;
   tenantId: string | null;
   isLoading: boolean;
 }
@@ -20,7 +20,7 @@ export const useTenant = () => {
 };
 
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentTenant, setCurrentTenant] = useState<any | null>(null);
+  const [currentTenant, setCurrentTenant] = useState<MarketplaceTenant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

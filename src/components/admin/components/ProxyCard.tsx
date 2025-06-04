@@ -1,25 +1,28 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, Settings, Trash2 } from 'lucide-react';
+import { Shield, Settings, Trash2, TestTube } from 'lucide-react';
 
-interface ProxyCardProps {
-  proxy: {
-    id: string;
-    name: string;
-    country_code: string;
-    type?: string;
-    is_active: boolean;
-    success_rate: number;
-    last_used?: string;
-  };
-  onEdit: (proxy: any) => void;
-  onDelete: (id: string) => void;
+interface Proxy {
+  id: string;
+  name: string;
+  country_code: string;
+  type: string;
+  is_active: boolean;
+  success_rate: number;
+  last_used?: string;
+  [key: string]: unknown;
 }
 
-const ProxyCard = ({ proxy, onEdit, onDelete }: ProxyCardProps) => {
+interface ProxyCardProps {
+  proxy: Proxy;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onTest: (id: string) => void;
+}
+
+const ProxyCard = ({ proxy, onEdit, onDelete, onTest }: ProxyCardProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -28,7 +31,10 @@ const ProxyCard = ({ proxy, onEdit, onDelete }: ProxyCardProps) => {
           {proxy.name}
         </CardTitle>
         <div className="flex gap-1">
-          <Button size="sm" variant="outline" onClick={() => onEdit(proxy)}>
+          <Button size="sm" variant="outline" onClick={() => onTest(proxy.id)}>
+            <TestTube className="h-3 w-3" />
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => onEdit(proxy.id)}>
             <Settings className="h-3 w-3" />
           </Button>
           <Button size="sm" variant="outline" onClick={() => onDelete(proxy.id)}>

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -59,10 +58,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       navigate('/');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Login Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -93,10 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       navigate('/');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Registration Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -118,10 +119,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       navigate('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Logout Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -145,10 +147,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Profile Updated",
         description: "Your profile has been updated successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Update Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;

@@ -9,31 +9,10 @@ import { toast } from '@/hooks/use-toast';
 
 interface CoinBidFormProps {
   coinId: string;
-  coinName: string;
-  currentPrice: number;
-  highestBid?: number;
-  isAuction: boolean;
-  timeLeft?: string;
-  auctionEndDate?: string;
-  bids: Array<{
-    amount: number;
-    bidder: string;
-    time: string;
-  }>;
-  onBidPlaced: () => void;
+  currentHighBid?: number;
 }
 
-const CoinBidForm: React.FC<CoinBidFormProps> = ({ 
-  coinId, 
-  coinName,
-  currentPrice, 
-  highestBid,
-  isAuction,
-  timeLeft,
-  auctionEndDate,
-  bids,
-  onBidPlaced
-}) => {
+const CoinBidForm = ({ coinId, currentHighBid }: CoinBidFormProps) => {
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const placeBid = usePlaceBid();
@@ -57,7 +36,7 @@ const CoinBidForm: React.FC<CoinBidFormProps> = ({
       }
 
       // Check minimum bid increment
-      const minimumBid = Math.max(currentPrice, highestBid || 0) + 0.01;
+      const minimumBid = Math.max(currentHighBid || 0, amount) + 0.01;
       if (amount < minimumBid) {
         toast({
           title: "Bid too low",
@@ -80,13 +59,14 @@ const CoinBidForm: React.FC<CoinBidFormProps> = ({
       // Place the bid
       await placeBid.mutateAsync({ coinId, amount });
       setBidAmount('');
-      onBidPlaced();
       
-    } catch (error: any) {
-      console.error('Bid placement error:', SecurityUtils.sanitizeForLogging(error));
+    } catch (error: unknown) {
+      console.error('Bid placement error:', SecurityUtils.sanitizeForLogging(
+        error instanceof Error ? { error: error.message } : { error: String(error) }
+      ));
       toast({
         title: "Failed to place bid",
-        description: error.message || "Please try again later.",
+        description: error instanceof Error ? error.message : "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -102,7 +82,7 @@ const CoinBidForm: React.FC<CoinBidFormProps> = ({
     }
   };
 
-  const minimumBid = Math.max(currentPrice, highestBid || 0) + 0.01;
+  const minimumBid = Math.max(currentHighBid || 0, parseFloat(bidAmount)) + 0.01;
 
   return (
     <Card>
@@ -126,8 +106,7 @@ const CoinBidForm: React.FC<CoinBidFormProps> = ({
               disabled={isSubmitting}
             />
             <p className="text-sm text-muted-foreground mt-1">
-              Current price: ${currentPrice.toFixed(2)}
-              {highestBid && ` • Highest bid: $${highestBid.toFixed(2)}`}
+              Current price: ${minimumBid.toFixed(2)}
             </p>
           </div>
           

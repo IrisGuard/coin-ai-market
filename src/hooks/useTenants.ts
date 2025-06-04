@@ -1,17 +1,27 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { MarketplaceTenant } from '@/types/tenant';
 
-// Updated interface to match actual database structure
-export interface MarketplaceTenant {
+interface TenantSettings {
+  theme?: Record<string, unknown>;
+  features?: string[];
+  branding?: Record<string, unknown>;
+}
+
+interface TenantData {
   id: string;
   name: string;
   domain: string;
-  settings: any;
-  is_active: boolean;
+  settings: unknown;
   created_at: string;
   updated_at: string;
+  is_active: boolean;
+  description?: string;
+  logo_url?: string;
+  theme_colors?: Record<string, string>;
+  contact_email?: string;
+  status?: 'active' | 'inactive' | 'suspended';
 }
 
 export interface CustomDomain {
@@ -48,25 +58,25 @@ export const useTenants = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as MarketplaceTenant[];
-    },
+      return data || [];
+    }
   });
 };
 
-export const useTenant = (tenantId: string) => {
+export const useTenant = (id: string) => {
   return useQuery({
-    queryKey: ['tenant', tenantId],
+    queryKey: ['tenant', id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
         .select('*')
-        .eq('id', tenantId)
+        .eq('id', id)
         .single();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!tenantId,
+    enabled: !!id
   });
 };
 
@@ -74,14 +84,10 @@ export const useCreateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (tenantData: {
-      name: string;
-      domain: string;
-      settings?: any;
-    }) => {
+    mutationFn: async (tenantData: Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .insert([tenantData])
+        .insert(tenantData as never)
         .select()
         .single();
 
@@ -90,18 +96,49 @@ export const useCreateTenant = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
-      toast({
-        title: "Marketplace Created",
-        description: "Your marketplace has been successfully created.",
-      });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('Error creating tenant:', errorMessage);
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
+    }
+  });
+};
+
+export const useUpdateTenant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, unknown> }) => {
+      const { data, error } = await supabase
+        .from('marketplace_tenants')
+        .update(updates as never)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      if (data?.id) {
+        queryClient.invalidateQueries({ queryKey: ['tenant', data.id] });
+      }
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('Error updating tenant:', errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   });
 };
 
