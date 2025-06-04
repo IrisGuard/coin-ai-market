@@ -1,4 +1,3 @@
-
 import * as Sentry from "@sentry/react";
 
 export const initSentry = () => {
@@ -12,7 +11,7 @@ export const initSentry = () => {
   }
 };
 
-export const logErrorToSentry = (error: Error, context?: Record<string, any>) => {
+export const logErrorToSentry = (error: Error, context?: Record<string, unknown>) => {
   if (import.meta.env.VITE_SENTRY_DSN) {
     Sentry.captureException(error, { extra: context });
   }
