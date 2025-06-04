@@ -1,34 +1,44 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Coin } from '@/types/coin';
 import { toast } from '@/hooks/use-toast';
+import { sampleCoins, getCoinById } from '@/data/sampleCoins';
 
 export const useCoins = () => {
   return useQuery({
     queryKey: ['coins'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('coins')
-        .select(`
-          *,
-          profiles:user_id (
-            name,
-            reputation,
-            verified_dealer
-          ),
-          bids (
-            amount,
-            user_id,
-            created_at,
-            profiles:user_id (name)
-          )
-        `)
-        .eq('authentication_status', 'verified')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('coins')
+          .select(`
+            *,
+            profiles:user_id (
+              name,
+              reputation,
+              verified_dealer
+            ),
+            bids (
+              amount,
+              user_id,
+              created_at,
+              profiles:user_id (name)
+            )
+          `)
+          .eq('authentication_status', 'verified')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Coin[];
+        if (error) {
+          console.warn('Supabase error, using sample data:', error);
+          return sampleCoins;
+        }
+        
+        // If no data from Supabase, return sample data
+        return data && data.length > 0 ? data as Coin[] : sampleCoins;
+      } catch (error) {
+        console.warn('Connection error, using sample data:', error);
+        return sampleCoins;
+      }
     },
   });
 };
@@ -37,29 +47,38 @@ export const useCoin = (id: string) => {
   return useQuery({
     queryKey: ['coin', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('coins')
-        .select(`
-          *,
-          profiles:user_id (
-            name,
-            reputation,
-            verified_dealer,
-            avatar_url
-          ),
-          bids (
-            id,
-            amount,
-            user_id,
-            created_at,
-            profiles:user_id (name)
-          )
-        `)
-        .eq('id', id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('coins')
+          .select(`
+            *,
+            profiles:user_id (
+              name,
+              reputation,
+              verified_dealer,
+              avatar_url
+            ),
+            bids (
+              id,
+              amount,
+              user_id,
+              created_at,
+              profiles:user_id (name)
+            )
+          `)
+          .eq('id', id)
+          .single();
 
-      if (error) throw error;
-      return data as Coin;
+        if (error) {
+          console.warn('Supabase error, using sample data:', error);
+          return getCoinById(id);
+        }
+        
+        return data as Coin;
+      } catch (error) {
+        console.warn('Connection error, using sample data:', error);
+        return getCoinById(id);
+      }
     },
     enabled: !!id,
   });
