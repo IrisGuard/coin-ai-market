@@ -1,5 +1,5 @@
 
-import { Loader2 } from 'lucide-react';
+import { Loader2, Coins } from 'lucide-react';
 import { CoinData } from '@/components/CoinUploader';
 
 interface CoinResultCardProps {
@@ -19,12 +19,19 @@ const CoinResultCard = ({ coinData, onListForSale, onListForAuction, isListing }
       <div className="bg-gray-50 rounded-lg p-6">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/3 flex justify-center">
-            <div className="relative w-48 h-48 bg-white rounded-lg shadow-md overflow-hidden">
-              <img 
-                src={coinData.image_url || "/lovable-uploads/fc7c60ba-6810-44ba-b3af-8e1882db04ba.png"}
-                alt={`${coinData.coin}`} 
-                className="w-full h-full object-contain"
-              />
+            <div className="relative w-48 h-48 bg-white rounded-lg shadow-md overflow-hidden flex items-center justify-center">
+              {coinData.image_url ? (
+                <img 
+                  src={coinData.image_url}
+                  alt={`${coinData.coin}`} 
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-gray-400">
+                  <Coins size={64} />
+                  <p className="text-sm mt-2">No Image</p>
+                </div>
+              )}
             </div>
           </div>
           
