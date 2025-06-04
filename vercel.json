@@ -1,4 +1,3 @@
-
 {
   "headers": [
     {
@@ -27,11 +26,6 @@
       ]
     }
   ],
-  "functions": {
-    "app/api/**/*.js": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "VITE_SUPABASE_URL": "https://wdgnllgbfvjgurbqhfqb.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzA4MjksImV4cCI6MjA0OTUwNjgyOX0.XTKxF0kT9aH_HZPGZEqH4qGa_B2kK2VJH7dKZW4N0Zs"
