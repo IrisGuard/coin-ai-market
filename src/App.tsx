@@ -7,68 +7,56 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { TenantProvider } from "@/contexts/TenantContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Login from "./pages/Login";
-import Marketplace from "./pages/Marketplace";
 import CoinDetails from "./pages/CoinDetails";
 import Upload from "./pages/Upload";
-import CoinUpload from "./pages/CoinUpload";
 import MobileUpload from "./pages/MobileUpload";
-import TenantDashboard from "./components/tenant/TenantDashboard";
+import CoinUpload from "./pages/CoinUpload";
+import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
-import "./App.css";
+import AdminSetup from "./pages/AdminSetup";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { logAdminSetupInstructions } from "@/utils/adminUtils";
 
 const queryClient = new QueryClient();
 
+// Log admin setup instructions in development
+if (process.env.NODE_ENV === 'development') {
+  logAdminSetupInstructions();
+}
+
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+          <ErrorBoundary>
             <AuthProvider>
-              <TenantProvider>
-                <AdminProvider>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/coins/:id" element={<CoinDetails />} />
-                    <Route path="/upload" element={
-                      <ProtectedRoute>
-                        <Upload />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/coin-upload" element={
-                      <ProtectedRoute>
-                        <CoinUpload />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/mobile-upload" element={
-                      <ProtectedRoute>
-                        <MobileUpload />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/tenant-dashboard" element={
-                      <ProtectedRoute>
-                        <TenantDashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AdminProvider>
-              </TenantProvider>
+              <AdminProvider>
+                <TenantProvider>
+                  <div className="min-h-screen bg-white">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/admin-setup" element={<AdminSetup />} />
+                      <Route path="/coins/:id" element={<CoinDetails />} />
+                      <Route path="/upload" element={<Upload />} />
+                      <Route path="/mobile-upload" element={<MobileUpload />} />
+                      <Route path="/coin-upload" element={<CoinUpload />} />
+                      <Route path="/marketplace" element={<Marketplace />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                  <Toaster />
+                  <Sonner />
+                </TenantProvider>
+              </AdminProvider>
             </AuthProvider>
-          </BrowserRouter>
+          </ErrorBoundary>
         </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

@@ -1,174 +1,189 @@
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
-import { Camera, Menu, X, User, LogOut, Zap, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Coins, Menu, X, Settings, Shield } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdmin } from '@/contexts/AdminContext';
+import NavbarAuth from './NavbarAuth';
+import AdminPanel from './admin/AdminPanel';
+import AdminKeyboardHandler from './admin/AdminKeyboardHandler';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const { currentTenant } = useTenant();
+  const { user } = useAuth();
+  const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setIsOpen(false);
+  const openAdminPanel = () => {
+    setShowAdminPanel(true);
   };
 
   const navItems = [
-    { name: 'AI Recognition', href: '/upload', icon: <Camera className="w-4 h-4" /> },
-    { name: 'Marketplace', href: '/marketplace', icon: <TrendingUp className="w-4 h-4" /> },
+    { href: '/marketplace', label: 'Marketplace' },
+    { href: '/upload', label: 'Sell Coin' },
   ];
 
+  const handleAdminSetupClick = () => {
+    navigate('/admin-setup');
+    setIsOpen(false);
+  };
+
+  const primaryColor = currentTenant?.primary_color || '#1F2937';
+  const secondaryColor = currentTenant?.secondary_color || '#3B82F6';
+
   return (
-    <nav className="coinvision-nav">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-serif font-bold gradient-text">
-                CoinVision AI
-              </span>
-            </Link>
-          </motion.div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
-                  location.pathname === item.href
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-purple-50 hover:text-purple-600'
-                }`}
-              >
-                {item.icon}
-                <span className="font-medium">{item.name}</span>
+    <>
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center space-x-3">
+                {currentTenant?.logo_url ? (
+                  <img 
+                    src={currentTenant.logo_url} 
+                    alt={currentTenant.name}
+                    className="h-8 w-8 object-contain"
+                  />
+                ) : (
+                  <Coins className="h-8 w-8" style={{ color: primaryColor }} />
+                )}
+                <span className="text-xl font-bold" style={{ color: primaryColor }}>
+                  {currentTenant?.name || 'CoinVision'}
+                </span>
               </Link>
-            ))}
-          </div>
+            </div>
 
-          {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-4">
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 px-4 py-2 glass-card rounded-xl border border-purple-200">
-                  <User className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {user?.email?.split('@')[0] || 'User'}
-                  </span>
-                </div>
-                <Button
-                  onClick={handleSignOut}
-                  variant="outline"
-                  size="sm"
-                  className="coinvision-button-outline"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link to="/auth">
-                  <Button variant="outline" className="coinvision-button-outline">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth">
-                  <Button className="coinvision-button">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2"
-            >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden border-t border-purple-200 py-4"
-          >
-            <div className="flex flex-col space-y-4">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item) => (
                 <Link
-                  key={item.name}
+                  key={item.href}
                   to={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-300 ${
-                    location.pathname === item.href
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                      : 'text-gray-700 hover:bg-purple-50'
-                  }`}
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+                  style={{ 
+                    borderColor: secondaryColor,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderBottomColor = secondaryColor;
+                    e.currentTarget.style.borderBottomWidth = '2px';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderBottomWidth = '0px';
+                  }}
                 >
-                  {item.icon}
-                  <span className="font-medium">{item.name}</span>
+                  {item.label}
                 </Link>
               ))}
               
-              {isAuthenticated ? (
-                <div className="pt-4 border-t border-purple-200">
-                  <div className="flex items-center space-x-2 px-4 py-2 text-gray-700 mb-3">
-                    <User className="w-4 h-4" />
-                    <span className="text-sm">{user?.email}</span>
-                  </div>
-                  <Button
-                    onClick={handleSignOut}
-                    variant="outline"
-                    className="w-full coinvision-button-outline"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <div className="pt-4 border-t border-purple-200 space-y-3">
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="w-full coinvision-button-outline">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full coinvision-button">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
+              <LanguageSwitcher />
+              
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openAdminPanel}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Admin
+                  <Badge variant="secondary" className="ml-1">
+                    Pro
+                  </Badge>
+                </Button>
               )}
+
+              {!isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAdminSetupClick}
+                  className="flex items-center gap-2 text-muted-foreground"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Setup
+                </Button>
+              )}
+
+              <NavbarAuth />
             </div>
-          </motion.div>
-        )}
-      </div>
-    </nav>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center space-x-2">
+              <LanguageSwitcher />
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-gray-700 hover:text-gray-900 focus:outline-none"
+              >
+                {isOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          {isOpen && (
+            <div className="md:hidden">
+              <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className="text-gray-700 hover:text-gray-900 block px-3 py-2 text-base font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      openAdminPanel();
+                      setIsOpen(false);
+                    }}
+                    className="text-gray-700 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Admin Panel
+                      <Badge variant="secondary">Pro</Badge>
+                    </div>
+                  </button>
+                )}
+
+                {!isAdmin && (
+                  <button
+                    onClick={handleAdminSetupClick}
+                    className="text-muted-foreground hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Admin Setup
+                    </div>
+                  </button>
+                )}
+                
+                <div className="border-t pt-3">
+                  <NavbarAuth mobile onClose={() => setIsOpen(false)} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      <AdminPanel isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
+      <AdminKeyboardHandler onOpenAdmin={openAdminPanel} />
+    </>
   );
 };
 

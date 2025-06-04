@@ -1935,6 +1935,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_first_admin: {
+        Args: { admin_email: string }
+        Returns: string
+      }
       decrypt_api_key: {
         Args: { encrypted_key: string }
         Returns: string

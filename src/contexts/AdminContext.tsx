@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { checkAdminStatus } from '@/utils/adminUtils';
 
 interface AdminContextType {
   isAdminAuthenticated: boolean;
@@ -17,30 +18,24 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkAdminStatus = async () => {
+  const checkAdminStatusInternal = async (): Promise<boolean> => {
     try {
+      const isAdminUser = await checkAdminStatus();
+      setIsAdmin(isAdminUser);
+      
+      // If user is admin and authenticated, set admin authentication status
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAdmin(false);
-        return false;
+      if (user && isAdminUser) {
+        setIsAdminAuthenticated(true);
+      } else {
+        setIsAdminAuthenticated(false);
       }
-
-      // Check if user has admin role - this will be implemented later with proper RLS
-      const { data, error } = await supabase
-        .from('admin_roles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error || !data) {
-        setIsAdmin(false);
-        return false;
-      }
-
-      setIsAdmin(true);
-      return true;
+      
+      return isAdminUser;
     } catch (error) {
+      console.error('Error checking admin status:', error);
       setIsAdmin(false);
+      setIsAdminAuthenticated(false);
       return false;
     }
   };
@@ -55,7 +50,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
-        const isAdminUser = await checkAdminStatus();
+        const isAdminUser = await checkAdminStatusInternal();
         if (isAdminUser) {
           setIsAdminAuthenticated(true);
           setIsAdmin(true);
@@ -98,8 +93,21 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     setIsAdmin(false);
   };
 
+  // Check admin status on mount and auth state changes
   useEffect(() => {
-    checkAdminStatus();
+    checkAdminStatusInternal();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await checkAdminStatusInternal();
+      } else {
+        setIsAdmin(false);
+        setIsAdminAuthenticated(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -109,7 +117,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         adminLogin, 
         adminLogout, 
         isAdmin,
-        checkAdminStatus
+        checkAdminStatus: checkAdminStatusInternal
       }}
     >
       {children}
