@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,10 +39,8 @@ const CoinBidForm = ({
   const [timeRemaining, setTimeRemaining] = useState(timeLeft || '');
   const [isEnded, setIsEnded] = useState(false);
   
-  // Calculate the minimum bid (current highest bid + 5%)
   useEffect(() => {
     if (bids && bids.length > 0) {
-      // Find the highest bid
       const highestBid = Math.max(...bids.map(bid => bid.amount));
       setMinimumBid(Math.max(highestBid * 1.05, currentPrice));
     } else {
@@ -51,7 +48,6 @@ const CoinBidForm = ({
     }
   }, [bids, currentPrice]);
   
-  // Update the time remaining
   useEffect(() => {
     if (!isAuction || !auctionEndDate) return;
     
@@ -122,18 +118,15 @@ const CoinBidForm = ({
     try {
       setIsSubmitting(true);
       
-      // Place bid using mock API
-      await mockApi.placeBid(coinId, user!.id, amount);
+      // TODO: Replace with real API call when backend is connected
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "Bid Placed Successfully",
         description: `Your bid of $${amount.toFixed(2)} has been placed`,
       });
       
-      // Reset form
       setBidAmount('');
-      
-      // Refresh the parent component
       onBidPlaced();
     } catch (error) {
       console.error('Error placing bid:', error);
@@ -147,7 +140,6 @@ const CoinBidForm = ({
     }
   };
   
-  // If not an auction, show buy now form
   if (!isAuction) {
     return (
       <div className="glassmorphism p-6">
@@ -191,7 +183,6 @@ const CoinBidForm = ({
     );
   }
   
-  // For auctions
   return (
     <motion.div 
       className="glassmorphism p-6"
@@ -265,7 +256,6 @@ const CoinBidForm = ({
         </form>
       )}
       
-      {/* Bid History */}
       {bids && bids.length > 0 && (
         <div className="mt-6">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">Bid History</h4>

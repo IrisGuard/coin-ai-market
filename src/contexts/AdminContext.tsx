@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface AdminContextType {
@@ -19,8 +18,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const checkAdminStatus = async () => {
     try {
-      // Mock admin check - in production this would check against real admin roles
-      const isAdminUser = localStorage.getItem('mock_admin_authenticated') === 'true';
+      // TODO: Replace with real admin check when backend is connected
+      const isAdminUser = localStorage.getItem('admin_authenticated') === 'true';
       setIsAdmin(isAdminUser);
       return isAdminUser;
     } catch (error) {
@@ -31,11 +30,11 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogin = async (email: string, password: string) => {
     try {
-      // Mock admin login - in production this would verify against real admin credentials
+      // TODO: Replace with real admin authentication when backend is connected
       if (email === 'admin@coinvision.com' && password === 'admin123') {
         setIsAdminAuthenticated(true);
         setIsAdmin(true);
-        localStorage.setItem('mock_admin_authenticated', 'true');
+        localStorage.setItem('admin_authenticated', 'true');
         
         toast({
           title: "Admin Access Granted",
@@ -62,9 +61,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogout = async () => {
     try {
-      localStorage.removeItem('mock_admin_authenticated');
+      localStorage.removeItem('admin_authenticated');
     } catch (error) {
-      console.error('Error logging admin logout:', error);
+      console.error('Error during admin logout:', error);
     }
     
     setIsAdminAuthenticated(false);

@@ -4,7 +4,6 @@ import { useCoinIdentification } from '@/hooks/use-coin-identification';
 import CoinUploadSection from './coin-uploader/CoinUploadSection';
 import CoinResultCard from './coin-uploader/CoinResultCard';
 
-// Define the CoinData type for better type safety
 export type CoinData = {
   coin: string;
   year: number;
@@ -40,13 +39,8 @@ const CoinUploader = () => {
   } = useCoinIdentification();
 
   const handleIdentifyCoin = async () => {
-    // First upload images to Supabase storage
     const imageUrls = await uploadImagesToStorage();
-    
-    // Extract the file objects from the images array
     const imageFiles = images.map(img => img.file);
-    
-    // Call the coin analysis service
     await identifyCoin(imageFiles, imageUrls);
   };
 

@@ -1,6 +1,4 @@
 
-// Simplified error handler χωρίς Supabase dependencies
-
 export class ErrorHandler {
   private static sessionId = Math.random().toString(36).substring(2, 15);
 
@@ -10,7 +8,7 @@ export class ErrorHandler {
     stackTrace?: string,
     pageUrl?: string
   ): Promise<void> {
-    // Log locally μέχρι να συνδεθεί νέο Supabase
+    // TODO: Replace with real error logging when backend is connected
     console.error('Error logged:', {
       errorType,
       message,
@@ -39,7 +37,6 @@ export class ErrorHandler {
   }
 
   static initializeGlobalErrorHandling(): void {
-    // Handle unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
       this.logError(
         'unhandled_rejection',
@@ -49,7 +46,6 @@ export class ErrorHandler {
       );
     });
 
-    // Handle general JavaScript errors
     window.addEventListener('error', (event) => {
       this.logError(
         'javascript_error',
@@ -59,7 +55,6 @@ export class ErrorHandler {
       );
     });
 
-    // Intercept console errors
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
     const originalConsoleInfo = console.info;
@@ -76,12 +71,12 @@ export class ErrorHandler {
 
     console.info = (...args) => {
       originalConsoleInfo.apply(console, args);
-      this.logConsoleError('info', args.join(' '));
+      this.logConsoleInfo('info', args.join(' '));
     };
   }
 
   static async checkSystemConfig(): Promise<boolean> {
-    // Επιστρέφει false μέχρι να συνδεθεί νέο Supabase
+    // TODO: Replace with real system check when backend is connected
     return false;
   }
 }

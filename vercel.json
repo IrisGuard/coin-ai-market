@@ -11,10 +11,11 @@
     }
   ],
   "env": {
-    "VITE_OPENAI_API_KEY": "@vite_openai_api_key",
-    "VITE_STRIPE_PUBLISHABLE_KEY": "@vite_stripe_publishable_key",
-    "VITE_STRIPE_SECRET_KEY": "@vite_stripe_secret_key",
-    "VITE_SENTRY_DSN": "@vite_sentry_dsn"
+    "VITE_SENTRY_DSN": "@vite_sentry_dsn",
+    "VITE_AI_API_KEY": "@vite_ai_api_key",
+    "VITE_AI_API_URL": "@vite_ai_api_url",
+    "VITE_PAYMENT_API_KEY": "@vite_payment_api_key",
+    "VITE_PAYMENT_API_URL": "@vite_payment_api_url"
   },
   "functions": {
     "app/api/**/*.ts": {

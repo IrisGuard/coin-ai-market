@@ -27,9 +27,11 @@ jobs:
     - name: Build project
       run: npm run build
       env:
-        VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
-        VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+        VITE_AI_API_KEY: ${{ secrets.VITE_AI_API_KEY }}
+        VITE_AI_API_URL: ${{ secrets.VITE_AI_API_URL }}
+        VITE_PAYMENT_API_KEY: ${{ secrets.VITE_PAYMENT_API_KEY }}
+        VITE_PAYMENT_API_URL: ${{ secrets.VITE_PAYMENT_API_URL }}
       
     - name: Deploy to Vercel
       uses: vercel/action@v1

@@ -1,7 +1,6 @@
 
 import { Coin } from '@/types/coin';
 
-// Database coin type (representing the structure που θα έρθει από το νέο Supabase)
 interface DbCoin {
   id: string;
   name: string;
@@ -34,9 +33,6 @@ interface DbCoinWithBids extends DbCoin {
   }>;
 }
 
-/**
- * Maps a database coin object to the frontend Coin type
- */
 export const mapDbCoinToCoin = (dbCoin: DbCoin): Coin => {
   return {
     id: dbCoin.id,
@@ -47,7 +43,7 @@ export const mapDbCoinToCoin = (dbCoin: DbCoin): Coin => {
     rarity: dbCoin.rarity as 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare',
     image: dbCoin.image || dbCoin.obverse_image || '',
     description: dbCoin.description,
-    condition: dbCoin.condition as any, // Type assertion για το νέο Supabase
+    condition: dbCoin.condition as any,
     country: dbCoin.country,
     composition: dbCoin.composition,
     diameter: dbCoin.diameter,
@@ -58,13 +54,9 @@ export const mapDbCoinToCoin = (dbCoin: DbCoin): Coin => {
   };
 };
 
-/**
- * Maps a database coin with bids to the frontend Coin type
- */
 export const mapDbCoinWithBidsToCoin = (dbCoin: DbCoinWithBids): Coin => {
   const baseCoin = mapDbCoinToCoin(dbCoin);
   
-  // If there are bids, update the price to the highest bid
   if (dbCoin.bids && dbCoin.bids.length > 0) {
     const highestBid = Math.max(...dbCoin.bids.map(bid => bid.amount));
     baseCoin.price = Math.max(baseCoin.price, highestBid);
@@ -73,9 +65,6 @@ export const mapDbCoinWithBidsToCoin = (dbCoin: DbCoinWithBids): Coin => {
   return baseCoin;
 };
 
-/**
- * Calculates time left for auction
- */
 const calculateTimeLeft = (auctionEnd: string): string => {
   const endTime = new Date(auctionEnd);
   const now = new Date();

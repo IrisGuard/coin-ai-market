@@ -2,13 +2,13 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CoinUploader from '@/components/CoinUploader';
-import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
+import { API_BASE_URL } from '@/config/api';
 import { useEffect, useState } from 'react';
-import { mockApi } from '@/lib/mockApi';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Upload = () => {
   const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
-  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
+  const { isAuthenticated } = useAuth();
   
   const isLiveBackend = API_BASE_URL.includes('coinvision-ai-production') || 
                        API_BASE_URL.includes('railway.app') || 
@@ -17,11 +17,9 @@ const Upload = () => {
   useEffect(() => {
     const checkBackendConnection = async () => {
       try {
-        // Ping the backend API to check if it's reachable
         const response = await fetch(`${API_BASE_URL}/health`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          // Short timeout to not block the UI for too long
           signal: AbortSignal.timeout(5000)
         });
         
@@ -32,8 +30,6 @@ const Upload = () => {
         }
       } catch (error) {
         console.error('Backend connection check failed:', error);
-        // For now, if we can't connect to the health endpoint but have a live URL, assume it's ok
-        // This is just to prevent confusion for users during development
         if (isLiveBackend) {
           setBackendStatus('connected');
         } else {
@@ -42,18 +38,7 @@ const Upload = () => {
       }
     };
 
-    const checkAuthStatus = async () => {
-      try {
-        const user = await mockApi.getCurrentUser();
-        setAuthStatus(user ? 'authenticated' : 'unauthenticated');
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        setAuthStatus('unauthenticated');
-      }
-    };
-
     checkBackendConnection();
-    checkAuthStatus();
   }, [isLiveBackend]);
 
   return (
@@ -89,7 +74,7 @@ const Upload = () => {
               </div>
             )}
             
-            {authStatus === 'unauthenticated' && (
+            {!isAuthenticated && (
               <div className="mt-2 inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                 Note: Login to save your coins

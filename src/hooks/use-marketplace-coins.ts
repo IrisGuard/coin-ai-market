@@ -2,9 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Coin } from '@/types/coin';
 
-/**
- * Hook for marketplace coins - τώρα επιστρέφει άδειο array μέχρι να συνδεθεί νέο Supabase
- */
 export const useMarketplaceCoins = (options?: {
   rarity?: string | null;
   isAuctionOnly?: boolean;
@@ -13,7 +10,7 @@ export const useMarketplaceCoins = (options?: {
   sortDirection?: 'asc' | 'desc';
 }) => {
   const fetchCoins = async (): Promise<Coin[]> => {
-    console.log('Marketplace coins: Waiting for new Supabase connection');
+    // TODO: Replace with real API call when backend is connected
     return [];
   };
 
@@ -23,5 +20,4 @@ export const useMarketplaceCoins = (options?: {
   });
 };
 
-// Re-export for backward compatibility
 export const useCoins = useMarketplaceCoins;

@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
-import { MockAuthAPI, MockSession, MockUser } from '@/lib/mockApi';
 
 // Define user type
 export interface User {
@@ -11,6 +10,12 @@ export interface User {
   name?: string;
   avatar_url?: string;
   created_at: string;
+}
+
+// Define session type
+export interface Session {
+  user: User;
+  access_token: string;
 }
 
 // Define auth context state
@@ -22,7 +27,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   updateProfile: (updates: Partial<User>) => Promise<void>;
-  session: MockSession | null;
+  session: Session | null;
 }
 
 // Create the context with a default value
@@ -31,24 +36,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Auth provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<MockSession | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Mock auth check
+  // Check for existing session on mount
   useEffect(() => {
-    console.log('Auth: Using mock authentication - waiting for new Supabase connection');
-    setLoading(false);
+    checkAuthStatus();
   }, []);
 
-  // Mock login function
+  const checkAuthStatus = async () => {
+    try {
+      setLoading(true);
+      // TODO: Replace with real auth check when backend is connected
+      const storedUser = localStorage.getItem('user_session');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setSession({ user: userData, access_token: 'temp_token' });
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
       
-      // Mock successful login
+      // TODO: Replace with real API call when backend is connected
+      // For now, simulate login for development
       const mockUser: User = {
-        id: 'mock-user-id',
+        id: 'temp_user_id',
         email,
         name: email.split('@')[0],
         created_at: new Date().toISOString()
@@ -57,19 +78,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(mockUser);
       setSession({
         user: mockUser,
-        access_token: 'mock-token'
+        access_token: 'temp_token'
       });
       
+      localStorage.setItem('user_session', JSON.stringify(mockUser));
+      
       toast({
-        title: "Mock Login Successful",
-        description: "Using temporary authentication",
+        title: "Login Successful",
+        description: "Welcome back!",
       });
       
       navigate('/');
     } catch (error) {
       toast({
-        title: "Mock Login",
-        description: "Temporary authentication system",
+        title: "Login Failed",
+        description: "Please check your credentials",
         variant: "destructive",
       });
       throw error;
@@ -78,31 +101,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Mock signup function
   const signup = async (email: string, password: string, name: string) => {
     try {
       setLoading(true);
       
-      // Mock successful signup
+      // TODO: Replace with real API call when backend is connected
       const mockUser: User = {
-        id: 'mock-user-id',
+        id: 'temp_user_id',
         email,
         name,
         created_at: new Date().toISOString()
       };
       
       setUser(mockUser);
+      setSession({
+        user: mockUser,
+        access_token: 'temp_token'
+      });
+      
+      localStorage.setItem('user_session', JSON.stringify(mockUser));
       
       toast({
-        title: "Mock Registration Successful",
-        description: "Using temporary authentication",
+        title: "Registration Successful",
+        description: "Welcome to CoinVision AI!",
       });
       
       navigate('/');
     } catch (error) {
       toast({
-        title: "Mock Registration",
-        description: "Temporary authentication system",
+        title: "Registration Failed",
+        description: "Please try again",
         variant: "destructive",
       });
       throw error;
@@ -111,24 +139,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Mock logout function
   const logout = async () => {
     try {
       setLoading(true);
       
+      // TODO: Replace with real API call when backend is connected
       setUser(null);
       setSession(null);
+      localStorage.removeItem('user_session');
       
       toast({
-        title: "Mock Logout Successful",
-        description: "Logged out from temporary auth",
+        title: "Logout Successful",
+        description: "Come back soon!",
       });
       
       navigate('/login');
     } catch (error) {
       toast({
-        title: "Mock Logout",
-        description: "Temporary authentication system",
+        title: "Logout Error",
+        description: "Please try again",
         variant: "destructive",
       });
     } finally {
@@ -136,24 +165,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Mock update profile
   const updateProfile = async (updates: Partial<User>) => {
     try {
       if (!user) throw new Error('User not authenticated');
       
       setLoading(true);
       
-      // Update local user state
-      setUser({ ...user, ...updates });
+      // TODO: Replace with real API call when backend is connected
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('user_session', JSON.stringify(updatedUser));
       
       toast({
-        title: "Mock Profile Updated",
-        description: "Using temporary profile system",
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully",
       });
     } catch (error) {
       toast({
-        title: "Mock Update Failed",
-        description: "Temporary profile system",
+        title: "Update Failed",
+        description: "Please try again",
         variant: "destructive",
       });
       throw error;
@@ -162,7 +192,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Provide auth context
   return (
     <AuthContext.Provider 
       value={{ 
@@ -181,7 +210,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Custom hook for using auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   

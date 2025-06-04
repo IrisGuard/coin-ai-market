@@ -2,13 +2,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { Coin } from '@/types/coin';
 
-/**
- * Hook for single coin - τώρα επιστρέφει error μέχρι να συνδεθεί νέο Supabase
- */
 export const useSingleCoin = (id: string) => {
   const fetchCoin = async (): Promise<Coin> => {
-    console.log('Single coin: Waiting for new Supabase connection');
-    throw new Error('No database connection - waiting for new Supabase setup');
+    // TODO: Replace with real API call when backend is connected
+    throw new Error('No backend connection configured yet');
   };
 
   return useQuery({
@@ -17,5 +14,4 @@ export const useSingleCoin = (id: string) => {
   });
 };
 
-// Re-export for backward compatibility
 export const useCoin = useSingleCoin;

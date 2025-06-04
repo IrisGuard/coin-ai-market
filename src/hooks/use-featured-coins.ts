@@ -2,12 +2,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Coin } from '@/types/coin';
 
-/**
- * Hook for featured coins - τώρα επιστρέφει άδειο array μέχρι να συνδεθεί νέο Supabase
- */
 export const useFeaturedCoins = () => {
   const fetchFeaturedCoins = async (): Promise<Coin[]> => {
-    console.log('Featured coins: Waiting for new Supabase connection');
+    // TODO: Replace with real API call when backend is connected
     return [];
   };
 

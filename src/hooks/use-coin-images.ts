@@ -1,7 +1,6 @@
 
 import { useState, ChangeEvent } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { mockApi } from '@/lib/mockApi';
 
 export const useCoinImages = (maxImages: number = 5) => {
   const { toast } = useToast();
@@ -57,12 +56,10 @@ export const useCoinImages = (maxImages: number = 5) => {
     if (images.length === 0) return [];
     
     try {
-      // Mock image upload - in production this would upload to real storage
+      // TODO: Replace with real image upload when backend is connected
       const uploadPromises = images.map(async (img) => {
-        // Simulate upload delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        // Return mock URL
-        return `https://mock-storage.com/images/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        return `https://storage.example.com/images/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
       });
       
       const urls = await Promise.all(uploadPromises);

@@ -19,10 +19,9 @@ export function useNotifications() {
   const [isLoading, setIsLoading] = useState(false);
   const { user, isAuthenticated } = useAuth();
   
-  // Mock notifications για development
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('Notifications: Waiting for new Supabase connection');
+      // TODO: Replace with real API call when backend is connected
       setNotifications([]);
       setUnreadCount(0);
     }
@@ -30,19 +29,19 @@ export function useNotifications() {
   }, [isAuthenticated, user]);
   
   const markAsRead = async (notificationId: string) => {
-    console.log('Mark as read: Waiting for new Supabase connection');
+    // TODO: Replace with real API call when backend is connected
   };
   
   const markAllAsRead = async () => {
-    console.log('Mark all as read: Waiting for new Supabase connection');
+    // TODO: Replace with real API call when backend is connected
   };
   
   const deleteNotification = async (notificationId: string) => {
-    console.log('Delete notification: Waiting for new Supabase connection');
+    // TODO: Replace with real API call when backend is connected
   };
   
   const createNotification = async (notification: Omit<Notification, 'id' | 'created_at' | 'is_read'>) => {
-    console.log('Create notification: Waiting for new Supabase connection');
+    // TODO: Replace with real API call when backend is connected
   };
   
   return {
@@ -53,6 +52,8 @@ export function useNotifications() {
     markAllAsRead,
     deleteNotification,
     createNotification,
-    refresh: () => console.log('Refresh notifications: Waiting for new Supabase connection')
+    refresh: () => {
+      // TODO: Replace with real API call when backend is connected
+    }
   };
 }
