@@ -1,347 +1,360 @@
-import React, { useState } from 'react';
-import { useCreateCoin, useAICoinRecognition } from '@/hooks/useCoins';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Zap, DollarSign, CheckCircle, Edit3 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import EnhancedMobileCameraUploader from './EnhancedMobileCameraUploader';
+import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDropzone } from 'react-dropzone';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImageIcon, Upload } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useToast } from "@/hooks/use-toast"
+import { useCreateCoin } from '@/hooks/useCoinMutations';
+import { uploadImage } from '@/integrations/supabase/storage';
 
-interface ImageWithQuality {
-  file: File;
-  preview: string;
-  quality: 'excellent' | 'good' | 'poor';
-  blurScore: number;
-}
+const coinFormSchema = z.object({
+  name: z.string().min(2, {
+    message: "Coin name must be at least 2 characters.",
+  }),
+  year: z.string().refine((value) => {
+    const num = Number(value);
+    return !isNaN(num) && num > 0;
+  }, {
+    message: "Year must be a valid number.",
+  }),
+  grade: z.string().min(2, {
+    message: "Grade must be at least 2 characters.",
+  }),
+  price: z.string().refine((value) => {
+    const num = Number(value);
+    return !isNaN(num) && num > 0;
+  }, {
+    message: "Price must be a valid number.",
+  }),
+  rarity: z.enum(['Common', 'Uncommon', 'Rare', 'Legendary']),
+  country: z.string().optional(),
+  denomination: z.string().optional(),
+  description: z.string().optional(),
+  composition: z.string().optional(),
+  diameter: z.string().optional(),
+  weight: z.string().optional(),
+  mint: z.string().optional(),
+  image: z.string().optional(),
+})
+
+interface CoinFormValues extends z.infer<typeof coinFormSchema> {}
 
 const MobileCoinUploadForm = () => {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const router = useRouter();
+  const { toast } = useToast()
   const createCoin = useCreateCoin();
-  const aiRecognition = useAICoinRecognition();
-  const [images, setImages] = useState<ImageWithQuality[]>([]);
-  const [aiResult, setAiResult] = useState<any>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showPriceEditor, setShowPriceEditor] = useState(false);
-  const [customPrice, setCustomPrice] = useState('');
-  const [step, setStep] = useState<'capture' | 'analyze' | 'review' | 'complete'>('capture');
 
-  const handleImagesSelected = async (selectedImages: ImageWithQuality[]) => {
-    setImages(selectedImages);
-    setStep('analyze');
-    
-    // Start real AI analysis
-    setIsAnalyzing(true);
+  const form = useForm<CoinFormValues>({
+    resolver: zodResolver(coinFormSchema),
+    defaultValues: {
+      name: "",
+      year: "",
+      grade: "",
+      price: "",
+      rarity: "Common",
+      country: "",
+      denomination: "",
+      description: "",
+      composition: "",
+      diameter: "",
+      weight: "",
+      mint: "",
+      image: "",
+    },
+  })
+
+  const onImageDrop = useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
     try {
-      const primaryImage = selectedImages[0];
-      const additionalImages = selectedImages.slice(1);
-      
-      const result = await aiRecognition.mutateAsync({
-        image: await convertFileToBase64(primaryImage.file),
-        additionalImages: await Promise.all(
-          additionalImages.map(img => convertFileToBase64(img.file))
-        )
-      });
-      
-      setAiResult(result);
-      setCustomPrice(result.estimated_value?.toString() || '');
-      setStep('review');
-      
-    } catch (error) {
-      console.error('AI analysis error:', error);
+      if (!file) {
+        toast({
+          title: "Error",
+          description: "No file selected",
+          variant: "destructive",
+        });
+        return;
+      }
+      const uploadedUrl = await uploadImage(file);
+      setImageUrl(uploadedUrl);
+      form.setValue('image', uploadedUrl);
+    } catch (error: any) {
       toast({
-        title: "AI Analysis Failed",
-        description: "Unable to analyze the coin. Please check your image quality and try again.",
+        title: "Error",
+        description: error.message,
         variant: "destructive",
       });
-      // Still allow manual entry
-      setStep('review');
-    } finally {
-      setIsAnalyzing(false);
     }
-  };
+  }, [toast, form, setImageUrl]);
 
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
+  const {getRootProps, getInputProps, isDragActive} = useDropzone({
+    accept: {
+      'image/*': ['.jpeg', '.png', '.jpg']
+    },
+    maxFiles: 1,
+    onDrop: onImageDrop
+  })
 
-  const handleQuickList = async () => {
-    if (images.length === 0) return;
-    
-    try {
-      const price = customPrice ? parseFloat(customPrice) : (aiResult?.estimated_value || 10);
-      
-      await createCoin.mutateAsync({
-        name: aiResult?.name || 'Unidentified Coin',
-        year: aiResult?.year || new Date().getFullYear(),
-        country: aiResult?.country || 'Unknown',
-        grade: aiResult?.grade || 'Ungraded',
-        price: price,
-        rarity: aiResult?.rarity || 'Common',
-        condition: aiResult?.condition || 'Good',
-        composition: aiResult?.composition || 'Unknown',
-        diameter: aiResult?.diameter,
-        weight: aiResult?.weight,
-        mint: aiResult?.mint || 'Unknown',
-        description: aiResult?.description || 'Coin uploaded via mobile app',
-        image: await convertFileToBase64(images[0].file),
+  function onSubmit(data: CoinFormValues) {
+    if (!imageUrl) {
+      toast({
+        title: "Error",
+        description: "Please upload an image",
+        variant: "destructive",
       });
-
-      setStep('complete');
-      
-      // Reset after 3 seconds
-      setTimeout(() => {
-        setImages([]);
-        setAiResult(null);
-        setStep('capture');
-        setShowPriceEditor(false);
-        setCustomPrice('');
-      }, 3000);
-      
-    } catch (error) {
-      console.error('Error creating coin:', error);
+      return;
     }
-  };
 
-  if (step === 'capture') {
-    return (
-      <div className="max-w-md mx-auto p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">
-              📱 Mobile Coin Upload
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EnhancedMobileCameraUploader
-              onImagesSelected={handleImagesSelected}
-              maxImages={6}
-              coinType="normal"
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
+    createCoin.mutate({
+      name: data.name,
+      year: parseInt(data.year),
+      grade: data.grade,
+      price: parseFloat(data.price),
+      rarity: data.rarity as any,
+      image: imageUrl,
+      country: data.country,
+      denomination: data.denomination,
+      description: data.description,
+      composition: data.composition,
+      diameter: data.diameter ? parseFloat(data.diameter) : undefined,
+      weight: data.weight ? parseFloat(data.weight) : undefined,
+      mint: data.mint,
+    });
   }
 
-  if (step === 'analyze') {
-    return (
-      <div className="max-w-md mx-auto p-4">
-        <Card>
-          <CardContent className="text-center py-12">
-            <Loader2 className="w-16 h-16 animate-spin text-blue-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">AI Analyzing Your Coin</h3>
-            <p className="text-gray-600">
-              Processing {images.length} high-quality photos...
-            </p>
-            <div className="mt-6 space-y-2">
-              <div className="text-sm text-gray-500">✓ Image quality verified</div>
-              <div className="text-sm text-gray-500">🔍 Identifying coin type</div>
-              <div className="text-sm text-gray-500">💰 Calculating market value</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (step === 'review') {
-    return (
-      <div className="max-w-md mx-auto p-4 space-y-4">
-        {/* AI Results Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-500" />
-              AI Analysis Complete
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {aiResult ? (
-              <>
-                <div>
-                  <h3 className="text-lg font-bold">{aiResult.name}</h3>
-                  <p className="text-gray-600">{aiResult.year} • {aiResult.country}</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Grade:</span>
-                    <p className="font-medium">{aiResult.grade}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Condition:</span>
-                    <p className="font-medium">{aiResult.condition}</p>
-                  </div>
-                  {aiResult.mint && (
-                    <div>
-                      <span className="text-gray-500">Mint:</span>
-                      <p className="font-medium">{aiResult.mint}</p>
-                    </div>
-                  )}
-                  {aiResult.composition && (
-                    <div>
-                      <span className="text-gray-500">Composition:</span>
-                      <p className="font-medium">{aiResult.composition}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Error Detection */}
-                {aiResult.errors && aiResult.errors.length > 0 && (
-                  <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                    <h4 className="font-medium text-orange-800 mb-2">🔍 Mint Errors Detected:</h4>
-                    <ul className="text-sm text-orange-700 space-y-1">
-                      {aiResult.errors.map((error: string, index: number) => (
-                        <li key={index}>• {error}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Authentication Notes */}
-                {aiResult.authentication_notes && (
-                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                    <h4 className="font-medium text-yellow-800 mb-1">⚠️ Authentication Notes:</h4>
-                    <p className="text-sm text-yellow-700">{aiResult.authentication_notes}</p>
-                  </div>
-                )}
-
-                {/* Price Section */}
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-green-700 font-medium">Market Value</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowPriceEditor(!showPriceEditor)}
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  {showPriceEditor ? (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">$</span>
-                      <input
-                        type="number"
-                        value={customPrice}
-                        onChange={(e) => setCustomPrice(e.target.value)}
-                        className="flex-1 text-xl font-bold border border-gray-300 rounded px-2 py-1"
-                        placeholder="0.00"
-                      />
-                    </div>
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Coin Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="year"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Year</FormLabel>
+              <FormControl>
+                <Input placeholder="2023" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="grade"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Grade</FormLabel>
+              <FormControl>
+                <Input placeholder="MS65" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Price</FormLabel>
+              <FormControl>
+                <Input placeholder="100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="rarity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Rarity</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a rarity" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Common">Common</SelectItem>
+                  <SelectItem value="Uncommon">Uncommon</SelectItem>
+                  <SelectItem value="Rare">Rare</SelectItem>
+                  <SelectItem value="Legendary">Legendary</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="country"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Country</FormLabel>
+              <FormControl>
+                <Input placeholder="USA" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="denomination"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Denomination</FormLabel>
+              <FormControl>
+                <Input placeholder="1 Dollar" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="A short description about the coin"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="composition"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Composition</FormLabel>
+              <FormControl>
+                <Input placeholder="Silver" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="diameter"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Diameter</FormLabel>
+              <FormControl>
+                <Input placeholder="38.1 mm" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="weight"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Weight</FormLabel>
+              <FormControl>
+                <Input placeholder="26.73 g" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="mint"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mint</FormLabel>
+              <FormControl>
+                <Input placeholder="Philadelphia" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="image"
+          render={() => (
+            <FormItem>
+              <FormLabel>Image</FormLabel>
+              <FormControl>
+                <div {...getRootProps()} className={cn(
+                  "border-dashed border-2 rounded-md p-4 flex flex-col items-center justify-center",
+                  isDragActive ? "border-primary" : "border-muted",
+                  imageUrl ? "bg-secondary" : "bg-background"
+                )}>
+                  <input {...getInputProps()} />
+                  {imageUrl ? (
+                    <img src={imageUrl} alt="Uploaded Image" className="max-w-full max-h-32" />
                   ) : (
-                    <div className="text-2xl font-bold text-green-600">
-                      ${customPrice || aiResult.estimated_value}
-                    </div>
-                  )}
-                  
-                  {aiResult.market_trend && (
-                    <div className="text-xs text-green-600 mt-1">
-                      Market trend: {aiResult.market_trend}
-                    </div>
+                    <>
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        {isDragActive ? "Drop the image here ..." : "Click or drag an image to upload"}
+                      </p>
+                    </>
                   )}
                 </div>
-
-                <Badge className="w-full justify-center bg-blue-100 text-blue-800">
-                  {Math.round((aiResult.confidence || 0.7) * 100)}% AI Confidence
-                </Badge>
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-4">AI analysis unavailable</p>
-                <p className="text-sm text-gray-500">Manual entry required</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Photos Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Captured Photos ({images.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-2">
-              {images.map((image, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={image.preview}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-20 object-cover rounded border"
-                  />
-                  <Badge 
-                    className={`absolute top-1 right-1 text-xs ${
-                      image.quality === 'excellent' ? 'bg-green-500' : 'bg-blue-500'
-                    }`}
-                  >
-                    {image.quality}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button
-            onClick={handleQuickList}
-            disabled={createCoin.isPending}
-            className="w-full bg-green-600 hover:bg-green-700 text-white text-lg py-4"
-          >
-            {createCoin.isPending ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Listing...
-              </>
-            ) : (
-              <>
-                <DollarSign className="w-5 h-5 mr-2" />
-                Quick List for ${customPrice || aiResult?.estimated_value || '0'}
-              </>
-            )}
-          </Button>
-          
-          <Button
-            onClick={() => setStep('capture')}
-            variant="outline"
-            className="w-full"
-          >
-            Take New Photos
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === 'complete') {
-    return (
-      <div className="max-w-md mx-auto p-4">
-        <Card>
-          <CardContent className="text-center py-12">
-            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Successfully Listed!</h3>
-            <p className="text-gray-600 mb-4">
-              Your coin has been added to the marketplace
-            </p>
-            <div className="text-lg font-bold text-green-600">
-              Listed for ${customPrice}
-            </div>
-            <p className="text-sm text-gray-500 mt-4">
-              Returning to camera in 3 seconds...
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return null;
-};
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={createCoin.isPending}>
+          {createCoin.isPending ? (
+            <>
+              <Upload className="mr-2 h-4 w-4 animate-spin" />
+              Uploading ...
+            </>
+          ) : (
+            <>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Coin
+            </>
+          )}
+        </Button>
+      </form>
+    </Form>
+  )
+}
 
 export default MobileCoinUploadForm;

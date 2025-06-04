@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useCoin } from '@/hooks/useCoins';
@@ -283,6 +282,32 @@ const CoinDetails = () => {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Bids Section */}
+              {coin?.bids && coin.bids.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Current Bids</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {coin.bids
+                        .sort((a, b) => b.amount - a.amount)
+                        .map((bid) => (
+                          <div key={bid.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                            <div>
+                              <span className="font-medium">{bid.profiles?.name || 'Anonymous'}</span>
+                              <span className="text-sm text-gray-500 ml-2">
+                                {new Date(bid.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <span className="font-bold text-lg">${bid.amount}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </motion.div>
 

@@ -8,46 +8,58 @@ export interface CreateAdminResult {
 }
 
 /**
- * Creates the first admin user by calling the Supabase function
+ * Creates the first admin user by updating the profiles table directly
  * This should be used only for initial setup
  */
 export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminResult> => {
   try {
-    // First check if user exists in auth.users
-    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
-    
-    if (usersError) {
-      return {
-        success: false,
-        message: `Error checking users: ${usersError.message}`
-      };
-    }
+    // Find user by email in profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', adminEmail)
+      .single();
 
-    const existingUser = users.users.find(user => user.email === adminEmail);
-    
-    if (!existingUser) {
+    if (profileError || !profile) {
       return {
         success: false,
         message: `User with email ${adminEmail} not found. Please create an account first.`
       };
     }
 
-    // Call the create_first_admin function
-    const { data, error } = await supabase.rpc('create_first_admin', {
-      admin_email: adminEmail
-    });
+    // Check if admin role already exists
+    const { data: existingAdmin, error: adminCheckError } = await supabase
+      .from('admin_roles')
+      .select('*')
+      .eq('user_id', profile.id)
+      .single();
 
-    if (error) {
+    if (existingAdmin) {
       return {
         success: false,
-        message: `Error creating admin: ${error.message}`
+        message: `User ${adminEmail} is already an admin.`
+      };
+    }
+
+    // Create admin role
+    const { error: insertError } = await supabase
+      .from('admin_roles')
+      .insert([{
+        user_id: profile.id,
+        role: 'admin'
+      }]);
+
+    if (insertError) {
+      return {
+        success: false,
+        message: `Error creating admin: ${insertError.message}`
       };
     }
 
     return {
       success: true,
       message: `Successfully created admin user for ${adminEmail}`,
-      userId: data
+      userId: profile.id
     };
 
   } catch (error: any) {
@@ -66,16 +78,18 @@ export const checkAdminStatus = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
-    const { data, error } = await supabase.rpc('is_admin_secure', {
-      user_id: user.id
-    });
+    const { data, error } = await supabase
+      .from('admin_roles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
     if (error) {
       console.error('Error checking admin status:', error);
       return false;
     }
 
-    return data === true;
+    return data !== null;
   } catch (error) {
     console.error('Unexpected error checking admin status:', error);
     return false;

@@ -1,133 +1,72 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { SecurityUtils } from './securityUtils';
 
-export class ErrorHandler {
-  private static sessionId = Math.random().toString(36).substring(2, 15);
+export const logError = async (error: any, context?: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { error: insertError } = await supabase
+      .from('error_logs')
+      .insert([{
+        message: error.message || String(error),
+        error_type: error.name || 'Unknown',
+        stack_trace: error.stack,
+        page_url: window.location.href,
+        user_agent: navigator.userAgent,
+        user_id: user?.id
+      }]);
 
-  static async logError(
-    errorType: string,
-    message: string,
-    stackTrace?: string,
-    pageUrl?: string
-  ): Promise<void> {
-    try {
-      // SECURITY FIX: Use secure logging function that sanitizes sensitive data
-      await supabase.rpc('log_error_secure', {
-        error_type_param: errorType,
-        message_param: message,
-        stack_trace_param: stackTrace,
-        page_url_param: pageUrl || window.location.href,
-        user_agent_param: navigator.userAgent
-      });
-    } catch (error) {
-      console.error('Failed to log error to Supabase:', SecurityUtils.sanitizeForLogging(error));
+    if (insertError) {
+      console.error('Failed to log error to database:', insertError);
     }
-
-    // Local logging with sanitization
-    console.error('Error logged:', SecurityUtils.sanitizeForLogging({
-      errorType,
-      message,
-      stackTrace,
-      pageUrl: pageUrl || window.location.href,
-      userAgent: navigator.userAgent,
-      sessionId: this.sessionId
-    }));
+  } catch (dbError) {
+    console.error('Error logging to database:', dbError);
   }
+};
 
-  static async logConsoleError(
-    level: 'error' | 'warn' | 'info',
-    message: string,
-    sourceFile?: string,
-    lineNumber?: number,
-    columnNumber?: number
-  ): Promise<void> {
-    try {
-      await supabase.rpc('log_console_error', {
-        error_level_param: level,
-        message_param: SecurityUtils.sanitizeText(message),
-        source_file_param: sourceFile,
-        line_number_param: lineNumber,
-        column_number_param: columnNumber,
-        session_id_param: this.sessionId
-      });
-    } catch (error) {
-      console.error('Failed to log console error to Supabase:', SecurityUtils.sanitizeForLogging(error));
+export const logConsoleError = async (
+  message: string,
+  source?: string,
+  lineno?: number,
+  colno?: number,
+  error?: Error
+) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { error: insertError } = await supabase
+      .from('console_errors')
+      .insert([{
+        message,
+        error_level: 'error',
+        source_file: source,
+        line_number: lineno,
+        column_number: colno,
+        user_id: user?.id,
+        session_id: sessionStorage.getItem('session_id') || undefined
+      }]);
+
+    if (insertError) {
+      console.error('Failed to log console error:', insertError);
     }
-
-    console.error('Console error logged:', SecurityUtils.sanitizeForLogging({
-      level,
-      message,
-      sourceFile,
-      lineNumber,
-      columnNumber,
-      sessionId: this.sessionId
-    }));
+  } catch (dbError) {
+    console.error('Error logging console error:', dbError);
   }
+};
 
-  static initializeGlobalErrorHandling(): void {
-    // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
-      this.logError(
-        'unhandled_rejection',
-        event.reason?.message || 'Unhandled promise rejection',
-        event.reason?.stack,
-        window.location.href
-      );
-    });
+// Set up global error handlers
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    logConsoleError(
+      event.message,
+      event.filename,
+      event.lineno,
+      event.colno,
+      event.error
+    );
+  });
 
-    // Handle general JavaScript errors
-    window.addEventListener('error', (event) => {
-      this.logError(
-        'javascript_error',
-        event.message,
-        event.error?.stack,
-        window.location.href
-      );
-    });
-
-    // Intercept console errors with sanitization
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-    const originalConsoleInfo = console.info;
-
-    console.error = (...args) => {
-      originalConsoleError.apply(console, args);
-      const sanitizedMessage = args.map(arg => 
-        typeof arg === 'string' ? SecurityUtils.sanitizeText(arg) : SecurityUtils.sanitizeForLogging(arg)
-      ).join(' ');
-      this.logConsoleError('error', sanitizedMessage);
-    };
-
-    console.warn = (...args) => {
-      originalConsoleWarn.apply(console, args);
-      const sanitizedMessage = args.map(arg => 
-        typeof arg === 'string' ? SecurityUtils.sanitizeText(arg) : SecurityUtils.sanitizeForLogging(arg)
-      ).join(' ');
-      this.logConsoleError('warn', sanitizedMessage);
-    };
-
-    console.info = (...args) => {
-      originalConsoleInfo.apply(console, args);
-      const sanitizedMessage = args.map(arg => 
-        typeof arg === 'string' ? SecurityUtils.sanitizeText(arg) : SecurityUtils.sanitizeForLogging(arg)
-      ).join(' ');
-      this.logConsoleError('info', sanitizedMessage);
-    };
-  }
-
-  static async checkSystemConfig(): Promise<boolean> {
-    try {
-      const { data } = await supabase
-        .from('system_config')
-        .select('config_value')
-        .eq('config_key', 'system_status')
-        .single();
-      
-      return data?.config_value === 'active';
-    } catch (error) {
-      console.error('Error checking system config:', SecurityUtils.sanitizeForLogging(error));
-      return false;
-    }
-  }
+  window.addEventListener('unhandledrejection', (event) => {
+    logError(event.reason, 'Unhandled Promise Rejection');
+  });
 }

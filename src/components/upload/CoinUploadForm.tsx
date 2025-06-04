@@ -144,21 +144,23 @@ const CoinUploadForm = () => {
       return;
     }
 
+    const imageUrl = imagePreview || formData.image;
+
     try {
-      await createCoin.mutateAsync({
+      createCoin.mutate({
         name: formData.name,
         year: parseInt(formData.year),
-        country: formData.country,
         grade: formData.grade,
         price: parseFloat(formData.price),
         rarity: formData.rarity as any,
-        condition: formData.condition as any,
+        image: imageUrl,
+        country: formData.country,
+        denomination: formData.denomination,
+        description: formData.description,
         composition: formData.composition,
         diameter: formData.diameter ? parseFloat(formData.diameter) : undefined,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         mint: formData.mint,
-        description: formData.description,
-        image: formData.image,
       });
 
       // Reset form

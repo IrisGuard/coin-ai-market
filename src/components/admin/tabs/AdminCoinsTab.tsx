@@ -1,163 +1,111 @@
-
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Coins, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/useAdminData';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/admin/useAdminCoins';
+
+interface Coin {
+  id: string;
+  name: string;
+  year: number;
+  grade: string;
+  price: number;
+  image: string;
+  authentication_status: string;
+  profiles?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
 
 const AdminCoinsTab = () => {
   const { data: coins = [], isLoading } = useAdminCoins();
   const updateCoinStatus = useUpdateCoinStatus();
 
-  const handleUpdateStatus = (coinId: string, status: string) => {
+  const handleStatusUpdate = (coinId: string, status: string) => {
     updateCoinStatus.mutate({ coinId, status });
   };
 
-  if (isLoading) {
-    return <div className="p-4">Loading coins...</div>;
-  }
-
-  const stats = {
-    total: coins.length,
-    verified: coins.filter(c => c.authentication_status === 'verified').length,
-    pending: coins.filter(c => c.authentication_status === 'pending').length,
-    rejected: coins.filter(c => c.authentication_status === 'rejected').length,
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-      default:
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-    }
-  };
+  if (isLoading) return <div>Loading coins...</div>;
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
-            <Coins className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verified</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.verified}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
-          </CardContent>
-        </Card>
+      {/* Header */}
+      <div>
+        <h3 className="text-lg font-semibold">Coin Management</h3>
+        <p className="text-sm text-muted-foreground">
+          Manage listed coins and their authentication status
+        </p>
       </div>
 
-      {/* Coins Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5" />
-            Coin Authentication
-          </CardTitle>
+          <CardTitle>Coin Management</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Coin</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {coins.map((coin) => (
-                <TableRow key={coin.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2">Image</th>
+                  <th className="text-left p-2">Name</th>
+                  <th className="text-left p-2">Year</th>
+                  <th className="text-left p-2">Grade</th>
+                  <th className="text-left p-2">Price</th>
+                  <th className="text-left p-2">Owner</th>
+                  <th className="text-left p-2">Status</th>
+                  <th className="text-left p-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coins.map((coin) => (
+                  <tr key={coin.id} className="border-b">
+                    <td className="p-2">
                       <img 
                         src={coin.image} 
                         alt={coin.name}
-                        className="h-10 w-10 rounded-full object-cover"
+                        className="w-12 h-12 object-cover rounded"
                       />
+                    </td>
+                    <td className="p-2 font-medium">{coin.name}</td>
+                    <td className="p-2">{coin.year}</td>
+                    <td className="p-2">{coin.grade}</td>
+                    <td className="p-2">${coin.price}</td>
+                    <td className="p-2">
                       <div>
-                        <div className="font-medium">{coin.name}</div>
-                        <div className="text-sm text-gray-500">{coin.grade}</div>
+                        <div className="font-medium">{coin.profiles?.name || 'Unknown'}</div>
+                        <div className="text-sm text-muted-foreground">{coin.profiles?.email || 'No email'}</div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{coin.profiles?.name || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{coin.profiles?.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{coin.year}</TableCell>
-                  <TableCell>${coin.price}</TableCell>
-                  <TableCell>{getStatusBadge(coin.authentication_status || 'pending')}</TableCell>
-                  <TableCell>
-                    {coin.created_at ? new Date(coin.created_at).toLocaleDateString() : 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {coin.authentication_status !== 'verified' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpdateStatus(coin.id, 'verified')}
-                          disabled={updateCoinStatus.isPending}
-                        >
-                          Verify
-                        </Button>
-                      )}
-                      {coin.authentication_status !== 'rejected' && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleUpdateStatus(coin.id, 'rejected')}
-                          disabled={updateCoinStatus.isPending}
-                        >
-                          Reject
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </td>
+                    <td className="p-2">
+                      <Badge variant={
+                        coin.authentication_status === 'verified' ? 'default' :
+                        coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
+                      }>
+                        {coin.authentication_status}
+                      </Badge>
+                    </td>
+                    <td className="p-2">
+                      <Select
+                        value={coin.authentication_status || 'pending'}
+                        onValueChange={(value) => handleStatusUpdate(coin.id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="verified">Verified</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>
