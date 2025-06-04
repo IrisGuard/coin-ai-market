@@ -47,7 +47,7 @@ export const mapDbCoinToCoin = (dbCoin: DbCoin): Coin => {
     rarity: dbCoin.rarity as 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare',
     image: dbCoin.image || dbCoin.obverse_image || '',
     description: dbCoin.description,
-    condition: dbCoin.condition,
+    condition: dbCoin.condition as any, // Type assertion to handle string to CoinCondition conversion
     country: dbCoin.country,
     composition: dbCoin.composition,
     diameter: dbCoin.diameter,
