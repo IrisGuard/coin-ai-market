@@ -1,95 +1,114 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAdminTransactions } from '@/hooks/useAdminData';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { useTransactions } from '@/hooks/useAdminData';
+import { DollarSign } from 'lucide-react';
 
 const AdminTransactionsTab = () => {
-  const { data: transactions = [], isLoading } = useAdminTransactions();
+  const { data: transactions = [], isLoading } = useTransactions();
 
-  if (isLoading) return <div>Loading transactions...</div>;
+  if (isLoading) {
+    return <div>Loading transactions...</div>;
+  }
+
+  const totalVolume = transactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Recent Transactions</h3>
-          <p className="text-sm text-muted-foreground">
-            Monitor recent transactions and identify potential issues
-          </p>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Transactions
+        </h3>
+        <div className="text-sm text-muted-foreground">
+          Total Volume: ${totalVolume.toFixed(2)}
         </div>
-        {/* Add any additional header elements here if needed */}
       </div>
 
-      {/* Stats Overview (Example) */}
-      {/* You can add a component here to display transaction statistics */}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Transaction ID</th>
-                  <th className="text-left p-2">Coin</th>
-                  <th className="text-left p-2">Seller</th>
-                  <th className="text-left p-2">Buyer</th>
-                  <th className="text-left p-2">Amount</th>
-                  <th className="text-left p-2">Status</th>
-                  <th className="text-left p-2">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction) => (
-                  <tr key={transaction.id} className="border-b">
-                    <td className="p-2 font-mono text-sm">
-                      {transaction.id.slice(0, 8)}...
-                    </td>
-                    <td className="p-2">
-                      <div className="flex items-center gap-2">
-                        {transaction.coins?.image && (
-                          <img 
-                            src={transaction.coins.image} 
-                            alt={transaction.coins?.name || 'Coin'}
-                            className="w-8 h-8 object-cover rounded"
-                          />
-                        )}
-                        <span>{transaction.coins?.name || 'Unknown Coin'}</span>
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <div>
-                        <div className="font-medium">{transaction.seller?.name || 'Unknown'}</div>
-                        <div className="text-sm text-muted-foreground">{transaction.seller?.email || 'No email'}</div>
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <div>
-                        <div className="font-medium">{transaction.buyer?.name || 'Unknown'}</div>
-                        <div className="text-sm text-muted-foreground">{transaction.buyer?.email || 'No email'}</div>
-                      </div>
-                    </td>
-                    <td className="p-2 font-semibold">
-                      ${transaction.amount}
-                    </td>
-                    <td className="p-2">
-                      <Badge variant={transaction.status === 'completed' ? 'default' : 'secondary'}>
-                        {transaction.status}
-                      </Badge>
-                    </td>
-                    <td className="p-2 text-sm text-muted-foreground">
-                      {new Date(transaction.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Amount</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Seller</TableHead>
+            <TableHead>Buyer</TableHead>
+            <TableHead>Coin</TableHead>
+            <TableHead>Date</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {transactions.map((transaction) => (
+            <TableRow key={transaction.id}>
+              <TableCell className="font-medium">
+                ${Number(transaction.amount).toFixed(2)}
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">{transaction.transaction_type}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant={transaction.status === 'completed' ? 'default' : 'secondary'}>
+                  {transaction.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div>
+                  <div className="font-medium">
+                    {transaction.seller && typeof transaction.seller === 'object' && 'name' in transaction.seller 
+                      ? transaction.seller.name 
+                      : 'Unknown Seller'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {transaction.seller && typeof transaction.seller === 'object' && 'email' in transaction.seller 
+                      ? transaction.seller.email 
+                      : 'No email'}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div>
+                  <div className="font-medium">
+                    {transaction.buyer && typeof transaction.buyer === 'object' && 'name' in transaction.buyer 
+                      ? transaction.buyer.name 
+                      : 'Unknown Buyer'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {transaction.buyer && typeof transaction.buyer === 'object' && 'email' in transaction.buyer 
+                      ? transaction.buyer.email 
+                      : 'No email'}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                {transaction.coins ? 
+                  <div className="flex items-center gap-2">
+                    {transaction.coins.image && (
+                      <img 
+                        src={transaction.coins.image} 
+                        alt={transaction.coins.name}
+                        className="w-8 h-8 object-cover rounded"
+                      />
+                    )}
+                    <span className="text-sm">{transaction.coins.name}</span>
+                  </div>
+                  : 'Unknown Coin'
+                }
+              </TableCell>
+              <TableCell>
+                {new Date(transaction.created_at).toLocaleDateString()}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };

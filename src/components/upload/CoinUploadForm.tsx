@@ -20,19 +20,14 @@ const CoinUploadForm = () => {
   const [isMobileMode, setIsMobileMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    year: '',
+    year: new Date().getFullYear(),
+    grade: '',
+    price: 0,
+    rarity: '',
+    image: '',
     country: '',
     denomination: '',
-    grade: '',
-    price: '',
-    rarity: '',
-    condition: '',
-    composition: '',
-    diameter: '',
-    weight: '',
-    mint: '',
-    description: '',
-    image: '',
+    description: ''
   });
 
   // Check if device is mobile
@@ -135,44 +130,19 @@ const CoinUploadForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.image) {
-      toast({
-        title: "Image Required",
-        description: "Please upload a coin image before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const imageUrl = imagePreview || formData.image;
-
-    try {
-      createCoin.mutate({
-        name: formData.name,
-        year: parseInt(formData.year),
-        grade: formData.grade,
-        price: parseFloat(formData.price),
-        rarity: formData.rarity as any,
-        image: imageUrl,
-        country: formData.country,
-        denomination: formData.denomination,
-        description: formData.description,
-        composition: formData.composition,
-        diameter: formData.diameter ? parseFloat(formData.diameter) : undefined,
-        weight: formData.weight ? parseFloat(formData.weight) : undefined,
-        mint: formData.mint,
-      });
-
-      // Reset form
-      setFormData({
-        name: '', year: '', country: '', denomination: '', grade: '', price: '',
-        rarity: '', condition: '', composition: '', diameter: '', weight: '',
-        mint: '', description: '', image: '',
-      });
-      setImagePreview('');
-    } catch (error) {
-      console.error('Error creating coin:', error);
-    }
+    const coinData = {
+      name: formData.name,
+      year: formData.year,
+      grade: formData.grade,
+      price: formData.price,
+      rarity: formData.rarity,
+      image: formData.image,
+      country: formData.country,
+      denomination: formData.denomination,
+      description: formData.description,
+    };
+    
+    createCoin.mutate(coinData);
   };
 
   return (

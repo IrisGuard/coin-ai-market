@@ -1,113 +1,113 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/admin/useAdminCoins';
 
-interface Coin {
-  id: string;
-  name: string;
-  year: number;
-  grade: string;
-  price: number;
-  image: string;
-  authentication_status: string;
-  profiles?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-}
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/useAdminData';
 
 const AdminCoinsTab = () => {
   const { data: coins = [], isLoading } = useAdminCoins();
-  const updateCoinStatus = useUpdateCoinStatus();
+  const updateStatus = useUpdateCoinStatus();
 
   const handleStatusUpdate = (coinId: string, status: string) => {
-    updateCoinStatus.mutate({ coinId, status });
+    updateStatus.mutate({ coinId, status });
   };
 
-  if (isLoading) return <div>Loading coins...</div>;
+  if (isLoading) {
+    return <div>Loading coins...</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Coin Management</h3>
-        <p className="text-sm text-muted-foreground">
-          Manage listed coins and their authentication status
-        </p>
+        <div className="text-sm text-muted-foreground">
+          Total: {coins.length} coins
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Coin Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Image</th>
-                  <th className="text-left p-2">Name</th>
-                  <th className="text-left p-2">Year</th>
-                  <th className="text-left p-2">Grade</th>
-                  <th className="text-left p-2">Price</th>
-                  <th className="text-left p-2">Owner</th>
-                  <th className="text-left p-2">Status</th>
-                  <th className="text-left p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {coins.map((coin) => (
-                  <tr key={coin.id} className="border-b">
-                    <td className="p-2">
-                      <img 
-                        src={coin.image} 
-                        alt={coin.name}
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                    </td>
-                    <td className="p-2 font-medium">{coin.name}</td>
-                    <td className="p-2">{coin.year}</td>
-                    <td className="p-2">{coin.grade}</td>
-                    <td className="p-2">${coin.price}</td>
-                    <td className="p-2">
-                      <div>
-                        <div className="font-medium">{coin.profiles?.name || 'Unknown'}</div>
-                        <div className="text-sm text-muted-foreground">{coin.profiles?.email || 'No email'}</div>
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <Badge variant={
-                        coin.authentication_status === 'verified' ? 'default' :
-                        coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
-                      }>
-                        {coin.authentication_status}
-                      </Badge>
-                    </td>
-                    <td className="p-2">
-                      <Select
-                        value={coin.authentication_status || 'pending'}
-                        onValueChange={(value) => handleStatusUpdate(coin.id, value)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="verified">Verified</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Image</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Year</TableHead>
+            <TableHead>Grade</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Owner</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {coins.map((coin) => (
+            <TableRow key={coin.id}>
+              <TableCell>
+                <img 
+                  src={coin.image} 
+                  alt={coin.name}
+                  className="w-12 h-12 object-cover rounded"
+                />
+              </TableCell>
+              <TableCell className="font-medium">{coin.name}</TableCell>
+              <TableCell>{coin.year}</TableCell>
+              <TableCell>{coin.grade}</TableCell>
+              <TableCell>${coin.price}</TableCell>
+              <TableCell>
+                <Badge 
+                  variant={
+                    coin.authentication_status === 'approved' ? 'default' :
+                    coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
+                  }
+                >
+                  {coin.authentication_status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div>
+                  <div className="font-medium">
+                    {coin.profiles && typeof coin.profiles === 'object' && 'name' in coin.profiles 
+                      ? coin.profiles.name 
+                      : 'Unknown User'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {coin.profiles && typeof coin.profiles === 'object' && 'email' in coin.profiles 
+                      ? coin.profiles.email 
+                      : 'No email'}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStatusUpdate(coin.id, 'approved')}
+                    disabled={updateStatus.isPending}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStatusUpdate(coin.id, 'rejected')}
+                    disabled={updateStatus.isPending}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };

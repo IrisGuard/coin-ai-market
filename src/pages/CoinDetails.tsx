@@ -1,427 +1,281 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useCoin } from '@/hooks/useCoins';
-import { useCoinBids } from '@/hooks/useBids';
-import Navbar from '@/components/Navbar';
-import CoinBidForm from '@/components/coin-details/CoinBidForm';
-import CoinViewer3D from '@/components/coin-details/CoinViewer3D';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Eye, Heart, Star, User, Verified, Clock, TrendingUp, Award, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import CoinBidForm from '@/components/coins/CoinBidForm';
+import { logError } from '@/utils/errorHandler';
 
 const CoinDetails = () => {
-  const { id } = useParams<{ id: string }>();
-  const { data: coin, isLoading } = useCoin(id!);
-  const { data: bids = [] } = useCoinBids(id!);
+  const { id } = useParams();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [highestBid, setHighestBid] = useState<any>(null);
+
+  // Fetch coin details
+  const { data: coin, isLoading } = useQuery({
+    queryKey: ['coin', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coins')
+        .select(`
+          *,
+          profiles(
+            id,
+            name,
+            email,
+            avatar_url,
+            verified_dealer
+          )
+        `)
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onError: (error) => {
+      logError(error, 'Fetching coin details');
+      toast({
+        title: "Error",
+        description: "Failed to load coin details",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Fetch bids for this coin
+  const { data: bids } = useQuery({
+    queryKey: ['coin-bids', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bids')
+        .select(`
+          *,
+          profiles(
+            id,
+            name,
+            avatar_url
+          )
+        `)
+        .eq('coin_id', id)
+        .order('amount', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id && !!coin?.is_auction,
+    onSuccess: (data) => {
+      if (data && data.length > 0) {
+        setHighestBid(data[0]);
+      }
+    }
+  });
+
+  // Fetch related coins
+  const { data: relatedCoins } = useQuery({
+    queryKey: ['related-coins', coin?.year, coin?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coins')
+        .select('*')
+        .eq('year', coin?.year)
+        .neq('id', coin?.id)
+        .limit(4);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coin?.year
+  });
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-brand-light">
-        <Navbar />
-        <div className="relative overflow-hidden">
-          <div className="mesh-bg"></div>
-          <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div className="loading-skeleton h-96 rounded-3xl"></div>
-                <div className="loading-skeleton h-48 rounded-3xl"></div>
-              </div>
-              <div className="space-y-6">
-                <div className="loading-skeleton h-16 rounded-2xl"></div>
-                <div className="loading-skeleton h-32 rounded-2xl"></div>
-                <div className="loading-skeleton h-64 rounded-2xl"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="container mx-auto px-4 py-8">Loading coin details...</div>;
   }
 
   if (!coin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-brand-light">
-        <Navbar />
-        <div className="relative overflow-hidden">
-          <div className="mesh-bg"></div>
-          <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
-            <div className="text-center py-20">
-              <div className="glass-card p-12 rounded-3xl max-w-md mx-auto">
-                <div className="w-24 h-24 bg-gradient-to-r from-brand-accent to-electric-pink rounded-full mx-auto mb-6 flex items-center justify-center">
-                  <span className="text-4xl">❌</span>
-                </div>
-                <h1 className="text-3xl font-bold gradient-text mb-4">Coin Not Found</h1>
-                <p className="text-gray-600">The coin you're looking for doesn't exist or has been removed.</p>
+    return <div className="container mx-auto px-4 py-8">Coin not found</div>;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <img 
+            src={coin.image} 
+            alt={coin.name} 
+            className="w-full h-auto rounded-lg mb-4"
+          />
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Badge variant="outline">{coin.year}</Badge>
+            <Badge variant="outline">{coin.grade}</Badge>
+            <Badge variant="outline">{coin.rarity}</Badge>
+            {coin.authentication_status && (
+              <Badge variant={
+                coin.authentication_status === 'approved' ? 'default' :
+                coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
+              }>
+                {coin.authentication_status}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-3xl font-bold mb-2">{coin.name}</h1>
+          <div className="text-2xl font-semibold text-green-600 mb-4">
+            ${coin.price}
+          </div>
+          
+          <Tabs defaultValue="details" className="mb-6">
+            <TabsList>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="authentication">Authentication</TabsTrigger>
+            </TabsList>
+            <TabsContent value="details" className="space-y-4">
+              <div>
+                <h3 className="font-semibold">Description</h3>
+                <p>{coin.description || "No description provided."}</p>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold">Country</h3>
+                  <p>{coin.country || "Not specified"}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Denomination</h3>
+                  <p>{coin.denomination || "Not specified"}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Year</h3>
+                  <p>{coin.year}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Grade</h3>
+                  <p>{coin.grade}</p>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="history">
+              <p>Coin history and provenance information will be displayed here.</p>
+            </TabsContent>
+            <TabsContent value="authentication">
+              <div className="space-y-2">
+                <h3 className="font-semibold">Authentication Status</h3>
+                <Badge variant={
+                  coin.authentication_status === 'approved' ? 'default' :
+                  coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
+                } className="text-base py-1 px-2">
+                  {coin.authentication_status || "Pending"}
+                </Badge>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {coin.authentication_status === 'approved' 
+                    ? "This coin has been verified by our authentication team." 
+                    : coin.authentication_status === 'rejected'
+                    ? "This coin did not pass our authentication process."
+                    : "This coin is awaiting authentication by our team."}
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {user && user.id !== coin.user_id && !coin.is_auction && (
+            <Button className="w-full">Purchase Now</Button>
+          )}
+          
+          {user && user.id === coin.user_id && (
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1">Edit Listing</Button>
+              <Button variant="destructive" className="flex-1">Remove Listing</Button>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bidding Section */}
+      {coin?.is_auction && (
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Current Bids</h2>
+            <div className="text-lg font-bold text-green-600">
+              Current High: ${highestBid?.amount || coin.reserve_price || 0}
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {bids?.map((bid) => (
+              <div key={bid.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div>
+                  <span className="font-medium">
+                    {bid.profiles && typeof bid.profiles === 'object' && 'name' in bid.profiles 
+                      ? bid.profiles.name 
+                      : 'Anonymous Bidder'}
+                  </span>
+                  <span className="text-sm text-gray-500 ml-2">
+                    {new Date(bid.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="font-bold text-lg">${Number(bid.amount).toFixed(2)}</div>
+              </div>
+            ))}
+          </div>
+          
+          <CoinBidForm coinId={id!} currentHighBid={highestBid?.amount || 0} />
+        </div>
+      )}
+
+      {/* Seller Profile */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Seller Information</h2>
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={coin.profiles?.avatar_url || ''} />
+            <AvatarFallback>{coin.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium flex items-center gap-2">
+              {coin.profiles?.name || 'Unknown User'}
+              {coin.profiles?.verified_dealer && (
+                <Badge variant="default" className="ml-2">Verified Dealer</Badge>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">Member since {new Date(coin.profiles?.created_at || Date.now()).toLocaleDateString()}</div>
           </div>
         </div>
       </div>
-    );
-  }
 
-  const highestBid = bids.length > 0 ? Math.max(...bids.map(bid => bid.amount)) : coin.price;
-  const isAuction = coin.is_auction;
-  const timeLeft = coin.auction_end ? formatDistanceToNow(new Date(coin.auction_end), { addSuffix: true }) : null;
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'Ultra Rare': return 'from-brand-accent to-electric-pink';
-      case 'Rare': return 'from-brand-primary to-electric-purple';
-      case 'Uncommon': return 'from-electric-blue to-electric-cyan';
-      case 'Common': return 'from-electric-emerald to-electric-teal';
-      default: return 'from-gray-400 to-gray-500';
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-brand-light">
-      <Navbar />
-      
-      <div className="relative overflow-hidden">
-        <div className="mesh-bg"></div>
-        
-        <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12"
-          >
-            {/* Image Section */}
-            <div className="space-y-6">
-              <div className="relative group">
-                <div className="glass-card rounded-3xl overflow-hidden border-2 border-white/30 shadow-2xl">
-                  <motion.img
-                    src={coin.image}
-                    alt={coin.name}
-                    className="w-full h-96 object-cover transition-transform duration-700 group-hover:scale-105"
-                    whileHover={{ scale: 1.02 }}
+      {/* Related Coins */}
+      {relatedCoins && relatedCoins.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Related Coins</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {relatedCoins.map((relatedCoin) => (
+              <Card key={relatedCoin.id}>
+                <CardContent className="p-4">
+                  <img 
+                    src={relatedCoin.image} 
+                    alt={relatedCoin.name} 
+                    className="w-full h-40 object-cover rounded-lg mb-2"
                   />
-                  
-                  {/* Floating Badges */}
-                  <div className="absolute top-6 left-6 flex flex-col gap-3">
-                    {coin.featured && (
-                      <Badge className="bg-gradient-to-r from-coin-gold to-electric-orange text-white border-0 shadow-xl animate-pulse">
-                        <Star className="w-4 h-4 mr-2" />
-                        Featured
-                      </Badge>
-                    )}
-                    <Badge className={`bg-gradient-to-r ${getRarityColor(coin.rarity)} text-white border-0 shadow-xl`}>
-                      <Award className="w-4 h-4 mr-2" />
-                      {coin.rarity}
-                    </Badge>
-                  </div>
-
-                  {isAuction && timeLeft && (
-                    <div className="absolute bottom-6 right-6 glass-card-dark px-4 py-2 rounded-full text-white">
-                      <Clock className="w-4 h-4 mr-2 inline" />
-                      {timeLeft}
-                    </div>
-                  )}
-
-                  {coin.authentication_status === 'verified' && (
-                    <div className="absolute top-6 right-6">
-                      <Badge className="bg-gradient-to-r from-electric-emerald to-electric-teal text-white border-0 shadow-xl">
-                        <Verified className="w-4 h-4 mr-2" />
-                        Verified
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {coin.model_3d_url && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                  <CoinViewer3D 
-                    obverseImage={coin.obverse_image} 
-                    reverseImage={coin.reverse_image}
-                    model3dUrl={coin.model_3d_url} 
-                    name={coin.name}
-                  />
-                </motion.div>
-              )}
-            </div>
-
-            {/* Details Section */}
-            <div className="space-y-8">
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <h1 className="text-4xl md:text-5xl font-serif font-bold gradient-text mb-4">{coin.name}</h1>
-                
-                <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
-                  <div className="flex items-center gap-2 px-4 py-2 glass-card rounded-full">
-                    <CalendarDays className="w-5 h-5 text-brand-primary" />
-                    <span className="font-medium">{coin.year}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 glass-card rounded-full">
-                    <Eye className="w-5 h-5 text-electric-blue" />
-                    <span className="font-medium">{coin.views || 0} views</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 glass-card rounded-full">
-                    <Heart className="w-5 h-5 text-brand-accent" />
-                    <span className="font-medium">{coin.favorites || 0} favorites</span>
-                  </div>
-                  {coin.country && (
-                    <div className="flex items-center gap-2 px-4 py-2 glass-card rounded-full">
-                      <MapPin className="w-5 h-5 text-electric-emerald" />
-                      <span className="font-medium">{coin.country}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex flex-wrap gap-3 mb-6">
-                  <Badge className="px-4 py-2 bg-gradient-to-r from-electric-blue to-brand-primary text-white text-sm">
-                    {coin.condition}
-                  </Badge>
-                  <Badge className="px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm">
-                    Grade: {coin.grade}
-                  </Badge>
-                  {coin.denomination && (
-                    <Badge className="px-4 py-2 bg-gradient-to-r from-electric-emerald to-electric-teal text-white text-sm">
-                      {coin.denomination}
-                    </Badge>
-                  )}
-                </div>
-              </motion.div>
-
-              {/* Price/Bidding Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <Card className="glass-card border-2 border-white/30 shadow-2xl rounded-3xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-brand-primary/10 via-electric-blue/10 to-brand-accent/10">
-                    <CardTitle className="flex items-center justify-between text-xl">
-                      <span className="gradient-text font-bold">
-                        {isAuction ? 'Current Bid' : 'Price'}
-                      </span>
-                      {isAuction && timeLeft && (
-                        <Badge className="bg-gradient-to-r from-brand-accent to-electric-pink text-white animate-pulse">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {timeLeft}
-                        </Badge>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    <div className="text-4xl font-bold gradient-text mb-6 flex items-center gap-3">
-                      <TrendingUp className="w-8 h-8 text-electric-emerald" />
-                      ${isAuction ? highestBid.toLocaleString() : coin.price.toLocaleString()}
-                    </div>
-                    
-                    {isAuction && coin.reserve_price && (
-                      <div className="text-sm text-gray-600 mb-6 p-3 glass-card rounded-2xl">
-                        <span className="font-medium">Reserve price: </span>
-                        <span className="text-brand-primary font-bold">${coin.reserve_price.toLocaleString()}</span>
-                      </div>
-                    )}
-                    
-                    {isAuction && (
-                      <CoinBidForm 
-                        coinId={coin.id} 
-                        coinName={coin.name}
-                        currentPrice={highestBid}
-                        isAuction={isAuction}
-                        timeLeft={timeLeft || undefined}
-                        auctionEndDate={coin.auction_end}
-                        bids={bids.map(bid => ({
-                          amount: bid.amount,
-                          bidder: bid.user_id,
-                          time: bid.created_at
-                        }))}
-                        onBidPlaced={() => {}}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Seller Info */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-              >
-                <Card className="glass-card border-2 border-white/30 shadow-xl rounded-3xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-xl gradient-text">
-                      <User className="w-6 h-6" />
-                      Seller Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-2">
-                        <p className="font-bold text-lg text-gray-800">{coin.profiles?.name || 'Anonymous Seller'}</p>
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-2 px-3 py-1 glass-card rounded-full">
-                            <Star className="w-4 h-4 text-coin-gold" />
-                            <span className="font-medium">Reputation: {coin.profiles?.reputation || 0}/100</span>
-                          </div>
-                          {coin.profiles?.verified_dealer && (
-                            <Badge className="bg-gradient-to-r from-electric-blue to-brand-primary text-white">
-                              <Verified className="w-3 h-3 mr-1" />
-                              Verified Dealer
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Bids Section */}
-              {coin?.bids && coin.bids.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Current Bids</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {coin.bids
-                        .sort((a, b) => b.amount - a.amount)
-                        .map((bid) => (
-                          <div key={bid.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                            <div>
-                              <span className="font-medium">{bid.profiles?.name || 'Anonymous'}</span>
-                              <span className="text-sm text-gray-500 ml-2">
-                                {new Date(bid.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <span className="font-bold text-lg">${bid.amount}</span>
-                          </div>
-                        ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Specifications */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="mt-16"
-          >
-            <Card className="glass-card border-2 border-white/30 shadow-2xl rounded-3xl">
-              <CardHeader className="bg-gradient-to-r from-brand-primary/10 via-electric-blue/10 to-brand-accent/10">
-                <CardTitle className="text-2xl gradient-text font-bold">Coin Specifications</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[
-                    { label: 'Country', value: coin.country },
-                    { label: 'Denomination', value: coin.denomination },
-                    { label: 'Composition', value: coin.composition },
-                    { label: 'Diameter', value: coin.diameter ? `${coin.diameter}mm` : null },
-                    { label: 'Weight', value: coin.weight ? `${coin.weight}g` : null },
-                    { label: 'Mint', value: coin.mint },
-                    { label: 'Mintage', value: coin.mintage ? coin.mintage.toLocaleString() : null },
-                    { label: 'PCGS Number', value: coin.pcgs_number },
-                    { label: 'NGC Number', value: coin.ngc_number }
-                  ].filter(spec => spec.value).map((spec, index) => (
-                    <motion.div
-                      key={spec.label}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.9 + (index * 0.1) }}
-                      className="p-4 glass-card rounded-2xl hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="text-sm text-gray-600 font-medium mb-1">{spec.label}</div>
-                      <div className="text-lg font-bold text-gray-800">{spec.value}</div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Description */}
-          {coin.description && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-              className="mt-8"
-            >
-              <Card className="glass-card border-2 border-white/30 shadow-xl rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl gradient-text font-bold">Description</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <p className="text-gray-700 leading-relaxed text-lg">{coin.description}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Bid History */}
-          {isAuction && bids.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              className="mt-8"
-            >
-              <Card className="glass-card border-2 border-white/30 shadow-xl rounded-3xl">
-                <CardHeader className="bg-gradient-to-r from-brand-primary/10 via-electric-blue/10 to-brand-accent/10">
-                  <CardTitle className="text-2xl gradient-text font-bold">Bid History</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <div className="space-y-4">
-                    {bids.map((bid, index) => (
-                      <motion.div
-                        key={bid.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 1.3 + (index * 0.1) }}
-                        className="flex items-center justify-between p-4 glass-card rounded-2xl hover:shadow-lg transition-all duration-300"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-brand-primary to-electric-blue flex items-center justify-center text-white font-bold">
-                            {(bid.profiles?.name || 'A')[0].toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-800">{bid.profiles?.name || 'Anonymous'}</p>
-                            <p className="text-sm text-gray-600">
-                              {formatDistanceToNow(new Date(bid.created_at), { addSuffix: true })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold gradient-text">
-                            ${bid.amount.toLocaleString()}
-                          </div>
-                          {index === 0 && (
-                            <Badge className="bg-gradient-to-r from-electric-emerald to-electric-teal text-white text-xs mt-1">
-                              Highest Bid
-                            </Badge>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
+                  <h3 className="font-medium">{relatedCoin.name}</h3>
+                  <div className="flex justify-between items-center mt-2">
+                    <Badge variant="outline">{relatedCoin.year}</Badge>
+                    <span className="font-semibold">${relatedCoin.price}</span>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
