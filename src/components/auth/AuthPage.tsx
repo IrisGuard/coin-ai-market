@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Coins, Mail, Lock, User } from 'lucide-react';
+import { Zap, Mail, Lock, User, Sparkles } from 'lucide-react';
 
 const AuthPage = () => {
   const { login, signup, isAuthenticated, loading } = useAuth();
@@ -45,30 +45,38 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-coin-blue via-coin-purple to-coin-skyblue flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="glassmorphism border-white/20">
+        <Card className="glass-card border-2 border-purple-200">
           <CardHeader className="text-center">
             <div className="flex items-center justify-center mb-4">
-              <Coins className="w-12 h-12 text-coin-gold" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center shadow-xl">
+                <Zap className="w-8 h-8 text-white" />
+              </div>
             </div>
-            <CardTitle className="text-2xl font-serif text-white">Welcome to CoinVision AI</CardTitle>
-            <CardDescription className="text-white/80">
+            <CardTitle className="text-3xl font-serif font-bold gradient-text">Welcome to CoinVision AI</CardTitle>
+            <CardDescription className="text-gray-600 text-lg">
               Join the premier AI-powered coin marketplace
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/10">
-                <TabsTrigger value="login" className="text-white data-[state=active]:bg-coin-gold data-[state=active]:text-white">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-purple-50 border border-purple-200">
+                <TabsTrigger 
+                  value="login" 
+                  className="text-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"
+                >
                   Login
                 </TabsTrigger>
-                <TabsTrigger value="signup" className="text-white data-[state=active]:bg-coin-gold data-[state=active]:text-white">
+                <TabsTrigger 
+                  value="signup" 
+                  className="text-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"
+                >
                   Sign Up
                 </TabsTrigger>
               </TabsList>
@@ -76,41 +84,51 @@ const AuthPage = () => {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-white">Email</Label>
+                    <Label htmlFor="login-email" className="text-gray-700 font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-white/60" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-purple-400" />
                       <Input
                         id="login-email"
                         type="email"
                         placeholder="Enter your email"
                         value={loginForm.email}
                         onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                        className="pl-10 input-modern border-purple-200 focus:border-purple-500"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password" className="text-white">Password</Label>
+                    <Label htmlFor="login-password" className="text-gray-700 font-medium">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-white/60" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-purple-400" />
                       <Input
                         id="login-password"
                         type="password"
                         placeholder="Enter your password"
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                        className="pl-10 input-modern border-purple-200 focus:border-purple-500"
                         required
                       />
                     </div>
                   </div>
                   <Button
                     type="submit"
-                    className="w-full coin-button"
+                    className="coinvision-button w-full"
                     disabled={isLoading || loading}
                   >
-                    {isLoading ? 'Signing In...' : 'Sign In'}
+                    {isLoading ? (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                        Signing In...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2" />
+                        Sign In
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -118,56 +136,66 @@ const AuthPage = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name" className="text-white">Full Name</Label>
+                    <Label htmlFor="signup-name" className="text-gray-700 font-medium">Full Name</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-white/60" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-purple-400" />
                       <Input
                         id="signup-name"
                         type="text"
                         placeholder="Enter your full name"
                         value={signupForm.name}
                         onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
-                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                        className="pl-10 input-modern border-purple-200 focus:border-purple-500"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-white">Email</Label>
+                    <Label htmlFor="signup-email" className="text-gray-700 font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-white/60" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-purple-400" />
                       <Input
                         id="signup-email"
                         type="email"
                         placeholder="Enter your email"
                         value={signupForm.email}
                         onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                        className="pl-10 input-modern border-purple-200 focus:border-purple-500"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-white">Password</Label>
+                    <Label htmlFor="signup-password" className="text-gray-700 font-medium">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-white/60" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-purple-400" />
                       <Input
                         id="signup-password"
                         type="password"
                         placeholder="Create a password"
                         value={signupForm.password}
                         onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                        className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                        className="pl-10 input-modern border-purple-200 focus:border-purple-500"
                         required
                       />
                     </div>
                   </div>
                   <Button
                     type="submit"
-                    className="w-full coin-button"
+                    className="coinvision-button w-full"
                     disabled={isLoading || loading}
                   >
-                    {isLoading ? 'Creating Account...' : 'Create Account'}
+                    {isLoading ? (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Create Account
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>

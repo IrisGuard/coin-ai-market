@@ -33,6 +33,7 @@ export const useCoins = () => {
           return [];
         }
         
+        // Return real data from database, no mock data
         return data as Coin[] || [];
       } catch (error) {
         console.error('Connection error:', error);
@@ -150,12 +151,13 @@ export const useDeleteCoin = () => {
   });
 };
 
-// Hook for AI coin recognition
+// Enhanced AI coin recognition hook - ready for real API integration
 export const useAICoinRecognition = () => {
   return useMutation({
-    mutationFn: async (imageData: string) => {
+    mutationFn: async (imageData: { image: string; additionalImages?: string[] }) => {
+      // This will be connected to real AI recognition API
       const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
-        body: { image: imageData }
+        body: imageData
       });
 
       if (error) throw error;
@@ -164,9 +166,43 @@ export const useAICoinRecognition = () => {
     onError: (error: any) => {
       toast({
         title: "Recognition Failed",
-        description: error.message,
+        description: error.message || "Unable to analyze the coin image. Please try again.",
         variant: "destructive",
       });
+    },
+  });
+};
+
+// Hook for PCGS API integration
+export const usePCGSData = () => {
+  return useMutation({
+    mutationFn: async (pcgsNumber: string) => {
+      const { data, error } = await supabase.functions.invoke('pcgs-integration', {
+        body: { pcgs_number: pcgsNumber }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onError: (error: any) => {
+      console.error('PCGS API Error:', error);
+    },
+  });
+};
+
+// Hook for NGC API integration
+export const useNGCData = () => {
+  return useMutation({
+    mutationFn: async (ngcNumber: string) => {
+      const { data, error } = await supabase.functions.invoke('ngc-integration', {
+        body: { ngc_number: ngcNumber }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onError: (error: any) => {
+      console.error('NGC API Error:', error);
     },
   });
 };

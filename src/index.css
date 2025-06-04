@@ -82,48 +82,49 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-to-br from-brand-light via-white to-brand-light text-foreground font-sans;
+    @apply bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 text-foreground font-sans;
+    background-attachment: fixed;
   }
 }
 
-/* Custom Components */
+/* Enhanced CoinVision AI Components */
 @layer components {
   .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+    @apply bg-white/80 backdrop-blur-xl border border-white/30 shadow-2xl;
   }
   
   .glass-card-dark {
     @apply bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl;
   }
 
-  .brand-button {
-    @apply px-8 py-4 bg-gradient-to-r from-brand-primary via-electric-blue to-brand-accent text-white font-semibold rounded-2xl 
-           shadow-2xl hover:shadow-brand-primary/50 transform hover:scale-105 transition-all duration-300 
-           border-2 border-transparent hover:border-white/30 relative overflow-hidden;
+  .coinvision-button {
+    @apply px-8 py-4 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white font-semibold rounded-2xl 
+           shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 
+           border-2 border-transparent hover:border-white/20 relative overflow-hidden;
   }
 
-  .brand-button::before {
+  .coinvision-button::before {
     @apply absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300;
     content: '';
   }
 
-  .brand-button-outline {
-    @apply px-8 py-4 bg-transparent border-2 border-brand-primary text-brand-primary font-semibold rounded-2xl 
-           hover:bg-brand-primary hover:text-white transition-all duration-300 
-           backdrop-blur-sm hover:shadow-xl hover:shadow-brand-primary/30;
+  .coinvision-button-outline {
+    @apply px-8 py-4 bg-transparent border-2 border-purple-600 text-purple-600 font-semibold rounded-2xl 
+           hover:bg-purple-600 hover:text-white transition-all duration-300 
+           backdrop-blur-sm hover:shadow-xl hover:shadow-purple-600/30;
   }
 
   .section-title {
     @apply text-4xl md:text-6xl font-serif font-bold bg-clip-text text-transparent 
-           bg-gradient-to-r from-brand-primary via-electric-blue to-brand-accent;
+           bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600;
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-electric-blue;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600;
   }
 
   .card-hover {
-    @apply transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-brand-primary/20;
+    @apply transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-600/20;
   }
 
   .coin-card {
@@ -131,21 +132,29 @@
   }
 
   .stats-card {
-    @apply p-8 rounded-3xl bg-gradient-to-br from-white via-brand-light to-white border border-brand-primary/20 shadow-xl card-hover;
+    @apply p-8 rounded-3xl bg-gradient-to-br from-white via-purple-50 to-blue-50 border border-purple-200 shadow-xl card-hover;
   }
 
   .feature-card {
-    @apply p-8 rounded-3xl glass-card hover:bg-white/80 transition-all duration-500 card-hover;
+    @apply p-8 rounded-3xl glass-card hover:bg-white/90 transition-all duration-500 card-hover;
   }
 
   .input-modern {
-    @apply w-full px-6 py-4 bg-white/70 backdrop-blur-xl border-2 border-brand-primary/20 rounded-2xl 
-           focus:outline-none focus:ring-4 focus:ring-brand-primary/30 focus:border-brand-primary 
+    @apply w-full px-6 py-4 bg-white/70 backdrop-blur-xl border-2 border-purple-200 rounded-2xl 
+           focus:outline-none focus:ring-4 focus:ring-purple-300 focus:border-purple-500 
            transition-all duration-300 placeholder:text-gray-500;
   }
 
   .mesh-bg {
-    @apply bg-mesh-gradient opacity-30 absolute inset-0 animate-pulse-slow;
+    @apply bg-gradient-to-br from-purple-100/50 via-blue-100/50 to-indigo-100/50 opacity-30 absolute inset-0 animate-pulse-slow;
+  }
+
+  .coinvision-footer {
+    @apply bg-gradient-to-r from-purple-900 via-blue-900 to-indigo-900 text-white py-16;
+  }
+
+  .coinvision-nav {
+    @apply fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-purple-200/30 shadow-lg;
   }
 }
 
@@ -167,7 +176,7 @@
 
 /* Loading animations */
 .loading-skeleton {
-  @apply animate-pulse bg-gradient-to-r from-brand-primary/20 via-electric-blue/20 to-brand-accent/20 rounded-2xl;
+  @apply animate-pulse bg-gradient-to-r from-purple-200 via-blue-200 to-indigo-200 rounded-2xl;
 }
 
 /* Scrollbar styling */
@@ -176,15 +185,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-brand-light rounded-full;
+  @apply bg-purple-50 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gradient-to-b from-brand-primary to-electric-blue rounded-full;
+  @apply bg-gradient-to-b from-purple-600 to-blue-600 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply from-electric-blue to-brand-accent;
+  @apply from-blue-600 to-indigo-600;
 }
 
 /* Custom utilities */
@@ -198,4 +207,21 @@
 
 .text-balance {
   text-wrap: balance;
+}
+
+/* AI Processing Animation */
+@keyframes ai-scan {
+  0%, 100% { transform: translateX(-100%); opacity: 0; }
+  50% { transform: translateX(100%); opacity: 1; }
+}
+
+.ai-scanning::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+  animation: ai-scan 2s infinite;
 }
