@@ -1,8 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Coin } from '@/types/coin';
 import { toast } from '@/hooks/use-toast';
-import { sampleCoins, getCoinById } from '@/data/sampleCoins';
 
 export const useCoins = () => {
   return useQuery({
@@ -29,15 +29,14 @@ export const useCoins = () => {
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.warn('Supabase error, using sample data:', error);
-          return sampleCoins;
+          console.error('Error fetching coins:', error);
+          return [];
         }
         
-        // If no data from Supabase, return sample data
-        return data && data.length > 0 ? data as Coin[] : sampleCoins;
+        return data as Coin[] || [];
       } catch (error) {
-        console.warn('Connection error, using sample data:', error);
-        return sampleCoins;
+        console.error('Connection error:', error);
+        return [];
       }
     },
   });
@@ -70,14 +69,14 @@ export const useCoin = (id: string) => {
           .single();
 
         if (error) {
-          console.warn('Supabase error, using sample data:', error);
-          return getCoinById(id);
+          console.error('Error fetching coin:', error);
+          return null;
         }
         
         return data as Coin;
       } catch (error) {
-        console.warn('Connection error, using sample data:', error);
-        return getCoinById(id);
+        console.error('Connection error:', error);
+        return null;
       }
     },
     enabled: !!id,
@@ -94,7 +93,11 @@ export const useCreateCoin = () => {
 
       const { data, error } = await supabase
         .from('coins')
-        .insert([{ ...coinData, user_id: user.id }])
+        .insert([{ 
+          ...coinData, 
+          user_id: user.id,
+          authentication_status: 'pending'
+        }])
         .select()
         .single();
 
@@ -105,7 +108,7 @@ export const useCreateCoin = () => {
       queryClient.invalidateQueries({ queryKey: ['coins'] });
       toast({
         title: "Coin Listed",
-        description: "Your coin has been successfully listed for review.",
+        description: "Your coin has been successfully submitted for verification.",
       });
     },
     onError: (error: any) => {
@@ -140,6 +143,27 @@ export const useDeleteCoin = () => {
     onError: (error: any) => {
       toast({
         title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Hook for AI coin recognition
+export const useAICoinRecognition = () => {
+  return useMutation({
+    mutationFn: async (imageData: string) => {
+      const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
+        body: { image: imageData }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Recognition Failed",
         description: error.message,
         variant: "destructive",
       });
