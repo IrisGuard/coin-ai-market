@@ -82,120 +82,120 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-gradient-to-br from-brand-light via-white to-brand-light text-foreground font-sans;
   }
 }
 
 /* Custom Components */
 @layer components {
-  .glassmorphism {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-lg;
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
   }
   
-  .glassmorphism-dark {
-    @apply bg-black/10 backdrop-blur-md border border-white/10 shadow-xl;
+  .glass-card-dark {
+    @apply bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl;
   }
 
-  .coin-section {
-    @apply py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden;
+  .brand-button {
+    @apply px-8 py-4 bg-gradient-to-r from-brand-primary via-electric-blue to-brand-accent text-white font-semibold rounded-2xl 
+           shadow-2xl hover:shadow-brand-primary/50 transform hover:scale-105 transition-all duration-300 
+           border-2 border-transparent hover:border-white/30 relative overflow-hidden;
   }
 
-  .coin-button {
-    @apply px-8 py-4 bg-gradient-to-r from-vibrant-purple to-vibrant-cyan text-white font-semibold rounded-full 
-           shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 
-           border-2 border-transparent hover:border-white/20;
+  .brand-button::before {
+    @apply absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300;
+    content: '';
   }
 
-  .coin-button-outline {
-    @apply px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-full 
-           hover:bg-white hover:text-vibrant-purple transition-all duration-300 
-           backdrop-blur-sm hover:shadow-lg;
+  .brand-button-outline {
+    @apply px-8 py-4 bg-transparent border-2 border-brand-primary text-brand-primary font-semibold rounded-2xl 
+           hover:bg-brand-primary hover:text-white transition-all duration-300 
+           backdrop-blur-sm hover:shadow-xl hover:shadow-brand-primary/30;
   }
 
-  .section-heading {
-    @apply text-4xl md:text-5xl font-serif font-bold bg-clip-text text-transparent 
-           bg-gradient-to-r from-vibrant-purple via-vibrant-cyan to-vibrant-emerald;
+  .section-title {
+    @apply text-4xl md:text-6xl font-serif font-bold bg-clip-text text-transparent 
+           bg-gradient-to-r from-brand-primary via-electric-blue to-brand-accent;
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-vibrant-purple to-vibrant-cyan;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-electric-blue;
   }
 
   .card-hover {
-    @apply transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-vibrant-purple/20;
-  }
-
-  .shimmer-effect {
-    @apply relative overflow-hidden;
-  }
-  
-  .shimmer-effect::after {
-    @apply absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent;
-    content: '';
-    animation: shimmer 2s infinite;
-  }
-
-  .mesh-bg {
-    @apply bg-mesh-gradient opacity-20 absolute inset-0;
+    @apply transform transition-all duration-500 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-brand-primary/20;
   }
 
   .coin-card {
-    @apply bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden card-hover glassmorphism;
+    @apply glass-card rounded-3xl overflow-hidden card-hover relative;
   }
 
   .stats-card {
-    @apply p-6 rounded-xl bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg card-hover;
+    @apply p-8 rounded-3xl bg-gradient-to-br from-white via-brand-light to-white border border-brand-primary/20 shadow-xl card-hover;
   }
 
-  .admin-card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow;
+  .feature-card {
+    @apply p-8 rounded-3xl glass-card hover:bg-white/80 transition-all duration-500 card-hover;
+  }
+
+  .input-modern {
+    @apply w-full px-6 py-4 bg-white/70 backdrop-blur-xl border-2 border-brand-primary/20 rounded-2xl 
+           focus:outline-none focus:ring-4 focus:ring-brand-primary/30 focus:border-brand-primary 
+           transition-all duration-300 placeholder:text-gray-500;
+  }
+
+  .mesh-bg {
+    @apply bg-mesh-gradient opacity-30 absolute inset-0 animate-pulse-slow;
   }
 }
 
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+/* Enhanced Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
-  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
+.shimmer-effect {
+  @apply relative overflow-hidden;
+}
+
+.shimmer-effect::after {
+  @apply absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent;
+  content: '';
+  animation: shimmer 2s infinite;
 }
 
 /* Loading animations */
 .loading-skeleton {
-  @apply animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%];
-  animation: shimmer 1.5s infinite;
+  @apply animate-pulse bg-gradient-to-r from-brand-primary/20 via-electric-blue/20 to-brand-accent/20 rounded-2xl;
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 rounded-full;
+  @apply bg-brand-light rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gradient-to-b from-vibrant-purple to-vibrant-cyan rounded-full;
+  @apply bg-gradient-to-b from-brand-primary to-electric-blue rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply from-vibrant-cyan to-vibrant-purple;
+  @apply from-electric-blue to-brand-accent;
 }
 
 /* Custom utilities */
-.text-balance {
-  text-wrap: balance;
-}
-
 .container-padding {
-  @apply px-4 sm:px-6 lg:px-8;
+  @apply px-6 sm:px-8 lg:px-12;
 }
 
 .section-spacing {
-  @apply py-16 md:py-24;
+  @apply py-20 md:py-32;
+}
+
+.text-balance {
+  text-wrap: balance;
 }

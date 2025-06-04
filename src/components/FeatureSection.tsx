@@ -1,114 +1,244 @@
 
-import { Camera, Search, DollarSign, Globe, ShoppingCart, CheckCircle } from 'lucide-react';
+import { Camera, Search, DollarSign, Globe, ShoppingCart, CheckCircle, Zap, Shield, Award, TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const features = [
   {
     name: 'AI Coin Recognition',
-    description: 'Upload 2-5 images and our AI will identify the coin type, year, grade, and any errors.',
-    icon: <Camera className="h-6 w-6 text-coin-gold" />
+    description: 'Upload 2-5 images and our AI will identify the coin type, year, grade, and any errors with 99% accuracy.',
+    icon: <Camera className="h-8 w-8" />,
+    color: 'from-electric-blue to-brand-primary'
   },
   {
     name: 'Real-time Valuation',
-    description: 'Get accurate market valuation based on current prices from NGC, NumisMaster, and eBay.',
-    icon: <DollarSign className="h-6 w-6 text-coin-gold" />
+    description: 'Get accurate market valuation based on current prices from NGC, PCGS, NumisMaster, and eBay.',
+    icon: <DollarSign className="h-8 w-8" />,
+    color: 'from-coin-gold to-electric-orange'
   },
   {
     name: 'Global Marketplace',
-    description: 'Buy and sell coins with collectors worldwide through auctions or direct sales.',
-    icon: <ShoppingCart className="h-6 w-6 text-coin-gold" />
+    description: 'Buy and sell coins with collectors worldwide through secure auctions or direct sales.',
+    icon: <ShoppingCart className="h-8 w-8" />,
+    color: 'from-brand-accent to-electric-pink'
   },
   {
-    name: 'Multiple Languages',
-    description: 'Use the platform in 10 different languages, making it accessible worldwide.',
-    icon: <Globe className="h-6 w-6 text-coin-gold" />
+    name: 'Secure Trading',
+    description: 'All transactions are protected with advanced encryption and buyer/seller protection.',
+    icon: <Shield className="h-8 w-8" />,
+    color: 'from-electric-emerald to-electric-teal'
+  },
+  {
+    name: 'Expert Verification',
+    description: 'Professional numismatists verify high-value coins for authenticity and grading.',
+    icon: <Award className="h-8 w-8" />,
+    color: 'from-electric-purple to-electric-indigo'
+  },
+  {
+    name: 'Market Analytics',
+    description: 'Track price trends, market movements, and investment opportunities in real-time.',
+    icon: <TrendingUp className="h-8 w-8" />,
+    color: 'from-electric-cyan to-electric-blue'
+  },
+];
+
+const steps = [
+  {
+    step: 1,
+    title: 'Upload Photos',
+    description: 'Take clear photos of your coin from multiple angles',
+    icon: <Camera className="h-6 w-6" />
+  },
+  {
+    step: 2,
+    title: 'AI Analysis',
+    description: 'Our AI instantly identifies and evaluates your coin',
+    icon: <Zap className="h-6 w-6" />
+  },
+  {
+    step: 3,
+    title: 'Get Valuation',
+    description: 'Receive detailed information and market value',
+    icon: <DollarSign className="h-6 w-6" />
+  },
+  {
+    step: 4,
+    title: 'List or Trade',
+    description: 'Connect with buyers or add to your collection',
+    icon: <ShoppingCart className="h-6 w-6" />
   },
 ];
 
 const FeatureSection = () => {
   return (
-    <div className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="section-heading">Powered by Advanced Technology</h2>
-          <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-            Our platform combines AI image recognition with market data to provide a comprehensive coin service.
+    <div className="section-spacing bg-gradient-to-br from-brand-light via-white to-brand-light relative overflow-hidden">
+      <div className="mesh-bg"></div>
+      
+      <div className="max-w-7xl mx-auto container-padding relative z-10">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-center mb-20"
+        >
+          <h2 className="section-title mb-6">Powered by Advanced Technology</h2>
+          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            Our platform combines cutting-edge AI image recognition with real-time market data to provide 
+            the most comprehensive coin identification and trading service available.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="mt-16">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <div key={feature.name} className="relative">
-                <div className="absolute h-12 w-12 rounded-md bg-white flex items-center justify-center border-2 border-coin-gold">
-                  {feature.icon}
-                </div>
-                <div className="pl-16">
-                  <h3 className="text-lg font-medium text-coin-blue">{feature.name}</h3>
-                  <p className="mt-2 text-base text-gray-500">{feature.description}</p>
-                </div>
+        {/* Features Grid */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24"
+        >
+          {features.map((feature, index) => (
+            <motion.div 
+              key={feature.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="feature-card group"
+            >
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 text-white shadow-xl group-hover:shadow-2xl transition-all duration-300`}>
+                {feature.icon}
               </div>
-            ))}
-          </div>
-        </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{feature.name}</h3>
+              <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
         
-        <div className="mt-16 bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="p-8 md:p-12 flex flex-col justify-center">
-              <div className="uppercase tracking-wide text-sm text-coin-gold font-semibold">How It Works</div>
-              <h3 className="mt-2 text-3xl leading-8 font-serif font-medium text-coin-blue">
+        {/* How It Works Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="glass-card rounded-[3rem] overflow-hidden shadow-2xl"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className="p-12 lg:p-16 flex flex-col justify-center">
+              <motion.div 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="uppercase tracking-wider text-sm text-brand-primary font-bold mb-4"
+              >
+                How It Works
+              </motion.div>
+              <motion.h3 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                viewport={{ once: true }}
+                className="text-4xl lg:text-5xl font-serif font-bold text-gray-900 mb-6 leading-tight"
+              >
                 Simple Process, Powerful Results
-              </h3>
-              <p className="mt-4 text-lg text-gray-500">
-                Our AI-driven platform makes coin identification, valuation, and trading accessible to everyone.
-              </p>
-              <div className="mt-6">
-                <div className="flex items-start mt-4">
-                  <div className="flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                  </div>
-                  <p className="ml-3 text-base text-gray-500">
-                    <span className="font-medium text-gray-700">Upload photos</span> of your coin (2-5 angles)
-                  </p>
-                </div>
-                <div className="flex items-start mt-4">
-                  <div className="flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                  </div>
-                  <p className="ml-3 text-base text-gray-500">
-                    <span className="font-medium text-gray-700">Get instant identification</span> and valuation from our AI
-                  </p>
-                </div>
-                <div className="flex items-start mt-4">
-                  <div className="flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                  </div>
-                  <p className="ml-3 text-base text-gray-500">
-                    <span className="font-medium text-gray-700">List for auction or sale</span> with complete information
-                  </p>
-                </div>
-                <div className="flex items-start mt-4">
-                  <div className="flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                  </div>
-                  <p className="ml-3 text-base text-gray-500">
-                    <span className="font-medium text-gray-700">Connect with buyers</span> from around the world
-                  </p>
-                </div>
+              </motion.h3>
+              <motion.p 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="text-xl text-gray-600 mb-10 leading-relaxed"
+              >
+                Our AI-driven platform makes coin identification, valuation, and trading accessible to everyone, 
+                from beginners to professional collectors.
+              </motion.p>
+              
+              <div className="space-y-6">
+                {steps.map((step, index) => (
+                  <motion.div 
+                    key={step.step}
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 + (index * 0.1) }}
+                    viewport={{ once: true }}
+                    className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/50 transition-all duration-300"
+                  >
+                    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-brand-primary to-electric-blue rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+                      {step.step}
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h4>
+                      <p className="text-gray-600">{step.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
-            <div className="bg-coin-blue flex items-center justify-center">
-              <div className="relative h-full w-full overflow-hidden">
+            
+            <div className="relative bg-gradient-to-br from-brand-primary via-electric-blue to-brand-accent flex items-center justify-center p-12">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="relative"
+              >
                 <img 
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-none"
-                  style={{ filter: 'grayscale(0.3)' }}
-                  src="https://images.unsplash.com/photo-1620428268482-cf1851a36764?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2089&q=80" 
-                  alt="Coin collecting" 
+                  className="w-full max-w-md rounded-3xl shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500"
+                  src="https://images.unsplash.com/photo-1620428268482-cf1851a36764?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                  alt="Coin collecting showcase" 
                 />
-                <div className="absolute inset-0 bg-coin-blue mix-blend-multiply opacity-40"></div>
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-primary/20 to-transparent rounded-3xl"></div>
+              </motion.div>
+              
+              {/* Floating elements */}
+              <motion.div 
+                animate={{ y: [-10, 10, -10], rotate: [0, 180, 360] }}
+                transition={{ duration: 8, repeat: Infinity }}
+                className="absolute top-8 right-8 w-20 h-20 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center"
+              >
+                <Zap className="w-10 h-10 text-white" />
+              </motion.div>
+              
+              <motion.div 
+                animate={{ y: [10, -10, 10], rotate: [360, 180, 0] }}
+                transition={{ duration: 10, repeat: Infinity }}
+                className="absolute bottom-8 left-8 w-16 h-16 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center"
+              >
+                <Award className="w-8 h-8 text-white" />
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Stats Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20"
+        >
+          {[
+            { number: '50K+', label: 'Coins Analyzed', color: 'text-brand-primary' },
+            { number: '99%', label: 'Accuracy Rate', color: 'text-electric-emerald' },
+            { number: '25K+', label: 'Active Users', color: 'text-brand-accent' },
+            { number: '$2M+', label: 'Trading Volume', color: 'text-coin-gold' }
+          ].map((stat, index) => (
+            <motion.div 
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="text-center stats-card"
+            >
+              <div className={`text-4xl md:text-5xl font-bold ${stat.color} mb-2`}>{stat.number}</div>
+              <div className="text-gray-600 font-medium">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </div>
   );
