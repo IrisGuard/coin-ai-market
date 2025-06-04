@@ -151,17 +151,39 @@ export const useDeleteCoin = () => {
   });
 };
 
-// Enhanced AI coin recognition hook - ready for real API integration
+// Enhanced AI coin recognition hook with multiple data sources
 export const useAICoinRecognition = () => {
   return useMutation({
     mutationFn: async (imageData: { image: string; additionalImages?: string[] }) => {
-      // This will be connected to real AI recognition API
-      const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
+      // First, try AI recognition
+      const aiResponse = await supabase.functions.invoke('ai-coin-recognition', {
         body: imageData
       });
 
-      if (error) throw error;
-      return data;
+      if (aiResponse.error) throw aiResponse.error;
+
+      const recognitionResult = aiResponse.data;
+      
+      // If we got a coin identification, aggregate data from multiple sources
+      if (recognitionResult?.coin_name) {
+        const aggregationResponse = await supabase.functions.invoke('coin-data-aggregator', {
+          body: { 
+            coin_identifier: recognitionResult.coin_name,
+            include_sources: ['static_db', 'coinapi', 'numista', 'scraping_cache']
+          }
+        });
+
+        if (aggregationResponse.data) {
+          return {
+            ...recognitionResult,
+            enhanced_data: aggregationResponse.data,
+            data_sources: aggregationResponse.data.sources_used,
+            confidence_score: aggregationResponse.data.confidence_score
+          };
+        }
+      }
+
+      return recognitionResult;
     },
     onError: (error: any) => {
       toast({
@@ -203,6 +225,36 @@ export const useNGCData = () => {
     },
     onError: (error: any) => {
       console.error('NGC API Error:', error);
+    },
+  });
+};
+
+// New hook for real-time data aggregation
+export const useCoinDataAggregation = () => {
+  return useMutation({
+    mutationFn: async (coinIdentifier: string) => {
+      const { data, error } = await supabase.functions.invoke('coin-data-aggregator', {
+        body: { 
+          coin_identifier: coinIdentifier,
+          include_sources: ['static_db', 'coinapi', 'numista', 'scraping_cache']
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Data Aggregated",
+        description: `Successfully gathered data from ${data.sources_used.length} sources.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Aggregation Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };

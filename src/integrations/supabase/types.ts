@@ -172,6 +172,45 @@ export type Database = {
           },
         ]
       }
+      coin_data_cache: {
+        Row: {
+          coin_identifier: string
+          confidence_score: number | null
+          created_at: string | null
+          data_type: string
+          expires_at: string | null
+          id: string
+          last_updated: string | null
+          processed_data: Json | null
+          raw_data: Json
+          source_name: string
+        }
+        Insert: {
+          coin_identifier: string
+          confidence_score?: number | null
+          created_at?: string | null
+          data_type: string
+          expires_at?: string | null
+          id?: string
+          last_updated?: string | null
+          processed_data?: Json | null
+          raw_data: Json
+          source_name: string
+        }
+        Update: {
+          coin_identifier?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          data_type?: string
+          expires_at?: string | null
+          id?: string
+          last_updated?: string | null
+          processed_data?: Json | null
+          raw_data?: Json
+          source_name?: string
+        }
+        Relationships: []
+      }
       coin_evaluations: {
         Row: {
           coin_id: string
@@ -380,6 +419,51 @@ export type Database = {
           },
         ]
       }
+      data_sources: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_used: string | null
+          name: string
+          priority: number | null
+          rate_limit: number | null
+          success_rate: number | null
+          type: string
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used?: string | null
+          name: string
+          priority?: number | null
+          rate_limit?: number | null
+          success_rate?: number | null
+          type: string
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used?: string | null
+          name?: string
+          priority?: number | null
+          rate_limit?: number | null
+          success_rate?: number | null
+          type?: string
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           created_at: string | null
@@ -517,6 +601,132 @@ export type Database = {
         }
         Relationships: []
       }
+      scraping_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          job_type: string
+          proxy_id: string | null
+          results: Json | null
+          source_id: string | null
+          started_at: string | null
+          status: string
+          target_url: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          job_type: string
+          proxy_id?: string | null
+          results?: Json | null
+          source_id?: string | null
+          started_at?: string | null
+          status?: string
+          target_url: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          proxy_id?: string | null
+          results?: Json | null
+          source_id?: string | null
+          started_at?: string | null
+          status?: string
+          target_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraping_jobs_proxy_id_fkey"
+            columns: ["proxy_id"]
+            isOneToOne: false
+            referencedRelation: "vpn_proxies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scraping_jobs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      static_coins_db: {
+        Row: {
+          base_value: number | null
+          category: string | null
+          composition: string | null
+          country: string | null
+          created_at: string | null
+          denomination: string | null
+          design_type: string | null
+          designer: string | null
+          diameter: number | null
+          id: string
+          mint_marks: string[] | null
+          mintage: number | null
+          name: string
+          rarity_score: number | null
+          specifications: Json | null
+          subcategory: string | null
+          updated_at: string | null
+          weight: number | null
+          year_end: number | null
+          year_start: number | null
+        }
+        Insert: {
+          base_value?: number | null
+          category?: string | null
+          composition?: string | null
+          country?: string | null
+          created_at?: string | null
+          denomination?: string | null
+          design_type?: string | null
+          designer?: string | null
+          diameter?: number | null
+          id?: string
+          mint_marks?: string[] | null
+          mintage?: number | null
+          name: string
+          rarity_score?: number | null
+          specifications?: Json | null
+          subcategory?: string | null
+          updated_at?: string | null
+          weight?: number | null
+          year_end?: number | null
+          year_start?: number | null
+        }
+        Update: {
+          base_value?: number | null
+          category?: string | null
+          composition?: string | null
+          country?: string | null
+          created_at?: string | null
+          denomination?: string | null
+          design_type?: string | null
+          designer?: string | null
+          diameter?: number | null
+          id?: string
+          mint_marks?: string[] | null
+          mintage?: number | null
+          name?: string
+          rarity_score?: number | null
+          specifications?: Json | null
+          subcategory?: string | null
+          updated_at?: string | null
+          weight?: number | null
+          year_end?: number | null
+          year_start?: number | null
+        }
+        Relationships: []
+      }
       system_config: {
         Row: {
           config_key: string
@@ -645,6 +855,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vpn_proxies: {
+        Row: {
+          country_code: string | null
+          created_at: string | null
+          encrypted_password: string | null
+          endpoint: string
+          id: string
+          is_active: boolean | null
+          last_used: string | null
+          name: string
+          port: number | null
+          success_rate: number | null
+          type: string
+          username: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string | null
+          encrypted_password?: string | null
+          endpoint: string
+          id?: string
+          is_active?: boolean | null
+          last_used?: string | null
+          name: string
+          port?: number | null
+          success_rate?: number | null
+          type: string
+          username?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string | null
+          encrypted_password?: string | null
+          endpoint?: string
+          id?: string
+          is_active?: boolean | null
+          last_used?: string | null
+          name?: string
+          port?: number | null
+          success_rate?: number | null
+          type?: string
+          username?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
