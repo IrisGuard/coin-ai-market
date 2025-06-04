@@ -2,6 +2,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+// Type definitions
+interface ApiKey {
+  id: string;
+  key_name: string;
+  encrypted_value: string;
+  description?: string;
+  is_active: boolean;
+  created_at?: string;
+  category_id?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+}
+
 // Hook for admin users data
 export const useAdminUsers = () => {
   return useQuery({
@@ -133,7 +151,7 @@ export const useConsoleErrors = () => {
 
 // Hook for API key categories
 export const useApiKeyCategories = () => {
-  return useQuery({
+  return useQuery<Category[]>({
     queryKey: ['api-key-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -142,14 +160,14 @@ export const useApiKeyCategories = () => {
         .order('name', { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 };
 
 // Hook for API keys
 export const useApiKeys = () => {
-  return useQuery({
+  return useQuery<ApiKey[]>({
     queryKey: ['api-keys'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -158,7 +176,7 @@ export const useApiKeys = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 };

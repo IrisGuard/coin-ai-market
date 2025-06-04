@@ -7,11 +7,32 @@ import BulkImportSection from '../api-keys/BulkImportSection';
 import AddKeyForm from '../api-keys/AddKeyForm';
 import CategorizedKeysDisplay from '../api-keys/CategorizedKeysDisplay';
 
+interface ApiKey {
+  id: string;
+  key_name: string;
+  encrypted_value: string;
+  description?: string;
+  is_active: boolean;
+  created_at?: string;
+  category_id?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+}
+
 const AdminApiKeysTab = () => {
-  const { data: apiKeys = [], isLoading } = useApiKeys();
-  const { data: categories = [], isLoading: categoriesLoading } = useApiKeyCategories();
+  const { data: apiKeysData = [], isLoading } = useApiKeys();
+  const { data: categoriesData = [], isLoading: categoriesLoading } = useApiKeyCategories();
   const [showForm, setShowForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
+
+  // Type-safe array conversion
+  const apiKeys: ApiKey[] = Array.isArray(apiKeysData) ? apiKeysData : [];
+  const categories: Category[] = Array.isArray(categoriesData) ? categoriesData : [];
 
   return (
     <div className="space-y-6">
