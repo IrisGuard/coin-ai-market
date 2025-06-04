@@ -8,7 +8,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "monitor": "node scripts/vercel-monitor.js",
+    "monitor:start": "pm2 start scripts/vercel-monitor.js --name vercel-monitor",
+    "monitor:stop": "pm2 stop vercel-monitor",
+    "monitor:logs": "pm2 logs vercel-monitor",
+    "auto-fix": "node scripts/auto-fix.js",
+    "fix-and-deploy": "npm run auto-fix && npm run build && git add . && git commit -m '🤖 Auto-fix and deploy' && git push origin main"
   },
   "dependencies": {
     "@capacitor/camera": "^7.0.1",

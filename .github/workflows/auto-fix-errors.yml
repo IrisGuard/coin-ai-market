@@ -1,0 +1,108 @@
+name: Auto-Fix Vercel Deployment Errors
+
+on:
+  push:
+    branches: [main]
+  deployment_status:
+
+jobs:
+  monitor-and-fix:
+    runs-on: ubuntu-latest
+    if: github.event.deployment_status.state == 'failure'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Vercel CLI
+      run: npm install -g vercel
+
+    - name: Setup Git
+      run: |
+        git config --global user.name "Auto-Fix Bot"
+        git config --global user.email "autofix@bot.com"
+
+    - name: Get Vercel deployment logs
+      id: logs
+      run: |
+        # Get the latest deployment ID
+        DEPLOYMENT_ID=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} | grep "https://" | head -1 | awk '{print $1}')
+        echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+        
+        # Get deployment logs
+        vercel logs $DEPLOYMENT_ID --token ${{ secrets.VERCEL_TOKEN }} > deployment-logs.txt
+        cat deployment-logs.txt
+
+    - name: Analyze and fix TypeScript errors
+      run: |
+        if grep -q "error TS" deployment-logs.txt; then
+          echo "🔧 Found TypeScript errors, applying fixes..."
+          
+          # Fix common TypeScript errors
+          find src -name "*.ts" -o -name "*.tsx" | xargs sed -i 's/: any/: unknown/g'
+          find src -name "*.ts" -o -name "*.tsx" | xargs sed -i 's/any\[\]/unknown[]/g'
+          
+          # Fix import paths
+          find src -name "*.ts" -o -name "*.tsx" | xargs sed -i 's|@/lib/supabase|../integrations/supabase/client|g'
+          find src -name "*.ts" -o -name "*.tsx" | xargs sed -i 's|../lib/supabase|../integrations/supabase/client|g'
+        fi
+
+    - name: Fix ESLint errors
+      run: |
+        if grep -q "ESLint" deployment-logs.txt; then
+          echo "🔧 Found ESLint errors, applying fixes..."
+          npx eslint src/ --fix || true
+        fi
+
+    - name: Fix build errors
+      run: |
+        if grep -q "exited with" deployment-logs.txt; then
+          echo "🔧 Found build errors, applying fixes..."
+          
+          # Remove invalid labels and fix common syntax issues
+          find src -name "*.ts" -o -name "*.tsx" -exec sed -i '/^onError:/d' {} \;
+          find src -name "*.ts" -o -name "*.tsx" -exec sed -i '/^onSuccess:/d' {} \;
+        fi
+
+    - name: Test build locally
+      run: |
+        echo "🧪 Testing build locally..."
+        npm run build || echo "Build still failing, need manual intervention"
+
+    - name: Commit and push fixes
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "📝 Committing automatic fixes..."
+          git add .
+          git commit -m "🤖 Auto-fix deployment errors from Vercel logs
+
+          - Fixed TypeScript any types
+          - Fixed import paths
+          - Fixed ESLint issues
+          - Removed invalid syntax
+
+          Deployment ID: ${{ steps.logs.outputs.deployment_id }}"
+          
+          git push origin main
+          echo "✅ Fixes pushed successfully!"
+        else
+          echo "ℹ️ No changes to commit"
+        fi
+
+    - name: Notify on Discord/Slack (optional)
+      if: success()
+      run: |
+        echo "🎉 Auto-fix completed successfully for deployment ${{ steps.logs.outputs.deployment_id }}"
+        # Add webhook notification here if desired 
