@@ -642,6 +642,176 @@ export type Database = {
           },
         ]
       }
+      error_coins_knowledge: {
+        Row: {
+          ai_detection_markers: Json | null
+          common_mistakes: string[] | null
+          created_at: string | null
+          description: string
+          diagnostic_images: string[] | null
+          error_category: string
+          error_name: string
+          error_type: string
+          id: string
+          identification_techniques: string[] | null
+          rarity_score: number | null
+          reference_links: string[] | null
+          severity_level: number | null
+          technical_specifications: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_detection_markers?: Json | null
+          common_mistakes?: string[] | null
+          created_at?: string | null
+          description: string
+          diagnostic_images?: string[] | null
+          error_category: string
+          error_name: string
+          error_type: string
+          id?: string
+          identification_techniques?: string[] | null
+          rarity_score?: number | null
+          reference_links?: string[] | null
+          severity_level?: number | null
+          technical_specifications?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_detection_markers?: Json | null
+          common_mistakes?: string[] | null
+          created_at?: string | null
+          description?: string
+          diagnostic_images?: string[] | null
+          error_category?: string
+          error_name?: string
+          error_type?: string
+          id?: string
+          identification_techniques?: string[] | null
+          rarity_score?: number | null
+          reference_links?: string[] | null
+          severity_level?: number | null
+          technical_specifications?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      error_coins_market_data: {
+        Row: {
+          base_coin_id: string | null
+          created_at: string | null
+          data_confidence: number | null
+          grade: string
+          id: string
+          knowledge_base_id: string | null
+          last_sale_date: string | null
+          last_sale_price: number | null
+          market_trend: string | null
+          market_value_avg: number | null
+          market_value_high: number | null
+          market_value_low: number | null
+          premium_percentage: number | null
+          source_references: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_coin_id?: string | null
+          created_at?: string | null
+          data_confidence?: number | null
+          grade: string
+          id?: string
+          knowledge_base_id?: string | null
+          last_sale_date?: string | null
+          last_sale_price?: number | null
+          market_trend?: string | null
+          market_value_avg?: number | null
+          market_value_high?: number | null
+          market_value_low?: number | null
+          premium_percentage?: number | null
+          source_references?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_coin_id?: string | null
+          created_at?: string | null
+          data_confidence?: number | null
+          grade?: string
+          id?: string
+          knowledge_base_id?: string | null
+          last_sale_date?: string | null
+          last_sale_price?: number | null
+          market_trend?: string | null
+          market_value_avg?: number | null
+          market_value_high?: number | null
+          market_value_low?: number | null
+          premium_percentage?: number | null
+          source_references?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_coins_market_data_base_coin_id_fkey"
+            columns: ["base_coin_id"]
+            isOneToOne: false
+            referencedRelation: "static_coins_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_coins_market_data_knowledge_base_id_fkey"
+            columns: ["knowledge_base_id"]
+            isOneToOne: false
+            referencedRelation: "error_coins_knowledge"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      error_coins_price_history: {
+        Row: {
+          auction_house: string | null
+          condition_notes: string | null
+          created_at: string | null
+          grade: string | null
+          id: string
+          lot_number: string | null
+          market_data_id: string | null
+          price: number
+          sale_date: string
+          source_url: string | null
+        }
+        Insert: {
+          auction_house?: string | null
+          condition_notes?: string | null
+          created_at?: string | null
+          grade?: string | null
+          id?: string
+          lot_number?: string | null
+          market_data_id?: string | null
+          price: number
+          sale_date: string
+          source_url?: string | null
+        }
+        Update: {
+          auction_house?: string | null
+          condition_notes?: string | null
+          created_at?: string | null
+          grade?: string | null
+          id?: string
+          lot_number?: string | null
+          market_data_id?: string | null
+          price?: number
+          sale_date?: string
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_coins_price_history_market_data_id_fkey"
+            columns: ["market_data_id"]
+            isOneToOne: false
+            referencedRelation: "error_coins_market_data"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           created_at: string | null
@@ -682,6 +852,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      error_reference_sources: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_scraped: string | null
+          reliability_score: number | null
+          scraping_config: Json | null
+          source_name: string
+          source_type: string
+          source_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_scraped?: string | null
+          reliability_score?: number | null
+          scraping_config?: Json | null
+          source_name: string
+          source_type: string
+          source_url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_scraped?: string | null
+          reliability_score?: number | null
+          scraping_config?: Json | null
+          source_name?: string
+          source_type?: string
+          source_url?: string
+        }
+        Relationships: []
       }
       external_price_sources: {
         Row: {
