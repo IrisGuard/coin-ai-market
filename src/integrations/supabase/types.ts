@@ -685,52 +685,134 @@ export type Database = {
       }
       external_price_sources: {
         Row: {
+          ai_detection_rules: Json | null
+          auto_config_enabled: boolean | null
           avg_response_time: number | null
           base_url: string
+          category_id: string | null
           created_at: string | null
+          discovery_method: string | null
           failed_scrapes: number | null
           id: string
+          last_config_update: string | null
           last_successful_scrape: string | null
+          market_focus: string[] | null
+          obfuscation_level: number | null
+          priority_score: number | null
           rate_limit_per_hour: number | null
+          region_id: string | null
           reliability_score: number | null
           requires_proxy: boolean | null
           scraping_config: Json | null
           scraping_enabled: boolean | null
           source_name: string
           source_type: string
+          supported_currencies: string[] | null
+          template_id: string | null
           total_scrapes: number | null
         }
         Insert: {
+          ai_detection_rules?: Json | null
+          auto_config_enabled?: boolean | null
           avg_response_time?: number | null
           base_url: string
+          category_id?: string | null
           created_at?: string | null
+          discovery_method?: string | null
           failed_scrapes?: number | null
           id?: string
+          last_config_update?: string | null
           last_successful_scrape?: string | null
+          market_focus?: string[] | null
+          obfuscation_level?: number | null
+          priority_score?: number | null
           rate_limit_per_hour?: number | null
+          region_id?: string | null
           reliability_score?: number | null
           requires_proxy?: boolean | null
           scraping_config?: Json | null
           scraping_enabled?: boolean | null
           source_name: string
           source_type: string
+          supported_currencies?: string[] | null
+          template_id?: string | null
           total_scrapes?: number | null
         }
         Update: {
+          ai_detection_rules?: Json | null
+          auto_config_enabled?: boolean | null
           avg_response_time?: number | null
           base_url?: string
+          category_id?: string | null
           created_at?: string | null
+          discovery_method?: string | null
           failed_scrapes?: number | null
           id?: string
+          last_config_update?: string | null
           last_successful_scrape?: string | null
+          market_focus?: string[] | null
+          obfuscation_level?: number | null
+          priority_score?: number | null
           rate_limit_per_hour?: number | null
+          region_id?: string | null
           reliability_score?: number | null
           requires_proxy?: boolean | null
           scraping_config?: Json | null
           scraping_enabled?: boolean | null
           source_name?: string
           source_type?: string
+          supported_currencies?: string[] | null
+          template_id?: string | null
           total_scrapes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_price_sources_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "source_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_price_sources_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "geographic_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_price_sources_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "source_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      geographic_regions: {
+        Row: {
+          code: string
+          continent: string | null
+          country_codes: string[] | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          continent?: string | null
+          country_codes?: string[] | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          continent?: string | null
+          country_codes?: string[] | null
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -981,6 +1063,101 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      source_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      source_performance_metrics: {
+        Row: {
+          avg_response_time: number | null
+          coins_discovered: number | null
+          created_at: string
+          data_quality_score: number | null
+          date: string
+          failed_requests: number | null
+          id: string
+          source_id: string | null
+          successful_requests: number | null
+        }
+        Insert: {
+          avg_response_time?: number | null
+          coins_discovered?: number | null
+          created_at?: string
+          data_quality_score?: number | null
+          date?: string
+          failed_requests?: number | null
+          id?: string
+          source_id?: string | null
+          successful_requests?: number | null
+        }
+        Update: {
+          avg_response_time?: number | null
+          coins_discovered?: number | null
+          created_at?: string
+          data_quality_score?: number | null
+          date?: string
+          failed_requests?: number | null
+          id?: string
+          source_id?: string | null
+          successful_requests?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_performance_metrics_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_templates: {
+        Row: {
+          created_at: string
+          default_config: Json
+          description: string | null
+          id: string
+          name: string
+          supported_features: Json | null
+        }
+        Insert: {
+          created_at?: string
+          default_config: Json
+          description?: string | null
+          id?: string
+          name: string
+          supported_features?: Json | null
+        }
+        Update: {
+          created_at?: string
+          default_config?: Json
+          description?: string | null
+          id?: string
+          name?: string
+          supported_features?: Json | null
+        }
+        Relationships: []
       }
       static_coins_db: {
         Row: {
@@ -1260,6 +1437,14 @@ export type Database = {
       }
     }
     Functions: {
+      bulk_import_sources: {
+        Args: { sources_data: Json }
+        Returns: {
+          imported_count: number
+          failed_count: number
+          errors: string[]
+        }[]
+      }
       check_auction_end: {
         Args: Record<PropertyKey, never>
         Returns: undefined
