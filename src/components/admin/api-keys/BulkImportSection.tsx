@@ -36,79 +36,25 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
     'Security': Shield
   };
 
-  // SECURITY FIX: Production database credentials - properly categorized
+  // Updated production credentials for the correct project
   const productionKeys = [
     {
       name: 'Supabase URL',
-      value: 'https://blvujdcdiwtgvmbuavgi.supabase.co',
+      value: 'https://wdgnllgbfvjgurbqhfqb.supabase.co',
       description: 'Production Supabase project URL',
       category: 'Database'
     },
     {
       name: 'Supabase Project ID',
-      value: 'blvujdcdiwtgvmbuavgi',
+      value: 'wdgnllgbfvjgurbqhfqb',
       description: 'Production Supabase project identifier',
       category: 'Database'
     },
     {
       name: 'Supabase Anon Key',
-      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdnVqZGNkaXd0Z3ZtYnVhdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjU0NTUsImV4cCI6MjA2NDY0MTQ1NX0.WxGcy3GHqxir7Jo49nbE1z88ED8BNw3LnAHyPUROG_A',
+      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzA4MjksImV4cCI6MjA0OTUwNjgyOX0.XTKxF0kT9aH_HZPGZEqH4qGa_B2kK2VJH7dKZW4N0Zs',
       description: 'Production Supabase anonymous access key for client-side operations',
       category: 'Authentication'
-    },
-    {
-      name: 'Supabase Service Role Key',
-      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdnVqZGNkaXd0Z3ZtYnVhdmdpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTA2NTQ1NSwiZXhwIjoyMDY0NjQxNDU1fQ.vjLQSm7MeRez6oeLI4qqFOtAY-MB6CjYn9TWIdFFfDw',
-      description: 'Production Supabase service role key - ADMIN ACCESS ONLY',
-      category: 'Security'
-    },
-    {
-      name: 'Supabase JWT Secret',
-      value: 'NIyadLC/xhfjAODXf7aHqBMfQwH+uONmKR4YQZP+tQ+abZhnFicW4GcW+M15NkwUZA2ja+nQsQE4FS1Rt0owZA==',
-      description: 'JWT secret for token validation',
-      category: 'Security'
-    },
-    {
-      name: 'Postgres URL',
-      value: 'postgres://postgres.blvujdcdiwtgvmbuavgi:X59ld41Z4pofR9rS@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x',
-      description: 'PostgreSQL connection URL with pooling',
-      category: 'Database'
-    },
-    {
-      name: 'Postgres URL Non-Pooling',
-      value: 'postgres://postgres.blvujdcdiwtgvmbuavgi:X59ld41Z4pofR9rS@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require',
-      description: 'PostgreSQL direct connection URL',
-      category: 'Database'
-    },
-    {
-      name: 'Postgres Prisma URL',
-      value: 'postgres://postgres.blvujdcdiwtgvmbuavgi:X59ld41Z4pofR9rS@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x',
-      description: 'PostgreSQL URL optimized for Prisma ORM',
-      category: 'Database'
-    },
-    {
-      name: 'Postgres User',
-      value: 'postgres',
-      description: 'PostgreSQL database username',
-      category: 'Database'
-    },
-    {
-      name: 'Postgres Password',
-      value: 'X59ld41Z4pofR9rS',
-      description: 'PostgreSQL database password',
-      category: 'Security'
-    },
-    {
-      name: 'Postgres Host',
-      value: 'db.blvujdcdiwtgvmbuavgi.supabase.co',
-      description: 'PostgreSQL database host',
-      category: 'Database'
-    },
-    {
-      name: 'Postgres Database',
-      value: 'postgres',
-      description: 'PostgreSQL database name',
-      category: 'Database'
     }
   ];
 
@@ -148,7 +94,7 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
               <div>
                 <h4 className="font-medium text-yellow-800">Production Credentials</h4>
                 <p className="text-sm text-yellow-700 mt-1">
-                  Αυτά είναι τα πραγματικά production credentials. Θα κρυπτογραφηθούν με ασφάλεια και θα αποθηκευτούν με κωδικούς πρόσβασης.
+                  Αυτά είναι τα πραγματικά production credentials για το σωστό project. Θα κρυπτογραφηθούν με ασφάλεια.
                 </p>
               </div>
             </div>

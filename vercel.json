@@ -22,7 +22,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://blvujdcdiwtgvmbuavgi.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://blvujdcdiwtgvmbuavgi.supabase.co wss://blvujdcdiwtgvmbuavgi.supabase.co; frame-ancestors 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://wdgnllgbfvjgurbqhfqb.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://wdgnllgbfvjgurbqhfqb.supabase.co wss://wdgnllgbfvjgurbqhfqb.supabase.co; frame-ancestors 'none';"
         }
       ]
     }
@@ -33,7 +33,7 @@
     }
   },
   "env": {
-    "VITE_SUPABASE_URL": "https://blvujdcdiwtgvmbuavgi.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdnVqZGNkaXd0Z3ZtYnVhdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjU0NTUsImV4cCI6MjA2NDY0MTQ1NX0.WxGcy3GHqxir7Jo49nbE1z88ED8BNw3LnAHyPUROG_A"
+    "VITE_SUPABASE_URL": "https://wdgnllgbfvjgurbqhfqb.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzA4MjksImV4cCI6MjA0OTUwNjgyOX0.XTKxF0kT9aH_HZPGZEqH4qGa_B2kK2VJH7dKZW4N0Zs"
   }
 }
