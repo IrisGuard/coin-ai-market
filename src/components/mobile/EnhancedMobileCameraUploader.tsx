@@ -37,7 +37,7 @@ const EnhancedMobileCameraUploader = ({
 
   const analyzeImageQuality = useCallback(async (imageFile: File): Promise<{ quality: 'excellent' | 'good' | 'poor', blurScore: number }> => {
     return new Promise((resolve) => {
-      const img = document.createElement('img');
+      const img = new Image();
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
