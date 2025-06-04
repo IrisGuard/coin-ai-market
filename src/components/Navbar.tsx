@@ -173,7 +173,7 @@ const Navbar = () => {
                 )}
                 
                 <div className="border-t pt-3">
-                  <NavbarAuth mobile onClose={() => setIsOpen(false)} />
+                  <NavbarAuth />
                 </div>
               </div>
             </div>
@@ -182,7 +182,7 @@ const Navbar = () => {
       </nav>
 
       <AdminPanel isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
-      <AdminKeyboardHandler onOpenAdmin={openAdminPanel} />
+      <AdminKeyboardHandler />
     </>
   );
 };
