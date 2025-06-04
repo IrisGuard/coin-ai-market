@@ -1,14 +1,23 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Coin } from '@/types/coin';
 import { toast } from '@/hooks/use-toast';
 
 export const useCreateCoin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (coinData: Partial<Coin>) => {
+    mutationFn: async (coinData: {
+      name: string;
+      year: number;
+      grade: string;
+      price: number;
+      rarity: string;
+      image: string;
+      country?: string;
+      denomination?: string;
+      description?: string;
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 

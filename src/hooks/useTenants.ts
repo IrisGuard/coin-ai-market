@@ -3,16 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+// Updated interface to match actual database structure
 export interface MarketplaceTenant {
   id: string;
-  tenant_slug: string;
   name: string;
-  description?: string;
-  owner_id: string;
-  subdomain: string;
-  logo_url?: string;
-  primary_color: string;
-  secondary_color: string;
+  domain: string;
+  settings: any;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -63,12 +59,7 @@ export const useTenant = (tenantId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .select(`
-          *,
-          custom_domains(*),
-          tenant_subscriptions(*),
-          tenant_themes(*)
-        `)
+        .select('*')
         .eq('id', tenantId)
         .single();
 
@@ -83,16 +74,14 @@ export const useCreateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (tenantData: Partial<MarketplaceTenant>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
+    mutationFn: async (tenantData: {
+      name: string;
+      domain: string;
+      settings?: any;
+    }) => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .insert([{ 
-          ...tenantData, 
-          owner_id: user.id 
-        }])
+        .insert([tenantData])
         .select()
         .single();
 
@@ -121,15 +110,11 @@ export const useAddCustomDomain = () => {
 
   return useMutation({
     mutationFn: async ({ tenantId, domain }: { tenantId: string; domain: string }) => {
-      const verification_code = Math.random().toString(36).substring(2, 15);
-      
+      // For now, just update the tenant's domain since we don't have custom_domains table
       const { data, error } = await supabase
-        .from('custom_domains')
-        .insert([{ 
-          tenant_id: tenantId,
-          domain,
-          verification_code
-        }])
+        .from('marketplace_tenants')
+        .update({ domain })
+        .eq('id', tenantId)
         .select()
         .single();
 
@@ -139,8 +124,8 @@ export const useAddCustomDomain = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast({
-        title: "Domain Added",
-        description: "Custom domain has been added. Please verify it to activate.",
+        title: "Domain Updated",
+        description: "Domain has been updated successfully.",
       });
     },
     onError: (error: any) => {

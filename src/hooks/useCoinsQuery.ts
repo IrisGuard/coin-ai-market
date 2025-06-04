@@ -12,7 +12,8 @@ export const useCoins = () => {
           .from('coins')
           .select(`
             *,
-            profiles:user_id (
+            profiles!coins_user_id_fkey (
+              id,
               name,
               reputation,
               verified_dealer
@@ -21,7 +22,7 @@ export const useCoins = () => {
               amount,
               user_id,
               created_at,
-              profiles:user_id (name)
+              profiles!bids_user_id_fkey (name)
             )
           `)
           .eq('authentication_status', 'verified')
@@ -32,7 +33,23 @@ export const useCoins = () => {
           return [];
         }
         
-        return data as Coin[] || [];
+        // Transform the data to match the Coin interface
+        const transformedData = data?.map(coin => ({
+          ...coin,
+          profiles: coin.profiles ? {
+            id: coin.profiles.id || '',
+            name: coin.profiles.name || '',
+            reputation: coin.profiles.reputation || 0,
+            verified_dealer: coin.profiles.verified_dealer || false
+          } : {
+            id: '',
+            name: '',
+            reputation: 0,
+            verified_dealer: false
+          }
+        })) || [];
+        
+        return transformedData as Coin[];
       } catch (error) {
         console.error('Connection error:', error);
         return [];
@@ -50,7 +67,8 @@ export const useCoin = (id: string) => {
           .from('coins')
           .select(`
             *,
-            profiles:user_id (
+            profiles!coins_user_id_fkey (
+              id,
               name,
               reputation,
               verified_dealer,
@@ -61,7 +79,7 @@ export const useCoin = (id: string) => {
               amount,
               user_id,
               created_at,
-              profiles:user_id (name)
+              profiles!bids_user_id_fkey (name)
             )
           `)
           .eq('id', id)
@@ -72,7 +90,24 @@ export const useCoin = (id: string) => {
           return null;
         }
         
-        return data as Coin;
+        // Transform the data to match the Coin interface
+        const transformedData = {
+          ...data,
+          profiles: data.profiles ? {
+            id: data.profiles.id || '',
+            name: data.profiles.name || '',
+            reputation: data.profiles.reputation || 0,
+            verified_dealer: data.profiles.verified_dealer || false,
+            avatar_url: data.profiles.avatar_url || undefined
+          } : {
+            id: '',
+            name: '',
+            reputation: 0,
+            verified_dealer: false
+          }
+        };
+        
+        return transformedData as Coin;
       } catch (error) {
         console.error('Connection error:', error);
         return null;
