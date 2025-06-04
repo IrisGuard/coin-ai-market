@@ -13,7 +13,7 @@ export type Database = {
         Row: {
           action: string
           admin_user_id: string
-          created_at: string
+          created_at: string | null
           details: Json | null
           id: string
           ip_address: string | null
@@ -24,7 +24,7 @@ export type Database = {
         Insert: {
           action: string
           admin_user_id: string
-          created_at?: string
+          created_at?: string | null
           details?: Json | null
           id?: string
           ip_address?: string | null
@@ -35,7 +35,7 @@ export type Database = {
         Update: {
           action?: string
           admin_user_id?: string
-          created_at?: string
+          created_at?: string | null
           details?: Json | null
           id?: string
           ip_address?: string | null
@@ -43,84 +43,115 @@ export type Database = {
           target_type?: string
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "admin_activity_logs_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       admin_roles: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           id: string
           role: string
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           id?: string
           role?: string
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           id?: string
           role?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "admin_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       api_keys: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           description: string | null
           encrypted_value: string
           id: string
-          is_active: boolean
+          is_active: boolean | null
           key_name: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           description?: string | null
           encrypted_value: string
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           key_name: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           description?: string | null
           encrypted_value?: string
           id?: string
-          is_active?: boolean
+          is_active?: boolean | null
           key_name?: string
-          updated_at?: string
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bids: {
         Row: {
           amount: number
           coin_id: string
-          created_at: string
+          created_at: string | null
           id: string
           user_id: string
         }
         Insert: {
           amount: number
           coin_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
           amount?: number
           coin_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           user_id?: string
         }
@@ -145,7 +176,7 @@ export type Database = {
         Row: {
           coin_id: string
           comments: string | null
-          created_at: string
+          created_at: string | null
           estimated_value: number
           expert_id: string | null
           grade: string
@@ -154,7 +185,7 @@ export type Database = {
         Insert: {
           coin_id: string
           comments?: string | null
-          created_at?: string
+          created_at?: string | null
           estimated_value: number
           expert_id?: string | null
           grade: string
@@ -163,7 +194,7 @@ export type Database = {
         Update: {
           coin_id?: string
           comments?: string | null
-          created_at?: string
+          created_at?: string | null
           estimated_value?: number
           expert_id?: string | null
           grade?: string
@@ -193,7 +224,8 @@ export type Database = {
           composition: string | null
           condition: string | null
           country: string | null
-          created_at: string
+          created_at: string | null
+          denomination: string | null
           description: string | null
           diameter: number | null
           favorites: number | null
@@ -203,13 +235,20 @@ export type Database = {
           image: string
           is_auction: boolean | null
           mint: string | null
+          mintage: number | null
           model_3d_url: string | null
           name: string
+          ngc_grade: string | null
+          ngc_number: string | null
           obverse_image: string | null
+          pcgs_grade: string | null
+          pcgs_number: string | null
           price: number
           rarity: string
+          reserve_price: number | null
           reverse_image: string | null
           tags: string[] | null
+          updated_at: string | null
           user_id: string
           views: number | null
           weight: number | null
@@ -221,7 +260,8 @@ export type Database = {
           composition?: string | null
           condition?: string | null
           country?: string | null
-          created_at?: string
+          created_at?: string | null
+          denomination?: string | null
           description?: string | null
           diameter?: number | null
           favorites?: number | null
@@ -231,13 +271,20 @@ export type Database = {
           image: string
           is_auction?: boolean | null
           mint?: string | null
+          mintage?: number | null
           model_3d_url?: string | null
           name: string
+          ngc_grade?: string | null
+          ngc_number?: string | null
           obverse_image?: string | null
+          pcgs_grade?: string | null
+          pcgs_number?: string | null
           price: number
           rarity: string
+          reserve_price?: number | null
           reverse_image?: string | null
           tags?: string[] | null
+          updated_at?: string | null
           user_id: string
           views?: number | null
           weight?: number | null
@@ -249,7 +296,8 @@ export type Database = {
           composition?: string | null
           condition?: string | null
           country?: string | null
-          created_at?: string
+          created_at?: string | null
+          denomination?: string | null
           description?: string | null
           diameter?: number | null
           favorites?: number | null
@@ -259,13 +307,20 @@ export type Database = {
           image?: string
           is_auction?: boolean | null
           mint?: string | null
+          mintage?: number | null
           model_3d_url?: string | null
           name?: string
+          ngc_grade?: string | null
+          ngc_number?: string | null
           obverse_image?: string | null
+          pcgs_grade?: string | null
+          pcgs_number?: string | null
           price?: number
           rarity?: string
+          reserve_price?: number | null
           reverse_image?: string | null
           tags?: string[] | null
+          updated_at?: string | null
           user_id?: string
           views?: number | null
           weight?: number | null
@@ -284,7 +339,7 @@ export type Database = {
       console_errors: {
         Row: {
           column_number: number | null
-          created_at: string
+          created_at: string | null
           error_level: string
           id: string
           line_number: number | null
@@ -295,7 +350,7 @@ export type Database = {
         }
         Insert: {
           column_number?: number | null
-          created_at?: string
+          created_at?: string | null
           error_level: string
           id?: string
           line_number?: number | null
@@ -306,7 +361,7 @@ export type Database = {
         }
         Update: {
           column_number?: number | null
-          created_at?: string
+          created_at?: string | null
           error_level?: string
           id?: string
           line_number?: number | null
@@ -315,11 +370,19 @@ export type Database = {
           source_file?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "console_errors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       error_logs: {
         Row: {
-          created_at: string
+          created_at: string | null
           error_type: string
           id: string
           message: string
@@ -329,7 +392,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           error_type: string
           id?: string
           message: string
@@ -339,7 +402,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           error_type?: string
           id?: string
           message?: string
@@ -348,12 +411,20 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
           action_url: string | null
-          created_at: string
+          created_at: string | null
           id: string
           is_read: boolean | null
           message: string
@@ -363,7 +434,7 @@ export type Database = {
         }
         Insert: {
           action_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_read?: boolean | null
           message: string
@@ -373,7 +444,7 @@ export type Database = {
         }
         Update: {
           action_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_read?: boolean | null
           message?: string
@@ -402,37 +473,46 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
-          created_at: string
+          created_at: string | null
           email: string | null
           id: string
           location: string | null
           name: string | null
+          ngc_member_id: string | null
+          pcgs_member_id: string | null
           reputation: number | null
-          updated_at: string
+          updated_at: string | null
+          verified_dealer: boolean | null
           website: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string | null
           id: string
           location?: string | null
           name?: string | null
+          ngc_member_id?: string | null
+          pcgs_member_id?: string | null
           reputation?: number | null
-          updated_at?: string
+          updated_at?: string | null
+          verified_dealer?: boolean | null
           website?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string | null
           id?: string
           location?: string | null
           name?: string | null
+          ngc_member_id?: string | null
+          pcgs_member_id?: string | null
           reputation?: number | null
-          updated_at?: string
+          updated_at?: string | null
+          verified_dealer?: boolean | null
           website?: string | null
         }
         Relationships: []
@@ -443,7 +523,7 @@ export type Database = {
           config_value: Json
           description: string | null
           id: string
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
         }
         Insert: {
@@ -451,7 +531,7 @@ export type Database = {
           config_value: Json
           description?: string | null
           id?: string
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
@@ -459,40 +539,51 @@ export type Database = {
           config_value?: Json
           description?: string | null
           id?: string
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "system_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
           amount: number
           buyer_id: string
           coin_id: string
-          created_at: string
+          created_at: string | null
           id: string
           seller_id: string
           status: string
+          stripe_payment_intent_id: string | null
           transaction_type: string
         }
         Insert: {
           amount: number
           buyer_id: string
           coin_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           seller_id: string
           status?: string
+          stripe_payment_intent_id?: string | null
           transaction_type?: string
         }
         Update: {
           amount?: number
           buyer_id?: string
           coin_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           seller_id?: string
           status?: string
+          stripe_payment_intent_id?: string | null
           transaction_type?: string
         }
         Relationships: [
@@ -522,19 +613,19 @@ export type Database = {
       user_favorites: {
         Row: {
           coin_id: string
-          created_at: string
+          created_at: string | null
           id: string
           user_id: string
         }
         Insert: {
           coin_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
           coin_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           user_id?: string
         }

@@ -9,9 +9,9 @@ import { AdminProvider } from "@/contexts/AdminContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
+import Upload from "./pages/Upload";
 import Marketplace from "./pages/Marketplace";
-import CoinUpload from "./pages/CoinUpload";
 import CoinDetails from "./pages/CoinDetails";
 import NotFound from "./pages/NotFound";
 
@@ -36,9 +36,9 @@ function App() {
               <AdminProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
+                  <Route path="/auth" element={<Auth />} />
                   <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/upload" element={<CoinUpload />} />
+                  <Route path="/upload" element={<Upload />} />
                   <Route path="/coins/:id" element={<CoinDetails />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

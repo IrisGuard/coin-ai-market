@@ -1,10 +1,9 @@
 
-import Navbar from '@/components/Navbar';
 import CoinUploadForm from '@/components/upload/CoinUploadForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 
-const CoinUpload = () => {
+const Upload = () => {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
@@ -12,11 +11,10 @@ const CoinUpload = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 py-8">
       <CoinUploadForm />
     </div>
   );
 };
 
-export default CoinUpload;
+export default Upload;

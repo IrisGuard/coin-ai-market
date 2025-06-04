@@ -1,133 +1,177 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Search } from 'lucide-react';
-import LanguageSwitcher from './LanguageSwitcher';
-import NavbarAuth from './NavbarAuth';
-import NotificationsPanel from './NotificationsPanel';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Menu, X, Coins, Bell, User, LogOut, Upload, Store } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUnreadNotificationsCount } from '@/hooks/useNotifications';
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
+  const navigate = useNavigate();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (searchQuery.trim()) {
-      // For now, just log the search query since marketplace is removed
-      console.log('Search query:', searchQuery);
-    }
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
+  const navItems = [
+    { name: 'Home', href: '/' },
+    { name: 'Marketplace', href: '/marketplace' },
+  ];
+
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-lg bg-white/80">
+    <nav className="bg-white/95 backdrop-blur-md shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <motion.span 
-                className="text-coin-gold text-2xl font-serif font-bold"
-                whileHover={{ scale: 1.05 }}
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <Coins className="w-8 h-8 text-coin-gold" />
+            <span className="text-xl font-serif font-bold text-gray-900">CoinVision AI</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className="text-gray-700 hover:text-coin-gold transition-colors font-medium"
               >
-                Coin
-              </motion.span>
-              <motion.span 
-                className="text-coin-purple text-2xl font-serif font-bold"
-                whileHover={{ scale: 1.05 }}
-              >
-                AI
-              </motion.span>
-            </Link>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link to="/" className="border-transparent text-gray-500 hover:text-coin-purple hover:border-coin-purple inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                Home
+                {item.name}
               </Link>
-            </div>
+            ))}
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
-            <div className="relative">
-              {isSearchOpen ? (
-                <motion.form 
-                  initial={{ width: 0, opacity: 0 }} 
-                  animate={{ width: 200, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  className="flex items-center"
-                  onSubmit={handleSearch}
+
+          {/* User Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            {isAuthenticated ? (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/upload" className="flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    Upload Coin
+                  </Link>
+                </Button>
+
+                {/* Notifications */}
+                <div className="relative">
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Bell className="w-4 h-4" />
+                    {unreadCount > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </div>
+
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      <span className="hidden lg:inline">{user?.user_metadata?.name || 'User'}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate('/upload')}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Coin
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/marketplace')}>
+                      <Store className="w-4 h-4 mr-2" />
+                      My Listings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+                <Button asChild size="sm" className="coin-button">
+                  <Link to="/auth">Get Started</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-700"
+            >
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden py-4 border-t border-gray-200"
+          >
+            <div className="flex flex-col space-y-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="text-gray-700 hover:text-coin-gold transition-colors font-medium"
+                  onClick={() => setIsOpen(false)}
                 >
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="px-3 py-1 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-coin-purple focus:border-coin-purple"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                    onBlur={() => setTimeout(() => setIsSearchOpen(false), 200)}
-                  />
-                  <button type="submit" className="sr-only">Search</button>
-                </motion.form>
+                  {item.name}
+                </Link>
+              ))}
+              
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/upload"
+                    className="text-gray-700 hover:text-coin-gold transition-colors font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Upload Coin
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-left text-gray-700 hover:text-coin-gold transition-colors font-medium"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
-                <button 
-                  className="p-1 rounded-full text-gray-400 hover:text-coin-purple focus:outline-none"
-                  onClick={() => setIsSearchOpen(true)}
+                <Link
+                  to="/auth"
+                  className="text-gray-700 hover:text-coin-gold transition-colors font-medium"
+                  onClick={() => setIsOpen(false)}
                 >
-                  <Search size={20} />
-                </button>
+                  Sign In
+                </Link>
               )}
             </div>
-            <NotificationsPanel />
-            <LanguageSwitcher />
-            <NavbarAuth />
-          </div>
-          <div className="-mr-2 flex items-center sm:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
+          </motion.div>
+        )}
       </div>
-
-      {isMenuOpen && (
-        <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            <Link 
-              to="/" 
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-coin-purple hover:text-coin-purple"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <div className="pl-3 pr-4 py-2 flex items-center justify-between">
-              <NavbarAuth />
-              <div className="flex items-center space-x-2">
-                <NotificationsPanel />
-                <LanguageSwitcher />
-              </div>
-            </div>
-            <div className="pl-3 pr-4 py-2">
-              <form onSubmit={handleSearch} className="flex">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md text-sm focus:outline-none focus:ring-1 focus:ring-coin-purple focus:border-coin-purple"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button 
-                  type="submit"
-                  className="bg-coin-purple text-white px-4 py-2 rounded-r-md flex items-center justify-center"
-                >
-                  <Search size={16} />
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   );
 };

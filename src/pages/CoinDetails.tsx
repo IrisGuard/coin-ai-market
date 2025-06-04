@@ -1,453 +1,280 @@
 
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { useCoin } from '@/hooks/useCoins';
+import { useCoinBids } from '@/hooks/useBids';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import CoinBidForm from '@/components/coin-details/CoinBidForm';
+import CoinViewer3D from '@/components/coin-details/CoinViewer3D';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Heart, Eye, Calendar, MapPin, Award, DollarSign, Gavel, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-
-interface Coin {
-  id: string;
-  name: string;
-  year: number;
-  price: number;
-  rarity: string;
-  grade: string;
-  image: string;
-  views: number;
-  favorites: number;
-  country: string;
-  condition: string;
-  description: string;
-  composition: string;
-  diameter: number;
-  weight: number;
-  mint: string;
-  user_id: string;
-  created_at: string;
-  profiles?: {
-    name: string;
-    reputation: number;
-  };
-}
-
-interface Bid {
-  id: string;
-  amount: number;
-  created_at: string;
-  profiles?: {
-    name: string;
-  };
-}
+import { CalendarDays, Eye, Heart, Star, User, Verified } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 
 const CoinDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
-  const [coin, setCoin] = useState<Coin | null>(null);
-  const [bids, setBids] = useState<Bid[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [bidAmount, setBidAmount] = useState('');
-  const [submittingBid, setSubmittingBid] = useState(false);
+  const { data: coin, isLoading } = useCoin(id!);
+  const { data: bids = [] } = useCoinBids(id!);
 
-  const fetchCoinDetails = async () => {
-    if (!id) return;
-
-    try {
-      const { data: coinData, error: coinError } = await supabase
-        .from('coins')
-        .select(`
-          *,
-          profiles:user_id (name, reputation)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (coinError) throw coinError;
-
-      setCoin(coinData);
-
-      // Increment view count
-      await supabase
-        .from('coins')
-        .update({ views: (coinData.views || 0) + 1 })
-        .eq('id', id);
-
-      // Fetch bids
-      const { data: bidsData, error: bidsError } = await supabase
-        .from('bids')
-        .select(`
-          *,
-          profiles:user_id (name)
-        `)
-        .eq('coin_id', id)
-        .order('amount', { ascending: false });
-
-      if (bidsError) throw bidsError;
-      setBids(bidsData || []);
-
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch coin details: " + error.message,
-        variant: "destructive",
-      });
-      navigate('/marketplace');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBid = async () => {
-    if (!isAuthenticated || !user) {
-      toast({
-        title: "Error",
-        description: "Please login to place a bid",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!bidAmount || parseFloat(bidAmount) <= 0) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid bid amount",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const currentHighestBid = bids.length > 0 ? bids[0].amount : (coin?.price || 0);
-    if (parseFloat(bidAmount) <= currentHighestBid) {
-      toast({
-        title: "Error",
-        description: `Bid must be higher than current price of $${currentHighestBid}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSubmittingBid(true);
-    try {
-      const { error } = await supabase
-        .from('bids')
-        .insert({
-          coin_id: id,
-          user_id: user.id,
-          amount: parseFloat(bidAmount)
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Bid placed successfully!",
-      });
-
-      setBidAmount('');
-      fetchCoinDetails();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to place bid: " + error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setSubmittingBid(false);
-    }
-  };
-
-  const handleFavorite = async () => {
-    if (!isAuthenticated || !user || !coin) {
-      toast({
-        title: "Error",
-        description: "Please login to add favorites",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data: existing } = await supabase
-        .from('user_favorites')
-        .select('id')
-        .eq('coin_id', coin.id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (existing) {
-        await supabase
-          .from('user_favorites')
-          .delete()
-          .eq('coin_id', coin.id)
-          .eq('user_id', user.id);
-        
-        setCoin(prev => prev ? {...prev, favorites: Math.max(0, prev.favorites - 1)} : null);
-      } else {
-        await supabase
-          .from('user_favorites')
-          .insert({ coin_id: coin.id, user_id: user.id });
-        
-        setCoin(prev => prev ? {...prev, favorites: prev.favorites + 1} : null);
-      }
-
-      await supabase
-        .from('coins')
-        .update({ favorites: coin.favorites })
-        .eq('id', coin.id);
-
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update favorite: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchCoinDetails();
-  }, [id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center">Loading coin details...</div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-gray-200 rounded-lg h-96"></div>
+              <div className="space-y-4">
+                <div className="h-8 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (!coin) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Coin Not Found</h2>
-            <Button onClick={() => navigate('/marketplace')}>Back to Marketplace</Button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Coin Not Found</h1>
+            <p className="text-gray-600">The coin you're looking for doesn't exist or has been removed.</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
-  const currentHighestBid = bids.length > 0 ? bids[0].amount : coin.price;
+  const highestBid = bids.length > 0 ? Math.max(...bids.map(bid => bid.amount)) : coin.price;
+  const isAuction = coin.is_auction;
+  const timeLeft = coin.auction_end ? formatDistanceToNow(new Date(coin.auction_end), { addSuffix: true }) : null;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <main className="flex-grow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Image Section */}
-            <div>
-              <Card>
-                <CardContent className="p-0">
-                  <img 
-                    src={coin.image} 
-                    alt={coin.name}
-                    className="w-full h-96 object-cover rounded-lg"
-                  />
-                </CardContent>
-              </Card>
-              
-              <div className="flex justify-between items-center mt-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span className="flex items-center">
-                    <Eye className="h-4 w-4 mr-1" />
-                    {coin.views} views
-                  </span>
-                  <span className="flex items-center">
-                    <Heart className="h-4 w-4 mr-1" />
-                    {coin.favorites} favorites
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleFavorite}
-                >
-                  <Heart className="h-4 w-4 mr-2" />
-                  Add to Favorites
-                </Button>
-              </div>
-            </div>
-
-            {/* Details Section */}
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{coin.name}</h1>
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge variant="outline">{coin.rarity}</Badge>
-                  <Badge variant="secondary">{coin.grade}</Badge>
-                  <Badge variant="outline">{coin.condition}</Badge>
-                </div>
-                
-                <div className="text-3xl font-bold text-coin-purple mb-4">
-                  ${currentHighestBid.toLocaleString()}
-                  {bids.length > 0 && (
-                    <span className="text-lg text-gray-600 ml-2">
-                      (${bids.length} bid{bids.length !== 1 ? 's' : ''})
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Bidding Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Gavel className="h-5 w-5" />
-                    Place a Bid
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      placeholder={`Min: $${currentHighestBid + 1}`}
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(e.target.value)}
-                      disabled={!isAuthenticated}
-                    />
-                    <Button 
-                      onClick={handleBid}
-                      disabled={!isAuthenticated || submittingBid}
-                    >
-                      {submittingBid ? 'Placing...' : 'Place Bid'}
-                    </Button>
-                  </div>
-                  
-                  {!isAuthenticated && (
-                    <p className="text-sm text-gray-600">
-                      Please <Button variant="link" className="p-0 h-auto" onClick={() => navigate('/login')}>login</Button> to place a bid
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Seller Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Seller Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{coin.profiles?.name || 'Unknown Seller'}</p>
-                      <p className="text-sm text-gray-600">
-                        Reputation: {coin.profiles?.reputation || 0} points
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      View Profile
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Bids */}
-              {bids.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Bids</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {bids.slice(0, 5).map((bid, index) => (
-                        <div key={bid.id} className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium">${bid.amount.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500">
-                              by {bid.profiles?.name || 'Anonymous'} • {new Date(bid.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          {index === 0 && (
-                            <Badge variant="default">Highest</Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+        >
+          {/* Image Section */}
+          <div className="space-y-4">
+            <div className="relative">
+              <img
+                src={coin.image}
+                alt={coin.name}
+                className="w-full h-96 object-cover rounded-lg shadow-lg"
+              />
+              {coin.featured && (
+                <Badge className="absolute top-4 left-4 bg-coin-gold text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  Featured
+                </Badge>
+              )}
+              {isAuction && (
+                <Badge className="absolute top-4 right-4 bg-red-500 text-white">
+                  Auction
+                </Badge>
               )}
             </div>
+            
+            {coin.model_3d_url && (
+              <CoinViewer3D modelUrl={coin.model_3d_url} />
+            )}
           </div>
 
-          {/* Detailed Information */}
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Details Section */}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">{coin.name}</h1>
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="w-4 h-4" />
+                  {coin.year}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  {coin.views} views
+                </span>
+                <span className="flex items-center gap-1">
+                  <Heart className="w-4 h-4" />
+                  {coin.favorites} favorites
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="secondary">{coin.rarity}</Badge>
+                <Badge variant="outline">{coin.condition}</Badge>
+                <Badge variant="outline">{coin.grade}</Badge>
+                {coin.authentication_status === 'verified' && (
+                  <Badge className="bg-green-500 text-white">
+                    <Verified className="w-3 h-3 mr-1" />
+                    Verified
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Price/Bidding Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Coin Details</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>{isAuction ? 'Current Bid' : 'Price'}</span>
+                  {isAuction && timeLeft && (
+                    <Badge variant="destructive">{timeLeft}</Badge>
+                  )}
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Year</p>
-                    <p className="font-medium">{coin.year}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Country</p>
-                    <p className="font-medium">{coin.country}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Mint</p>
-                    <p className="font-medium">{coin.mint || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Composition</p>
-                    <p className="font-medium">{coin.composition || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Diameter</p>
-                    <p className="font-medium">{coin.diameter ? `${coin.diameter}mm` : 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Weight</p>
-                    <p className="font-medium">{coin.weight ? `${coin.weight}g` : 'Not specified'}</p>
-                  </div>
+              <CardContent>
+                <div className="text-3xl font-bold text-coin-gold mb-4">
+                  ${isAuction ? highestBid.toFixed(2) : coin.price.toFixed(2)}
                 </div>
                 
-                <Separator />
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Listed</p>
-                  <p className="font-medium">{new Date(coin.created_at).toLocaleDateString()}</p>
+                {isAuction && (
+                  <>
+                    <div className="text-sm text-gray-600 mb-4">
+                      Reserve price: ${coin.reserve_price?.toFixed(2)}
+                    </div>
+                    <CoinBidForm coinId={coin.id} currentBid={highestBid} />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Seller Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Seller Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{coin.profiles?.name}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>Reputation: {coin.profiles?.reputation}/100</span>
+                      {coin.profiles?.verified_dealer && (
+                        <Badge className="bg-blue-500 text-white text-xs">
+                          Verified Dealer
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Coin Specifications */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Specifications</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {coin.country && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Country:</span>
+                    <span className="font-medium">{coin.country}</span>
+                  </div>
+                )}
+                {coin.denomination && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Denomination:</span>
+                    <span className="font-medium">{coin.denomination}</span>
+                  </div>
+                )}
+                {coin.composition && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Composition:</span>
+                    <span className="font-medium">{coin.composition}</span>
+                  </div>
+                )}
+                {coin.diameter && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Diameter:</span>
+                    <span className="font-medium">{coin.diameter}mm</span>
+                  </div>
+                )}
+                {coin.weight && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Weight:</span>
+                    <span className="font-medium">{coin.weight}g</span>
+                  </div>
+                )}
+                {coin.mint && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mint:</span>
+                    <span className="font-medium">{coin.mint}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+
+        {/* Description */}
+        {coin.description && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-8"
+          >
             <Card>
               <CardHeader>
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700">
-                  {coin.description || 'No description provided.'}
-                </p>
+                <p className="text-gray-700 leading-relaxed">{coin.description}</p>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </main>
-      
-      <Footer />
+          </motion.div>
+        )}
+
+        {/* Bid History */}
+        {isAuction && bids.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Bid History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {bids.map((bid) => (
+                    <div key={bid.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{bid.profiles?.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {formatDistanceToNow(new Date(bid.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      <div className="text-lg font-bold text-coin-gold">
+                        ${bid.amount.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
