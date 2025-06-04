@@ -1,80 +1,68 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Globe, Plus, Trash2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useExternalPriceSources, useCreateExternalSource, useUpdateExternalSource } from '@/hooks/useEnhancedDataSources';
-import { 
-  Globe, 
-  Plus, 
-  Settings, 
-  Shield, 
-  TrendingUp, 
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  Edit
-} from 'lucide-react';
 
 const AdminExternalSourcesTab = () => {
-  const { data: sources } = useExternalPriceSources();
+  const { data: sources = [], isLoading } = useExternalPriceSources();
   const createSource = useCreateExternalSource();
   const updateSource = useUpdateExternalSource();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingSource, setEditingSource] = useState<any>(null);
-
-  const [newSource, setNewSource] = useState({
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
     source_name: '',
-    source_type: 'marketplace',
+    source_type: '',
     base_url: '',
+    requires_proxy: false,
     rate_limit_per_hour: 60,
-    requires_proxy: true,
-    scraping_config: '{}'
   });
 
-  const handleCreateSource = () => {
-    createSource.mutate({
-      ...newSource,
-      scraping_config: JSON.parse(newSource.scraping_config || '{}')
-    });
-    setIsAddDialogOpen(false);
-    setNewSource({
-      source_name: '',
-      source_type: 'marketplace',
-      base_url: '',
-      rate_limit_per_hour: 60,
-      requires_proxy: true,
-      scraping_config: '{}'
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createSource.mutate(formData, {
+      onSuccess: () => {
+        setFormData({
+          source_name: '',
+          source_type: '',
+          base_url: '',
+          requires_proxy: false,
+          rate_limit_per_hour: 60,
+        });
+        setShowForm(false);
+      },
     });
   };
 
-  const handleToggleSource = (sourceId: string, enabled: boolean) => {
+  const toggleScrapingEnabled = (sourceId: string, enabled: boolean) => {
     updateSource.mutate({
       id: sourceId,
       updates: { scraping_enabled: enabled }
     });
   };
 
-  const getSourceTypeColor = (type: string) => {
-    switch (type) {
-      case 'marketplace': return 'bg-blue-100 text-blue-800';
-      case 'auction': return 'bg-purple-100 text-purple-800';
-      case 'reference': return 'bg-green-100 text-green-800';
-      case 'grading_service': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getSourceTypeBadge = (type: string) => {
+    const colors = {
+      'auction': 'bg-blue-100 text-blue-800',
+      'marketplace': 'bg-green-100 text-green-800',
+      'reference': 'bg-purple-100 text-purple-800',
+      'grading_service': 'bg-orange-100 text-orange-800',
+      'dealer': 'bg-gray-100 text-gray-800',
+    };
+    return <Badge className={colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800'}>{type}</Badge>;
   };
 
-  const getReliabilityColor = (score: number) => {
-    if (score >= 0.9) return 'text-green-600';
-    if (score >= 0.7) return 'text-yellow-600';
-    return 'text-red-600';
+  const getReliabilityBadge = (score: number) => {
+    if (score >= 0.9) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
+    if (score >= 0.7) return <Badge className="bg-yellow-100 text-yellow-800">Good</Badge>;
+    return <Badge className="bg-red-100 text-red-800">Poor</Badge>;
   };
 
   return (
@@ -82,42 +70,43 @@ const AdminExternalSourcesTab = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">External Price Sources</h2>
-          <p className="text-muted-foreground">
-            Manage external data sources for anonymous price scraping
-          </p>
+          <h3 className="text-lg font-semibold">External Price Sources</h3>
+          <p className="text-sm text-muted-foreground">Manage external data sources for price aggregation</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Source
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add External Price Source</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Source
+        </Button>
+      </div>
+
+      {/* Add New Source Form */}
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New External Source</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="source_name">Source Name</Label>
                   <Input
                     id="source_name"
-                    value={newSource.source_name}
-                    onChange={(e) => setNewSource({...newSource, source_name: e.target.value})}
-                    placeholder="e.g., eBay Sold Listings"
+                    value={formData.source_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, source_name: e.target.value }))}
+                    placeholder="e.g., eBay Coins"
+                    required
                   />
                 </div>
                 <div>
                   <Label htmlFor="source_type">Source Type</Label>
-                  <Select value={newSource.source_type} onValueChange={(value) => setNewSource({...newSource, source_type: value})}>
+                  <Select onValueChange={(value) => setFormData(prev => ({ ...prev, source_type: value }))}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="marketplace">Marketplace</SelectItem>
                       <SelectItem value="auction">Auction House</SelectItem>
+                      <SelectItem value="marketplace">Marketplace</SelectItem>
                       <SelectItem value="reference">Reference Guide</SelectItem>
                       <SelectItem value="grading_service">Grading Service</SelectItem>
                       <SelectItem value="dealer">Dealer</SelectItem>
@@ -130,139 +119,128 @@ const AdminExternalSourcesTab = () => {
                 <Label htmlFor="base_url">Base URL</Label>
                 <Input
                   id="base_url"
-                  value={newSource.base_url}
-                  onChange={(e) => setNewSource({...newSource, base_url: e.target.value})}
+                  value={formData.base_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, base_url: e.target.value }))}
                   placeholder="https://example.com"
+                  required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="rate_limit">Rate Limit (per hour)</Label>
                   <Input
                     id="rate_limit"
                     type="number"
-                    value={newSource.rate_limit_per_hour}
-                    onChange={(e) => setNewSource({...newSource, rate_limit_per_hour: parseInt(e.target.value)})}
+                    value={formData.rate_limit_per_hour}
+                    onChange={(e) => setFormData(prev => ({ ...prev, rate_limit_per_hour: parseInt(e.target.value) }))}
+                    min="1"
+                    max="1000"
                   />
                 </div>
-                <div className="flex items-center space-x-2 pt-6">
+                <div className="flex items-center space-x-2 mt-6">
                   <Switch
-                    checked={newSource.requires_proxy}
-                    onCheckedChange={(checked) => setNewSource({...newSource, requires_proxy: checked})}
+                    checked={formData.requires_proxy}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, requires_proxy: checked }))}
                   />
-                  <Label>Requires VPN/Proxy</Label>
+                  <Label>Requires Proxy</Label>
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="scraping_config">Scraping Configuration (JSON)</Label>
-                <Textarea
-                  id="scraping_config"
-                  value={newSource.scraping_config}
-                  onChange={(e) => setNewSource({...newSource, scraping_config: e.target.value})}
-                  placeholder='{"search_endpoint": "/search", "selectors": {"price": ".price"}}'
-                  rows={4}
-                />
-              </div>
-
-              <Button onClick={handleCreateSource} className="w-full">
-                Create Source
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Sources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sources?.map((source) => (
-          <Card key={source.id} className="relative">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{source.source_name}</CardTitle>
-                <div className="flex items-center gap-2">
-                  {source.requires_proxy && (
-                    <Shield className="h-4 w-4 text-blue-600" title="Uses VPN/Proxy" />
-                  )}
-                  <Switch
-                    checked={source.scraping_enabled}
-                    onCheckedChange={(checked) => handleToggleSource(source.id, checked)}
-                    size="sm"
-                  />
-                </div>
-              </div>
-              <Badge className={getSourceTypeColor(source.source_type)}>
-                {source.source_type.replace('_', ' ')}
-              </Badge>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-sm text-muted-foreground">
-                <Globe className="h-4 w-4 inline mr-1" />
-                {source.base_url}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium">Reliability:</span>
-                  <span className={`ml-1 ${getReliabilityColor(source.reliability_score)}`}>
-                    {(source.reliability_score * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Rate Limit:</span>
-                  <span className="ml-1">{source.rate_limit_per_hour}/h</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium">Total Scrapes:</span>
-                  <span className="ml-1">{source.total_scrapes}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Failed:</span>
-                  <span className="ml-1 text-red-600">{source.failed_scrapes}</span>
-                </div>
-              </div>
-
-              {source.last_successful_scrape && (
-                <div className="text-xs text-muted-foreground flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Last: {new Date(source.last_successful_scrape).toLocaleDateString()}
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Settings className="h-3 w-3 mr-1" />
-                  Configure
+              <div className="flex gap-2">
+                <Button type="submit" disabled={createSource.isPending}>
+                  {createSource.isPending ? 'Adding...' : 'Add Source'}
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Stats
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {sources?.length === 0 && (
-        <Card className="text-center py-8">
-          <CardContent>
-            <Globe className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <CardTitle className="mb-2">No External Sources</CardTitle>
-            <CardDescription className="mb-4">
-              Add external price sources to start collecting coin market data
-            </CardDescription>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Source
-            </Button>
+            </form>
           </CardContent>
         </Card>
       )}
+
+      {/* Sources Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            External Sources ({sources.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div>Loading external sources...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>URL</TableHead>
+                  <TableHead>Reliability</TableHead>
+                  <TableHead>Last Scraped</TableHead>
+                  <TableHead>Rate Limit</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sources.map((source) => (
+                  <TableRow key={source.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <div className="font-medium">{source.source_name}</div>
+                          {source.requires_proxy && (
+                            <div className="flex items-center gap-1 text-xs text-orange-600">
+                              <AlertCircle className="h-3 w-3" />
+                              Requires Proxy
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getSourceTypeBadge(source.source_type)}</TableCell>
+                    <TableCell>
+                      <a href={source.base_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {source.base_url}
+                      </a>
+                    </TableCell>
+                    <TableCell>{getReliabilityBadge(source.reliability_score)}</TableCell>
+                    <TableCell>
+                      {source.last_successful_scrape 
+                        ? new Date(source.last_successful_scrape).toLocaleDateString() 
+                        : 'Never'}
+                    </TableCell>
+                    <TableCell>{source.rate_limit_per_hour}/hour</TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={source.scraping_enabled}
+                        onCheckedChange={(checked) => toggleScrapingEnabled(source.id, checked)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
