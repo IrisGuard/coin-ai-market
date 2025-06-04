@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export const useErrorCoinsKnowledge = () => {
   return useQuery({
@@ -68,10 +68,17 @@ export const useAddErrorKnowledge = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['error-coins-knowledge'] });
-      toast.success('Error knowledge added successfully');
+      toast({
+        title: "Success",
+        description: "Error knowledge added successfully",
+      });
     },
-    onError: (error) => {
-      toast.error('Failed to add error knowledge: ' + error.message);
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to add error knowledge: " + error.message,
+        variant: "destructive",
+      });
     }
   });
 };
@@ -92,10 +99,17 @@ export const useAddErrorMarketData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['error-coins-market-data'] });
-      toast.success('Market data added successfully');
+      toast({
+        title: "Success",
+        description: "Market data added successfully",
+      });
     },
-    onError: (error) => {
-      toast.error('Failed to add market data: ' + error.message);
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to add market data: " + error.message,
+        variant: "destructive",
+      });
     }
   });
 };

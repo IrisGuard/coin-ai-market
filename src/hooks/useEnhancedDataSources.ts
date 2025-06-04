@@ -19,18 +19,23 @@ export const useExternalPriceSources = () => {
   });
 };
 
-// Hook for error coins database - creating a mock version since table doesn't exist
+// Hook for error coins database - now using actual table
 export const useErrorCoins = () => {
   return useQuery({
     queryKey: ['error-coins'],
     queryFn: async () => {
-      // Return empty array since error_coins_db table doesn't exist yet
-      return [];
+      const { data, error } = await supabase
+        .from('error_coins_knowledge')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     },
   });
 };
 
-// Hook for coin price history - mock version
+// Hook for coin price history - mock version since table doesn't exist
 export const useCoinPriceHistory = (coinIdentifier?: string) => {
   return useQuery({
     queryKey: ['coin-price-history', coinIdentifier],
@@ -42,7 +47,7 @@ export const useCoinPriceHistory = (coinIdentifier?: string) => {
   });
 };
 
-// Hook for aggregated coin prices - mock version
+// Hook for aggregated coin prices - mock version since table doesn't exist
 export const useAggregatedPrices = () => {
   return useQuery({
     queryKey: ['aggregated-prices'],
@@ -53,7 +58,7 @@ export const useAggregatedPrices = () => {
   });
 };
 
-// Hook for proxy rotation logs - mock version
+// Hook for proxy rotation logs - mock version since table doesn't exist
 export const useProxyRotationLogs = () => {
   return useQuery({
     queryKey: ['proxy-rotation-logs'],
@@ -64,7 +69,7 @@ export const useProxyRotationLogs = () => {
   });
 };
 
-// Hook for AI recognition cache - mock version
+// Hook for AI recognition cache - mock version since table doesn't exist
 export const useAIRecognitionCache = () => {
   return useQuery({
     queryKey: ['ai-recognition-cache'],
@@ -75,7 +80,7 @@ export const useAIRecognitionCache = () => {
   });
 };
 
-// Hook for scraping schedules - mock version
+// Hook for scraping schedules - mock version since table doesn't exist
 export const useScrapingSchedules = () => {
   return useQuery({
     queryKey: ['scraping-schedules'],

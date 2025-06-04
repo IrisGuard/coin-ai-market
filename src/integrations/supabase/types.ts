@@ -400,6 +400,120 @@ export type Database = {
         }
         Relationships: []
       }
+      error_coins_knowledge: {
+        Row: {
+          ai_detection_markers: Json | null
+          common_mistakes: string[] | null
+          created_at: string
+          description: string
+          error_category: string
+          error_name: string
+          error_type: string
+          id: string
+          identification_techniques: string[] | null
+          rarity_score: number | null
+          reference_links: string[] | null
+          severity_level: number | null
+          technical_specifications: Json | null
+          updated_at: string
+        }
+        Insert: {
+          ai_detection_markers?: Json | null
+          common_mistakes?: string[] | null
+          created_at?: string
+          description: string
+          error_category: string
+          error_name: string
+          error_type: string
+          id?: string
+          identification_techniques?: string[] | null
+          rarity_score?: number | null
+          reference_links?: string[] | null
+          severity_level?: number | null
+          technical_specifications?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          ai_detection_markers?: Json | null
+          common_mistakes?: string[] | null
+          created_at?: string
+          description?: string
+          error_category?: string
+          error_name?: string
+          error_type?: string
+          id?: string
+          identification_techniques?: string[] | null
+          rarity_score?: number | null
+          reference_links?: string[] | null
+          severity_level?: number | null
+          technical_specifications?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      error_coins_market_data: {
+        Row: {
+          created_at: string
+          data_confidence: number | null
+          grade: string
+          id: string
+          knowledge_base_id: string | null
+          market_trend: string | null
+          market_value_avg: number | null
+          market_value_high: number | null
+          market_value_low: number | null
+          premium_percentage: number | null
+          source_references: string[] | null
+          static_coin_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_confidence?: number | null
+          grade: string
+          id?: string
+          knowledge_base_id?: string | null
+          market_trend?: string | null
+          market_value_avg?: number | null
+          market_value_high?: number | null
+          market_value_low?: number | null
+          premium_percentage?: number | null
+          source_references?: string[] | null
+          static_coin_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_confidence?: number | null
+          grade?: string
+          id?: string
+          knowledge_base_id?: string | null
+          market_trend?: string | null
+          market_value_avg?: number | null
+          market_value_high?: number | null
+          market_value_low?: number | null
+          premium_percentage?: number | null
+          source_references?: string[] | null
+          static_coin_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_coins_market_data_knowledge_base_id_fkey"
+            columns: ["knowledge_base_id"]
+            isOneToOne: false
+            referencedRelation: "error_coins_knowledge"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_coins_market_data_static_coin_id_fkey"
+            columns: ["static_coin_id"]
+            isOneToOne: false
+            referencedRelation: "static_coins_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           created_at: string | null
@@ -430,6 +544,42 @@ export type Database = {
           stack_trace?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      error_reference_sources: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_scraped: string | null
+          reliability_score: number | null
+          scraping_config: Json | null
+          source_name: string
+          source_type: string
+          source_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_scraped?: string | null
+          reliability_score?: number | null
+          scraping_config?: Json | null
+          source_name: string
+          source_type: string
+          source_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_scraped?: string | null
+          reliability_score?: number | null
+          scraping_config?: Json | null
+          source_name?: string
+          source_type?: string
+          source_url?: string
         }
         Relationships: []
       }
