@@ -29,24 +29,40 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       // Skip tenant detection for localhost
       if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Get default tenant for localhost
+        try {
+          const { data: tenantData, error } = await supabase
+            .from('marketplace_tenants')
+            .select('*')
+            .eq('domain', 'localhost')
+            .single();
+
+          if (!error && tenantData) {
+            setCurrentTenant(tenantData);
+          }
+        } catch (error) {
+          console.error('Error getting default tenant:', error);
+        }
         setIsLoading(false);
         return;
       }
 
       try {
-        const { data, error } = await supabase.rpc('get_tenant_from_domain', {
-          domain_name: hostname
-        });
+        // Use the RPC function to get tenant by domain
+        const { data: tenantId, error: rpcError } = await supabase
+          .rpc('get_tenant_from_domain', {
+            domain_name: hostname
+          });
 
-        if (!error && data) {
+        if (!rpcError && tenantId) {
           // Set tenant context
-          await supabase.rpc('set_tenant_context', { tenant_uuid: data });
+          await supabase.rpc('set_tenant_context', { tenant_uuid: tenantId });
           
           // Fetch full tenant data
           const { data: tenantData, error: tenantError } = await supabase
             .from('marketplace_tenants')
             .select('*')
-            .eq('id', data)
+            .eq('id', tenantId)
             .single();
 
           if (!tenantError && tenantData) {

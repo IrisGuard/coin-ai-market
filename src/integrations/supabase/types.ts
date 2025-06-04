@@ -376,8 +376,12 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          last_used: string | null
           name: string
           priority: number | null
+          rate_limit: number | null
+          success_rate: number | null
+          type: string | null
           url: string
         }
         Insert: {
@@ -385,8 +389,12 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          last_used?: string | null
           name: string
           priority?: number | null
+          rate_limit?: number | null
+          success_rate?: number | null
+          type?: string | null
           url: string
         }
         Update: {
@@ -394,8 +402,12 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          last_used?: string | null
           name?: string
           priority?: number | null
+          rate_limit?: number | null
+          success_rate?: number | null
+          type?: string | null
           url?: string
         }
         Relationships: []
@@ -458,6 +470,7 @@ export type Database = {
           grade: string
           id: string
           knowledge_base_id: string | null
+          last_sale_price: number | null
           market_trend: string | null
           market_value_avg: number | null
           market_value_high: number | null
@@ -473,6 +486,7 @@ export type Database = {
           grade: string
           id?: string
           knowledge_base_id?: string | null
+          last_sale_price?: number | null
           market_trend?: string | null
           market_value_avg?: number | null
           market_value_high?: number | null
@@ -488,6 +502,7 @@ export type Database = {
           grade?: string
           id?: string
           knowledge_base_id?: string | null
+          last_sale_price?: number | null
           market_trend?: string | null
           market_value_avg?: number | null
           market_value_high?: number | null
@@ -594,7 +609,9 @@ export type Database = {
           priority_score: number | null
           rate_limit_per_hour: number | null
           region_id: string | null
+          reliability_score: number | null
           requires_proxy: boolean | null
+          scraping_enabled: boolean | null
           source_name: string
           source_type: string
           supported_currencies: string[] | null
@@ -610,7 +627,9 @@ export type Database = {
           priority_score?: number | null
           rate_limit_per_hour?: number | null
           region_id?: string | null
+          reliability_score?: number | null
           requires_proxy?: boolean | null
+          scraping_enabled?: boolean | null
           source_name: string
           source_type: string
           supported_currencies?: string[] | null
@@ -626,7 +645,9 @@ export type Database = {
           priority_score?: number | null
           rate_limit_per_hour?: number | null
           region_id?: string | null
+          reliability_score?: number | null
           requires_proxy?: boolean | null
+          scraping_enabled?: boolean | null
           source_name?: string
           source_type?: string
           supported_currencies?: string[] | null
@@ -710,6 +731,36 @@ export type Database = {
           total_volume?: number | null
           updated_at?: string
           weekly_transactions?: number | null
+        }
+        Relationships: []
+      }
+      marketplace_tenants: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          is_active: boolean | null
+          name: string
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          settings?: Json | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -804,32 +855,38 @@ export type Database = {
       }
       scraping_jobs: {
         Row: {
+          completed_at: string | null
           created_at: string
           id: string
           job_type: string
           proxy_id: string | null
           result: Json | null
           source_id: string | null
+          started_at: string | null
           status: string | null
           target_url: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           id?: string
           job_type: string
           proxy_id?: string | null
           result?: Json | null
           source_id?: string | null
+          started_at?: string | null
           status?: string | null
           target_url: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           id?: string
           job_type?: string
           proxy_id?: string | null
           result?: Json | null
           source_id?: string | null
+          started_at?: string | null
           status?: string | null
           target_url?: string
         }
@@ -915,23 +972,29 @@ export type Database = {
       source_templates: {
         Row: {
           created_at: string
+          default_config: Json | null
           description: string | null
           id: string
           name: string
+          supported_features: string[] | null
           template_config: Json | null
         }
         Insert: {
           created_at?: string
+          default_config?: Json | null
           description?: string | null
           id?: string
           name: string
+          supported_features?: string[] | null
           template_config?: Json | null
         }
         Update: {
           created_at?: string
+          default_config?: Json | null
           description?: string | null
           id?: string
           name?: string
+          supported_features?: string[] | null
           template_config?: Json | null
         }
         Relationships: []
@@ -1085,8 +1148,10 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          last_used: string | null
           name: string
           success_rate: number | null
+          type: string | null
         }
         Insert: {
           config?: Json | null
@@ -1094,8 +1159,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          last_used?: string | null
           name: string
           success_rate?: number | null
+          type?: string | null
         }
         Update: {
           config?: Json | null
@@ -1103,8 +1170,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          last_used?: string | null
           name?: string
           success_rate?: number | null
+          type?: string | null
         }
         Relationships: []
       }
@@ -1113,7 +1182,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_tenant_from_domain: {
+        Args: { domain_name: string }
+        Returns: string
+      }
+      set_tenant_context: {
+        Args: { tenant_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
