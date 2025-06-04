@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Database, Activity, AlertTriangle, Download } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface ActivityLog {
@@ -23,14 +23,29 @@ const AdminSystemTab = () => {
 
   const fetchActivityLogs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('admin_activity_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setActivityLogs(data || []);
+      // Mock activity logs
+      const mockLogs = [
+        {
+          id: '1',
+          admin_user_id: 'admin1',
+          action: 'user_delete',
+          target_type: 'user',
+          target_id: 'user123',
+          details: { reason: 'Violated terms' },
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          admin_user_id: 'admin1',
+          action: 'coin_approve',
+          target_type: 'coin',
+          target_id: 'coin456',
+          details: { grade: 'MS65' },
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setActivityLogs(mockLogs);
     } catch (error) {
       console.error('Error fetching activity logs:', error);
       setActivityLogs([]);
@@ -46,18 +61,15 @@ const AdminSystemTab = () => {
       
       switch (type) {
         case 'users':
-          const { data: users } = await supabase.from('profiles').select('*');
-          data = users;
+          data = [{ id: '1', email: 'user@example.com', name: 'User' }];
           filename = 'users_export.json';
           break;
         case 'coins':
-          const { data: coins } = await supabase.from('coins').select('*');
-          data = coins;
+          data = [{ id: '1', name: '1794 Liberty Dollar', price: 10000 }];
           filename = 'coins_export.json';
           break;
         case 'transactions':
-          const { data: transactions } = await supabase.from('transactions').select('*');
-          data = transactions;
+          data = [{ id: '1', amount: 1500, status: 'completed' }];
           filename = 'transactions_export.json';
           break;
         default:
@@ -74,12 +86,6 @@ const AdminSystemTab = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'export_data',
-        target_type: type,
-        details: { timestamp: new Date().toISOString() }
-      });
-
       toast({
         title: "Success",
         description: `${type} data exported successfully`,
@@ -95,12 +101,6 @@ const AdminSystemTab = () => {
 
   const handleSystemMaintenance = async (action: string) => {
     try {
-      await supabase.rpc('log_admin_activity', {
-        action_type: `system_${action}`,
-        target_type: 'system',
-        details: { timestamp: new Date().toISOString() }
-      });
-
       toast({
         title: "Success",
         description: `System ${action} initiated`,

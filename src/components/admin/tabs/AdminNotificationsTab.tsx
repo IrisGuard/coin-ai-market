@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, Bell, Users } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Notification {
@@ -28,14 +28,27 @@ const AdminNotificationsTab = () => {
 
   const fetchNotifications = async () => {
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setNotifications(data || []);
+      // Mock notifications data
+      const mockNotifications = [
+        {
+          id: '1',
+          user_id: 'user1',
+          message: 'Welcome to CoinVision AI!',
+          type: 'announcement',
+          is_read: false,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          user_id: 'user2',
+          message: 'Your coin has been verified!',
+          type: 'system',
+          is_read: true,
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setNotifications(mockNotifications);
     } catch (error) {
       toast({
         title: "Error",
@@ -51,54 +64,17 @@ const AdminNotificationsTab = () => {
     if (!newMessage.trim()) return;
 
     try {
-      if (targetUser === 'all') {
-        // Send to all users
-        const { data: users, error: usersError } = await supabase
-          .from('profiles')
-          .select('id');
+      const newNotification = {
+        id: Date.now().toString(),
+        user_id: targetUser === 'all' ? 'all' : targetUser,
+        message: newMessage,
+        type: messageType,
+        is_read: false,
+        created_at: new Date().toISOString()
+      };
 
-        if (usersError) throw usersError;
-
-        const notifications = users.map(user => ({
-          user_id: user.id,
-          message: newMessage,
-          type: messageType,
-          is_read: false,
-          created_at: new Date().toISOString()
-        }));
-
-        const { error } = await supabase
-          .from('notifications')
-          .insert(notifications);
-
-        if (error) throw error;
-      } else {
-        // Send to specific user
-        const { error } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: targetUser,
-            message: newMessage,
-            type: messageType,
-            is_read: false
-          });
-
-        if (error) throw error;
-      }
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'send_notification',
-        target_type: 'notification',
-        details: { 
-          message: newMessage, 
-          type: messageType, 
-          target: targetUser,
-          timestamp: new Date().toISOString() 
-        }
-      });
-
+      setNotifications([newNotification, ...notifications]);
       setNewMessage('');
-      fetchNotifications();
       
       toast({
         title: "Success",

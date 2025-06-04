@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Coins, DollarSign, TrendingUp, Activity } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Stats {
@@ -20,22 +20,22 @@ const AdminAnalyticsTab = () => {
 
   const fetchStats = async () => {
     try {
-      const { data, error } = await supabase
-        .from('marketplace_stats')
-        .select('*')
-        .single();
-
-      if (error) throw error;
-      setStats(data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      // Fallback to mock data if the view doesn't exist
-      setStats({
+      // Mock stats data
+      const mockStats = {
         listed_coins: 1245,
         active_auctions: 126,
         registered_users: 45729,
         total_volume: 1200000,
         weekly_transactions: 342
+      };
+      
+      setStats(mockStats);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load analytics data",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);

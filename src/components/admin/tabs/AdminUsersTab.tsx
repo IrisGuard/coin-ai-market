@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trash2, Edit, Search, UserCheck, UserX } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface User {
@@ -25,13 +25,26 @@ const AdminUsersTab = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setUsers(data || []);
+      const mockUsers = [
+        {
+          id: '1',
+          email: 'john@example.com',
+          name: 'John Smith',
+          avatar_url: '',
+          reputation: 85,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          email: 'jane@example.com',
+          name: 'Jane Doe',
+          avatar_url: '',
+          reputation: 92,
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setUsers(mockUsers);
     } catch (error) {
       toast({
         title: "Error",
@@ -47,20 +60,6 @@ const AdminUsersTab = () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'delete_user',
-        target_type: 'user',
-        target_id: userId,
-        details: { timestamp: new Date().toISOString() }
-      });
-
       setUsers(users.filter(user => user.id !== userId));
       
       toast({
@@ -78,20 +77,6 @@ const AdminUsersTab = () => {
 
   const handleUpdateReputation = async (userId: string, newReputation: number) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ reputation: newReputation })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'update_user_reputation',
-        target_type: 'user',
-        target_id: userId,
-        details: { new_reputation: newReputation, timestamp: new Date().toISOString() }
-      });
-
       setUsers(users.map(user => 
         user.id === userId ? { ...user, reputation: newReputation } : user
       ));

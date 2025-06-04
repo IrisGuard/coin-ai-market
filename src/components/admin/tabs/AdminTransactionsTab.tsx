@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, DollarSign } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Transaction {
@@ -26,13 +26,31 @@ const AdminTransactionsTab = () => {
 
   const fetchTransactions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setTransactions(data || []);
+      // Mock transactions data
+      const mockTransactions = [
+        {
+          id: '1',
+          coin_id: 'coin1',
+          seller_id: 'user1',
+          buyer_id: 'user2',
+          amount: 1500,
+          status: 'completed',
+          transaction_type: 'purchase',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          coin_id: 'coin2',
+          seller_id: 'user2',
+          buyer_id: 'user3',
+          amount: 2500,
+          status: 'pending',
+          transaction_type: 'auction',
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setTransactions(mockTransactions);
     } catch (error) {
       toast({
         title: "Error",
@@ -46,20 +64,6 @@ const AdminTransactionsTab = () => {
 
   const handleUpdateTransactionStatus = async (transactionId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from('transactions')
-        .update({ status })
-        .eq('id', transactionId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'update_transaction_status',
-        target_type: 'transaction',
-        target_id: transactionId,
-        details: { new_status: status, timestamp: new Date().toISOString() }
-      });
-
       setTransactions(transactions.map(transaction => 
         transaction.id === transactionId ? { ...transaction, status } : transaction
       ));

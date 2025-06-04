@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Key, Plus, Eye, EyeOff, Trash2, Edit } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface ApiKey {
@@ -38,13 +38,31 @@ const AdminApiKeysTab = () => {
 
   const fetchApiKeys = async () => {
     try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setApiKeys(data || []);
+      // Mock API keys data
+      const mockApiKeys = [
+        {
+          id: '1',
+          key_name: 'OPENAI_API_KEY',
+          encrypted_value: btoa('sk-proj-test-key-123'),
+          description: 'OpenAI API key for coin analysis',
+          is_active: true,
+          created_by: 'admin',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          key_name: 'STRIPE_SECRET_KEY',
+          encrypted_value: btoa('sk_test_123456789'),
+          description: 'Stripe secret key for payments',
+          is_active: true,
+          created_by: 'admin',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      
+      setApiKeys(mockApiKeys);
     } catch (error) {
       console.error('Error fetching API keys:', error);
       setApiKeys([]);
@@ -64,22 +82,18 @@ const AdminApiKeysTab = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .insert({
-          key_name: newKey.key_name,
-          encrypted_value: btoa(newKey.key_value), // Simple base64 encoding
-          description: newKey.description || null,
-          is_active: true
-        });
+      const mockApiKey = {
+        id: Date.now().toString(),
+        key_name: newKey.key_name,
+        encrypted_value: btoa(newKey.key_value),
+        description: newKey.description || null,
+        is_active: true,
+        created_by: 'admin',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'create_api_key',
-        target_type: 'api_key',
-        details: { key_name: newKey.key_name }
-      });
+      setApiKeys([...apiKeys, mockApiKey]);
 
       toast({
         title: "Success",
@@ -88,7 +102,6 @@ const AdminApiKeysTab = () => {
 
       setNewKey({ key_name: '', key_value: '', description: '' });
       setShowCreateDialog(false);
-      fetchApiKeys();
     } catch (error) {
       toast({
         title: "Error",
@@ -100,26 +113,14 @@ const AdminApiKeysTab = () => {
 
   const toggleKeyStatus = async (keyId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .update({ is_active: !currentStatus, updated_at: new Date().toISOString() })
-        .eq('id', keyId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'toggle_api_key_status',
-        target_type: 'api_key',
-        target_id: keyId,
-        details: { new_status: !currentStatus }
-      });
+      setApiKeys(apiKeys.map(key => 
+        key.id === keyId ? { ...key, is_active: !currentStatus, updated_at: new Date().toISOString() } : key
+      ));
 
       toast({
         title: "Success",
         description: `API key ${!currentStatus ? 'activated' : 'deactivated'}`,
       });
-
-      fetchApiKeys();
     } catch (error) {
       toast({
         title: "Error",
@@ -135,26 +136,12 @@ const AdminApiKeysTab = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', keyId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'delete_api_key',
-        target_type: 'api_key',
-        target_id: keyId,
-        details: { key_name: keyName }
-      });
+      setApiKeys(apiKeys.filter(key => key.id !== keyId));
 
       toast({
         title: "Success",
         description: "API key deleted successfully",
       });
-
-      fetchApiKeys();
     } catch (error) {
       toast({
         title: "Error",
@@ -176,7 +163,7 @@ const AdminApiKeysTab = () => {
 
   const getDecryptedValue = (encryptedValue: string) => {
     try {
-      return atob(encryptedValue); // Simple base64 decoding
+      return atob(encryptedValue);
     } catch {
       return '[Invalid key]';
     }

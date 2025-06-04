@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,23 +122,8 @@ const CoinBidForm = ({
     try {
       setIsSubmitting(true);
       
-      // Insert the bid into the database
-      const { error } = await supabase
-        .from('bids')
-        .insert({
-          coin_id: coinId,
-          user_id: user!.id,
-          amount,
-          created_at: new Date().toISOString()
-        });
-      
-      if (error) throw error;
-      
-      // Update coin price
-      await supabase
-        .from('coins')
-        .update({ price: amount })
-        .eq('id', coinId);
+      // Place bid using mock API
+      await mockApi.placeBid(coinId, user!.id, amount);
       
       toast({
         title: "Bid Placed Successfully",

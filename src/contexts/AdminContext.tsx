@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface AdminContextType {
@@ -19,21 +19,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const checkAdminStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAdmin(false);
-        return false;
-      }
-
-      const { data } = await supabase
-        .from('admin_roles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      const adminStatus = !!data;
-      setIsAdmin(adminStatus);
-      return adminStatus;
+      // Mock admin check - in production this would check against real admin roles
+      const isAdminUser = localStorage.getItem('mock_admin_authenticated') === 'true';
+      setIsAdmin(isAdminUser);
+      return isAdminUser;
     } catch (error) {
       setIsAdmin(false);
       return false;
@@ -42,34 +31,21 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogin = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      const adminStatus = await checkAdminStatus();
-      if (adminStatus) {
+      // Mock admin login - in production this would verify against real admin credentials
+      if (email === 'admin@coinvision.com' && password === 'admin123') {
         setIsAdminAuthenticated(true);
+        setIsAdmin(true);
+        localStorage.setItem('mock_admin_authenticated', 'true');
         
-        // Log admin login activity
-        await supabase.rpc('log_admin_activity', {
-          action_type: 'admin_login',
-          target_type: 'system',
-          details: { timestamp: new Date().toISOString() }
-        });
-
         toast({
           title: "Admin Access Granted",
           description: "Welcome to the admin panel",
         });
         return true;
       } else {
-        await supabase.auth.signOut();
         toast({
           title: "Access Denied",
-          description: "You don't have admin privileges",
+          description: "Invalid admin credentials",
           variant: "destructive",
         });
         return false;
@@ -86,11 +62,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogout = async () => {
     try {
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'admin_logout',
-        target_type: 'system',
-        details: { timestamp: new Date().toISOString() }
-      });
+      localStorage.removeItem('mock_admin_authenticated');
     } catch (error) {
       console.error('Error logging admin logout:', error);
     }

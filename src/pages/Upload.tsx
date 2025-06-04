@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import CoinUploader from '@/components/CoinUploader';
 import { API_BASE_URL, API_ENDPOINTS } from '@/config/api';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 
 const Upload = () => {
   const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
@@ -44,8 +44,8 @@ const Upload = () => {
 
     const checkAuthStatus = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        setAuthStatus(data.session ? 'authenticated' : 'unauthenticated');
+        const user = await mockApi.getCurrentUser();
+        setAuthStatus(user ? 'authenticated' : 'unauthenticated');
       } catch (error) {
         console.error('Error checking auth status:', error);
         setAuthStatus('unauthenticated');

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Clock, DollarSign, Award, Rotate3d, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 type CoinCardProps = {
@@ -50,14 +50,8 @@ const CoinCard = ({
     if (!isAuthenticated || !user) return;
     
     try {
-      const { data } = await supabase
-        .from('user_favorites')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('coin_id', id)
-        .single();
-      
-      setIsFavorite(!!data);
+      const isFav = await mockApi.checkFavorite(user.id, id);
+      setIsFavorite(isFav);
     } catch (error) {
       console.error('Error checking favorite status:', error);
     }
@@ -79,11 +73,7 @@ const CoinCard = ({
     try {
       if (isFavorite) {
         // Remove from favorites
-        await supabase
-          .from('user_favorites')
-          .delete()
-          .eq('user_id', user!.id)
-          .eq('coin_id', id);
+        await mockApi.removeFavorite(user!.id, id);
         
         setFavoritesCount(prev => Math.max(0, prev - 1));
         setIsFavorite(false);
@@ -94,13 +84,7 @@ const CoinCard = ({
         });
       } else {
         // Add to favorites
-        await supabase
-          .from('user_favorites')
-          .insert({
-            user_id: user!.id,
-            coin_id: id,
-            created_at: new Date().toISOString()
-          });
+        await mockApi.addFavorite(user!.id, id);
         
         setFavoritesCount(prev => prev + 1);
         setIsFavorite(true);
@@ -110,12 +94,6 @@ const CoinCard = ({
           description: `${name} has been added to your favorites`,
         });
       }
-      
-      // Update the favorites count in the coins table
-      await supabase
-        .from('coins')
-        .update({ favorites: favoritesCount })
-        .eq('id', id);
         
     } catch (error) {
       console.error('Error updating favorite:', error);
@@ -223,96 +201,53 @@ const CoinCard = ({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <Rotate3d size={16} className="text-coin-purple" />
+                  <Heart 
+                    size={16} 
+                    className={`transition-colors ${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
+                  />
                 </motion.button>
               </div>
+            </div>
+            
+            <div className="p-4">
+              <h3 className="font-bold text-lg text-coin-blue truncate">{name}</h3>
+              <p className="text-gray-600 text-sm mb-2">{year} • Grade: {grade}</p>
               
-              <motion.button 
-                className="absolute top-2 right-14 p-1 rounded-full"
-                onClick={toggleFavorite}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Heart 
-                  size={16} 
-                  className={`${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-                />
-              </motion.button>
-            </div>
-            <div className="p-4 glassmorphism mt-[-1px] rounded-t-none">
-              <h3 className="text-lg font-medium text-coin-dark truncate">{name}</h3>
-              <div className="text-sm text-gray-500 mt-1 flex items-center">
-                <span>{year}</span>
-                <span className="mx-2">•</span>
-                <span className="font-medium text-coin-blue">{grade}</span>
-              </div>
-              <div className="mt-3 flex justify-between items-center">
-                <div className="text-lg font-semibold text-coin-purple flex items-center">
-                  <DollarSign size={16} className="mr-1" />
-                  {price.toFixed(2)}
-                </div>
-                <motion.button 
-                  className="text-xs font-medium bg-gradient-to-r from-coin-purple to-coin-skyblue text-white px-3 py-1 rounded-full hover:bg-opacity-90 transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isAuction ? 'Bid Now' : 'Buy Now'}
-                </motion.button>
-              </div>
-            </div>
-          </div>
-          <div className="flip-card-back rounded-xl">
-            <div className="h-full flex flex-col justify-between p-4 bg-gradient-to-br from-coin-darkpurple/90 to-coin-skyblue/90 text-white rounded-xl">
-              <div>
-                <h3 className="text-xl font-bold mb-2">{name} ({year})</h3>
-                <p className="text-sm opacity-90">Grade: <span className="font-semibold">{grade}</span></p>
-                <div className="mt-3 flex items-center">
-                  <Award size={16} className="mr-1" />
-                  <span className="text-sm">{rarity} Rarity</span>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <DollarSign size={16} className="text-coin-purple" />
+                  <span className="font-bold text-coin-purple">${price.toLocaleString()}</span>
                 </div>
                 
-                {/* Back image */}
-                {backImage && (
-                  <div className="mt-3 bg-white/30 rounded-lg p-2 backdrop-blur-sm">
-                    <img 
-                      src={backImage} 
-                      alt={`${name} reverse`}
-                      className="w-full h-24 object-contain mix-blend-darken"
-                    />
-                  </div>
-                )}
+                <div className="flex items-center space-x-1">
+                  <Heart size={14} className="text-red-400" />
+                  <span className="text-xs text-gray-500">{favoritesCount}</span>
+                </div>
               </div>
               
-              <div className="mt-auto">
-                {isAuction ? (
-                  <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm">
-                    <p className="text-sm font-medium">Auction ending in:</p>
-                    <p className="text-lg font-bold">{timeLeft}</p>
-                    <div className="mt-2 text-center">
-                      <motion.button 
-                        className="w-full bg-white text-coin-darkpurple font-medium py-1.5 px-3 rounded-full text-sm hover:bg-opacity-90 transition-all"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        Place a Bid
-                      </motion.button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm">
-                    <p className="text-sm font-medium">Buy it now:</p>
-                    <p className="text-lg font-bold">${price.toFixed(2)}</p>
-                    <div className="mt-2 text-center">
-                      <motion.button 
-                        className="w-full bg-white text-coin-darkpurple font-medium py-1.5 px-3 rounded-full text-sm hover:bg-opacity-90 transition-all"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        Add to Cart
-                      </motion.button>
-                    </div>
-                  </div>
-                )}
+              {isAuction && (
+                <div className="mt-2 text-xs text-coin-orange font-medium">
+                  Auction ends in {timeLeft}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flip-card-back">
+            <div className="relative overflow-hidden">
+              <motion.img 
+                src={backImage} 
+                alt={`${name} ${year} reverse`} 
+                className="w-full h-48 object-contain p-4 bg-gradient-to-b from-gray-100 to-white"
+              />
+            </div>
+            
+            <div className="p-4">
+              <h3 className="font-bold text-lg text-coin-blue">Reverse Side</h3>
+              <p className="text-gray-600 text-sm">{name} ({year})</p>
+              
+              <div className="mt-2">
+                <span className={getRarityClass(rarity)}>{rarity}</span>
               </div>
             </div>
           </div>

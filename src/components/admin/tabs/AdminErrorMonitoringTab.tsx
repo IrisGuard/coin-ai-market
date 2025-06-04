@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Bug, RefreshCw, Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface ErrorLog {
@@ -42,14 +42,21 @@ const AdminErrorMonitoringTab = () => {
 
   const fetchErrorLogs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('error_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setErrorLogs(data || []);
+      // Mock error logs
+      const mockErrorLogs = [
+        {
+          id: '1',
+          error_type: 'runtime',
+          message: 'Cannot read property of undefined',
+          stack_trace: 'Error: Cannot read property...\n  at Component.render',
+          user_id: 'user1',
+          page_url: '/coins/123',
+          user_agent: 'Mozilla/5.0...',
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setErrorLogs(mockErrorLogs);
     } catch (error) {
       console.error('Error fetching error logs:', error);
       setErrorLogs([]);
@@ -58,14 +65,22 @@ const AdminErrorMonitoringTab = () => {
 
   const fetchConsoleErrors = async () => {
     try {
-      const { data, error } = await supabase
-        .from('console_errors')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setConsoleErrors(data || []);
+      // Mock console errors
+      const mockConsoleErrors = [
+        {
+          id: '1',
+          error_level: 'error',
+          message: 'Failed to load resource',
+          source_file: 'app.js',
+          line_number: 123,
+          column_number: 45,
+          user_id: 'user1',
+          session_id: 'session123',
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setConsoleErrors(mockConsoleErrors);
     } catch (error) {
       console.error('Error fetching console errors:', error);
       setConsoleErrors([]);
@@ -74,25 +89,12 @@ const AdminErrorMonitoringTab = () => {
 
   const clearErrorLogs = async () => {
     try {
-      const { error } = await supabase
-        .from('error_logs')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'clear_error_logs',
-        target_type: 'system',
-        details: { timestamp: new Date().toISOString() }
-      });
-
+      setErrorLogs([]);
+      
       toast({
         title: "Success",
         description: "Error logs cleared successfully",
       });
-      
-      fetchErrorLogs();
     } catch (error) {
       toast({
         title: "Error",
@@ -104,25 +106,12 @@ const AdminErrorMonitoringTab = () => {
 
   const clearConsoleErrors = async () => {
     try {
-      const { error } = await supabase
-        .from('console_errors')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'clear_console_errors',
-        target_type: 'system',
-        details: { timestamp: new Date().toISOString() }
-      });
-
+      setConsoleErrors([]);
+      
       toast({
         title: "Success",
         description: "Console errors cleared successfully",
       });
-      
-      fetchConsoleErrors();
     } catch (error) {
       toast({
         title: "Error",

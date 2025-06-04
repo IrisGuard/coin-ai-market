@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Edit, Search, Star, Check, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { mockApi } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 
 interface Coin {
@@ -31,13 +31,37 @@ const AdminCoinsTab = () => {
 
   const fetchCoins = async () => {
     try {
-      const { data, error } = await supabase
-        .from('coins')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCoins(data || []);
+      // Mock coins data
+      const mockCoins = [
+        {
+          id: '1',
+          name: '1794 Liberty Dollar',
+          year: 1794,
+          price: 10000000,
+          rarity: 'Ultra Rare',
+          grade: 'SP66',
+          image: 'https://images.unsplash.com/photo-1541597455068-49e3562bdfa4?w=300',
+          featured: true,
+          authentication_status: 'verified',
+          user_id: 'user1',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: '1933 Double Eagle',
+          year: 1933,
+          price: 18900000,
+          rarity: 'Ultra Rare',
+          grade: 'MS65',
+          image: 'https://images.unsplash.com/photo-1541597455068-49e3562bdfa4?w=300',
+          featured: false,
+          authentication_status: 'pending',
+          user_id: 'user2',
+          created_at: new Date().toISOString()
+        }
+      ];
+      
+      setCoins(mockCoins);
     } catch (error) {
       toast({
         title: "Error",
@@ -53,20 +77,6 @@ const AdminCoinsTab = () => {
     if (!confirm('Are you sure you want to delete this coin?')) return;
 
     try {
-      const { error } = await supabase
-        .from('coins')
-        .delete()
-        .eq('id', coinId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'delete_coin',
-        target_type: 'coin',
-        target_id: coinId,
-        details: { timestamp: new Date().toISOString() }
-      });
-
       setCoins(coins.filter(coin => coin.id !== coinId));
       
       toast({
@@ -84,20 +94,6 @@ const AdminCoinsTab = () => {
 
   const handleUpdateCoinStatus = async (coinId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from('coins')
-        .update({ authentication_status: status })
-        .eq('id', coinId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: 'update_coin_status',
-        target_type: 'coin',
-        target_id: coinId,
-        details: { new_status: status, timestamp: new Date().toISOString() }
-      });
-
       setCoins(coins.map(coin => 
         coin.id === coinId ? { ...coin, authentication_status: status } : coin
       ));
@@ -117,20 +113,6 @@ const AdminCoinsTab = () => {
 
   const handleToggleFeatured = async (coinId: string, featured: boolean) => {
     try {
-      const { error } = await supabase
-        .from('coins')
-        .update({ featured })
-        .eq('id', coinId);
-
-      if (error) throw error;
-
-      await supabase.rpc('log_admin_activity', {
-        action_type: featured ? 'feature_coin' : 'unfeature_coin',
-        target_type: 'coin',
-        target_id: coinId,
-        details: { timestamp: new Date().toISOString() }
-      });
-
       setCoins(coins.map(coin => 
         coin.id === coinId ? { ...coin, featured } : coin
       ));
@@ -204,7 +186,7 @@ const AdminCoinsTab = () => {
                   <div>
                     <div className="font-medium">{coin.name}</div>
                     <div className="text-sm text-gray-500">
-                      {coin.year} • Grade: {coin.grade} • ${coin.price}
+                      {coin.year} • Grade: {coin.grade} • ${coin.price.toLocaleString()}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge 
