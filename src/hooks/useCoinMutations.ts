@@ -17,6 +17,10 @@ export const useCreateCoin = () => {
       country?: string;
       denomination?: string;
       description?: string;
+      composition?: string;
+      diameter?: number;
+      weight?: number;
+      mint?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');

@@ -62,7 +62,9 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({
     e.preventDefault();
     const selectedCategory = categories.find(c => c.id === formData.category_id);
     createApiKey.mutate({
-      ...formData,
+      key_name: formData.name,
+      encrypted_value: formData.value,
+      description: formData.description,
       category_id: formData.category_id || null
     }, {
       onSuccess: () => {

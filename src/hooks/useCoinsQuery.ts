@@ -12,17 +12,18 @@ export const useCoins = () => {
           .from('coins')
           .select(`
             *,
-            profiles!coins_user_id_fkey (
+            profiles!inner(
               id,
               name,
               reputation,
               verified_dealer
             ),
-            bids (
+            bids(
+              id,
               amount,
               user_id,
               created_at,
-              profiles!bids_user_id_fkey (name)
+              profiles!inner(name)
             )
           `)
           .eq('authentication_status', 'verified')
@@ -36,17 +37,16 @@ export const useCoins = () => {
         // Transform the data to match the Coin interface
         const transformedData = data?.map(coin => ({
           ...coin,
-          profiles: coin.profiles ? {
-            id: coin.profiles.id || '',
-            name: coin.profiles.name || '',
-            reputation: coin.profiles.reputation || 0,
-            verified_dealer: coin.profiles.verified_dealer || false
-          } : {
+          profiles: coin.profiles || {
             id: '',
             name: '',
             reputation: 0,
             verified_dealer: false
-          }
+          },
+          bids: coin.bids?.map(bid => ({
+            ...bid,
+            profiles: bid.profiles || { name: '' }
+          })) || []
         })) || [];
         
         return transformedData as Coin[];
@@ -67,19 +67,19 @@ export const useCoin = (id: string) => {
           .from('coins')
           .select(`
             *,
-            profiles!coins_user_id_fkey (
+            profiles!inner(
               id,
               name,
               reputation,
               verified_dealer,
               avatar_url
             ),
-            bids (
+            bids(
               id,
               amount,
               user_id,
               created_at,
-              profiles!bids_user_id_fkey (name)
+              profiles!inner(name)
             )
           `)
           .eq('id', id)
@@ -93,18 +93,16 @@ export const useCoin = (id: string) => {
         // Transform the data to match the Coin interface
         const transformedData = {
           ...data,
-          profiles: data.profiles ? {
-            id: data.profiles.id || '',
-            name: data.profiles.name || '',
-            reputation: data.profiles.reputation || 0,
-            verified_dealer: data.profiles.verified_dealer || false,
-            avatar_url: data.profiles.avatar_url || undefined
-          } : {
+          profiles: data.profiles || {
             id: '',
             name: '',
             reputation: 0,
             verified_dealer: false
-          }
+          },
+          bids: data.bids?.map(bid => ({
+            ...bid,
+            profiles: bid.profiles || { name: '' }
+          })) || []
         };
         
         return transformedData as Coin;

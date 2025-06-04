@@ -22,31 +22,34 @@ const TenantDashboard = () => {
   
   const [newTenant, setNewTenant] = useState({
     name: '',
-    description: '',
-    tenant_slug: '',
-    subdomain: '',
-    primary_color: '#1F2937',
-    secondary_color: '#3B82F6'
+    domain: '',
+    settings: {
+      description: '',
+      primary_color: '#1F2937',
+      secondary_color: '#3B82F6'
+    }
   });
   
   const [newDomain, setNewDomain] = useState('');
 
   const handleCreateTenant = async () => {
-    if (!newTenant.name || !newTenant.subdomain) return;
+    if (!newTenant.name || !newTenant.domain) return;
     
     await createTenant.mutateAsync({
-      ...newTenant,
-      tenant_slug: newTenant.subdomain
+      name: newTenant.name,
+      domain: newTenant.domain,
+      settings: newTenant.settings
     });
     
     setIsCreateOpen(false);
     setNewTenant({
       name: '',
-      description: '',
-      tenant_slug: '',
-      subdomain: '',
-      primary_color: '#1F2937',
-      secondary_color: '#3B82F6'
+      domain: '',
+      settings: {
+        description: '',
+        primary_color: '#1F2937',
+        secondary_color: '#3B82F6'
+      }
     });
   };
 
@@ -108,23 +111,23 @@ const TenantDashboard = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="subdomain">Subdomain</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    id="subdomain"
-                    value={newTenant.subdomain}
-                    onChange={(e) => setNewTenant({ ...newTenant, subdomain: e.target.value.toLowerCase() })}
-                    placeholder="mycoinshop"
-                  />
-                  <span className="text-sm text-gray-500">.coincollector.com</span>
-                </div>
+                <Label htmlFor="domain">Domain</Label>
+                <Input
+                  id="domain"
+                  value={newTenant.domain}
+                  onChange={(e) => setNewTenant({ ...newTenant, domain: e.target.value.toLowerCase() })}
+                  placeholder="mycoinshop.com"
+                />
               </div>
               <div>
                 <Label htmlFor="description">Description (Optional)</Label>
                 <Textarea
                   id="description"
-                  value={newTenant.description}
-                  onChange={(e) => setNewTenant({ ...newTenant, description: e.target.value })}
+                  value={newTenant.settings.description}
+                  onChange={(e) => setNewTenant({ 
+                    ...newTenant, 
+                    settings: { ...newTenant.settings, description: e.target.value }
+                  })}
                   placeholder="Premium rare coins and collectibles"
                 />
               </div>
@@ -134,8 +137,11 @@ const TenantDashboard = () => {
                   <Input
                     id="primary-color"
                     type="color"
-                    value={newTenant.primary_color}
-                    onChange={(e) => setNewTenant({ ...newTenant, primary_color: e.target.value })}
+                    value={newTenant.settings.primary_color}
+                    onChange={(e) => setNewTenant({ 
+                      ...newTenant, 
+                      settings: { ...newTenant.settings, primary_color: e.target.value }
+                    })}
                   />
                 </div>
                 <div>
@@ -143,8 +149,11 @@ const TenantDashboard = () => {
                   <Input
                     id="secondary-color"
                     type="color"
-                    value={newTenant.secondary_color}
-                    onChange={(e) => setNewTenant({ ...newTenant, secondary_color: e.target.value })}
+                    value={newTenant.settings.secondary_color}
+                    onChange={(e) => setNewTenant({ 
+                      ...newTenant, 
+                      settings: { ...newTenant.settings, secondary_color: e.target.value }
+                    })}
                   />
                 </div>
               </div>
@@ -170,14 +179,14 @@ const TenantDashboard = () => {
                   <div className="flex items-center space-x-3">
                     <div 
                       className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: tenant.primary_color }}
+                      style={{ backgroundColor: tenant.settings?.primary_color || '#1F2937' }}
                     >
                       <Building2 className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{tenant.name}</CardTitle>
                       <CardDescription className="text-sm">
-                        {tenant.subdomain}.coincollector.com
+                        {tenant.domain}
                       </CardDescription>
                     </div>
                   </div>
@@ -187,18 +196,18 @@ const TenantDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {tenant.description && (
-                  <p className="text-sm text-gray-600 mb-4">{tenant.description}</p>
+                {tenant.settings?.description && (
+                  <p className="text-sm text-gray-600 mb-4">{tenant.settings.description}</p>
                 )}
                 
                 <div className="flex items-center space-x-2 mb-4">
                   <div 
                     className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: tenant.primary_color }}
+                    style={{ backgroundColor: tenant.settings?.primary_color || '#1F2937' }}
                   ></div>
                   <div 
                     className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: tenant.secondary_color }}
+                    style={{ backgroundColor: tenant.settings?.secondary_color || '#3B82F6' }}
                   ></div>
                   <span className="text-xs text-gray-500">Brand Colors</span>
                 </div>

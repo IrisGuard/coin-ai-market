@@ -11,7 +11,7 @@ export const useAdminCoins = () => {
         .from('coins')
         .select(`
           *,
-          profiles!coins_user_id_fkey (
+          profiles!inner(
             name,
             email
           )
@@ -77,7 +77,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          profiles!notifications_user_id_fkey (
+          profiles!inner(
             name,
             email
           )
@@ -98,15 +98,15 @@ export const useTransactions = () => {
         .from('transactions')
         .select(`
           *,
-          seller:profiles!transactions_seller_id_fkey (
+          seller:profiles!transactions_seller_id_fkey(
             name,
             email
           ),
-          buyer:profiles!transactions_buyer_id_fkey (
+          buyer:profiles!transactions_buyer_id_fkey(
             name,
             email
           ),
-          coins!transactions_coin_id_fkey (
+          coins!inner(
             name,
             image
           )
@@ -127,10 +127,10 @@ export const useScrapingJobs = () => {
         .from('scraping_jobs')
         .select(`
           *,
-          data_sources!scraping_jobs_source_id_fkey (
+          data_sources!scraping_jobs_source_id_fkey(
             name
           ),
-          vpn_proxies!scraping_jobs_proxy_id_fkey (
+          vpn_proxies!scraping_jobs_proxy_id_fkey(
             name,
             country_code
           )
@@ -152,7 +152,7 @@ export const useMarketplaceStats = () => {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       if (error) {
         // Return default stats if no data exists
@@ -164,7 +164,13 @@ export const useMarketplaceStats = () => {
           weekly_transactions: 0
         };
       }
-      return data;
+      return data || {
+        registered_users: 0,
+        listed_coins: 0,
+        active_auctions: 0,
+        total_volume: 0,
+        weekly_transactions: 0
+      };
     },
   });
 };
