@@ -11,7 +11,9 @@ import {
   BarChart3, 
   Settings, 
   LogOut,
-  Shield
+  Shield,
+  Bug,
+  Key
 } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 import AdminUsersTab from './tabs/AdminUsersTab';
@@ -20,6 +22,8 @@ import AdminTransactionsTab from './tabs/AdminTransactionsTab';
 import AdminNotificationsTab from './tabs/AdminNotificationsTab';
 import AdminAnalyticsTab from './tabs/AdminAnalyticsTab';
 import AdminSystemTab from './tabs/AdminSystemTab';
+import AdminErrorMonitoringTab from './tabs/AdminErrorMonitoringTab';
+import AdminApiKeysTab from './tabs/AdminApiKeysTab';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -62,7 +66,7 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Users
@@ -82,6 +86,14 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="errors" className="flex items-center gap-2">
+              <Bug className="h-4 w-4" />
+              Errors
+            </TabsTrigger>
+            <TabsTrigger value="api-keys" className="flex items-center gap-2">
+              <Key className="h-4 w-4" />
+              API Keys
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -104,6 +116,12 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             </TabsContent>
             <TabsContent value="analytics">
               <AdminAnalyticsTab />
+            </TabsContent>
+            <TabsContent value="errors">
+              <AdminErrorMonitoringTab />
+            </TabsContent>
+            <TabsContent value="api-keys">
+              <AdminApiKeysTab />
             </TabsContent>
             <TabsContent value="system">
               <AdminSystemTab />

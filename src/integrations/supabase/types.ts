@@ -69,6 +69,39 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          encrypted_value: string
+          id: string
+          is_active: boolean
+          key_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          encrypted_value: string
+          id?: string
+          is_active?: boolean
+          key_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          encrypted_value?: string
+          id?: string
+          is_active?: boolean
+          key_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bids: {
         Row: {
           amount: number
@@ -248,6 +281,75 @@ export type Database = {
           },
         ]
       }
+      console_errors: {
+        Row: {
+          column_number: number | null
+          created_at: string
+          error_level: string
+          id: string
+          line_number: number | null
+          message: string
+          session_id: string | null
+          source_file: string | null
+          user_id: string | null
+        }
+        Insert: {
+          column_number?: number | null
+          created_at?: string
+          error_level: string
+          id?: string
+          line_number?: number | null
+          message: string
+          session_id?: string | null
+          source_file?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          column_number?: number | null
+          created_at?: string
+          error_level?: string
+          id?: string
+          line_number?: number | null
+          message?: string
+          session_id?: string | null
+          source_file?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          created_at: string
+          error_type: string
+          id: string
+          message: string
+          page_url: string | null
+          stack_trace: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_type: string
+          id?: string
+          message: string
+          page_url?: string | null
+          stack_trace?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_type?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          stack_trace?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -332,6 +434,33 @@ export type Database = {
           reputation?: number | null
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      system_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          description: string | null
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          description?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          description?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -444,6 +573,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      decrypt_api_key: {
+        Args: { encrypted_key: string }
+        Returns: string
+      }
+      encrypt_api_key: {
+        Args: { plain_key: string }
+        Returns: string
+      }
       generate_presigned_url: {
         Args: { bucket_name: string; file_name: string }
         Returns: string
@@ -460,6 +597,27 @@ export type Database = {
           details?: Json
         }
         Returns: undefined
+      }
+      log_console_error: {
+        Args: {
+          error_level_param: string
+          message_param: string
+          source_file_param?: string
+          line_number_param?: number
+          column_number_param?: number
+          session_id_param?: string
+        }
+        Returns: string
+      }
+      log_error: {
+        Args: {
+          error_type_param: string
+          message_param: string
+          stack_trace_param?: string
+          page_url_param?: string
+          user_agent_param?: string
+        }
+        Returns: string
       }
     }
     Enums: {

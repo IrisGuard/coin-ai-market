@@ -1,19 +1,15 @@
+
 import { createClient } from '@supabase/supabase-js';
 
-// Get environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
+// Use hardcoded values instead of environment variables
+const supabaseUrl = 'https://saimszsekjafmqqcvcgx.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaW1zenNla2phZm1xcWN2Y2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzM4NjcsImV4cCI6MjA2MzAwOTg2N30.o5x0i7u4NJ20RPb9hjBaRsjvDdTw6rwwkc-SDx1Morw';
 
 // Create a singleton Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Add a simple function to check if we have real credentials
-export const hasValidSupabaseCredentials = () => {
-  return import.meta.env.VITE_SUPABASE_URL && 
-         import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder-project.supabase.co' &&
-         import.meta.env.VITE_SUPABASE_ANON_KEY && 
-         import.meta.env.VITE_SUPABASE_ANON_KEY !== 'placeholder-key';
-};
+// Remove the hasValidSupabaseCredentials function as we're using hardcoded values
+export const hasValidSupabaseCredentials = () => true;
 
 export type Database = {
   public: {
@@ -301,6 +297,124 @@ export type Database = {
           user_agent?: string | null;
         };
       };
+      error_logs: {
+        Row: {
+          id: string;
+          error_type: string;
+          message: string;
+          stack_trace: string | null;
+          user_id: string | null;
+          page_url: string | null;
+          user_agent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          error_type: string;
+          message: string;
+          stack_trace?: string | null;
+          user_id?: string | null;
+          page_url?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          error_type?: string;
+          message?: string;
+          stack_trace?: string | null;
+          user_id?: string | null;
+          page_url?: string | null;
+          user_agent?: string | null;
+        };
+      };
+      api_keys: {
+        Row: {
+          id: string;
+          key_name: string;
+          encrypted_value: string;
+          description: string | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key_name: string;
+          encrypted_value: string;
+          description?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          key_name?: string;
+          encrypted_value?: string;
+          description?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          updated_at?: string;
+        };
+      };
+      system_config: {
+        Row: {
+          id: string;
+          config_key: string;
+          config_value: any;
+          description: string | null;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          config_key: string;
+          config_value: any;
+          description?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          config_key?: string;
+          config_value?: any;
+          description?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+      };
+      console_errors: {
+        Row: {
+          id: string;
+          error_level: string;
+          message: string;
+          source_file: string | null;
+          line_number: number | null;
+          column_number: number | null;
+          user_id: string | null;
+          session_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          error_level: string;
+          message: string;
+          source_file?: string | null;
+          line_number?: number | null;
+          column_number?: number | null;
+          user_id?: string | null;
+          session_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          error_level?: string;
+          message?: string;
+          source_file?: string | null;
+          line_number?: number | null;
+          column_number?: number | null;
+          user_id?: string | null;
+          session_id?: string | null;
+        };
+      };
     };
     Views: {
       marketplace_stats: {
@@ -340,14 +454,45 @@ export type Database = {
         };
         Returns: void;
       };
+      log_error: {
+        Args: {
+          error_type_param: string;
+          message_param: string;
+          stack_trace_param?: string;
+          page_url_param?: string;
+          user_agent_param?: string;
+        };
+        Returns: string;
+      };
+      log_console_error: {
+        Args: {
+          error_level_param: string;
+          message_param: string;
+          source_file_param?: string;
+          line_number_param?: number;
+          column_number_param?: number;
+          session_id_param?: string;
+        };
+        Returns: string;
+      };
+      encrypt_api_key: {
+        Args: {
+          plain_key: string;
+        };
+        Returns: string;
+      };
+      decrypt_api_key: {
+        Args: {
+          encrypted_key: string;
+        };
+        Returns: string;
+      };
     };
   };
 };
 
 // Helper function to get user profile data by ID
 export const getUserProfile = async (userId: string) => {
-  if (!hasValidSupabaseCredentials()) return null;
-  
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -365,16 +510,6 @@ export const getUserProfile = async (userId: string) => {
 
 // Helper function to get marketplace statistics
 export const getMarketplaceStats = async () => {
-  if (!hasValidSupabaseCredentials()) {
-    return {
-      listed_coins: 1245,
-      active_auctions: 126,
-      registered_users: 45729,
-      total_volume: 1200000,
-      weekly_transactions: 342
-    };
-  }
-  
   try {
     const { data, error } = await supabase
       .from('marketplace_stats')
@@ -385,13 +520,8 @@ export const getMarketplaceStats = async () => {
     return data;
   } catch (error) {
     console.error('Error fetching marketplace stats:', error);
-    return {
-      listed_coins: 1245,
-      active_auctions: 126,
-      registered_users: 45729,
-      total_volume: 1200000,
-      weekly_transactions: 342
-    };
+    // Return null instead of mock data to force real data usage
+    return null;
   }
 };
 
@@ -401,11 +531,6 @@ export const uploadFile = async (
   path: string,
   file: File
 ): Promise<string | null> => {
-  if (!hasValidSupabaseCredentials()) {
-    console.warn('Cannot upload file without valid Supabase credentials');
-    return null;
-  }
-  
   try {
     const { data, error } = await supabase.storage
       .from(bucket)

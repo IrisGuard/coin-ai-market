@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
 import AdminLoginForm from './AdminLoginForm';
 import AdminPanel from './AdminPanel';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AdminKeyboardHandler = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -31,7 +32,7 @@ const AdminKeyboardHandler = () => {
   }, [isAdminAuthenticated]);
 
   return (
-    <>
+    <ErrorBoundary>
       <AdminLoginForm 
         isOpen={showLoginForm} 
         onClose={() => setShowLoginForm(false)} 
@@ -40,7 +41,7 @@ const AdminKeyboardHandler = () => {
         isOpen={showAdminPanel} 
         onClose={() => setShowAdminPanel(false)} 
       />
-    </>
+    </ErrorBoundary>
   );
 };
 
