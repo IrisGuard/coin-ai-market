@@ -249,6 +249,58 @@ export type Database = {
           comments?: string;
         };
       };
+      admin_roles: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: string;
+          created_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role?: string;
+          created_at?: string;
+          created_by?: string | null;
+        };
+        Update: {
+          role?: string;
+          created_by?: string | null;
+        };
+      };
+      admin_activity_logs: {
+        Row: {
+          id: string;
+          admin_user_id: string;
+          action: string;
+          target_type: string;
+          target_id: string | null;
+          details: any | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_user_id: string;
+          action: string;
+          target_type: string;
+          target_id?: string | null;
+          details?: any | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          action?: string;
+          target_type?: string;
+          target_id?: string | null;
+          details?: any | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+        };
+      };
     };
     Views: {
       marketplace_stats: {
@@ -271,6 +323,21 @@ export type Database = {
       };
       check_auction_end: {
         Args: Record<string, never>;
+        Returns: void;
+      };
+      is_admin: {
+        Args: {
+          user_id: string;
+        };
+        Returns: boolean;
+      };
+      log_admin_activity: {
+        Args: {
+          action_type: string;
+          target_type: string;
+          target_id?: string;
+          details?: any;
+        };
         Returns: void;
       };
     };
