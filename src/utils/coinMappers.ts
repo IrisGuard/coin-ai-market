@@ -1,7 +1,7 @@
 
 import { Coin } from '@/types/coin';
 
-// Database coin type (representing the structure from Supabase)
+// Database coin type (representing the structure που θα έρθει από το νέο Supabase)
 interface DbCoin {
   id: string;
   name: string;
@@ -47,7 +47,7 @@ export const mapDbCoinToCoin = (dbCoin: DbCoin): Coin => {
     rarity: dbCoin.rarity as 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare',
     image: dbCoin.image || dbCoin.obverse_image || '',
     description: dbCoin.description,
-    condition: dbCoin.condition as any, // Type assertion to handle string to CoinCondition conversion
+    condition: dbCoin.condition as any, // Type assertion για το νέο Supabase
     country: dbCoin.country,
     composition: dbCoin.composition,
     diameter: dbCoin.diameter,

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+// Simplified error handler χωρίς Supabase dependencies
 
 export class ErrorHandler {
   private static sessionId = Math.random().toString(36).substring(2, 15);
@@ -10,17 +10,15 @@ export class ErrorHandler {
     stackTrace?: string,
     pageUrl?: string
   ): Promise<void> {
-    try {
-      await supabase.rpc('log_error', {
-        error_type_param: errorType,
-        message_param: message,
-        stack_trace_param: stackTrace || null,
-        page_url_param: pageUrl || window.location.href,
-        user_agent_param: navigator.userAgent
-      });
-    } catch (error) {
-      console.error('Failed to log error:', error);
-    }
+    // Log locally μέχρι να συνδεθεί νέο Supabase
+    console.error('Error logged:', {
+      errorType,
+      message,
+      stackTrace,
+      pageUrl: pageUrl || window.location.href,
+      userAgent: navigator.userAgent,
+      sessionId: this.sessionId
+    });
   }
 
   static async logConsoleError(
@@ -30,18 +28,14 @@ export class ErrorHandler {
     lineNumber?: number,
     columnNumber?: number
   ): Promise<void> {
-    try {
-      await supabase.rpc('log_console_error', {
-        error_level_param: level,
-        message_param: message,
-        source_file_param: sourceFile || null,
-        line_number_param: lineNumber || null,
-        column_number_param: columnNumber || null,
-        session_id_param: this.sessionId
-      });
-    } catch (error) {
-      console.error('Failed to log console error:', error);
-    }
+    console.error('Console error logged:', {
+      level,
+      message,
+      sourceFile,
+      lineNumber,
+      columnNumber,
+      sessionId: this.sessionId
+    });
   }
 
   static initializeGlobalErrorHandling(): void {
@@ -87,17 +81,7 @@ export class ErrorHandler {
   }
 
   static async checkSystemConfig(): Promise<boolean> {
-    try {
-      const { data, error } = await supabase
-        .from('system_config')
-        .select('config_value')
-        .eq('config_key', 'error_monitoring_enabled')
-        .single();
-
-      if (error) return false;
-      return data?.config_value === true;
-    } catch {
-      return false;
-    }
+    // Επιστρέφει false μέχρι να συνδεθεί νέο Supabase
+    return false;
   }
 }

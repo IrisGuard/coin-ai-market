@@ -6,13 +6,8 @@ export const initSentry = () => {
     Sentry.init({
       dsn: import.meta.env.VITE_SENTRY_DSN,
       environment: import.meta.env.MODE,
-      integrations: [
-        new Sentry.BrowserTracing(),
-        new Sentry.Replay(),
-      ],
+      // Removed BrowserTracing and Replay as they don't exist in this version
       tracesSampleRate: 1.0,
-      replaysSessionSampleRate: 0.1,
-      replaysOnErrorSampleRate: 1.0,
     });
   }
 };
