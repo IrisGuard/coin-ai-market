@@ -1,7 +1,27 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Coin } from '@/types/coin';
+import { Coin, Rarity, CoinCondition } from '@/types/coin';
+
+// Type-safe transformation function
+const transformSupabaseCoinData = (rawCoin: any): Coin => {
+  return {
+    ...rawCoin,
+    rarity: rawCoin.rarity as Rarity,
+    condition: rawCoin.condition as CoinCondition | undefined,
+    authentication_status: rawCoin.authentication_status as 'pending' | 'verified' | 'rejected' | undefined,
+    profiles: rawCoin.profiles || {
+      id: '',
+      name: '',
+      reputation: 0,
+      verified_dealer: false
+    },
+    bids: rawCoin.bids?.map((bid: any) => ({
+      ...bid,
+      profiles: bid.profiles || { name: '' }
+    })) || []
+  };
+};
 
 export const useCoins = () => {
   return useQuery({
@@ -34,22 +54,7 @@ export const useCoins = () => {
           return [];
         }
         
-        // Transform the data to match the Coin interface
-        const transformedData = data?.map(coin => ({
-          ...coin,
-          profiles: coin.profiles || {
-            id: '',
-            name: '',
-            reputation: 0,
-            verified_dealer: false
-          },
-          bids: coin.bids?.map(bid => ({
-            ...bid,
-            profiles: bid.profiles || { name: '' }
-          })) || []
-        })) || [];
-        
-        return transformedData as Coin[];
+        return (data || []).map(transformSupabaseCoinData);
       } catch (error) {
         console.error('Connection error:', error);
         return [];
@@ -90,22 +95,7 @@ export const useCoin = (id: string) => {
           return null;
         }
         
-        // Transform the data to match the Coin interface
-        const transformedData = {
-          ...data,
-          profiles: data.profiles || {
-            id: '',
-            name: '',
-            reputation: 0,
-            verified_dealer: false
-          },
-          bids: data.bids?.map(bid => ({
-            ...bid,
-            profiles: bid.profiles || { name: '' }
-          })) || []
-        };
-        
-        return transformedData as Coin;
+        return data ? transformSupabaseCoinData(data) : null;
       } catch (error) {
         console.error('Connection error:', error);
         return null;

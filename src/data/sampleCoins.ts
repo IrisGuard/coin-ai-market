@@ -1,6 +1,26 @@
 
-import { Coin, Rarity } from '@/types/coin';
+import { Coin, Rarity, CoinCondition } from '@/types/coin';
 import { supabase } from '@/integrations/supabase/client';
+
+// Type-safe transformation function
+const transformSupabaseCoinData = (rawCoin: any): Coin => {
+  return {
+    ...rawCoin,
+    rarity: rawCoin.rarity as Rarity,
+    condition: rawCoin.condition as CoinCondition | undefined,
+    authentication_status: rawCoin.authentication_status as 'pending' | 'verified' | 'rejected' | undefined,
+    profiles: rawCoin.profiles || {
+      id: '',
+      name: '',
+      reputation: 0,
+      verified_dealer: false
+    },
+    bids: rawCoin.bids?.map((bid: any) => ({
+      ...bid,
+      profiles: bid.profiles || { name: '' }
+    })) || []
+  };
+};
 
 // Production data fetching - no mock data
 export const getCoins = async (count: number = 6): Promise<Coin[]> => {
@@ -24,10 +44,7 @@ export const getCoins = async (count: number = 6): Promise<Coin[]> => {
     return [];
   }
 
-  return (data || []).map(coin => ({
-    ...coin,
-    rarity: coin.rarity as Rarity
-  }));
+  return (data || []).map(transformSupabaseCoinData);
 };
 
 export const getCoinById = async (id: string): Promise<Coin | null> => {
@@ -51,10 +68,7 @@ export const getCoinById = async (id: string): Promise<Coin | null> => {
     return null;
   }
 
-  return data ? {
-    ...data,
-    rarity: data.rarity as Rarity
-  } : null;
+  return data ? transformSupabaseCoinData(data) : null;
 };
 
 export const getFeaturedCoins = async (): Promise<Coin[]> => {
@@ -78,10 +92,7 @@ export const getFeaturedCoins = async (): Promise<Coin[]> => {
     return [];
   }
 
-  return (data || []).map(coin => ({
-    ...coin,
-    rarity: coin.rarity as Rarity
-  }));
+  return (data || []).map(transformSupabaseCoinData);
 };
 
 export const getAuctionCoins = async (): Promise<Coin[]> => {
@@ -106,10 +117,7 @@ export const getAuctionCoins = async (): Promise<Coin[]> => {
     return [];
   }
 
-  return (data || []).map(coin => ({
-    ...coin,
-    rarity: coin.rarity as Rarity
-  }));
+  return (data || []).map(transformSupabaseCoinData);
 };
 
 // Legacy support - use real data
