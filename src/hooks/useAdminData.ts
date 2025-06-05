@@ -4,6 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { verifyAdminAccess, safeQuery, handleSupabaseError } from '@/utils/supabaseSecurityHelpers';
 
+// Re-export all admin hooks from their respective files
+export { useNotifications } from './admin/useAdminNotifications';
+export { useTransactions } from './admin/useAdminTransactions';
+export { useErrorLogs, useConsoleErrors, useMarketplaceStats, useScrapingJobs } from './admin/useAdminSystem';
+export { useApiKeys, useApiKeyCategories, useCreateApiKey, useBulkCreateApiKeys } from './admin/useAdminApiKeys';
+
 export const useAdminData = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
