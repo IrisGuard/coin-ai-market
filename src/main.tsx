@@ -12,9 +12,22 @@ ProdErrorHandler.initializeGlobalErrorHandling();
 
 // === ENHANCED CONSOLE MONITORING SYSTEM ===
 const ConsoleMonitor = {
-  errors: [],
-  warnings: [],
-  logs: [],
+  errors: [] as Array<{
+    message: string;
+    timestamp: string;
+    stack?: string;
+    url: string;
+  }>,
+  warnings: [] as Array<{
+    message: string;
+    timestamp: string;
+    url: string;
+  }>,
+  logs: [] as Array<{
+    message: string;
+    timestamp: string;
+    url: string;
+  }>,
   
   init() {
     // Capture all console methods
@@ -53,7 +66,7 @@ const ConsoleMonitor = {
     };
   },
   
-  sendToMonitoring(level, args) {
+  sendToMonitoring(level: string, args: any[]) {
     fetch('/api/console-monitor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -132,7 +145,7 @@ window.CoinAI = {
 ConsoleMonitor.init();
 
 // === CRITICAL ERROR NOTIFICATION SYSTEM ===
-const notifyCriticalError = async (error) => {
+const notifyCriticalError = async (error: Error) => {
   if (error.message.includes('database') || 
       error.message.includes('authentication') ||
       error.message.includes('payment')) {
@@ -209,7 +222,9 @@ window.addEventListener('error', (event) => {
     userAgent: navigator.userAgent
   };
   
-  notifyCriticalError(event.error);
+  if (event.error) {
+    notifyCriticalError(event.error);
+  }
   
   fetch('/api/console-monitor', {
     method: 'POST',
@@ -233,7 +248,9 @@ window.addEventListener('unhandledrejection', (event) => {
     userAgent: navigator.userAgent
   };
   
-  notifyCriticalError(event.reason);
+  if (event.reason) {
+    notifyCriticalError(event.reason);
+  }
   
   fetch('/api/console-monitor', {
     method: 'POST',
