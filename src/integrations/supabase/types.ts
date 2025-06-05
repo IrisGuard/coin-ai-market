@@ -129,26 +129,45 @@ export type Database = {
       bids: {
         Row: {
           amount: number
+          auto_bid_max: number | null
+          bidder_id: string | null
           coin_id: string
           created_at: string | null
           id: string
+          is_winning: boolean | null
+          listing_id: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          auto_bid_max?: number | null
+          bidder_id?: string | null
           coin_id: string
           created_at?: string | null
           id?: string
+          is_winning?: boolean | null
+          listing_id?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          auto_bid_max?: number | null
+          bidder_id?: string | null
           coin_id?: string
           created_at?: string | null
           id?: string
+          is_winning?: boolean | null
+          listing_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bids_coin_id_fkey"
             columns: ["coin_id"]
@@ -157,10 +176,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bids_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "bids_listing_id_fkey"
+            columns: ["listing_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "marketplace_listings"
             referencedColumns: ["id"]
           },
           {
@@ -246,6 +265,8 @@ export type Database = {
       }
       coins: {
         Row: {
+          ai_confidence: number | null
+          ai_provider: string | null
           auction_end: string | null
           authentication_status: string | null
           composition: string | null
@@ -268,6 +289,7 @@ export type Database = {
           ngc_grade: string | null
           ngc_number: string | null
           obverse_image: string | null
+          owner_id: string | null
           pcgs_grade: string | null
           pcgs_number: string | null
           price: number
@@ -282,6 +304,8 @@ export type Database = {
           year: number
         }
         Insert: {
+          ai_confidence?: number | null
+          ai_provider?: string | null
           auction_end?: string | null
           authentication_status?: string | null
           composition?: string | null
@@ -304,6 +328,7 @@ export type Database = {
           ngc_grade?: string | null
           ngc_number?: string | null
           obverse_image?: string | null
+          owner_id?: string | null
           pcgs_grade?: string | null
           pcgs_number?: string | null
           price: number
@@ -318,6 +343,8 @@ export type Database = {
           year: number
         }
         Update: {
+          ai_confidence?: number | null
+          ai_provider?: string | null
           auction_end?: string | null
           authentication_status?: string | null
           composition?: string | null
@@ -340,6 +367,7 @@ export type Database = {
           ngc_grade?: string | null
           ngc_number?: string | null
           obverse_image?: string | null
+          owner_id?: string | null
           pcgs_grade?: string | null
           pcgs_number?: string | null
           price?: number
@@ -354,6 +382,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "coins_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coins_user_id_fkey"
             columns: ["user_id"]
@@ -741,6 +776,42 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          coin_id: string | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          coin_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          coin_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geographic_regions: {
         Row: {
           code: string
@@ -764,6 +835,75 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      marketplace_listings: {
+        Row: {
+          auto_extend: boolean | null
+          buyout_price: number | null
+          coin_id: string | null
+          created_at: string | null
+          current_price: number | null
+          ends_at: string | null
+          id: string
+          international_shipping: boolean | null
+          listing_type: string
+          return_policy: string | null
+          seller_id: string | null
+          shipping_cost: number | null
+          starting_price: number
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_extend?: boolean | null
+          buyout_price?: number | null
+          coin_id?: string | null
+          created_at?: string | null
+          current_price?: number | null
+          ends_at?: string | null
+          id?: string
+          international_shipping?: boolean | null
+          listing_type: string
+          return_policy?: string | null
+          seller_id?: string | null
+          shipping_cost?: number | null
+          starting_price: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_extend?: boolean | null
+          buyout_price?: number | null
+          coin_id?: string | null
+          created_at?: string | null
+          current_price?: number | null
+          ends_at?: string | null
+          id?: string
+          international_shipping?: boolean | null
+          listing_type?: string
+          return_policy?: string | null
+          seller_id?: string | null
+          shipping_cost?: number | null
+          starting_price?: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketplace_stats: {
         Row: {
@@ -827,6 +967,67 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          message_type: string | null
+          offer_amount: number | null
+          read_at: string | null
+          receiver_id: string | null
+          sender_id: string | null
+          status: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          message_type?: string | null
+          offer_amount?: number | null
+          read_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          message_type?: string | null
+          offer_amount?: number | null
+          read_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -935,46 +1136,61 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: Json | null
           avatar_url: string | null
           bio: string | null
           created_at: string | null
           email: string | null
+          full_name: string | null
           id: string
+          kyc_verified: boolean | null
           location: string | null
           name: string | null
           ngc_member_id: string | null
           pcgs_member_id: string | null
+          phone_number: string | null
           reputation: number | null
+          role: string | null
           updated_at: string | null
           verified_dealer: boolean | null
           website: string | null
         }
         Insert: {
+          address?: Json | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          full_name?: string | null
           id: string
+          kyc_verified?: boolean | null
           location?: string | null
           name?: string | null
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
+          phone_number?: string | null
           reputation?: number | null
+          role?: string | null
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
         }
         Update: {
+          address?: Json | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          full_name?: string | null
           id?: string
+          kyc_verified?: boolean | null
           location?: string | null
           name?: string | null
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
+          phone_number?: string | null
           reputation?: number | null
+          role?: string | null
           updated_at?: string | null
           verified_dealer?: boolean | null
           website?: string | null
@@ -1353,6 +1569,45 @@ export type Database = {
           type?: string | null
         }
         Relationships: []
+      }
+      watchlist: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          max_bid_alert: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          max_bid_alert?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          max_bid_alert?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watchlist_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "watchlist_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

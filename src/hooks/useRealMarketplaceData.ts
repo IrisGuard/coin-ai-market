@@ -53,8 +53,9 @@ export const useMarketplaceListings = () => {
   return useQuery({
     queryKey: ['marketplace-listings'],
     queryFn: async (): Promise<MarketplaceListing[]> => {
+      // Using any type temporarily until database types are regenerated
       const { data, error } = await supabase
-        .from('marketplace_listings')
+        .from('marketplace_listings' as any)
         .select(`
           *,
           coins!inner(
@@ -89,7 +90,7 @@ export const useMarketplaceListings = () => {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as MarketplaceListing[];
     },
   });
 };
@@ -118,8 +119,9 @@ export const useCreateListing = () => {
         ? new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString()
         : null;
 
+      // Using any type temporarily until database types are regenerated
       const { data, error } = await supabase
-        .from('marketplace_listings')
+        .from('marketplace_listings' as any)
         .insert({
           coin_id: coinId,
           seller_id: user.id,
