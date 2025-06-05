@@ -39,20 +39,20 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
   // Updated production credentials for the correct project
   const productionKeys = [
     {
-      key_name: 'Supabase URL',
-      encrypted_value: 'https://wdgnllgbfvjgurbqhfqb.supabase.co',
+      name: 'Supabase URL',
+      value: 'https://wdgnllgbfvjgurbqhfqb.supabase.co',
       description: 'Production Supabase project URL',
       category: 'Database'
     },
     {
-      key_name: 'Supabase Project ID',
-      encrypted_value: 'wdgnllgbfvjgurbqhfqb',
+      name: 'Supabase Project ID',
+      value: 'wdgnllgbfvjgurbqhfqb',
       description: 'Production Supabase project identifier',
       category: 'Database'
     },
     {
-      key_name: 'Supabase Anon Key',
-      encrypted_value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzA4MjksImV4cCI6MjA0OTUwNjgyOX0.XTKxF0kT9aH_HZPGZEqH4qGa_B2kK2VJH7dKZW4N0Zs',
+      name: 'Supabase Anon Key',
+      value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzA4MjksImV4cCI6MjA0OTUwNjgyOX0.XTKxF0kT9aH_HZPGZEqH4qGa_B2kK2VJH7dKZW4N0Zs',
       description: 'Production Supabase anonymous access key for client-side operations',
       category: 'Authentication'
     }
@@ -65,8 +65,8 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
 
   const handleBulkImportProduction = () => {
     const keysToImport = productionKeys.map(key => ({
-      key_name: key.key_name,
-      encrypted_value: key.encrypted_value,
+      name: key.name,
+      value: key.value,
       description: key.description,
       category_id: categories.find(c => c.name === key.category)?.id || null
     }));
@@ -111,7 +111,7 @@ const BulkImportSection: React.FC<BulkImportSectionProps> = ({
               <Card key={index} className="p-3">
                 <div className="flex items-center gap-2 mb-2">
                   {getCategoryIcon(key.category)}
-                  <span className="font-medium text-sm">{key.key_name}</span>
+                  <span className="font-medium text-sm">{key.name}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-2">{key.description}</p>
                 <Badge variant="outline" className="text-xs">
