@@ -156,6 +156,13 @@ export type Database = {
             referencedRelation: "coins"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_bids_coin_id"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
         ]
       }
       coin_data_cache: {
@@ -216,6 +223,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "coin_evaluations_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_coin_evaluations_coin_id"
             columns: ["coin_id"]
             isOneToOne: false
             referencedRelation: "coins"
@@ -527,6 +541,20 @@ export type Database = {
             referencedRelation: "static_coins_db"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_error_coins_market_data_knowledge_base_id"
+            columns: ["knowledge_base_id"]
+            isOneToOne: false
+            referencedRelation: "error_coins_knowledge"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_error_coins_market_data_static_coin_id"
+            columns: ["static_coin_id"]
+            isOneToOne: false
+            referencedRelation: "static_coins_db"
+            referencedColumns: ["id"]
+          },
         ]
       }
       error_logs: {
@@ -675,6 +703,27 @@ export type Database = {
             referencedRelation: "source_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_external_price_sources_category_id"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "source_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_external_price_sources_region_id"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "geographic_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_external_price_sources_template_id"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "source_templates"
+            referencedColumns: ["id"]
+          },
         ]
       }
       geographic_regions: {
@@ -797,8 +846,65 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_notifications_coin_id"
+            columns: ["related_coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notifications_related_coin_id_fkey"
             columns: ["related_coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          coin_id: string | null
+          created_at: string | null
+          currency: string
+          id: string
+          payment_method: string | null
+          status: string
+          transak_data: Json | null
+          transak_order_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          coin_id?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          payment_method?: string | null
+          status?: string
+          transak_data?: Json | null
+          transak_order_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          coin_id?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          payment_method?: string | null
+          status?: string
+          transak_data?: Json | null
+          transak_order_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_coin_id_fkey"
+            columns: ["coin_id"]
             isOneToOne: false
             referencedRelation: "coins"
             referencedColumns: ["id"]
@@ -892,6 +998,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_scraping_jobs_proxy_id"
+            columns: ["proxy_id"]
+            isOneToOne: false
+            referencedRelation: "vpn_proxies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_scraping_jobs_source_id"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "scraping_jobs_proxy_id_fkey"
             columns: ["proxy_id"]
             isOneToOne: false
@@ -960,6 +1080,13 @@ export type Database = {
           success_rate?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_source_performance_metrics_source_id"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "source_performance_metrics_source_id_fkey"
             columns: ["source_id"]
@@ -1104,6 +1231,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_transactions_coin_id"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transactions_coin_id_fkey"
             columns: ["coin_id"]
             isOneToOne: false
@@ -1132,6 +1266,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_favorites_coin_id"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_favorites_coin_id_fkey"
             columns: ["coin_id"]

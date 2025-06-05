@@ -85,7 +85,7 @@ const AdminUsersTab = () => {
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-coin-purple to-coin-skyblue flex items-center justify-center text-white text-sm">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm">
                         {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </div>
                       <span className="font-medium">{user.name || 'Unknown'}</span>

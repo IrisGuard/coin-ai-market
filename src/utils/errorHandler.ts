@@ -1,73 +1,45 @@
-import { supabase } from '@/integrations/supabase/client';
 
-export const logError = async (error: unknown, context?: string) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    
-    const { error: insertError } = await supabase
-      .from('error_logs')
-      .insert([{
-        message: errorObj.message || String(error),
-        error_type: errorObj.name || 'Unknown',
-        stack_trace: errorObj.stack,
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        user_id: user?.id
-      }]);
+import { logErrorToSentry } from '@/lib/sentry';
 
-    if (insertError) {
-      console.error('Failed to log error to database:', insertError);
-    }
-  } catch (dbError) {
-    console.error('Error logging to database:', dbError);
+export const logError = (error: unknown, context?: string) => {
+  console.error('Application error:', error, { context });
+  
+  if (error instanceof Error) {
+    logErrorToSentry(error, { context });
+  } else {
+    logErrorToSentry(new Error(String(error)), { context });
   }
 };
 
-export const logConsoleError = async (
-  message: string,
-  source?: string,
-  lineno?: number,
-  colno?: number,
-  error?: Error
+export const handleAsyncError = async (
+  asyncFn: () => Promise<any>,
+  errorMessage: string = 'An error occurred'
 ) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error: insertError } = await supabase
-      .from('console_errors')
-      .insert([{
-        message,
-        error_level: 'error',
-        source_file: source,
-        line_number: lineno,
-        column_number: colno,
-        user_id: user?.id,
-        session_id: sessionStorage.getItem('session_id') || undefined
-      }]);
-
-    if (insertError) {
-      console.error('Failed to log console error:', insertError);
-    }
-  } catch (dbError) {
-    console.error('Error logging console error:', dbError);
+    return await asyncFn();
+  } catch (error) {
+    logError(error, errorMessage);
+    throw error;
   }
 };
 
-// Set up global error handlers
-if (typeof window !== 'undefined') {
-  window.addEventListener('error', (event) => {
-    logConsoleError(
-      event.message,
-      event.filename,
-      event.lineno,
-      event.colno,
-      event.error
-    );
-  });
-
-  window.addEventListener('unhandledrejection', (event) => {
-    logError(event.reason, 'Unhandled Promise Rejection');
-  });
-}
+export const withErrorHandling = <T extends (...args: any[]) => any>(
+  fn: T,
+  errorContext?: string
+): T => {
+  return ((...args: any[]) => {
+    try {
+      const result = fn(...args);
+      if (result instanceof Promise) {
+        return result.catch((error) => {
+          logError(error, errorContext);
+          throw error;
+        });
+      }
+      return result;
+    } catch (error) {
+      logError(error, errorContext);
+      throw error;
+    }
+  }) as T;
+};

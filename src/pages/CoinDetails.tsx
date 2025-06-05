@@ -1,118 +1,103 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import CoinBidForm from '@/components/coin-details/CoinBidForm';
-import { logError } from '@/utils/errorHandler';
-import CoinViewer3D from '@/components/coin-details/CoinViewer3D';
+import { useCoinBids } from '@/hooks/useBids';
+import TransakPaymentButton from '@/components/payment/TransakPaymentButton';
+import { logErrorToSentry } from '@/lib/sentry';
 
 const CoinDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [highestBid, setHighestBid] = useState<unknown>(null);
 
-  // Fetch coin details
-  const { data: coin, isLoading: coinLoading, error: coinError } = useQuery({
+  // Fetch coin details with proper relations
+  const { data: coin, isLoading } = useQuery({
     queryKey: ['coin', id],
     queryFn: async () => {
+      if (!id) throw new Error('Coin ID is required');
+      
       const { data, error } = await supabase
         .from('coins')
         .select(`
           *,
-          profiles:user_id (
+          profiles!inner (
             id,
-            username,
-            avatar_url,
-            verified_dealer,
             name,
-            created_at
+            email,
+            avatar_url,
+            verified_dealer
           )
         `)
         .eq('id', id)
         .single();
 
-      if (error) {
-        logError(error, 'CoinDetails: Failed to fetch coin');
-        throw error;
-      }
-      
-      if (!data) {
-        throw new Error('Coin not found');
-      }
-
+      if (error) throw error;
       return data;
     },
-    enabled: !!id
+    enabled: !!id,
   });
 
   // Fetch bids for this coin
-  const { data: bids = [], isLoading: bidsLoading } = useQuery({
-    queryKey: ['coinBids', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bids')
-        .select(`
-          *,
-          profiles!bids_user_id_fkey (
-            avatar_url,
-            name,
-            verified_dealer
-          )
-        `)
-        .eq('coin_id', id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        logError(error, 'CoinDetails: Failed to fetch bids');
-        throw error;
-      }
-
-      return data || [];
-    },
-    enabled: !!id
-  });
+  const { data: bids = [] } = useCoinBids(id || '');
 
   // Fetch related coins
-  const { data: relatedCoins } = useQuery({
+  const { data: relatedCoins = [] } = useQuery({
     queryKey: ['related-coins', coin?.year, coin?.id],
     queryFn: async () => {
+      if (!coin?.year || !coin?.id) return [];
+      
       const { data, error } = await supabase
         .from('coins')
         .select('*')
-        .eq('year', coin?.year)
-        .neq('id', coin?.id)
+        .eq('year', coin.year)
+        .neq('id', coin.id)
+        .eq('authentication_status', 'verified')
         .limit(4);
-      
-      if (error) throw error;
+
+      if (error) {
+        logErrorToSentry(error, { context: 'fetching related coins' });
+        return [];
+      }
       return data || [];
     },
-    enabled: !!coin?.year
+    enabled: !!coin?.year && !!coin?.id,
   });
 
-  if (coinLoading) {
-    return <div className="container mx-auto px-4 py-8">Loading coin details...</div>;
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Loading coin details...</div>
+      </div>
+    );
   }
 
   if (!coin) {
-    return <div className="container mx-auto px-4 py-8">Coin not found</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Coin not found</div>
+      </div>
+    );
   }
+
+  const highestBid = bids.length > 0 ? bids[0] : null;
+  const isOwner = user?.id === coin.user_id;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <img 
-            src={coin.image} 
-            alt={coin.name} 
+        {/* Coin Image */}
+        <Card className="p-6">
+          <img
+            src={coin.image}
+            alt={coin.name}
             className="w-full h-auto rounded-lg mb-4"
           />
           <div className="flex flex-wrap gap-2 mb-4">
@@ -120,174 +105,162 @@ const CoinDetails = () => {
             <Badge variant="outline">{coin.grade}</Badge>
             <Badge variant="outline">{coin.rarity}</Badge>
             {coin.authentication_status && (
-              <Badge variant={
-                coin.authentication_status === 'approved' ? 'default' :
-                coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
-              }>
+              <Badge
+                variant={
+                  coin.authentication_status === 'verified' ? 'default' :
+                  coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
+                }
+              >
                 {coin.authentication_status}
               </Badge>
             )}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        {/* Coin Details */}
+        <Card className="p-6">
           <h1 className="text-3xl font-bold mb-2">{coin.name}</h1>
           <div className="text-2xl font-semibold text-green-600 mb-4">
-            ${coin.price}
+            ${Number(coin.price).toFixed(2)}
           </div>
-          
+
           <Tabs defaultValue="details" className="mb-6">
             <TabsList>
               <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-              <TabsTrigger value="authentication">Authentication</TabsTrigger>
+              <TabsTrigger value="seller">Seller</TabsTrigger>
+              {coin.is_auction && <TabsTrigger value="bids">Bids</TabsTrigger>}
             </TabsList>
+
             <TabsContent value="details" className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Description</h3>
-                <p>{coin.description || "No description provided."}</p>
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-semibold">Country</h3>
-                  <p>{coin.country || "Not specified"}</p>
+                  <span className="font-medium">Country:</span>
+                  <span className="ml-2">{coin.country || 'N/A'}</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Denomination</h3>
-                  <p>{coin.denomination || "Not specified"}</p>
+                  <span className="font-medium">Denomination:</span>
+                  <span className="ml-2">{coin.denomination || 'N/A'}</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Year</h3>
-                  <p>{coin.year}</p>
+                  <span className="font-medium">Composition:</span>
+                  <span className="ml-2">{coin.composition || 'N/A'}</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Grade</h3>
-                  <p>{coin.grade}</p>
+                  <span className="font-medium">Mint:</span>
+                  <span className="ml-2">{coin.mint || 'N/A'}</span>
                 </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="history">
-              <p>Coin history and provenance information will be displayed here.</p>
-            </TabsContent>
-            <TabsContent value="authentication">
-              <div className="space-y-2">
-                <h3 className="font-semibold">Authentication Status</h3>
-                <Badge variant={
-                  coin.authentication_status === 'approved' ? 'default' :
-                  coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
-                } className="text-base py-1 px-2">
-                  {coin.authentication_status || "Pending"}
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {coin.authentication_status === 'approved' 
-                    ? "This coin has been verified by our authentication team." 
-                    : coin.authentication_status === 'rejected'
-                    ? "This coin did not pass our authentication process."
-                    : "This coin is awaiting authentication by our team."}
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {user && user.id !== coin.user_id && !coin.is_auction && (
-            <Button className="w-full">Purchase Now</Button>
-          )}
-          
-          {user && user.id === coin.user_id && (
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1">Edit Listing</Button>
-              <Button variant="destructive" className="flex-1">Remove Listing</Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bidding Section */}
-      {coin?.is_auction && (
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Current Bids</h2>
-            <div className="text-lg font-bold text-green-600">
-              Current High: ${highestBid?.amount || coin.reserve_price || 0}
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            {bids?.map((bid) => (
-              <div key={bid.id} className="border rounded-lg p-4">
-                {bid.profiles && (
-                  <div className="flex items-center mb-2">
-                    {bid.profiles.avatar_url && (
-                      <img
-                        src={bid.profiles.avatar_url}
-                        alt={bid.profiles.name || 'User'}
-                        className="w-8 h-8 rounded-full mr-2"
-                      />
-                    )}
-                    <div>
-                      <span className="font-medium">
-                        {bid.profiles.name || 'Anonymous'}
-                      </span>
-                      {bid.profiles.verified_dealer && (
-                        <span className="ml-2 text-green-600 text-sm">✓ Verified</span>
-                      )}
-                    </div>
+                {coin.weight && (
+                  <div>
+                    <span className="font-medium">Weight:</span>
+                    <span className="ml-2">{coin.weight}g</span>
                   </div>
                 )}
-                <p className="text-sm text-gray-600">
-                  Bid placed: {new Date(bid.created_at).toLocaleDateString()}
-                </p>
+                {coin.diameter && (
+                  <div>
+                    <span className="font-medium">Diameter:</span>
+                    <span className="ml-2">{coin.diameter}mm</span>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-          
-          <CoinBidForm coinId={id!} currentHighBid={highestBid?.amount || 0} />
-        </div>
-      )}
-
-      {/* Seller Profile */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Seller Information</h2>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={coin.profiles?.avatar_url || ''} />
-            <AvatarFallback>{coin.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-medium flex items-center gap-2">
-              {coin.profiles?.name || 'Unknown User'}
-              {coin.profiles?.verified_dealer && (
-                <Badge variant="default" className="ml-2">Verified Dealer</Badge>
+              {coin.description && (
+                <div>
+                  <span className="font-medium">Description:</span>
+                  <p className="mt-2 text-gray-600">{coin.description}</p>
+                </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="seller">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={coin.profiles?.avatar_url || ''} />
+                  <AvatarFallback>
+                    {coin.profiles?.name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-medium">{coin.profiles?.name || 'Unknown Seller'}</h3>
+                  <p className="text-sm text-gray-600">{coin.profiles?.email}</p>
+                  {coin.profiles?.verified_dealer && (
+                    <Badge variant="default" className="mt-1">Verified Dealer</Badge>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+
+            {coin.is_auction && (
+              <TabsContent value="bids">
+                <div className="space-y-4">
+                  {highestBid && (
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-green-800">Highest Bid</h3>
+                      <p className="text-2xl font-bold text-green-600">
+                        ${Number(highestBid.amount).toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    {bids.map((bid) => (
+                      <div key={bid.id} className="flex items-center justify-between p-3 border rounded">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={bid.profiles?.avatar_url} />
+                            <AvatarFallback>
+                              {bid.profiles?.name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{bid.profiles?.name || 'Anonymous'}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">${Number(bid.amount).toFixed(2)}</div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(bid.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
+
+          {/* Payment Button */}
+          {!isOwner && user && coin.authentication_status === 'verified' && (
+            <div className="mt-6">
+              <TransakPaymentButton
+                coinId={coin.id}
+                amount={Number(coin.price)}
+                className="w-full"
+              >
+                Buy Now with Crypto
+              </TransakPaymentButton>
             </div>
-            <div className="text-sm text-muted-foreground">Member since {new Date(coin.profiles?.created_at || Date.now()).toLocaleDateString()}</div>
-          </div>
-        </div>
+          )}
+        </Card>
       </div>
 
       {/* Related Coins */}
-      {relatedCoins && relatedCoins.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Related Coins</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {relatedCoins.length > 0 && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Related Coins</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {relatedCoins.map((relatedCoin) => (
-              <Card key={relatedCoin.id}>
-                <CardContent className="p-4">
-                  <img 
-                    src={relatedCoin.image} 
-                    alt={relatedCoin.name} 
-                    className="w-full h-40 object-cover rounded-lg mb-2"
-                  />
-                  <h3 className="font-medium">{relatedCoin.name}</h3>
-                  <div className="flex justify-between items-center mt-2">
-                    <Badge variant="outline">{relatedCoin.year}</Badge>
-                    <span className="font-semibold">${relatedCoin.price}</span>
-                  </div>
-                </CardContent>
-              </Card>
+              <div key={relatedCoin.id} className="border rounded-lg p-4">
+                <img
+                  src={relatedCoin.image}
+                  alt={relatedCoin.name}
+                  className="w-full h-32 object-cover rounded mb-2"
+                />
+                <h3 className="font-medium text-sm">{relatedCoin.name}</h3>
+                <p className="text-green-600 font-semibold">
+                  ${Number(relatedCoin.price).toFixed(2)}
+                </p>
+              </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
