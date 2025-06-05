@@ -63,12 +63,12 @@ const AdminTransactionsTab = () => {
                 <div>
                   <div className="font-medium">
                     {transaction.seller && typeof transaction.seller === 'object' && 'name' in transaction.seller 
-                      ? transaction.seller.name 
+                      ? transaction.seller.name || 'Unknown Seller'
                       : 'Unknown Seller'}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {transaction.seller && typeof transaction.seller === 'object' && 'email' in transaction.seller 
-                      ? transaction.seller.email 
+                      ? transaction.seller.email || 'No email'
                       : 'No email'}
                   </div>
                 </div>
@@ -77,27 +77,27 @@ const AdminTransactionsTab = () => {
                 <div>
                   <div className="font-medium">
                     {transaction.buyer && typeof transaction.buyer === 'object' && 'name' in transaction.buyer 
-                      ? transaction.buyer.name 
+                      ? transaction.buyer.name || 'Unknown Buyer'
                       : 'Unknown Buyer'}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {transaction.buyer && typeof transaction.buyer === 'object' && 'email' in transaction.buyer 
-                      ? transaction.buyer.email 
+                      ? transaction.buyer.email || 'No email'
                       : 'No email'}
                   </div>
                 </div>
               </TableCell>
               <TableCell>
-                {transaction.coins ? 
+                {transaction.coins && typeof transaction.coins === 'object' && 'name' in transaction.coins ? 
                   <div className="flex items-center gap-2">
-                    {transaction.coins.image && (
+                    {'image' in transaction.coins && transaction.coins.image && (
                       <img 
-                        src={transaction.coins.image} 
-                        alt={transaction.coins.name}
+                        src={transaction.coins.image as string} 
+                        alt={transaction.coins.name as string}
                         className="w-8 h-8 object-cover rounded"
                       />
                     )}
-                    <span className="text-sm">{transaction.coins.name}</span>
+                    <span className="text-sm">{transaction.coins.name as string}</span>
                   </div>
                   : 'Unknown Coin'
                 }

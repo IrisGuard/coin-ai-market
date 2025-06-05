@@ -1,5 +1,5 @@
 
-import { CoinBatch } from '@/hooks/useBulkUpload';
+import { CoinBatch } from '@/types/batch';
 
 interface BatchImagePreviewProps {
   batch: CoinBatch;

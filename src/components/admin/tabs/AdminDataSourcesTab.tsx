@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,10 @@ const AdminDataSourcesTab = () => {
 
   const handleDeleteProxy = (id: string) => {
     console.log('Delete proxy:', id);
+  };
+
+  const handleTestProxy = (id: string) => {
+    console.log('Test proxy:', id);
   };
 
   return (
@@ -64,9 +69,14 @@ const AdminDataSourcesTab = () => {
               {dataSources.map((source) => (
                 <DataSourceCard
                   key={source.id}
-                  source={source}
-                  onEdit={handleEditSource}
-                  onDelete={handleDeleteSource}
+                  name={source.name}
+                  url={source.url}
+                  type={source.type}
+                  is_active={source.is_active}
+                  success_rate={source.success_rate}
+                  last_used={source.last_used}
+                  onEdit={() => handleEditSource(source)}
+                  onDelete={() => handleDeleteSource(source.id)}
                 />
               ))}
             </div>
@@ -81,9 +91,15 @@ const AdminDataSourcesTab = () => {
               {proxies.map((proxy) => (
                 <ProxyCard
                   key={proxy.id}
-                  proxy={proxy}
-                  onEdit={handleEditProxy}
-                  onDelete={handleDeleteProxy}
+                  name={proxy.name}
+                  country_code={proxy.country_code}
+                  type={proxy.type}
+                  is_active={proxy.is_active}
+                  success_rate={proxy.success_rate}
+                  last_used={proxy.last_used}
+                  onEdit={() => handleEditProxy(proxy)}
+                  onDelete={() => handleDeleteProxy(proxy.id)}
+                  onTest={() => handleTestProxy(proxy.id)}
                 />
               ))}
             </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,22 +9,31 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Database, Edit, Trash2, Copy } from 'lucide-react';
 import { useSourceTemplates, useCreateSourceTemplate, useUpdateSourceTemplate } from '@/hooks/useEnhancedAdminSources';
 
+interface SourceTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  supported_features?: string[];
+  default_config?: Record<string, unknown>;
+  template_config?: Record<string, unknown>;
+}
+
 const SourceTemplateManager = () => {
   const { data: templates } = useSourceTemplates();
   const createTemplate = useCreateSourceTemplate();
   const updateTemplate = useUpdateSourceTemplate();
   const [showForm, setShowForm] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<unknown>(null);
+  const [editingTemplate, setEditingTemplate] = useState<SourceTemplate | null>(null);
 
-  const handleEdit = (template: unknown) => {
+  const handleEdit = (template: SourceTemplate) => {
     setEditingTemplate(template);
     setShowForm(true);
   };
 
-  const handleClone = (template: unknown) => {
+  const handleClone = (template: SourceTemplate) => {
     setEditingTemplate({
       ...template,
-      id: null,
+      id: '',
       name: `${template.name} (Copy)`
     });
     setShowForm(true);
@@ -66,7 +76,7 @@ const SourceTemplateManager = () => {
 
       {/* Template Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {templates?.map((template) => (
+        {templates?.map((template: SourceTemplate) => (
           <Card key={template.id}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -132,7 +142,7 @@ const SourceTemplateManager = () => {
         <Card>
           <CardHeader>
             <CardTitle>
-              {editingTemplate ? 'Edit Template' : 'Create New Template'}
+              {editingTemplate && editingTemplate.id ? 'Edit Template' : 'Create New Template'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -146,7 +156,7 @@ const SourceTemplateManager = () => {
                   <Input
                     id="name"
                     name="name"
-                    defaultValue={editingTemplate?.name}
+                    defaultValue={editingTemplate?.name || ''}
                     placeholder="e.g., Modern Auction House"
                     required
                   />
@@ -156,7 +166,7 @@ const SourceTemplateManager = () => {
                   <Input
                     id="description"
                     name="description"
-                    defaultValue={editingTemplate?.description}
+                    defaultValue={editingTemplate?.description || ''}
                     placeholder="Brief description of template usage"
                   />
                 </div>
@@ -167,7 +177,7 @@ const SourceTemplateManager = () => {
                 <Input
                   id="features"
                   name="features"
-                  defaultValue={editingTemplate?.supported_features?.join(', ')}
+                  defaultValue={editingTemplate?.supported_features?.join(', ') || ''}
                   placeholder="search, filters, images, pricing, authentication"
                 />
               </div>
@@ -185,7 +195,7 @@ const SourceTemplateManager = () => {
 
               <div className="flex gap-2">
                 <Button type="submit">
-                  {editingTemplate ? 'Update Template' : 'Create Template'}
+                  {editingTemplate && editingTemplate.id ? 'Update Template' : 'Create Template'}
                 </Button>
                 <Button 
                   type="button"

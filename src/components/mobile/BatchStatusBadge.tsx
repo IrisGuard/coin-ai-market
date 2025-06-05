@@ -1,6 +1,6 @@
 
 import { Badge } from '@/components/ui/badge';
-import { CoinBatch } from '@/hooks/useBulkUpload';
+import { CoinBatch } from '@/types/batch';
 
 interface BatchStatusBadgeProps {
   status: CoinBatch['status'];

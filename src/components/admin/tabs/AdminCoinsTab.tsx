@@ -74,12 +74,12 @@ const AdminCoinsTab = () => {
                 <div>
                   <div className="font-medium">
                     {coin.profiles && typeof coin.profiles === 'object' && 'name' in coin.profiles 
-                      ? coin.profiles.name 
+                      ? coin.profiles.name || 'Unknown User'
                       : 'Unknown User'}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {coin.profiles && typeof coin.profiles === 'object' && 'email' in coin.profiles 
-                      ? coin.profiles.email 
+                      ? coin.profiles.email || 'No email'
                       : 'No email'}
                   </div>
                 </div>

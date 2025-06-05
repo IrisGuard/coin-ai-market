@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,13 +9,24 @@ import { Play, Pause, RotateCcw, Activity } from 'lucide-react';
 import { useScrapingJobs } from '@/hooks/useAdminData';
 import ScrapingJobRow from '../components/ScrapingJobRow';
 
+interface ScrapingJob {
+  id: string;
+  job_type: string;
+  target_url: string;
+  status: string;
+  result?: unknown;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
 const AdminScrapingTab = () => {
   const { data: jobs = [], isLoading } = useScrapingJobs();
-  const [selectedJob, setSelectedJob] = useState<unknown>(null);
+  const [selectedJob, setSelectedJob] = useState<ScrapingJob | null>(null);
   const [showResultDialog, setShowResultDialog] = useState(false);
 
   const handleViewResult = (job: unknown) => {
-    setSelectedJob(job);
+    setSelectedJob(job as ScrapingJob);
     setShowResultDialog(true);
   };
 

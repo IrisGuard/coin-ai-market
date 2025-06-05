@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -185,7 +184,7 @@ const EnhancedSourcesManager = () => {
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicSourceMap />
+          <GeographicSourceMap sources={sources || []} />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,3 +1,4 @@
+
 export interface Tenant {
   id: string;
   name: string;
@@ -10,8 +11,10 @@ export interface Tenant {
 export interface MarketplaceTenant extends Tenant {
   description?: string;
   logo_url?: string;
+  primary_color?: string;
+  secondary_color?: string;
   theme_colors?: Record<string, string>;
   contact_email?: string;
   status?: 'active' | 'inactive' | 'suspended';
   is_active: boolean;
-} 
+}

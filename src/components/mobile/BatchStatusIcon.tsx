@@ -1,6 +1,6 @@
 
 import { CheckCircle, AlertCircle, RefreshCw, Upload } from 'lucide-react';
-import { CoinBatch } from '@/hooks/useBulkUpload';
+import { CoinBatch } from '@/types/batch';
 
 interface BatchStatusIconProps {
   status: CoinBatch['status'];
