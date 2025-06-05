@@ -50,8 +50,13 @@ const AIBrainPanel = () => {
         .select('*')
         .single();
 
-      if (data) {
-        setAiConfig(data.config);
+      if (data && data.config) {
+        // Safely parse the JSON config with proper typing
+        const config = typeof data.config === 'string' ? JSON.parse(data.config) : data.config;
+        setAiConfig(prev => ({
+          ...prev,
+          ...config
+        }));
       }
     } catch (error) {
       console.error('Failed to load AI config:', error);
@@ -391,19 +396,17 @@ const AIBrainPanel = () => {
                 <Download className="w-4 h-4 mr-2" />
                 Export Brain
               </Button>
-              <label htmlFor="import-brain">
-                <Button variant="outline" as="span">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import Brain
-                </Button>
-                <input
-                  id="import-brain"
-                  type="file"
-                  accept=".json"
-                  onChange={importBrain}
-                  className="hidden"
-                />
-              </label>
+              <Button variant="outline" onClick={() => document.getElementById('import-brain')?.click()}>
+                <Upload className="w-4 h-4 mr-2" />
+                Import Brain
+              </Button>
+              <input
+                id="import-brain"
+                type="file"
+                accept=".json"
+                onChange={importBrain}
+                className="hidden"
+              />
             </div>
           </CardTitle>
         </CardHeader>
