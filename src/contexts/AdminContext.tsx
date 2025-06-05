@@ -1,134 +1,77 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { checkAdminStatus } from '@/utils/adminUtils';
+import { toast } from '@/hooks/use-toast';
 
 interface AdminContextType {
-  isAdminAuthenticated: boolean;
-  adminLogin: (email: string, password: string) => Promise<boolean>;
-  adminLogout: () => void;
   isAdmin: boolean;
-  checkAdminStatus: () => Promise<boolean>;
+  isLoading: boolean;
+  checkAdminStatus: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [error, setError] = useState<unknown>(null);
-
-  const checkAdminStatusInternal = async (): Promise<boolean> => {
-    try {
-      const isAdminUser = await checkAdminStatus();
-      setIsAdmin(isAdminUser);
-      
-      // If user is admin and authenticated, set admin authentication status
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && isAdminUser) {
-        setIsAdminAuthenticated(true);
-      } else {
-        setIsAdminAuthenticated(false);
-      }
-      
-      return isAdminUser;
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
-      setIsAdminAuthenticated(false);
-      return false;
-    }
-  };
-
-  const adminLogin = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        const isAdminUser = await checkAdminStatusInternal();
-        if (isAdminUser) {
-          setIsAdminAuthenticated(true);
-          setIsAdmin(true);
-          
-          toast({
-            title: "Admin Access Granted",
-            description: "Welcome to the admin panel",
-          });
-          return true;
-        } else {
-          await supabase.auth.signOut();
-          toast({
-            title: "Access Denied",
-            description: "You don't have admin privileges",
-            variant: "destructive",
-          });
-          return false;
-        }
-      }
-      
-      return false;
-    } catch (error: unknown) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const adminLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Error during admin logout:', error);
-    }
-    
-    setIsAdminAuthenticated(false);
-    setIsAdmin(false);
-  };
-
-  // Check admin status on mount and auth state changes
-  useEffect(() => {
-    checkAdminStatusInternal();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await checkAdminStatusInternal();
-      } else {
-        setIsAdmin(false);
-        setIsAdminAuthenticated(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  return (
-    <AdminContext.Provider 
-      value={{ 
-        isAdminAuthenticated, 
-        adminLogin, 
-        adminLogout, 
-        isAdmin,
-        checkAdminStatus: checkAdminStatusInternal
-      }}
-    >
-      {children}
-    </AdminContext.Provider>
-  );
-}
-
-export function useAdmin() {
+export const useAdmin = () => {
   const context = useContext(AdminContext);
   if (context === undefined) {
     throw new Error('useAdmin must be used within an AdminProvider');
   }
   return context;
-}
+};
+
+export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('admin_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(!!data);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to check admin status',
+        variant: "destructive",
+      });
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, [user]);
+
+  const value = {
+    isAdmin,
+    isLoading,
+    checkAdminStatus,
+  };
+
+  return (
+    <AdminContext.Provider value={value}>
+      {children}
+    </AdminContext.Provider>
+  );
+};

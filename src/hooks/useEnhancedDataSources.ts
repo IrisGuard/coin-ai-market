@@ -119,10 +119,10 @@ export const useCreateExternalSource = () => {
         description: "New external price source has been configured successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },
@@ -134,7 +134,7 @@ export const useUpdateExternalSource = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: unknown }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
       const { error } = await supabase
         .from('external_price_sources')
         .update(updates)
@@ -149,10 +149,10 @@ export const useUpdateExternalSource = () => {
         description: "External price source has been updated successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },
@@ -162,7 +162,7 @@ export const useUpdateExternalSource = () => {
 // Mutation for creating scraping schedule - mock version
 export const useCreateScrapingSchedule = () => {
   return useMutation({
-    mutationFn: async (scheduleData: unknown) => {
+    mutationFn: async (scheduleData: Record<string, any>) => {
       // Mock implementation - return success
       return { success: true };
     },
@@ -172,10 +172,10 @@ export const useCreateScrapingSchedule = () => {
         description: "Scraping schedule has been created successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },
@@ -195,10 +195,10 @@ export const useTriggerPriceAggregation = () => {
         description: "Price aggregation process has been triggered.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },

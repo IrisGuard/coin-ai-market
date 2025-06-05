@@ -80,16 +80,16 @@ const AdminTransactionsTab = () => {
                 </div>
               </TableCell>
               <TableCell>
-                {transaction.coin ? (
+                {transaction.coins ? (
                   <div className="flex items-center gap-2">
-                    {transaction.coin.image && (
+                    {transaction.coins.image && (
                       <img 
-                        src={transaction.coin.image} 
-                        alt={transaction.coin.name}
+                        src={transaction.coins.image} 
+                        alt={transaction.coins.name}
                         className="w-8 h-8 object-cover rounded"
                       />
                     )}
-                    <span className="text-sm">{transaction.coin.name}</span>
+                    <span className="text-sm">{transaction.coins.name}</span>
                   </div>
                 ) : (
                   'Unknown Coin'

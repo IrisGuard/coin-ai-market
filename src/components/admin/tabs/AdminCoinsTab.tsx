@@ -73,10 +73,10 @@ const AdminCoinsTab = () => {
               <TableCell>
                 <div>
                   <div className="font-medium">
-                    {coin.owner?.name || 'Unknown User'}
+                    {coin.profiles?.name || 'Unknown User'}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {coin.owner?.email || 'No email'}
+                    {coin.profiles?.email || 'No email'}
                   </div>
                 </div>
               </TableCell>

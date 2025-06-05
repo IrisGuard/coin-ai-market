@@ -56,7 +56,19 @@ export const useAddErrorKnowledge = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (knowledgeData: unknown) => {
+    mutationFn: async (knowledgeData: {
+      error_name: string;
+      error_type: string;
+      error_category: string;
+      description: string;
+      severity_level?: number;
+      rarity_score?: number;
+      identification_techniques?: string[];
+      common_mistakes?: string[];
+      technical_specifications?: Record<string, any>;
+      ai_detection_markers?: Record<string, any>;
+      reference_links?: string[];
+    }) => {
       const { data, error } = await supabase
         .from('error_coins_knowledge')
         .insert(knowledgeData)
@@ -73,10 +85,10 @@ export const useAddErrorKnowledge = () => {
         description: "Error knowledge added successfully",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add error knowledge: " + error.message,
+        description: "Failed to add error knowledge: " + (error.message || 'Unknown error'),
         variant: "destructive",
       });
     }
@@ -87,7 +99,19 @@ export const useAddErrorMarketData = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (marketData: unknown) => {
+    mutationFn: async (marketData: {
+      grade: string;
+      knowledge_base_id?: string;
+      static_coin_id?: string;
+      market_value_low?: number;
+      market_value_high?: number;
+      market_value_avg?: number;
+      last_sale_price?: number;
+      market_trend?: string;
+      data_confidence?: number;
+      premium_percentage?: number;
+      source_references?: string[];
+    }) => {
       const { data, error } = await supabase
         .from('error_coins_market_data')
         .insert(marketData)
@@ -104,10 +128,10 @@ export const useAddErrorMarketData = () => {
         description: "Market data added successfully",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add market data: " + error.message,
+        description: "Failed to add market data: " + (error.message || 'Unknown error'),
         variant: "destructive",
       });
     }

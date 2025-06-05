@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -28,7 +27,7 @@ export const useAdminCoins = () => {
         .from('coins')
         .select(`
           *,
-          owner:profiles!coins_user_id_fkey (
+          profiles!coins_user_id_fkey (
             id,
             name,
             email
@@ -51,7 +50,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          user:profiles!notifications_user_id_fkey (
+          profiles!notifications_user_id_fkey (
             name,
             email
           )
@@ -81,7 +80,7 @@ export const useTransactions = () => {
             name,
             email
           ),
-          coin:coins!transactions_coin_id_fkey (
+          coins!transactions_coin_id_fkey (
             id,
             name,
             image
@@ -231,7 +230,7 @@ export const useCreateApiKey = () => {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },
@@ -267,7 +266,7 @@ export const useBulkCreateApiKeys = () => {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },
@@ -297,7 +296,7 @@ export const useUpdateUserStatus = () => {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },
@@ -327,7 +326,7 @@ export const useUpdateCoinStatus = () => {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },

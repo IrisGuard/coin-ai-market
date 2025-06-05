@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useCoins } from '@/hooks/useCoins';
 import { useTenant } from '@/contexts/TenantContext';
@@ -253,7 +254,7 @@ const Marketplace = () => {
                 <label className="block text-sm font-bold text-gray-700">Sort By</label>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as unknown)}
+                  onChange={(e) => setSortBy(e.target.value as any)}
                   className="input-modern h-12"
                 >
                   <option value="newest">Newest First</option>

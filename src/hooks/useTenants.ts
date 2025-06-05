@@ -1,49 +1,21 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { MarketplaceTenant } from '@/types/tenant';
 
 interface TenantSettings {
-  theme?: Record<string, unknown>;
+  theme?: Record<string, any>;
+  branding?: Record<string, any>;
   features?: string[];
-  branding?: Record<string, unknown>;
+  customization?: Record<string, any>;
 }
 
-interface TenantData {
+export interface Tenant {
   id: string;
   name: string;
   domain: string;
-  settings: unknown;
-  created_at: string;
-  updated_at: string;
   is_active: boolean;
-  description?: string;
-  logo_url?: string;
-  theme_colors?: Record<string, string>;
-  contact_email?: string;
-  status?: 'active' | 'inactive' | 'suspended';
-}
-
-export interface CustomDomain {
-  id: string;
-  tenant_id: string;
-  domain: string;
-  is_verified: boolean;
-  ssl_status: string;
-  verification_code?: string;
-  created_at: string;
-  verified_at?: string;
-}
-
-export interface TenantSubscription {
-  id: string;
-  tenant_id: string;
-  subscription_type: string;
-  annual_fee: number;
-  currency: string;
-  status: string;
-  expires_at?: string;
-  stripe_subscription_id?: string;
+  settings: TenantSettings;
   created_at: string;
   updated_at: string;
 }
@@ -56,119 +28,130 @@ export const useTenants = () => {
         .from('marketplace_tenants')
         .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
-      return data || [];
-    }
+      return data as Tenant[];
+    },
   });
 };
 
-export const useTenant = (id: string) => {
+export const useTenantByDomain = (domain: string) => {
   return useQuery({
-    queryKey: ['tenant', id],
+    queryKey: ['tenant', domain],
     queryFn: async () => {
+      if (!domain) return null;
+      
       const { data, error } = await supabase
         .from('marketplace_tenants')
         .select('*')
-        .eq('id', id)
+        .eq('domain', domain)
+        .eq('is_active', true)
         .single();
-
-      if (error) throw error;
-      return data;
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as Tenant | null;
     },
-    enabled: !!id
+    enabled: !!domain,
   });
 };
 
 export const useCreateTenant = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
-    mutationFn: async (tenantData: Record<string, unknown>) => {
+    mutationFn: async (tenantData: {
+      name: string;
+      domain: string;
+      settings?: TenantSettings;
+    }) => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .insert(tenantData as never)
+        .insert(tenantData)
         .select()
         .single();
-
+      
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      toast({
+        title: "Tenant Created",
+        description: "New marketplace tenant has been created successfully.",
+      });
     },
-    onError: (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      console.error('Error creating tenant:', errorMessage);
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: errorMessage,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
-    }
+    },
   });
 };
 
 export const useUpdateTenant = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, unknown> }) => {
+    mutationFn: async ({ 
+      id, 
+      updates 
+    }: { 
+      id: string; 
+      updates: Partial<Omit<Tenant, 'id' | 'created_at' | 'updated_at'>>
+    }) => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .update(updates as never)
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
-
+      
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
-      if (data?.id) {
-        queryClient.invalidateQueries({ queryKey: ['tenant', data.id] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['tenant', data.domain] });
+      toast({
+        title: "Tenant Updated",
+        description: "Marketplace tenant has been updated successfully.",
+      });
     },
-    onError: (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      console.error('Error updating tenant:', errorMessage);
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: errorMessage,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
-    }
+    },
   });
 };
 
-export const useAddCustomDomain = () => {
+export const useDeleteTenant = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
-    mutationFn: async ({ tenantId, domain }: { tenantId: string; domain: string }) => {
-      // For now, just update the tenant's domain since we don't have custom_domains table
-      const { data, error } = await supabase
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
         .from('marketplace_tenants')
-        .update({ domain })
-        .eq('id', tenantId)
-        .select()
-        .single();
-
+        .delete()
+        .eq('id', id);
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast({
-        title: "Domain Updated",
-        description: "Domain has been updated successfully.",
+        title: "Tenant Deleted",
+        description: "Marketplace tenant has been deleted successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },

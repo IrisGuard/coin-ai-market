@@ -28,7 +28,7 @@ const CoinDetails = () => {
         .from('coins')
         .select(`
           *,
-          profiles!inner (
+          profiles!coins_user_id_fkey (
             id,
             name,
             email,
@@ -45,8 +45,32 @@ const CoinDetails = () => {
     enabled: !!id,
   });
 
-  // Fetch bids for this coin
-  const { data: bids = [] } = useCoinBids(id || '');
+  // Fetch bids for this coin with proper relations
+  const { data: bids = [] } = useQuery({
+    queryKey: ['coin-bids', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('bids')
+        .select(`
+          *,
+          profiles!bids_user_id_fkey (
+            name,
+            avatar_url
+          )
+        `)
+        .eq('coin_id', id)
+        .order('amount', { ascending: false });
+
+      if (error) {
+        logErrorToSentry(error, { context: 'fetching coin bids' });
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!id,
+  });
 
   // Fetch related coins
   const { data: relatedCoins = [] } = useQuery({
