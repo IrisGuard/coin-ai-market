@@ -1,3 +1,4 @@
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -90,4 +91,4 @@ async function triggerGitHubAction(repo, deploymentId, errors) {
   // This would normally trigger a GitHub Action
   // For now, just log the action
   console.log('✅ Auto-fix workflow triggered');
-} 
+}
