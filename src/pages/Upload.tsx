@@ -1,19 +1,20 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Zap, CheckCircle, Upload as UploadIcon, Sparkles, TrendingUp, Award, DollarSign, Clock } from 'lucide-react';
+import { Camera, Zap, CheckCircle, Upload as UploadIcon, Sparkles, TrendingUp, Award, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import Navbar from '@/components/Navbar';
 
 const Upload = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const aiRecognition = useRealAICoinRecognition();
   const [analysisResult, setAnalysisResult] = useState(null);
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [isListing, setIsListing] = useState(false);
@@ -21,6 +22,19 @@ const Upload = () => {
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
+
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -30,73 +44,30 @@ const Upload = () => {
     reader.onload = (e) => {
       const result = e.target?.result as string;
       setUploadedImage(result);
-      analyzeImage(result);
     };
     reader.readAsDataURL(file);
-  };
 
-  const analyzeImage = async (imageData: string) => {
-    setIsAnalyzing(true);
     try {
-      // Enhanced AI analysis with more realistic data
-      await new Promise(resolve => setTimeout(resolve, 3500));
-      
-      const mockResult = {
-        success: true,
-        confidence: 0.96,
-        identification: {
-          name: "1921 Morgan Silver Dollar",
-          year: 1921,
-          country: "United States",
-          denomination: "Dollar",
-          mint: "Philadelphia",
-          mintmark: "None",
-          series: "Morgan Dollar",
-          type: "Silver Dollar"
-        },
-        grading: {
-          condition: "MS-63",
-          grade: "Mint State 63",
-          details: "Choice Uncirculated with moderate bagmarks",
-          pcgs_grade: "MS63",
-          surface_quality: "Good"
-        },
-        valuation: {
-          current_value: 42,
-          low_estimate: 38,
-          high_estimate: 48,
-          market_trend: "stable",
-          last_sale: 44,
-          population: 156000
-        },
-        specifications: {
-          composition: "90% Silver, 10% Copper",
-          diameter: "38.1mm",
-          weight: "26.73g",
-          edge: "Reeded",
-          designer: "George T. Morgan"
-        },
-        rarity: "Common",
-        pcgs_number: "7296",
-        ngc_number: "2921-P",
-        errors: [],
-        varieties: []
-      };
-
-      setAnalysisResult(mockResult);
-      
-      toast({
-        title: "Analysis Complete!",
-        description: `${mockResult.identification.name} identified with ${(mockResult.confidence * 100).toFixed(1)}% confidence`,
+      const base64Image = await convertToBase64(file);
+      const result = await aiRecognition.mutateAsync({
+        image: base64Image,
+        aiProvider: 'custom'
       });
+
+      if (result.success) {
+        setAnalysisResult(result);
+        toast({
+          title: "Analysis Complete!",
+          description: `${result.identification.name} identified with ${(result.confidence * 100).toFixed(1)}% confidence`,
+        });
+      }
     } catch (error) {
+      console.error('Analysis failed:', error);
       toast({
         title: "Analysis Failed",
         description: "Unable to analyze the coin image. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -104,18 +75,18 @@ const Upload = () => {
     setIsListing(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Listed Successfully!",
-        description: `Your ${analysisResult.identification.name} has been added to the marketplace`,
+      // Navigate to the full upload form with the analysis data
+      navigate('/upload', { 
+        state: { 
+          analysisResult, 
+          uploadedImage, 
+          listingType 
+        } 
       });
-      
-      navigate('/marketplace');
     } catch (error) {
       toast({
-        title: "Listing Failed",
-        description: "Unable to list your coin. Please try again.",
+        title: "Navigation Failed",
+        description: "Unable to proceed to listing. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -192,14 +163,14 @@ const Upload = () => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className={`relative rounded-2xl overflow-hidden ${isAnalyzing ? 'ai-scanning' : ''}`}>
+                        <div className={`relative rounded-2xl overflow-hidden ${aiRecognition.isPending ? 'ai-scanning' : ''}`}>
                           <img
                             src={uploadedImage}
                             alt="Uploaded coin"
                             className="w-full max-w-md mx-auto rounded-2xl shadow-xl"
                           />
                         </div>
-                        {isAnalyzing && (
+                        {aiRecognition.isPending && (
                           <div className="flex items-center justify-center gap-3 text-purple-600">
                             <Zap className="w-6 h-6 animate-pulse" />
                             <span className="text-lg font-medium">AI analyzing your coin...</span>
@@ -318,11 +289,11 @@ const Upload = () => {
                           </div>
                           <div>
                             <span className="text-gray-600">Weight:</span>
-                            <span className="ml-1 font-medium">{analysisResult.specifications.weight}</span>
+                            <span className="ml-1 font-medium">{analysisResult.specifications.weight}g</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Diameter:</span>
-                            <span className="ml-1 font-medium">{analysisResult.specifications.diameter}</span>
+                            <span className="ml-1 font-medium">{analysisResult.specifications.diameter}mm</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Edge:</span>
@@ -338,17 +309,8 @@ const Upload = () => {
                           className="coinvision-button w-full"
                           disabled={isListing}
                         >
-                          {isListing ? (
-                            <>
-                              <Clock className="w-5 h-5 mr-2 animate-spin" />
-                              Listing...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-5 h-5 mr-2" />
-                              List for Sale - ${analysisResult.valuation.current_value}
-                            </>
-                          )}
+                          <Sparkles className="w-5 h-5 mr-2" />
+                          Complete Listing - ${analysisResult.valuation.current_value}
                         </Button>
                         <Button 
                           onClick={() => listOnMarketplace('auction')} 

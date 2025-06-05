@@ -7,17 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Camera, Loader2, Smartphone } from 'lucide-react';
+import { Upload, Camera, Loader2, Smartphone, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import MobileCameraUploader from '@/components/MobileCameraUploader';
 
 const CoinUploadForm = () => {
   const createCoin = useCreateCoin();
+  const aiRecognition = useRealAICoinRecognition();
   const navigate = useNavigate();
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isMobileMode, setIsMobileMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -39,6 +40,63 @@ const CoinUploadForm = () => {
   // Check if device is mobile
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data:image/...;base64, prefix to get just the base64 string
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAIAnalysis = async (imageFile: File) => {
+    try {
+      const base64Image = await convertToBase64(imageFile);
+      
+      const result = await aiRecognition.mutateAsync({
+        image: base64Image,
+        aiProvider: 'custom'
+      });
+
+      if (result.success) {
+        // Update form with AI results
+        setFormData(prev => ({
+          ...prev,
+          name: result.identification.name || '',
+          year: result.identification.year?.toString() || '',
+          grade: result.grading.grade || '',
+          rarity: result.rarity || '',
+          country: result.identification.country || '',
+          denomination: result.identification.denomination || '',
+          condition: result.grading.condition || '',
+          composition: result.specifications.composition || '',
+          diameter: result.specifications.diameter?.toString() || '',
+          weight: result.specifications.weight?.toString() || '',
+          mint: result.identification.mint || '',
+          price: result.valuation.current_value?.toString() || '',
+          description: `${result.identification.name} from ${result.identification.year}. ${result.grading.details || ''}`.trim()
+        }));
+
+        toast({
+          title: "AI Analysis Complete!",
+          description: `${result.identification.name} identified with ${Math.round(result.confidence * 100)}% confidence`,
+        });
+      }
+    } catch (error) {
+      console.error('AI analysis failed:', error);
+      toast({
+        title: "AI Analysis Failed",
+        description: "Unable to analyze the coin image. Please fill in the details manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleMobileImagesSelected = async (images: { file: File; preview: string }[]) => {
     if (images.length === 0) return;
 
@@ -46,41 +104,8 @@ const CoinUploadForm = () => {
     setImagePreview(primaryImage.preview);
     setFormData(prev => ({ ...prev, image: primaryImage.preview }));
 
-    // Simulate AI analysis
-    setIsAnalyzing(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock AI results
-      setFormData(prev => ({
-        ...prev,
-        name: 'Morgan Silver Dollar',
-        year: '1921',
-        country: 'United States',
-        denomination: 'Dollar',
-        grade: 'MS-63',
-        rarity: 'Common',
-        condition: 'Mint State',
-        composition: '90% Silver, 10% Copper',
-        diameter: '38.1',
-        weight: '26.73',
-        mint: 'Philadelphia',
-        description: 'Morgan Silver Dollar minted in 1921, commonly found in good condition. Features Liberty head on obverse and eagle on reverse.',
-      }));
-
-      toast({
-        title: "AI Analysis Complete",
-        description: "Coin identified with 92% confidence. Please review and adjust the details.",
-      });
-    } catch (error) {
-      toast({
-        title: "Analysis Failed",
-        description: "Unable to analyze the coin image. Please fill in the details manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
+    // Run AI analysis on the image
+    await handleAIAnalysis(primaryImage.file);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,41 +121,8 @@ const CoinUploadForm = () => {
     };
     reader.readAsDataURL(file);
 
-    // Simulate AI analysis
-    setIsAnalyzing(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock AI results - same as before
-      setFormData(prev => ({
-        ...prev,
-        name: 'Morgan Silver Dollar',
-        year: '1921',
-        country: 'United States',
-        denomination: 'Dollar',
-        grade: 'MS-63',
-        rarity: 'Common',
-        condition: 'Mint State',
-        composition: '90% Silver, 10% Copper',
-        diameter: '38.1',
-        weight: '26.73',
-        mint: 'Philadelphia',
-        description: 'Morgan Silver Dollar minted in 1921, commonly found in good condition. Features Liberty head on obverse and eagle on reverse.',
-      }));
-
-      toast({
-        title: "AI Analysis Complete",
-        description: "Coin identified with 92% confidence. Please review and adjust the details.",
-      });
-    } catch (error) {
-      toast({
-        title: "Analysis Failed",
-        description: "Unable to analyze the coin image. Please fill in the details manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
+    // Run AI analysis on the image
+    await handleAIAnalysis(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,10 +189,10 @@ const CoinUploadForm = () => {
                         alt="Coin preview"
                         className="max-w-xs mx-auto rounded-lg shadow-md"
                       />
-                      {isAnalyzing && (
+                      {aiRecognition.isPending && (
                         <div className="flex items-center justify-center gap-2 text-blue-600">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Analyzing coin with AI...</span>
+                          <Zap className="w-4 h-4 animate-pulse" />
+                          <span>AI analyzing your coin...</span>
                         </div>
                       )}
                     </div>
@@ -423,7 +415,7 @@ const CoinUploadForm = () => {
               <Button
                 type="submit"
                 className="w-full coin-button"
-                disabled={createCoin.isPending || isAnalyzing}
+                disabled={createCoin.isPending || aiRecognition.isPending}
               >
                 {createCoin.isPending ? (
                   <>
