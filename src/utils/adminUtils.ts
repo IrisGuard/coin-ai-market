@@ -8,7 +8,7 @@ export interface CreateAdminResult {
 }
 
 /**
- * Creates the first admin user by updating the profiles table directly
+ * Creates the first admin user by updating the admin_roles table directly
  * This should be used only for initial setup
  */
 export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminResult> => {
@@ -27,14 +27,18 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
       };
     }
 
-    // Check if admin role already exists
-    const { data: existingAdmin, error: adminCheckError } = await supabase
-      .from('admin_roles')
-      .select('*')
-      .eq('user_id', profile.id)
-      .single();
+    // Check if admin role already exists using the new function
+    const { data: isAlreadyAdmin, error: adminCheckError } = await supabase
+      .rpc('is_admin_user', { user_id: profile.id });
 
-    if (existingAdmin) {
+    if (adminCheckError) {
+      return {
+        success: false,
+        message: `Error checking existing admin status: ${adminCheckError.message}`
+      };
+    }
+
+    if (isAlreadyAdmin) {
       return {
         success: false,
         message: `User ${adminEmail} is already an admin.`
@@ -72,7 +76,7 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
 };
 
 /**
- * Checks if the current user is an admin
+ * Checks if the current user is an admin using the new secure function
  */
 export const checkAdminStatus = async (): Promise<boolean> => {
   try {
@@ -80,17 +84,14 @@ export const checkAdminStatus = async (): Promise<boolean> => {
     if (!user) return false;
 
     const { data, error } = await supabase
-      .from('admin_roles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+      .rpc('is_admin_user', { user_id: user.id });
 
     if (error) {
       console.error('Error checking admin status:', error);
       return false;
     }
 
-    return data !== null;
+    return !!data;
   } catch (error) {
     console.error('Unexpected error checking admin status:', error);
     return false;

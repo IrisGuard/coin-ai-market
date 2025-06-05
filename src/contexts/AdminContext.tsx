@@ -38,13 +38,12 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       setIsLoading(true);
+      
+      // Use the new secure admin check function
       const { data, error } = await supabase
-        .from('admin_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
+        .rpc('is_admin_user', { user_id: user.id });
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
         setIsAdminAuthenticated(false);

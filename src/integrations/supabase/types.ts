@@ -1363,6 +1363,10 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      is_admin_user: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
       set_tenant_context: {
         Args: { tenant_uuid: string }
         Returns: undefined

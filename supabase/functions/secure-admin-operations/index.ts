@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     // Use production credentials
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? 'https://blvujdcdiwtgvmbuavgi.supabase.co',
+      Deno.env.get('SUPABASE_URL') ?? 'https://wdgnllgbfvjgurbqhfqb.supabase.co',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
@@ -33,8 +33,8 @@ serve(async (req) => {
 
     // Create a client with the user's token to verify identity
     const userClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? 'https://blvujdcdiwtgvmbuavgi.supabase.co',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsdnVqZGNkaXd0Z3ZtYnVhdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjU0NTUsImV4cCI6MjA2NDY0MTQ1NX0.WxGcy3GHqxir7Jo49nbE1z88ED8BNw3LnAHyPUROG_A',
+      Deno.env.get('SUPABASE_URL') ?? 'https://wdgnllgbfvjgurbqhfqb.supabase.co',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU',
       {
         auth: {
           autoRefreshToken: false,
@@ -54,9 +54,9 @@ serve(async (req) => {
       throw new Error('User not authenticated')
     }
 
-    // Check if user is admin using our secure function
+    // Check if user is admin using our new secure function
     const { data: isAdmin, error: adminError } = await supabaseClient
-      .rpc('is_admin_secure', { user_id: user.id })
+      .rpc('is_admin_user', { user_id: user.id })
 
     if (adminError || !isAdmin) {
       throw new Error('Access denied: Admin privileges required')
@@ -104,21 +104,19 @@ async function handleBulkCreateApiKeys(supabase: any, keys: any[], userId: strin
           key_name: key.name,
           encrypted_value: encryptedValue,
           description: key.description,
-          category_id: key.category_id,
           created_by: userId,
-          encryption_version: 2, // Use enhanced encryption
-          is_active: true,
-          requires_admin: key.name.toLowerCase().includes('service') || key.name.toLowerCase().includes('secret')
+          is_active: true
         })
 
       if (insertError) throw insertError
       imported++
 
       // Log admin activity for security audit
-      await supabase.rpc('log_admin_activity_secure', {
-        action_type: 'bulk_import_api_key',
+      await supabase.from('admin_activity_logs').insert({
+        action: 'bulk_import_api_key',
         target_type: 'api_key',
-        details: { key_name: key.name, category: key.category }
+        admin_user_id: userId,
+        details: { key_name: key.name }
       })
 
     } catch (error) {
@@ -150,19 +148,17 @@ async function handleCreateApiKey(supabase: any, keyData: any, userId: string) {
         key_name: keyData.name,
         encrypted_value: encryptedValue,
         description: keyData.description,
-        category_id: keyData.category_id || null,
         created_by: userId,
-        encryption_version: 2,
-        is_active: true,
-        requires_admin: keyData.name.toLowerCase().includes('service') || keyData.name.toLowerCase().includes('secret')
+        is_active: true
       })
 
     if (error) throw error
 
     // Log admin activity for security audit
-    await supabase.rpc('log_admin_activity_secure', {
-      action_type: 'create_api_key',
+    await supabase.from('admin_activity_logs').insert({
+      action: 'create_api_key',
       target_type: 'api_key',
+      admin_user_id: userId,
       details: { key_name: keyData.name }
     })
 
