@@ -14,7 +14,7 @@ export interface MarketplaceListing {
   status: 'active' | 'sold' | 'cancelled' | 'expired';
   ends_at?: string;
   created_at: string;
-  coins: {
+  coins?: {
     id: string;
     name: string;
     year: number;
@@ -24,28 +24,20 @@ export interface MarketplaceListing {
     country?: string;
     denomination?: string;
     condition?: string;
-    profiles: {
-      id: string;
-      name: string;
-      reputation: number;
-      verified_dealer: boolean;
-      avatar_url?: string;
-    };
+    user_id: string;
   };
-  profiles: {
+  profiles?: {
     id: string;
     name: string;
     reputation: number;
     verified_dealer: boolean;
   };
-  bids: Array<{
+  bids?: Array<{
     id: string;
     amount: number;
     bidder_id: string;
     created_at: string;
-    profiles: {
-      name: string;
-    };
+    bidder_name?: string;
   }>;
 }
 
@@ -53,44 +45,50 @@ export const useMarketplaceListings = () => {
   return useQuery({
     queryKey: ['marketplace-listings'],
     queryFn: async (): Promise<MarketplaceListing[]> => {
-      // Using any type temporarily until database types are regenerated
-      const { data, error } = await supabase
-        .from('marketplace_listings' as any)
+      // First get the basic listings
+      const { data: listings, error: listingsError } = await supabase
+        .from('marketplace_listings')
         .select(`
           *,
-          coins!inner(
-            *,
-            profiles!coins_user_id_fkey(
-              id,
-              name,
-              reputation,
-              verified_dealer,
-              avatar_url
-            )
-          ),
+          coins!inner(*),
           profiles!marketplace_listings_seller_id_fkey(
             id,
             name,
             reputation,
             verified_dealer
-          ),
-          bids(
-            id,
-            amount,
-            bidder_id,
-            created_at,
-            profiles!bids_bidder_id_fkey(name)
           )
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching marketplace listings:', error);
-        throw error;
+      if (listingsError) {
+        console.error('Error fetching marketplace listings:', listingsError);
+        throw listingsError;
       }
 
-      return (data || []) as MarketplaceListing[];
+      // Get bids for each listing separately to avoid complex joins
+      const listingsWithBids = await Promise.all(
+        (listings || []).map(async (listing) => {
+          const { data: bids } = await supabase
+            .from('bids')
+            .select(`
+              id,
+              amount,
+              bidder_id,
+              created_at,
+              profiles!bids_bidder_id_fkey(name)
+            `)
+            .eq('listing_id', listing.id)
+            .order('amount', { ascending: false });
+
+          return {
+            ...listing,
+            bids: bids || []
+          };
+        })
+      );
+
+      return listingsWithBids as MarketplaceListing[];
     },
   });
 };
@@ -119,9 +117,8 @@ export const useCreateListing = () => {
         ? new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString()
         : null;
 
-      // Using any type temporarily until database types are regenerated
       const { data, error } = await supabase
-        .from('marketplace_listings' as any)
+        .from('marketplace_listings')
         .insert({
           coin_id: coinId,
           seller_id: user.id,

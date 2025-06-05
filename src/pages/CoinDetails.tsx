@@ -45,21 +45,15 @@ const CoinDetails = () => {
     enabled: !!id,
   });
 
-  // Fetch bids for this coin with proper relations
-  const { data: bids = [] } = useQuery({
+  // Fetch bids for this coin with separate profile queries to avoid relation issues
+  const { data: bidsData = [] } = useQuery({
     queryKey: ['coin-bids', id],
     queryFn: async () => {
       if (!id) return [];
       
-      const { data, error } = await supabase
+      const { data: bids, error } = await supabase
         .from('bids')
-        .select(`
-          *,
-          profiles!bids_user_id_fkey (
-            name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('coin_id', id)
         .order('amount', { ascending: false });
 
@@ -67,7 +61,24 @@ const CoinDetails = () => {
         logErrorToSentry(error, { context: 'fetching coin bids' });
         return [];
       }
-      return data || [];
+
+      // Fetch profiles for each bid separately
+      const bidsWithProfiles = await Promise.all(
+        (bids || []).map(async (bid) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, avatar_url')
+            .eq('id', bid.user_id)
+            .single();
+
+          return {
+            ...bid,
+            profiles: profile || { name: 'Anonymous', avatar_url: null }
+          };
+        })
+      );
+
+      return bidsWithProfiles;
     },
     enabled: !!id,
   });
@@ -111,7 +122,7 @@ const CoinDetails = () => {
     );
   }
 
-  const highestBid = bids.length > 0 ? bids[0] : null;
+  const highestBid = bidsData.length > 0 ? bidsData[0] : null;
   const isOwner = user?.id === coin.user_id;
 
   return (
@@ -225,11 +236,11 @@ const CoinDetails = () => {
                   )}
                   
                   <div className="space-y-2">
-                    {bids.map((bid) => (
+                    {bidsData.map((bid) => (
                       <div key={bid.id} className="flex items-center justify-between p-3 border rounded">
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={bid.profiles?.avatar_url} />
+                            <AvatarImage src={bid.profiles?.avatar_url || ''} />
                             <AvatarFallback>
                               {bid.profiles?.name?.charAt(0) || 'U'}
                             </AvatarFallback>

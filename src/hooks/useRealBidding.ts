@@ -17,14 +17,16 @@ export const usePlaceBid = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Must be logged in to bid');
 
-      // Check if bid is valid - using any type temporarily until types are regenerated
+      // Check if bid is valid
       const { data: listing, error: listingError } = await supabase
-        .from('marketplace_listings' as any)
+        .from('marketplace_listings')
         .select('current_price, ends_at, seller_id, starting_price')
         .eq('id', listingId)
         .single();
 
       if (listingError) throw listingError;
+      if (!listing) throw new Error('Listing not found');
+      
       if (listing.seller_id === user.id) throw new Error('Cannot bid on your own listing');
       if (listing.ends_at && new Date(listing.ends_at) < new Date()) {
         throw new Error('Auction has ended');
@@ -35,7 +37,7 @@ export const usePlaceBid = () => {
         throw new Error('Bid must be higher than current price');
       }
 
-      // Place bid - using any type temporarily
+      // Place bid
       const { data, error } = await supabase
         .from('bids')
         .insert({
@@ -43,7 +45,7 @@ export const usePlaceBid = () => {
           bidder_id: user.id,
           amount: amount,
           coin_id: '', // We'll need to get this from the listing
-        } as any)
+        })
         .select()
         .single();
 
@@ -51,7 +53,7 @@ export const usePlaceBid = () => {
 
       // Update listing current price
       await supabase
-        .from('marketplace_listings' as any)
+        .from('marketplace_listings')
         .update({ current_price: amount })
         .eq('id', listingId);
 
