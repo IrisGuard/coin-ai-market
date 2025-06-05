@@ -95,5 +95,3 @@ export const useBulkUpload = () => {
     retryFailed
   };
 };
-
-export { CoinBatch };
