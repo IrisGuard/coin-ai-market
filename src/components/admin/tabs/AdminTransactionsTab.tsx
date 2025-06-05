@@ -80,19 +80,20 @@ const AdminTransactionsTab = () => {
                 </div>
               </TableCell>
               <TableCell>
-                {transaction.coins && typeof transaction.coins === 'object' && 'name' in transaction.coins ? 
+                {transaction.coins ? (
                   <div className="flex items-center gap-2">
-                    {'image' in transaction.coins && transaction.coins.image && (
+                    {transaction.coins.image && (
                       <img 
-                        src={transaction.coins.image as string} 
-                        alt={transaction.coins.name as string}
+                        src={transaction.coins.image} 
+                        alt={transaction.coins.name}
                         className="w-8 h-8 object-cover rounded"
                       />
                     )}
-                    <span className="text-sm">{transaction.coins.name as string}</span>
+                    <span className="text-sm">{transaction.coins.name}</span>
                   </div>
-                  : 'Unknown Coin'
-                }
+                ) : (
+                  'Unknown Coin'
+                )}
               </TableCell>
               <TableCell>
                 {new Date(transaction.created_at).toLocaleDateString()}

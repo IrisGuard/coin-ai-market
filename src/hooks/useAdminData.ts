@@ -28,7 +28,7 @@ export const useAdminCoins = () => {
         .from('coins')
         .select(`
           *,
-          profiles!coins_user_id_fkey (
+          profiles (
             id,
             name,
             email
@@ -51,7 +51,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          profiles!notifications_user_id_fkey (
+          profiles (
             name,
             email
           )
@@ -73,15 +73,15 @@ export const useTransactions = () => {
         .from('transactions')
         .select(`
           *,
-          seller:profiles!transactions_seller_id_fkey (
+          seller:profiles!seller_id (
             name,
             email
           ),
-          buyer:profiles!transactions_buyer_id_fkey (
+          buyer:profiles!buyer_id (
             name,
             email
           ),
-          coins!transactions_coin_id_fkey (
+          coins (
             id,
             name,
             image
@@ -228,10 +228,10 @@ export const useCreateApiKey = () => {
         description: "API key has been created successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'An error occurred',
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -264,10 +264,10 @@ export const useBulkCreateApiKeys = () => {
         description: `${data.length} API keys have been created successfully.`,
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'An error occurred',
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -294,10 +294,10 @@ export const useUpdateUserStatus = () => {
         description: "User status has been updated successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'An error occurred',
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -324,10 +324,10 @@ export const useUpdateCoinStatus = () => {
         description: "Coin status has been updated successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'An error occurred',
+        description: error.message,
         variant: "destructive",
       });
     },

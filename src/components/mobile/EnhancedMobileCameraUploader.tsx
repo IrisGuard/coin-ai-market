@@ -1,218 +1,293 @@
-
-import { useState } from 'react';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Camera, RotateCcw, Check, X, Wifi, WifiOff, Upload, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
-import { compressImage, getBandwidthQuality } from '@/utils/imageCompression';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { useImageQuality } from '@/hooks/useImageQuality';
-import CameraProgressIndicator from './CameraProgressIndicator';
-import CameraControls from './CameraControls';
-import CapturedImagesGrid from './CapturedImagesGrid';
-import CameraQualityTips from './CameraQualityTips';
+import { EnhancedOfflineItemData } from '@/types/offline';
 import CameraSquareGuide from './CameraSquareGuide';
-import CameraOfflineStatus from './CameraOfflineStatus';
-
-interface ImageWithQuality {
-  file: File;
-  preview: string;
-  quality: 'excellent' | 'good' | 'poor';
-  blurScore: number;
-  originalSize: number;
-  compressedSize: number;
-}
+import CameraControls from './CameraControls';
+import CameraProgressIndicator from './CameraProgressIndicator';
+import CameraQualityTips from './CameraQualityTips';
+import CapturedImagesGrid from './CapturedImagesGrid';
+import OfflineStatusIndicator from './OfflineStatusIndicator';
 
 interface EnhancedMobileCameraUploaderProps {
-  onImagesSelected: (images: ImageWithQuality[]) => void;
+  onImagesSelected: (images: { file: File; preview: string }[]) => void;
   maxImages?: number;
-  coinType?: 'normal' | 'error';
+  onComplete?: () => void;
 }
 
 const EnhancedMobileCameraUploader = ({ 
   onImagesSelected, 
-  maxImages = 6,
-  coinType = 'normal'
+  maxImages = 10,
+  onComplete 
 }: EnhancedMobileCameraUploaderProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [capturedImages, setCapturedImages] = useState<ImageWithQuality[]>([]);
-  const [currentStep, setCurrentStep] = useState<'front' | 'back' | 'error' | 'complete'>('front');
-  const [showSquareGuide, setShowSquareGuide] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
-  
-  const { isOnline, addPendingItem } = useOfflineSync();
-  const { analyzeImageQuality } = useImageQuality();
+  const [isActive, setIsActive] = useState(false);
+  const [capturedImages, setCapturedImages] = useState<{ file: File; preview: string }[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const requiredPhotos = coinType === 'error' ? 4 : 2;
-  const minRequiredPhotos = coinType === 'error' ? 2 : 2;
+  const { queueOfflineItem, syncOfflineItems, offlineItems } = useOfflineSync();
 
-  const takePicture = async (step: typeof currentStep) => {
+  useEffect(() => {
+    const handleOnlineStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOnlineStatus);
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOnlineStatus);
+    };
+  }, []);
+
+  const startCamera = useCallback(async () => {
     try {
-      setIsLoading(true);
-      setShowSquareGuide(true);
-      
-      const image = await Camera.getPhoto({
-        quality: 95,
-        allowEditing: true,
-        resultType: CameraResultType.Uri,
-        source: CameraSource.Camera,
-        width: 1024,
-        height: 1024
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: cameraFacing },
+        audio: false,
       });
-      
-      if (!image.webPath) {
-        throw new Error('Failed to get image path');
-      }
 
-      const response = await fetch(image.webPath);
-      const blob = await response.blob();
-      const originalFile = new File([blob], `coin-${step}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
-      const originalSize = originalFile.size;
-      
-      // Compress the image based on network conditions
-      setIsCompressing(true);
-      const compressionOptions = getBandwidthQuality();
-      const compressedFile = await compressImage(originalFile, compressionOptions);
-      const compressedSize = compressedFile.size;
-      
-      const { quality, blurScore } = await analyzeImageQuality(compressedFile);
-      
-      if (quality === 'poor') {
-        toast({
-          title: "Photo Quality Too Low",
-          description: "The image is too blurry. Please retake the photo with better lighting and keep the camera steady.",
-          variant: "destructive",
-        });
-        setShowSquareGuide(false);
-        setIsCompressing(false);
-        return;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        setIsActive(true);
       }
-      
-      const preview = URL.createObjectURL(compressedFile);
-      const newImage: ImageWithQuality = { 
-        file: compressedFile, 
-        preview, 
-        quality, 
-        blurScore,
-        originalSize,
-        compressedSize
-      };
-      
-      setCapturedImages(prev => [...prev, newImage]);
-      
-      // Handle offline storage
-      if (!isOnline) {
-        addPendingItem('coin_upload', {
-          timestamp: Date.now(),
-          step: step,
-          data: newImage
-        });
-      }
-      
-      if (step === 'front') {
-        setCurrentStep('back');
-      } else if (step === 'back' && coinType === 'error') {
-        setCurrentStep('error');
-      } else {
-        setCurrentStep('complete');
-      }
-      
-      const compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
-      
-      toast({
-        title: isOnline ? "Photo Captured & Compressed" : "Photo Saved Offline",
-        description: `${quality === 'excellent' ? 'Excellent' : 'Good'} quality photo ${isOnline ? 'uploaded' : 'saved'} (${compressionRatio}% smaller)`,
-      });
-      
-    } catch (error) {
-      console.error('Error taking picture:', error);
+    } catch (error: any) {
+      console.error("Error starting camera:", error);
       toast({
         title: "Camera Error",
-        description: "Failed to take photo. Please try again.",
+        description: error.message || "Failed to start camera. Please check permissions.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-      setShowSquareGuide(false);
-      setIsCompressing(false);
     }
-  };
+  }, [cameraFacing]);
 
-  const removeImage = (index: number) => {
-    setCapturedImages(prev => prev.filter((_, i) => i !== index));
-    if (capturedImages.length <= minRequiredPhotos) {
-      setCurrentStep('front');
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
-  };
+    setIsActive(false);
+  }, []);
 
-  const handleComplete = () => {
-    if (capturedImages.length >= minRequiredPhotos) {
-      onImagesSelected(capturedImages);
-      setCurrentStep('complete');
-    }
-  };
+  const captureImage = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) return;
 
-  const resetCapture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        toast({
+          title: "Capture Error",
+          description: "Failed to capture image.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const file = new File([blob], `coin_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      const preview = URL.createObjectURL(file);
+
+      if (!isOnline) {
+        await handleQueueOffline({ file, preview });
+      } else {
+        setCapturedImages(prevImages => [...prevImages, { file, preview }]);
+        setCurrentStep(prevStep => Math.min(prevStep + 1, steps.length - 1));
+      }
+
+      toast({
+        title: "Image Captured",
+        description: "Image added to the queue.",
+      });
+    }, 'image/jpeg');
+  }, [isOnline, handleQueueOffline, steps.length]);
+
+  const removeImage = useCallback((index: number) => {
+    setCapturedImages(prevImages => {
+      const newImages = [...prevImages];
+      newImages.splice(index, 1);
+      return newImages;
+    });
+    setCurrentStep(prevStep => Math.max(prevStep - 1, 0));
+  }, []);
+
+  const retakeImage = useCallback((index: number) => {
+    removeImage(index);
+    setCurrentStep(index);
+  }, [removeImage]);
+
+  const clearAllImages = useCallback(() => {
     setCapturedImages([]);
-    setCurrentStep('front');
-  };
+    setCurrentStep(0);
+  }, []);
 
-  const getStepInstruction = () => {
-    switch (currentStep) {
-      case 'front':
-        return 'Take a photo of the front (heads) side';
-      case 'back':
-        return 'Take a photo of the back (tails) side';
-      case 'error':
-        return 'Take additional photos of the error details';
-      case 'complete':
-        return 'All photos captured successfully!';
-    }
-  };
+  const handleImagesConfirmed = useCallback(() => {
+    onImagesSelected(capturedImages);
+    onComplete?.();
+  }, [capturedImages, onImagesSelected, onComplete]);
+
+  const handleQueueOffline = useCallback(async (imageData: { file: File; preview: string }) => {
+    const offlineItem: EnhancedOfflineItemData = {
+      timestamp: Date.now(),
+      step: `coin-image-${capturedImages.length + 1}`,
+      data: {
+        imageData: imageData.preview,
+        fileName: imageData.file.name,
+        fileSize: imageData.file.size,
+        captureTime: new Date().toISOString()
+      },
+      id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      status: 'pending',
+      retryCount: 0
+    };
+
+    await queueOfflineItem(offlineItem);
+    
+    toast({
+      title: "Image Queued Offline",
+      description: "Image saved locally and will sync when connection is restored.",
+    });
+  }, [capturedImages.length, queueOfflineItem]);
+
+  const steps = [
+    "Position coin in center",
+    "Ensure good lighting", 
+    "Capture obverse (front)",
+    "Capture reverse (back)",
+    "Add detail shots (optional)"
+  ];
 
   return (
-    <div className="space-y-6">
-      <CameraProgressIndicator 
-        currentStep={currentStep}
-        coinType={coinType}
-        capturedImagesCount={capturedImages.length}
-      />
+    <div className="space-y-4">
+      <OfflineStatusIndicator isOnline={isOnline} />
+      
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Enhanced Coin Camera
+            </CardTitle>
+            <Badge variant="outline">
+              {capturedImages.length}/{maxImages} Images
+            </Badge>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <CameraProgressIndicator 
+            currentStep={currentStep}
+            totalSteps={steps.length}
+            steps={steps}
+          />
 
-      <CameraOfflineStatus isOnline={isOnline} />
+          {!isActive ? (
+            <div className="text-center space-y-4">
+              <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                <Camera className="w-16 h-16 text-gray-400" />
+              </div>
+              <Button 
+                onClick={startCamera} 
+                className="w-full"
+                size="lg"
+              >
+                <Camera className="w-5 h-5 mr-2" />
+                Start Camera
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="relative w-full aspect-square bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                <CameraSquareGuide />
+                <canvas ref={canvasRef} className="hidden" />
+              </div>
 
-      <CameraSquareGuide showSquareGuide={showSquareGuide} />
+              <CameraControls
+                onCapture={captureImage}
+                onSwitchCamera={() => setCameraFacing(prev => prev === 'user' ? 'environment' : 'user')}
+                onClose={stopCamera}
+                isCapturing={false}
+              />
+            </div>
+          )}
 
-      {/* Current Step Instruction */}
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          {getStepInstruction()}
-        </h3>
-        <p className="text-sm text-gray-600">
-          {coinType === 'error' 
-            ? `Capture ${requiredPhotos} clear photos for error coin analysis`
-            : 'Capture both sides of your coin clearly'
-          }
-        </p>
-      </div>
+          <CameraQualityTips currentStep={currentStep} />
 
-      {/* Camera Controls */}
-      <div className="space-y-4">
-        <CameraControls
-          currentStep={currentStep}
-          isLoading={isLoading}
-          isCompressing={isCompressing}
-          capturedImagesCount={capturedImages.length}
-          minRequiredPhotos={minRequiredPhotos}
-          onTakePicture={takePicture}
-          onComplete={handleComplete}
-          onReset={resetCapture}
-        />
+          {capturedImages.length > 0 && (
+            <>
+              <Separator />
+              <CapturedImagesGrid
+                images={capturedImages}
+                onRemoveImage={removeImage}
+                onRetakeImage={retakeImage}
+              />
+            </>
+          )}
 
-        <CapturedImagesGrid 
-          images={capturedImages}
-          onRemoveImage={removeImage}
-        />
+          {capturedImages.length > 0 && (
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleImagesConfirmed}
+                className="flex-1"
+                disabled={!isOnline && capturedImages.length === 0}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                {isOnline ? 'Use Images' : 'Queue Offline'}
+              </Button>
+              
+              <Button 
+                onClick={clearAllImages}
+                variant="outline"
+                className="flex-1"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear All
+              </Button>
+            </div>
+          )}
 
-        <CameraQualityTips coinType={coinType} />
-      </div>
+          {!isOnline && offlineItems.length > 0 && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <WifiOff className="w-4 h-4 text-orange-600" />
+                <span className="text-sm font-medium text-orange-800">
+                  {offlineItems.length} items queued offline
+                </span>
+              </div>
+              <Button 
+                onClick={syncOfflineItems}
+                size="sm"
+                variant="outline"
+                className="w-full"
+                disabled={!isOnline}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Sync When Online
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CoinBatch } from '@/hooks/useBulkUpload';
+import React from 'react';
+import { CoinBatch } from '@/types/batch';
 import BatchListItem from './BatchListItem';
 
 interface BulkUploadQueueProps {
@@ -10,34 +10,38 @@ interface BulkUploadQueueProps {
   onRemoveBatch: (index: number) => void;
 }
 
-const BulkUploadQueue = ({ 
-  batches, 
-  currentBatchIndex, 
-  isProcessing, 
-  onRemoveBatch 
+const BulkUploadQueue = ({
+  batches,
+  currentBatchIndex,
+  isProcessing,
+  onRemoveBatch
 }: BulkUploadQueueProps) => {
-  if (batches.length === 0) return null;
+  if (batches.length === 0) {
+    return null;
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Processing Queue</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {batches.map((batch, index) => (
-            <BatchListItem
-              key={batch.id}
-              batch={batch}
-              index={index}
-              isCurrentBatch={currentBatchIndex === index}
-              isProcessing={isProcessing}
-              onRemove={onRemoveBatch}
-            />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-lg border shadow-sm">
+      <div className="p-4 border-b">
+        <h3 className="text-lg font-semibold">Processing Queue</h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {batches.length} batch{batches.length !== 1 ? 'es' : ''} in queue
+        </p>
+      </div>
+      
+      <div className="divide-y">
+        {batches.map((batch, index) => (
+          <BatchListItem
+            key={batch.id}
+            batch={batch}
+            index={index}
+            isActive={index === currentBatchIndex && isProcessing}
+            onRemove={() => onRemoveBatch(index)}
+            canRemove={batch.status === 'pending' || batch.status === 'failed'}
+          />
+        ))}
+      </div>
+    </div>
   );
 };
 
