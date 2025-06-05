@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,13 +16,15 @@ import {
   Zap,
   Shield,
   Target,
-  Database
+  Database,
+  Brain
 } from 'lucide-react';
 import BulkSourceImporter from './BulkSourceImporter';
 import SourceTemplateManager from './SourceTemplateManager';
 import PerformanceAnalytics from './PerformanceAnalytics';
 import AISourceDiscovery from './AISourceDiscovery';
 import GeographicSourceMap from './GeographicSourceMap';
+import CustomSourceManager from './CustomSourceManager';
 
 const EnhancedSourcesManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -54,15 +55,23 @@ const EnhancedSourcesManager = () => {
             <Zap className="h-4 w-4 mr-1" />
             AI Enhanced
           </Badge>
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            <Brain className="h-4 w-4 mr-1" />
+            Unlimited Sources
+          </Badge>
         </div>
       </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
+          </TabsTrigger>
+          <TabsTrigger value="custom-sources" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            Custom Sources
           </TabsTrigger>
           <TabsTrigger value="bulk-import" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
@@ -173,6 +182,10 @@ const EnhancedSourcesManager = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="custom-sources">
+          <CustomSourceManager />
         </TabsContent>
 
         <TabsContent value="bulk-import">
