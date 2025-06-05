@@ -1,12 +1,31 @@
 
 import { useState, useCallback } from 'react';
 import { CoinBatch } from '@/types/batch';
+import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import { useCreateCoin } from '@/hooks/useCoinMutations';
+import { toast } from '@/hooks/use-toast';
 
 export const useBulkUpload = () => {
   const [batches, setBatches] = useState<CoinBatch[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
+  
+  const aiRecognition = useRealAICoinRecognition();
+  const createCoin = useCreateCoin();
+
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   const addBatches = useCallback((files: File[]) => {
     const newBatches: CoinBatch[] = files.map((file, index) => ({
@@ -22,35 +41,94 @@ export const useBulkUpload = () => {
     setBatches(prev => [...prev, ...newBatches]);
   }, []);
 
+  const processBatch = async (batch: CoinBatch): Promise<void> => {
+    try {
+      setBatches(prev => prev.map(b => 
+        b.id === batch.id ? { ...b, status: 'processing' as const, progress: 25 } : b
+      ));
+
+      // Convert image to base64
+      const base64Image = await convertToBase64(batch.images[0]);
+      
+      setBatches(prev => prev.map(b => 
+        b.id === batch.id ? { ...b, progress: 50 } : b
+      ));
+
+      // Real AI analysis
+      const aiResult = await aiRecognition.mutateAsync({
+        image: base64Image,
+        aiProvider: 'custom'
+      });
+
+      setBatches(prev => prev.map(b => 
+        b.id === batch.id ? { ...b, progress: 75 } : b
+      ));
+
+      if (aiResult.success) {
+        // Create coin with AI results
+        const coinData = {
+          name: aiResult.identification.name || 'Unknown Coin',
+          year: aiResult.identification.year || new Date().getFullYear(),
+          grade: aiResult.grading.grade || 'Ungraded',
+          price: aiResult.valuation.current_value || 0,
+          rarity: aiResult.rarity || 'common',
+          image: `data:image/jpeg;base64,${base64Image}`,
+          country: aiResult.identification.country || '',
+          denomination: aiResult.identification.denomination || '',
+          description: `AI-identified coin with ${Math.round(aiResult.confidence * 100)}% confidence`,
+        };
+
+        await createCoin.mutateAsync(coinData);
+
+        setBatches(prev => prev.map(b => 
+          b.id === batch.id ? { 
+            ...b, 
+            status: 'completed' as const, 
+            progress: 100,
+            estimatedValue: aiResult.valuation.current_value || 0
+          } : b
+        ));
+      } else {
+        throw new Error('AI analysis failed');
+      }
+    } catch (error) {
+      console.error('Batch processing error:', error);
+      setBatches(prev => prev.map(b => 
+        b.id === batch.id ? { ...b, status: 'failed' as const, progress: 0 } : b
+      ));
+      
+      toast({
+        title: "Processing Failed",
+        description: `Failed to process ${batch.name}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   const startBulkProcessing = useCallback(async (onComplete?: () => void) => {
     setIsProcessing(true);
     setIsPaused(false);
     
-    // Simulate processing logic
-    for (let i = 0; i < batches.length; i++) {
+    const pendingBatches = batches.filter(b => b.status === 'pending' || b.status === 'failed');
+    
+    for (let i = 0; i < pendingBatches.length; i++) {
       if (isPaused) break;
       
       setCurrentBatchIndex(i);
-      setBatches(prev => prev.map((batch, idx) => 
-        idx === i ? { ...batch, status: 'processing' as const } : batch
-      ));
+      await processBatch(pendingBatches[i]);
       
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setBatches(prev => prev.map((batch, idx) => 
-        idx === i ? { 
-          ...batch, 
-          status: 'completed' as const, 
-          progress: 100,
-          estimatedValue: Math.floor(Math.random() * 1000) + 100
-        } : batch
-      ));
+      // Small delay between batches to prevent overwhelming the system
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
     
     setIsProcessing(false);
     onComplete?.();
-  }, [batches, isPaused]);
+    
+    toast({
+      title: "Bulk Processing Complete",
+      description: `Processed ${pendingBatches.length} coins successfully`,
+    });
+  }, [batches, isPaused, aiRecognition, createCoin]);
 
   const pauseProcessing = useCallback(() => {
     setIsPaused(true);

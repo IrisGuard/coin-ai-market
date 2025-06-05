@@ -1,4 +1,6 @@
+
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 interface CoinUploadData {
@@ -40,25 +42,75 @@ export const useOfflineSync = () => {
     savePendingItems(updatedItems);
   }, [pendingItems]);
 
+  const syncCoinUpload = async (item: OfflineItem) => {
+    const data = item.data as CoinUploadData;
+    
+    // Convert image to base64
+    const imageBase64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(data.images[0]);
+    });
+
+    // Create coin record
+    const { error } = await supabase
+      .from('coins')
+      .insert({
+        name: data.name,
+        year: data.year,
+        grade: data.grade,
+        price: data.price,
+        rarity: data.rarity,
+        image: imageBase64,
+        country: data.country,
+        denomination: data.denomination,
+        description: data.description,
+        condition: data.condition,
+        authentication_status: 'pending'
+      });
+
+    if (error) throw error;
+  };
+
+  const syncAIAnalysis = async (item: OfflineItem) => {
+    const data = item.data as AIAnalysisData;
+    
+    const { error } = await supabase.functions.invoke('custom-ai-recognition', {
+      body: {
+        image: data.imageUrl,
+        analysisType: data.analysisType,
+        userId: data.userId
+      }
+    });
+
+    if (error) throw error;
+  };
+
   const syncPendingItems = useCallback(async () => {
     if (!isOnline || isSyncing || pendingItems.length === 0) return;
 
     setIsSyncing(true);
     const maxRetries = 3;
+    let syncedCount = 0;
 
     for (const item of pendingItems) {
       try {
-        // This would call the appropriate API based on item type
-        // For now, we'll simulate success
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (item.type === 'coin_upload') {
+          await syncCoinUpload(item);
+        } else if (item.type === 'ai_analysis') {
+          await syncAIAnalysis(item);
+        }
         
         removePendingItem(item.id);
+        syncedCount++;
         
-        toast({
-          title: "Synced",
-          description: `${item.type.replace('_', ' ')} uploaded successfully`,
-        });
       } catch (error) {
+        console.error('Sync error:', error);
+        
         const updatedItems = pendingItems.map(p => 
           p.id === item.id 
             ? { ...p, retryCount: p.retryCount + 1 }
@@ -66,7 +118,6 @@ export const useOfflineSync = () => {
         );
 
         if (item.retryCount >= maxRetries) {
-          // Remove items that have failed too many times
           removePendingItem(item.id);
           toast({
             title: "Sync Failed",
@@ -80,6 +131,13 @@ export const useOfflineSync = () => {
     }
 
     setIsSyncing(false);
+    
+    if (syncedCount > 0) {
+      toast({
+        title: "Sync Complete",
+        description: `Successfully synced ${syncedCount} items`,
+      });
+    }
   }, [isOnline, isSyncing, pendingItems, removePendingItem]);
 
   useEffect(() => {
@@ -107,11 +165,16 @@ export const useOfflineSync = () => {
     // Load pending items from localStorage
     loadPendingItems();
 
+    // Auto-sync when coming online
+    if (isOnline) {
+      syncPendingItems();
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [syncPendingItems]);
+  }, [syncPendingItems, isOnline]);
 
   const loadPendingItems = () => {
     try {
