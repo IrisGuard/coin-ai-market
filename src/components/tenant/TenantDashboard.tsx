@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useTenants, useCreateTenant, useAddCustomDomain } from '@/hooks/useTenants';
+import { useTenants, useCreateTenant, useAddCustomDomain, TenantSettings } from '@/hooks/useTenants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +27,7 @@ const TenantDashboard = () => {
       description: '',
       primary_color: '#1F2937',
       secondary_color: '#3B82F6'
-    }
+    } as TenantSettings
   });
   
   const [newDomain, setNewDomain] = useState('');
@@ -49,7 +49,7 @@ const TenantDashboard = () => {
         description: '',
         primary_color: '#1F2937',
         secondary_color: '#3B82F6'
-      }
+      } as TenantSettings
     });
   };
 
@@ -123,7 +123,7 @@ const TenantDashboard = () => {
                 <Label htmlFor="description">Description (Optional)</Label>
                 <Textarea
                   id="description"
-                  value={newTenant.settings.description}
+                  value={newTenant.settings.description || ''}
                   onChange={(e) => setNewTenant({ 
                     ...newTenant, 
                     settings: { ...newTenant.settings, description: e.target.value }
@@ -137,7 +137,7 @@ const TenantDashboard = () => {
                   <Input
                     id="primary-color"
                     type="color"
-                    value={newTenant.settings.primary_color}
+                    value={newTenant.settings.primary_color || '#1F2937'}
                     onChange={(e) => setNewTenant({ 
                       ...newTenant, 
                       settings: { ...newTenant.settings, primary_color: e.target.value }
@@ -149,7 +149,7 @@ const TenantDashboard = () => {
                   <Input
                     id="secondary-color"
                     type="color"
-                    value={newTenant.settings.secondary_color}
+                    value={newTenant.settings.secondary_color || '#3B82F6'}
                     onChange={(e) => setNewTenant({ 
                       ...newTenant, 
                       settings: { ...newTenant.settings, secondary_color: e.target.value }

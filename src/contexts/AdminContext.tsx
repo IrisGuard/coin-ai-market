@@ -7,7 +7,9 @@ import { toast } from '@/hooks/use-toast';
 interface AdminContextType {
   isAdmin: boolean;
   isLoading: boolean;
+  isAdminAuthenticated: boolean;
   checkAdminStatus: () => Promise<void>;
+  adminLogin: (email: string, password: string) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -23,11 +25,13 @@ export const useAdmin = () => {
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const { user } = useAuth();
 
   const checkAdminStatus = async () => {
     if (!user) {
       setIsAdmin(false);
+      setIsAdminAuthenticated(false);
       setIsLoading(false);
       return;
     }
@@ -43,19 +47,57 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
+        setIsAdminAuthenticated(false);
       } else {
-        setIsAdmin(!!data);
+        const adminStatus = !!data;
+        setIsAdmin(adminStatus);
+        setIsAdminAuthenticated(adminStatus);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to check admin status';
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to check admin status',
+        description: errorMessage,
         variant: "destructive",
       });
       setIsAdmin(false);
+      setIsAdminAuthenticated(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const adminLogin = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (data.user) {
+        await checkAdminStatus();
+        return isAdmin;
+      }
+
+      return false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -66,7 +108,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const value = {
     isAdmin,
     isLoading,
+    isAdminAuthenticated,
     checkAdminStatus,
+    adminLogin,
   };
 
   return (

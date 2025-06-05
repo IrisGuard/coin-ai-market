@@ -3,11 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-interface TenantSettings {
+export interface TenantSettings {
+  [key: string]: any;
   theme?: Record<string, any>;
   branding?: Record<string, any>;
   features?: string[];
   customization?: Record<string, any>;
+  description?: string;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 export interface Tenant {
@@ -66,7 +70,11 @@ export const useCreateTenant = () => {
     }) => {
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .insert(tenantData)
+        .insert({
+          name: tenantData.name,
+          domain: tenantData.domain,
+          settings: tenantData.settings || {} as any
+        })
         .select()
         .single();
       
@@ -101,9 +109,19 @@ export const useUpdateTenant = () => {
       id: string; 
       updates: Partial<Omit<Tenant, 'id' | 'created_at' | 'updated_at'>>
     }) => {
+      const updateData: any = {
+        name: updates.name,
+        domain: updates.domain,
+        is_active: updates.is_active,
+      };
+      
+      if (updates.settings) {
+        updateData.settings = updates.settings as any;
+      }
+
       const { data, error } = await supabase
         .from('marketplace_tenants')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -146,6 +164,38 @@ export const useDeleteTenant = () => {
       toast({
         title: "Tenant Deleted",
         description: "Marketplace tenant has been deleted successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || 'An error occurred',
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useAddCustomDomain = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ tenantId, domain }: { tenantId: string; domain: string }) => {
+      const { data, error } = await supabase
+        .from('marketplace_tenants')
+        .update({ domain })
+        .eq('id', tenantId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      toast({
+        title: "Custom Domain Added",
+        description: "Custom domain has been added successfully.",
       });
     },
     onError: (error: Error) => {

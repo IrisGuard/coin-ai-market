@@ -63,9 +63,10 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
     };
 
   } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return {
       success: false,
-      message: `Unexpected error: ${error.message}`
+      message: `Unexpected error: ${errorMessage}`
     };
   }
 };
@@ -119,6 +120,7 @@ Note: The createFirstAdmin function is available in development console
 
 // Make function available in development console
 if (typeof window !== 'undefined') {
-  (window as unknown).createFirstAdmin = createFirstAdmin;
-  (window as unknown).checkAdminStatus = checkAdminStatus;
+  const windowAny = window as any;
+  windowAny.createFirstAdmin = createFirstAdmin;
+  windowAny.checkAdminStatus = checkAdminStatus;
 }

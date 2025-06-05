@@ -1,4 +1,3 @@
-
 export interface CompressionOptions {
   maxWidth?: number;
   maxHeight?: number;
@@ -137,4 +136,20 @@ export const getBandwidthQuality = (): CompressionOptions => {
         maxSizeKB: 500
       };
   }
+};
+
+/**
+ * Checks if the user is on a slow connection
+ */
+const isSlowConnection = (): boolean => {
+  const nav = navigator as any;
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+  
+  if (connection) {
+    // Consider 2G or slow-2g as slow connections
+    return connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g';
+  }
+  
+  // Default to false if connection API is not available
+  return false;
 };
