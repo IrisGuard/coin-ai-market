@@ -241,7 +241,7 @@ const CustomSourceManager = () => {
             <Button 
               variant="outline" 
               onClick={() => testUrlExtraction(newSource.url)}
-              disabled={!newSource.url || testingUrl}
+              disabled={!newSource.url || Boolean(testingUrl)}
             >
               <TestTube className="h-4 w-4 mr-2" />
               {testingUrl ? 'Testing...' : 'Test URL'}
