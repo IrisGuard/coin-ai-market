@@ -1,7 +1,145 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { verifyAdminAccess, safeQuery, handleSupabaseError } from '@/utils/supabaseSecurityHelpers';
+
+export const useAdminData = () => {
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const [usersResult, coinsResult, transactionsResult] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact' }),
+        supabase.from('coins').select('*', { count: 'exact' }),
+        supabase.from('transactions').select('amount, created_at').eq('status', 'completed')
+      ]);
+
+      const totalUsers = usersResult.count || 0;
+      const totalCoins = coinsResult.count || 0;
+      const totalRevenue = transactionsResult.data?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+
+      const today = new Date().toISOString().split('T')[0];
+      const newUsersToday = usersResult.data?.filter(u => 
+        u.created_at && u.created_at.startsWith(today)
+      ).length || 0;
+
+      const revenueToday = transactionsResult.data?.filter(t => 
+        t.created_at.startsWith(today)
+      ).reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+
+      const pendingVerification = coinsResult.data?.filter(c => 
+        c.authentication_status === 'pending'
+      ).length || 0;
+
+      return {
+        totalUsers,
+        totalCoins,
+        totalRevenue,
+        newUsersToday,
+        revenueToday,
+        pendingVerification,
+        totalUploads: totalCoins,
+        averageAccuracy: 94,
+        activeListings: coinsResult.data?.filter(c => c.authentication_status === 'verified').length || 0
+      };
+    }
+  });
+
+  const { data: pendingCoins, isLoading: coinsLoading } = useQuery({
+    queryKey: ['pending-coins'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coins')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey(
+            id,
+            name,
+            email
+          )
+        `)
+        .eq('authentication_status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching pending coins:', error);
+        return [];
+      }
+      return data || [];
+    }
+  });
+
+  const { data: users, isLoading: usersLoading } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
+      return data || [];
+    }
+  });
+
+  const { data: recentTransactions, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['recent-transactions'],
+    queryFn: async () => {
+      // Fetch transactions first, then get profile data separately
+      const { data: transactions, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        return [];
+      }
+
+      if (!transactions || transactions.length === 0) return [];
+
+      // Get profile data for buyers and sellers
+      const userIds = [...new Set([
+        ...transactions.map(t => t.buyer_id),
+        ...transactions.map(t => t.seller_id)
+      ])].filter(Boolean);
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', userIds);
+
+      // Map profiles to transactions
+      const transactionsWithProfiles = transactions.map(transaction => ({
+        ...transaction,
+        buyer_profile: profiles?.find(p => p.id === transaction.buyer_id) || { name: 'Unknown' },
+        seller_profile: profiles?.find(p => p.id === transaction.seller_id) || { name: 'Unknown' }
+      }));
+
+      return transactionsWithProfiles;
+    }
+  });
+
+  const systemHealth = {
+    status: 'healthy' as const,
+    uptime: '99.9%'
+  };
+
+  return {
+    stats,
+    pendingCoins,
+    users,
+    recentTransactions,
+    systemHealth,
+    isLoading: statsLoading || coinsLoading || usersLoading || transactionsLoading
+  };
+};
 
 // Admin Users Hook with security validation
 export const useAdminUsers = () => {
@@ -67,238 +205,6 @@ export const useAdminCoins = () => {
   });
 };
 
-// Notifications Hook
-export const useNotifications = () => {
-  return useQuery({
-    queryKey: ['admin-notifications'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select(`
-          *,
-          profiles!notifications_user_id_fkey (
-            name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Transactions Hook
-export const useTransactions = () => {
-  return useQuery({
-    queryKey: ['admin-transactions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          seller:profiles!transactions_seller_id_fkey (
-            name,
-            email
-          ),
-          buyer:profiles!transactions_buyer_id_fkey (
-            name,
-            email
-          ),
-          coins!transactions_coin_id_fkey (
-            id,
-            name,
-            image
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// API Keys Hook
-export const useApiKeys = () => {
-  return useQuery({
-    queryKey: ['admin-api-keys'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// API Key Categories Hook
-export const useApiKeyCategories = () => {
-  return useQuery({
-    queryKey: ['admin-api-key-categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('api_key_categories')
-        .select('*')
-        .order('name', { ascending: true });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Error Logs Hook
-export const useErrorLogs = () => {
-  return useQuery({
-    queryKey: ['admin-error-logs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('error_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Console Errors Hook
-export const useConsoleErrors = () => {
-  return useQuery({
-    queryKey: ['admin-console-errors'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('console_errors')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Scraping Jobs Hook
-export const useScrapingJobs = () => {
-  return useQuery({
-    queryKey: ['admin-scraping-jobs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('scraping_jobs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Marketplace Stats Hook
-export const useMarketplaceStats = () => {
-  return useQuery({
-    queryKey: ['marketplace-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('marketplace_stats')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) throw error;
-      return data?.[0] || {
-        registered_users: 0,
-        listed_coins: 0,
-        active_auctions: 0,
-        total_volume: 0,
-        weekly_transactions: 0
-      };
-    },
-  });
-};
-
-// Create API Key Mutation
-export const useCreateApiKey = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (keyData: {
-      key_name: string;
-      encrypted_value: string;
-      description?: string;
-      category_id?: string | null;
-    }) => {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .insert(keyData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-api-keys'] });
-      toast({
-        title: "API Key Created",
-        description: "API key has been created successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-// Bulk Create API Keys Mutation
-export const useBulkCreateApiKeys = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (keysData: Array<{
-      key_name: string;
-      encrypted_value: string;
-      description?: string;
-      category_id?: string | null;
-    }>) => {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .insert(keysData)
-        .select();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-api-keys'] });
-      toast({
-        title: "API Keys Created",
-        description: `${data.length} API keys have been created successfully.`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
-    },
-  });
-};
-
 // Update User Status Mutation
 export const useUpdateUserStatus = () => {
   const queryClient = useQueryClient();
@@ -352,6 +258,7 @@ export const useUpdateCoinStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-coins'] });
       toast({
         title: "Coin Updated",
         description: "Coin status has been updated successfully.",

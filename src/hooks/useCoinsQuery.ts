@@ -28,33 +28,66 @@ export const useCoins = () => {
     queryKey: ['coins'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch coins with profiles first
+        const { data: coins, error: coinsError } = await supabase
           .from('coins')
           .select(`
             *,
-            profiles!inner(
+            profiles!coins_user_id_fkey(
               id,
               name,
               reputation,
               verified_dealer
-            ),
-            bids(
-              id,
-              amount,
-              user_id,
-              created_at,
-              profiles!inner(name)
             )
           `)
           .eq('authentication_status', 'verified')
           .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching coins:', error);
+        if (coinsError) {
+          console.error('Error fetching coins:', coinsError);
           return [];
         }
+
+        if (!coins || coins.length === 0) return [];
+
+        // Fetch bids for each coin separately to avoid complex joins
+        const coinsWithBids = await Promise.all(
+          coins.map(async (coin) => {
+            const { data: bids } = await supabase
+              .from('bids')
+              .select(`
+                id,
+                amount,
+                user_id,
+                created_at
+              `)
+              .eq('coin_id', coin.id)
+              .order('amount', { ascending: false });
+
+            // Get profile names for bids
+            const bidsWithProfiles = await Promise.all(
+              (bids || []).map(async (bid) => {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('name')
+                  .eq('id', bid.user_id)
+                  .single();
+
+                return {
+                  ...bid,
+                  profiles: profile || { name: 'Anonymous' }
+                };
+              })
+            );
+
+            return {
+              ...coin,
+              bids: bidsWithProfiles
+            };
+          })
+        );
         
-        return (data || []).map(transformSupabaseCoinData);
+        return coinsWithBids.map(transformSupabaseCoinData);
       } catch (error) {
         console.error('Connection error:', error);
         return [];
@@ -68,34 +101,62 @@ export const useCoin = (id: string) => {
     queryKey: ['coin', id],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        const { data: coin, error: coinError } = await supabase
           .from('coins')
           .select(`
             *,
-            profiles!inner(
+            profiles!coins_user_id_fkey(
               id,
               name,
               reputation,
               verified_dealer,
               avatar_url
-            ),
-            bids(
-              id,
-              amount,
-              user_id,
-              created_at,
-              profiles!inner(name)
             )
           `)
           .eq('id', id)
           .single();
 
-        if (error) {
-          console.error('Error fetching coin:', error);
+        if (coinError) {
+          console.error('Error fetching coin:', coinError);
           return null;
         }
+
+        if (!coin) return null;
+
+        // Fetch bids for this coin
+        const { data: bids } = await supabase
+          .from('bids')
+          .select(`
+            id,
+            amount,
+            user_id,
+            created_at
+          `)
+          .eq('coin_id', coin.id)
+          .order('amount', { ascending: false });
+
+        // Get profile names for bids
+        const bidsWithProfiles = await Promise.all(
+          (bids || []).map(async (bid) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('name')
+              .eq('id', bid.user_id)
+              .single();
+
+            return {
+              ...bid,
+              profiles: profile || { name: 'Anonymous' }
+            };
+          })
+        );
+
+        const coinWithBids = {
+          ...coin,
+          bids: bidsWithProfiles
+        };
         
-        return data ? transformSupabaseCoinData(data) : null;
+        return transformSupabaseCoinData(coinWithBids);
       } catch (error) {
         console.error('Connection error:', error);
         return null;

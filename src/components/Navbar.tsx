@@ -34,13 +34,13 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
-  const primaryColor = currentTenant?.primary_color || '#1F2937';
-  const secondaryColor = currentTenant?.secondary_color || '#3B82F6';
+  const primaryColor = currentTenant?.primary_color || '#6366f1';
+  const secondaryColor = currentTenant?.secondary_color || '#8b5cf6';
 
   return (
     <>
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="navbar-fixed">
+        <div className="max-w-7xl mx-auto container-padding">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-3">
@@ -51,9 +51,14 @@ const Navbar = () => {
                     className="h-8 w-8 object-contain"
                   />
                 ) : (
-                  <Coins className="h-8 w-8" style={{ color: primaryColor }} />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center" 
+                       style={{ 
+                         backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
+                       }}>
+                    <Coins className="w-6 h-6 text-white" />
+                  </div>
                 )}
-                <span className="text-xl font-bold" style={{ color: primaryColor }}>
+                <span className="text-xl font-bold gradient-text">
                   {currentTenant?.name || 'CoinVision'}
                 </span>
               </Link>
@@ -65,17 +70,7 @@ const Navbar = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-                  style={{ 
-                    borderColor: secondaryColor,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderBottomColor = secondaryColor;
-                    e.currentTarget.style.borderBottomWidth = '2px';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderBottomWidth = '0px';
-                  }}
+                  className="nav-link"
                 >
                   {item.label}
                 </Link>
@@ -103,7 +98,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleAdminSetupClick}
-                  className="flex items-center gap-2 text-muted-foreground"
+                  className="admin-link flex items-center gap-2"
                 >
                   <Shield className="h-4 w-4" />
                   Admin Setup
@@ -118,7 +113,7 @@ const Navbar = () => {
               <LanguageSwitcher />
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="text-gray-700 hover:text-gray-900 focus:outline-none"
+                className="text-gray-700 hover:text-gray-900 focus:outline-none p-2 rounded-lg hover:bg-gray-100"
               >
                 {isOpen ? (
                   <X className="h-6 w-6" />
@@ -131,13 +126,13 @@ const Navbar = () => {
 
           {/* Mobile Navigation */}
           {isOpen && (
-            <div className="md:hidden">
-              <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t shadow-lg">
+              <div className="container-padding py-4 space-y-4">
                 {navItems.map((item) => (
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="text-gray-700 hover:text-gray-900 block px-3 py-2 text-base font-medium"
+                    className="nav-link"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}
@@ -150,7 +145,7 @@ const Navbar = () => {
                       openAdminPanel();
                       setIsOpen(false);
                     }}
-                    className="text-gray-700 hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left"
+                    className="nav-link w-full text-left"
                   >
                     <div className="flex items-center gap-2">
                       <Settings className="h-4 w-4" />
@@ -163,7 +158,7 @@ const Navbar = () => {
                 {!isAdmin && (
                   <button
                     onClick={handleAdminSetupClick}
-                    className="text-muted-foreground hover:text-gray-900 block px-3 py-2 text-base font-medium w-full text-left"
+                    className="admin-link nav-link w-full text-left"
                   >
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
