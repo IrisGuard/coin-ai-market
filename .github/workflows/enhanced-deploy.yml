@@ -1,0 +1,101 @@
+
+name: Enhanced Deploy to Vercel
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    name: Quality & Security Checks
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check for mock data
+      run: |
+        echo "🔍 Scanning for mock data..."
+        if grep -r "mock\|fake\|dummy\|hardcoded" src/ --include="*.ts" --include="*.tsx"; then
+          echo "❌ Mock data detected!"
+          exit 1
+        fi
+        echo "✅ No mock data found"
+        
+    - name: Run mock validation script
+      run: node scripts/validate-no-mocks.js
+      
+    - name: Lint check
+      run: npm run lint
+      
+    - name: Type check
+      run: npm run type-check || npm run build
+      
+    - name: Security audit
+      run: npm audit --audit-level moderate
+      
+  build-test:
+    needs: quality-checks
+    runs-on: ubuntu-latest
+    name: Build & Test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      env:
+        VITE_SUPABASE_URL: https://wdgnllgbfvjgurbqhfqb.supabase.co
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        
+    - name: Check build size
+      run: |
+        echo "📦 Build size analysis:"
+        du -sh dist/
+        find dist/ -name "*.js" -exec du -h {} \; | sort -hr | head -10
+        
+  deploy:
+    needs: [quality-checks, build-test]
+    runs-on: ubuntu-latest
+    name: Deploy to Vercel
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        working-directory: './'
+        
+    - name: Post-deployment checks
+      run: |
+        echo "✅ Deployment completed"
+        echo "🔗 Production URL: ${{ steps.deploy.outputs.preview-url }}"

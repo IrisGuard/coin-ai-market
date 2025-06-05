@@ -1,0 +1,13 @@
+
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Checking for mock data..."
+if grep -r "mock\|fake\|dummy\|hardcoded" src/ --include="*.ts" --include="*.tsx"; then
+  echo "❌ Mock data detected! Commit blocked."
+  exit 1
+fi
+
+echo "✅ No mock data found. Proceeding with commit."
+npm run lint
+npm run type-check
