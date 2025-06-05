@@ -1,5 +1,5 @@
 
-import { Coin } from '@/types/coin';
+import { Coin, Rarity } from '@/types/coin';
 import { supabase } from '@/integrations/supabase/client';
 
 // Production data fetching - no mock data
@@ -24,7 +24,10 @@ export const getCoins = async (count: number = 6): Promise<Coin[]> => {
     return [];
   }
 
-  return data || [];
+  return (data || []).map(coin => ({
+    ...coin,
+    rarity: coin.rarity as Rarity
+  }));
 };
 
 export const getCoinById = async (id: string): Promise<Coin | null> => {
@@ -48,7 +51,10 @@ export const getCoinById = async (id: string): Promise<Coin | null> => {
     return null;
   }
 
-  return data;
+  return data ? {
+    ...data,
+    rarity: data.rarity as Rarity
+  } : null;
 };
 
 export const getFeaturedCoins = async (): Promise<Coin[]> => {
@@ -72,7 +78,10 @@ export const getFeaturedCoins = async (): Promise<Coin[]> => {
     return [];
   }
 
-  return data || [];
+  return (data || []).map(coin => ({
+    ...coin,
+    rarity: coin.rarity as Rarity
+  }));
 };
 
 export const getAuctionCoins = async (): Promise<Coin[]> => {
@@ -97,7 +106,10 @@ export const getAuctionCoins = async (): Promise<Coin[]> => {
     return [];
   }
 
-  return data || [];
+  return (data || []).map(coin => ({
+    ...coin,
+    rarity: coin.rarity as Rarity
+  }));
 };
 
 // Legacy support - use real data
