@@ -1,60 +1,79 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, Settings, Trash2, TestTube } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Trash2, Shield, Play } from 'lucide-react';
 
-interface Proxy {
-  id: string;
+interface ProxyCardProps {
   name: string;
   country_code: string;
   type: string;
   is_active: boolean;
   success_rate: number;
-  last_used?: string;
-  [key: string]: unknown;
+  last_used: string | null;
+  onEdit: () => void;
+  onDelete: () => void;
+  onTest: () => void;
 }
 
-interface ProxyCardProps {
-  proxy: Proxy;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onTest: (id: string) => void;
-}
-
-const ProxyCard = ({ proxy, onEdit, onDelete, onTest }: ProxyCardProps) => {
+const ProxyCard: React.FC<ProxyCardProps> = ({
+  name,
+  country_code,
+  type,
+  is_active,
+  success_rate,
+  last_used,
+  onEdit,
+  onDelete,
+  onTest
+}) => {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          {proxy.name}
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-green-600" />
+            {name}
+          </div>
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" onClick={onTest}>
+              <Play className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={onEdit}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={onDelete}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </CardTitle>
-        <div className="flex gap-1">
-          <Button size="sm" variant="outline" onClick={() => onTest(proxy.id)}>
-            <TestTube className="h-3 w-3" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => onEdit(proxy.id)}>
-            <Settings className="h-3 w-3" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => onDelete(proxy.id)}>
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline">{proxy.country_code}</Badge>
-            <Badge variant="outline">{proxy.type || 'http'}</Badge>
-            <Badge variant={proxy.is_active ? 'default' : 'secondary'}>
-              {proxy.is_active ? 'Active' : 'Inactive'}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <Badge variant="outline">{country_code}</Badge>
+            <Badge variant="outline">{type}</Badge>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <Badge variant={is_active ? "default" : "secondary"}>
+              {is_active ? "Active" : "Inactive"}
             </Badge>
           </div>
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div>Success Rate: {(proxy.success_rate * 100).toFixed(1)}%</div>
-            {proxy.last_used && (
-              <div>Last Used: {new Date(proxy.last_used).toLocaleDateString()}</div>
+          
+          <div className="text-sm">
+            <div className="flex justify-between">
+              <span>Success Rate:</span>
+              <span className="font-medium">{(success_rate * 100).toFixed(1)}%</span>
+            </div>
+            {last_used && (
+              <div className="flex justify-between">
+                <span>Last Used:</span>
+                <span className="font-medium">
+                  {new Date(last_used).toLocaleDateString()}
+                </span>
+              </div>
             )}
           </div>
         </div>

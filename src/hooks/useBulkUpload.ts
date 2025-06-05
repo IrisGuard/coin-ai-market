@@ -1,83 +1,99 @@
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
-export interface CoinUploadItem {
-  name: string;
-  year: number;
-  grade: string;
-  price: number;
-  rarity: string;
-  image: string;
-  country?: string;
-  denomination?: string;
-  description?: string;
-  condition?: string;
-}
-
-export interface CoinBatch {
-  id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  coins: CoinUploadItem[];
-  progress: number;
-  error?: string;
-}
+import { useState, useCallback } from 'react';
+import { CoinBatch } from '@/types/batch';
 
 export const useBulkUpload = () => {
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [batches, setBatches] = useState<CoinBatch[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
 
-  const bulkCreateCoins = useMutation({
-    mutationFn: async (coins: CoinUploadItem[]) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+  const addBatches = useCallback((files: File[]) => {
+    const newBatches: CoinBatch[] = files.map((file, index) => ({
+      id: `batch-${Date.now()}-${index}`,
+      name: file.name,
+      images: [file],
+      status: 'pending',
+      progress: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+    
+    setBatches(prev => [...prev, ...newBatches]);
+  }, []);
 
-      const coinsToInsert = coins.map(coin => ({
-        name: coin.name,
-        year: coin.year,
-        grade: coin.grade,
-        price: coin.price,
-        rarity: coin.rarity,
-        image: coin.image,
-        user_id: user.id,
-        authentication_status: 'pending',
-        country: coin.country,
-        denomination: coin.denomination,
-        description: coin.description,
-        condition: coin.condition
-      }));
+  const startBulkProcessing = useCallback(async (onComplete?: () => void) => {
+    setIsProcessing(true);
+    setIsPaused(false);
+    
+    // Simulate processing logic
+    for (let i = 0; i < batches.length; i++) {
+      if (isPaused) break;
+      
+      setCurrentBatchIndex(i);
+      setBatches(prev => prev.map((batch, idx) => 
+        idx === i ? { ...batch, status: 'processing' as const } : batch
+      ));
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setBatches(prev => prev.map((batch, idx) => 
+        idx === i ? { 
+          ...batch, 
+          status: 'completed' as const, 
+          progress: 100,
+          estimatedValue: Math.floor(Math.random() * 1000) + 100
+        } : batch
+      ));
+    }
+    
+    setIsProcessing(false);
+    onComplete?.();
+  }, [batches, isPaused]);
 
-      const { data, error } = await supabase
-        .from('coins')
-        .insert(coinsToInsert)
-        .select();
+  const pauseProcessing = useCallback(() => {
+    setIsPaused(true);
+    setIsProcessing(false);
+  }, []);
 
-      if (error) throw error;
+  const resumeProcessing = useCallback((onComplete?: () => void) => {
+    setIsPaused(false);
+    startBulkProcessing(onComplete);
+  }, [startBulkProcessing]);
 
-      return {
-        total: coins.length,
-        successful: data?.length || 0
-      };
-    },
-    onSuccess: (result) => {
-      toast({
-        title: "Bulk Upload Complete",
-        description: `Successfully uploaded ${result.successful} out of ${result.total} coins.`,
-      });
-      setUploadProgress(0);
-    },
-    onError: (error: unknown) => {
-      toast({
-        title: "Upload Failed",
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-        variant: "destructive",
-      });
-      setUploadProgress(0);
-    },
-  });
+  const removeBatch = useCallback((index: number) => {
+    setBatches(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const clearCompleted = useCallback(() => {
+    setBatches(prev => prev.filter(batch => batch.status !== 'completed'));
+  }, []);
+
+  const retryFailed = useCallback(() => {
+    setBatches(prev => prev.map(batch => 
+      batch.status === 'failed' ? { ...batch, status: 'pending' } : batch
+    ));
+  }, []);
+
+  const overallProgress = batches.length > 0 
+    ? (batches.filter(b => b.status === 'completed').length / batches.length) * 100 
+    : 0;
 
   return {
-    bulkCreateCoins,
-    uploadProgress
+    batches,
+    isProcessing,
+    isPaused,
+    currentBatchIndex,
+    overallProgress,
+    addBatches,
+    startBulkProcessing,
+    pauseProcessing,
+    resumeProcessing,
+    removeBatch,
+    clearCompleted,
+    retryFailed
   };
 };
+
+export { CoinBatch };

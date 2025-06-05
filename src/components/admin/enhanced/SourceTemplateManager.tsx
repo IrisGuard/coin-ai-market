@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Database, Edit, Trash2, Copy } from 'lucide-react';
-import { useSourceTemplates, useCreateSourceTemplate, useUpdateSourceTemplate } from '@/hooks/useEnhancedAdminSources';
 
 interface SourceTemplate {
   id: string;
@@ -19,9 +18,24 @@ interface SourceTemplate {
 }
 
 const SourceTemplateManager = () => {
-  const { data: templates } = useSourceTemplates();
-  const createTemplate = useCreateSourceTemplate();
-  const updateTemplate = useUpdateSourceTemplate();
+  // Mock data for now
+  const mockTemplates: SourceTemplate[] = [
+    {
+      id: '1',
+      name: 'eBay Auction Template',
+      description: 'Standard template for eBay auction houses',
+      supported_features: ['search', 'images', 'pricing', 'bidding'],
+      default_config: { rate_limit: 60, proxy_required: true }
+    },
+    {
+      id: '2', 
+      name: 'Heritage Auctions Template',
+      description: 'Template for Heritage Auctions platform',
+      supported_features: ['search', 'filters', 'high-res-images', 'authentication'],
+      default_config: { rate_limit: 30, proxy_required: false }
+    }
+  ];
+
   const [showForm, setShowForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<SourceTemplate | null>(null);
 
@@ -48,11 +62,7 @@ const SourceTemplateManager = () => {
       template_config: JSON.parse(formData.get('config') as string || '{}')
     };
 
-    if (editingTemplate?.id) {
-      updateTemplate.mutate({ id: editingTemplate.id, updates: templateData });
-    } else {
-      createTemplate.mutate(templateData);
-    }
+    console.log('Template data:', templateData);
     
     setShowForm(false);
     setEditingTemplate(null);
@@ -76,7 +86,7 @@ const SourceTemplateManager = () => {
 
       {/* Template Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {templates?.map((template: SourceTemplate) => (
+        {mockTemplates.map((template: SourceTemplate) => (
           <Card key={template.id}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">

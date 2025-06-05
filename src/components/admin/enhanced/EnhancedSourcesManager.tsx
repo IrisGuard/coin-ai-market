@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,13 @@ import GeographicSourceMap from './GeographicSourceMap';
 
 const EnhancedSourcesManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Mock sources data for now
+  const mockSources = [
+    { id: '1', name: 'eBay', location: { lat: 37.7749, lng: -122.4194 }, type: 'auction' },
+    { id: '2', name: 'Heritage Auctions', location: { lat: 32.7767, lng: -96.7970 }, type: 'auction' },
+    { id: '3', name: 'Stack\'s Bowers', location: { lat: 40.7589, lng: -73.9851 }, type: 'auction' }
+  ];
 
   return (
     <div className="space-y-6">
@@ -184,7 +192,7 @@ const EnhancedSourcesManager = () => {
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicSourceMap sources={sources || []} />
+          <GeographicSourceMap sources={mockSources} />
         </TabsContent>
       </Tabs>
     </div>

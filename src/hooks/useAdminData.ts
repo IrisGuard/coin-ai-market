@@ -210,6 +210,7 @@ export const useCreateApiKey = () => {
       key_name: string;
       encrypted_value: string;
       description?: string;
+      category_id?: string | null;
     }) => {
       const { data, error } = await supabase
         .from('api_keys')
@@ -246,6 +247,7 @@ export const useBulkCreateApiKeys = () => {
       key_name: string;
       encrypted_value: string;
       description?: string;
+      category_id?: string | null;
     }>) => {
       const { data, error } = await supabase
         .from('api_keys')
