@@ -290,9 +290,10 @@ export const useAdvancedAIBrain = () => {
       if (!data || data.length === 0) return 0.8;
 
       // Calculate feedback score based on user corrections
-      const corrections = data.filter(item => 
-        item.recognition_results?.feedbackType === 'user_correction'
-      );
+      const corrections = data.filter(item => {
+        const results = item.recognition_results as any;
+        return results && typeof results === 'object' && results.feedbackType === 'user_correction';
+      });
       
       const feedbackScore = 1 - (corrections.length / data.length);
       return Math.max(0.5, feedbackScore);
