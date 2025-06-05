@@ -2,90 +2,120 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Camera, Zap, TrendingUp, Shield, Globe, Award, Users, BarChart3, Sparkles, ArrowRight } from 'lucide-react';
+import { Camera, Zap, TrendingUp, Shield, Globe, Award, Users, BarChart3, Sparkles, ArrowRight, CheckCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 
 const Index = () => {
   const features = [
     {
       icon: <Camera className="w-8 h-8" />,
-      title: 'AI Recognition',
-      description: 'Upload a photo and get instant identification with 95%+ accuracy',
-      gradient: 'from-purple-500 to-blue-500'
+      title: 'AI-Powered Recognition',
+      description: 'Upload any coin photo and get instant identification with 99%+ accuracy using advanced computer vision',
+      gradient: 'from-brand-primary to-brand-secondary'
     },
     {
       icon: <Zap className="w-8 h-8" />,
-      title: 'Instant Results',
-      description: 'Get complete coin analysis including grade, value, and rarity in seconds',
-      gradient: 'from-blue-500 to-indigo-500'
+      title: 'Lightning Fast Results',
+      description: 'Complete coin analysis including grade, value, rarity, and market data in under 2 seconds',
+      gradient: 'from-brand-secondary to-electric-purple'
     },
     {
       icon: <TrendingUp className="w-8 h-8" />,
-      title: 'Live Marketplace',
-      description: 'List your coins immediately after recognition or bid on premium collections',
-      gradient: 'from-indigo-500 to-purple-500'
+      title: 'Global Marketplace',
+      description: 'List your authenticated coins instantly or browse thousands of verified collections worldwide',
+      gradient: 'from-electric-purple to-brand-accent'
     },
     {
       icon: <Shield className="w-8 h-8" />,
-      title: 'Verified Grading',
-      description: 'Professional grading standards with PCGS and NGC integration',
-      gradient: 'from-purple-500 to-pink-500'
+      title: 'Professional Grading',
+      description: 'Industry-standard grading with PCGS and NGC integration for complete authenticity verification',
+      gradient: 'from-brand-accent to-electric-pink'
     }
   ];
 
   const stats = [
-    { number: '50K+', label: 'Coins Recognized', icon: <Camera className="w-6 h-6" /> },
-    { number: '95%', label: 'Accuracy Rate', icon: <Award className="w-6 h-6" /> },
-    { number: '12K+', label: 'Active Users', icon: <Users className="w-6 h-6" /> },
-    { number: '$2.5M+', label: 'Total Sales', icon: <BarChart3 className="w-6 h-6" /> }
+    { number: '500K+', label: 'Coins Identified', icon: <Camera className="w-6 h-6" />, color: 'text-brand-primary' },
+    { number: '99.7%', label: 'Accuracy Rate', icon: <Award className="w-6 h-6" />, color: 'text-coin-gold' },
+    { number: '50K+', label: 'Active Collectors', icon: <Users className="w-6 h-6" />, color: 'text-brand-secondary' },
+    { number: '$15M+', label: 'Marketplace Volume', icon: <BarChart3 className="w-6 h-6" />, color: 'text-brand-accent' }
+  ];
+
+  const benefits = [
+    'Instant AI-powered coin identification',
+    'Professional grade assessment',
+    'Real-time market value estimation',
+    'Global marketplace access',
+    'Authentication & verification',
+    'Price history & trends'
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-blue-50">
       <Navbar />
       
+      {/* Skip Link for Accessibility */}
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20">
-        <div className="mesh-bg"></div>
+      <section id="main-content" className="relative overflow-hidden pt-20">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-brand-secondary/5 to-brand-accent/5"></div>
         
-        <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
+        <div className="max-w-7xl mx-auto container-padding hero-spacing relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center px-6 py-3 glass-card rounded-full border border-purple-200 mb-8">
-              <Sparkles className="w-5 h-5 mr-3 text-purple-600 animate-pulse" />
-              <span className="text-sm font-semibold text-purple-600">AI-Powered Coin Recognition</span>
+            <div className="inline-flex items-center px-6 py-3 glass-card rounded-full border border-brand-primary/20 mb-8">
+              <Sparkles className="w-5 h-5 mr-3 text-brand-primary animate-pulse" />
+              <span className="text-sm font-semibold text-brand-primary">Welcome to CoinVision AI</span>
+              <Star className="w-4 h-4 ml-3 text-coin-gold" />
             </div>
             
-            <h1 className="section-title mb-8">
+            <h1 className="text-hero mb-8 text-brand-dark">
               Identify Any Coin
               <br />
-              <span className="gradient-text">In Seconds</span>
+              <span className="brand-gradient-text">In Seconds</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12">
+            <p className="text-body-large text-brand-medium max-w-4xl mx-auto mb-12">
               Upload a photo of your coin and get instant AI-powered identification, professional grading, 
-              current market value, and list it for sale immediately. The future of coin collecting is here.
+              current market value, and access to the world's largest numismatic marketplace. 
+              The future of coin collecting starts here.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <Link to="/upload">
-                <Button className="coinvision-button text-lg px-12 py-6">
-                  <Camera className="w-6 h-6 mr-3" />
-                  Start Recognition
-                  <ArrowRight className="w-5 h-5 ml-3" />
+                <Button className="coinvision-button focus-ring group">
+                  <Camera className="w-6 h-6 group-hover:animate-pulse" />
+                  Start Free Recognition
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/marketplace">
-                <Button variant="outline" className="coinvision-button-outline text-lg px-12 py-6">
-                  Browse Marketplace
+                <Button className="coinvision-button-outline focus-ring">
+                  <Globe className="w-5 h-5" />
+                  Explore Marketplace
                 </Button>
               </Link>
+            </div>
+
+            {/* Benefits List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              {benefits.map((benefit, index) => (
+                <motion.div
+                  key={benefit}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 * index }}
+                  className="flex items-center gap-3 text-left"
+                >
+                  <CheckCircle className="w-5 h-5 text-brand-success flex-shrink-0" />
+                  <span className="text-body text-brand-medium">{benefit}</span>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
 
@@ -102,13 +132,16 @@ const Index = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 + (index * 0.1) }}
-                className="stats-card text-center"
+                className="stats-card hover-lift focus-ring"
+                tabIndex={0}
+                role="region"
+                aria-label={`${stat.number} ${stat.label}`}
               >
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-4 text-white mx-auto">
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center mb-4 text-white mx-auto ${stat.color}`}>
                   {stat.icon}
                 </div>
-                <div className="text-3xl font-bold gradient-text mb-2">{stat.number}</div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
+                <div className={`text-3xl font-bold mb-2 ${stat.color}`}>{stat.number}</div>
+                <div className="text-body-small text-brand-medium font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -116,7 +149,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="relative py-20">
+      <section className="relative section-spacing bg-white">
         <div className="max-w-7xl mx-auto container-padding">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -124,11 +157,11 @@ const Index = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold gradient-text mb-6">
+            <h2 className="text-section brand-gradient-text mb-6">
               How CoinVision AI Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Professional coin recognition and marketplace listing in three simple steps
+            <p className="text-body-large text-brand-medium max-w-3xl mx-auto">
+              Professional-grade coin recognition and marketplace access in three simple steps
             </p>
           </motion.div>
 
@@ -139,13 +172,15 @@ const Index = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 + (index * 0.1) }}
-                className="feature-card text-center group"
+                className="feature-card text-center group focus-ring"
+                tabIndex={0}
+                role="article"
               >
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-6 text-white shadow-xl mx-auto group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-subsection text-brand-dark mb-4">{feature.title}</h3>
+                <p className="text-body text-brand-medium leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -153,7 +188,7 @@ const Index = () => {
       </section>
 
       {/* Process Steps */}
-      <section className="relative py-20 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600">
+      <section className="relative section-spacing brand-gradient text-white">
         <div className="max-w-7xl mx-auto container-padding">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -161,10 +196,10 @@ const Index = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-section text-white mb-6">
               Three Steps to Success
             </h2>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            <p className="text-body-large text-white/90 max-w-3xl mx-auto">
               From photo to marketplace listing in under 30 seconds
             </p>
           </motion.div>
@@ -174,19 +209,19 @@ const Index = () => {
               {
                 step: '01',
                 title: 'Upload Photo',
-                description: 'Take a clear photo of your coin using your phone or camera',
+                description: 'Take a clear photo of your coin using your phone camera or upload from gallery',
                 icon: <Camera className="w-8 h-8" />
               },
               {
                 step: '02',
                 title: 'AI Analysis',
-                description: 'Our AI instantly identifies the coin, grade, rarity, and market value',
+                description: 'Our advanced AI instantly identifies the coin, determines grade, rarity, and current market value',
                 icon: <Zap className="w-8 h-8" />
               },
               {
                 step: '03',
                 title: 'List & Sell',
-                description: 'Automatically list on marketplace or start auction with one click',
+                description: 'Automatically list on our global marketplace or start an auction with verified authentication',
                 icon: <TrendingUp className="w-8 h-8" />
               }
             ].map((step, index) => (
@@ -195,14 +230,16 @@ const Index = () => {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 + (index * 0.2) }}
-                className="text-center text-white"
+                className="text-center text-white focus-ring rounded-2xl p-6"
+                tabIndex={0}
+                role="article"
               >
                 <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center mb-6 mx-auto">
                   {step.icon}
                 </div>
                 <div className="text-6xl font-bold text-white/30 mb-4">{step.step}</div>
-                <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
-                <p className="text-white/80 text-lg leading-relaxed">{step.description}</p>
+                <h3 className="text-subsection mb-4">{step.title}</h3>
+                <p className="text-body text-white/90 leading-relaxed">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -210,34 +247,34 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-20">
+      <section className="relative section-spacing bg-gradient-to-br from-brand-light to-white">
         <div className="max-w-4xl mx-auto container-padding text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="glass-card p-12 rounded-3xl border-2 border-purple-200"
+            className="glass-card p-12 rounded-3xl border-2 border-brand-primary/20"
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mx-auto mb-8">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-brand-primary to-brand-secondary flex items-center justify-center mx-auto mb-8">
               <Globe className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-4xl font-bold gradient-text mb-6">
+            <h2 className="text-section brand-gradient-text mb-6">
               Ready to Transform Your Collection?
             </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of collectors who are already using CoinVision AI to identify, 
-              value, and sell their coins with professional accuracy.
+            <p className="text-body-large text-brand-medium mb-8 max-w-2xl mx-auto">
+              Join over 50,000 collectors worldwide who are already using CoinVision AI to identify, 
+              authenticate, value, and trade their coins with professional-grade accuracy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/upload">
-                <Button className="coinvision-button text-lg px-12 py-6">
-                  <Camera className="w-6 h-6 mr-3" />
+                <Button className="coinvision-button focus-ring">
+                  <Camera className="w-6 h-6" />
                   Start Free Recognition
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button variant="outline" className="coinvision-button-outline text-lg px-12 py-6">
-                  Create Account
+                <Button className="coinvision-button-outline focus-ring">
+                  Create Free Account
                 </Button>
               </Link>
             </div>
@@ -246,54 +283,56 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="coinvision-footer">
+      <footer className="coinvision-footer" role="contentinfo">
         <div className="max-w-7xl mx-auto container-padding">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center">
-                  <Zap className="w-8 h-8 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-coin-gold to-coin-platinum flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-brand-dark" />
                 </div>
                 <span className="text-2xl font-serif font-bold text-white">
                   CoinVision AI
                 </span>
               </div>
               <p className="text-white/80 leading-relaxed">
-                The world's most advanced AI-powered coin recognition and marketplace platform.
+                The world's most advanced AI-powered coin recognition and marketplace platform for collectors worldwide.
               </p>
             </div>
             
             <div>
               <h3 className="text-white font-semibold mb-4">Platform</h3>
               <ul className="space-y-3 text-white/80">
-                <li><Link to="/upload" className="hover:text-white transition-colors">AI Recognition</Link></li>
-                <li><Link to="/marketplace" className="hover:text-white transition-colors">Marketplace</Link></li>
-                <li><Link to="/auth" className="hover:text-white transition-colors">Sign Up</Link></li>
+                <li><Link to="/upload" className="hover:text-white transition-colors focus-ring">AI Recognition</Link></li>
+                <li><Link to="/marketplace" className="hover:text-white transition-colors focus-ring">Marketplace</Link></li>
+                <li><Link to="/auth" className="hover:text-white transition-colors focus-ring">Sign Up Free</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-white font-semibold mb-4">Resources</h3>
               <ul className="space-y-3 text-white/80">
-                <li><a href="#" className="hover:text-white transition-colors">API Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Grading Guide</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Price History</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">API Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">Grading Guide</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">Price History</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">Help Center</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-white font-semibold mb-4">Company</h3>
               <ul className="space-y-3 text-white/80">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">About CoinVision AI</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">Contact Support</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors focus-ring">Terms of Service</a></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-white/20 pt-8 text-center">
             <p className="text-white/60">
-              © 2024 CoinVision AI. All rights reserved. | Powered by advanced AI recognition technology.
+              © 2024 CoinVision AI. All rights reserved. | Powered by advanced computer vision and machine learning.
             </p>
           </div>
         </div>
