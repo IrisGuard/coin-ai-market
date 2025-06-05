@@ -20,7 +20,7 @@ export const useTransactions = () => {
             name,
             email
           ),
-          coins(
+          coin:coins!transactions_coin_id_fkey(
             name,
             image
           )
