@@ -12,6 +12,9 @@
     "api/webhook/error-monitor.js": {
       "runtime": "nodejs18.x"
     },
+    "api/webhook/vercel-monitor.js": {
+      "runtime": "nodejs18.x"
+    },
     "api/console-monitor.js": {
       "runtime": "nodejs18.x"
     },
@@ -41,7 +44,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://wdgnllgbfvjgurbqhfqb.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://wdgnllgbfvjgurbqhfqb.supabase.co wss://wdgnllgbfvjgurbqhfqb.supabase.co https://vercel.live; frame-ancestors 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://wdgnllgbfvjgurbqhfqb.supabase.co https://api.anthropic.com https://api.openai.com https://api.transak.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://wdgnllgbfvjgurbqhfqb.supabase.co wss://wdgnllgbfvjgurbqhfqb.supabase.co https://api.anthropic.com https://api.openai.com https://api.transak.com https://vercel.live; frame-ancestors 'none';"
         }
       ]
     }
@@ -51,7 +54,12 @@
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU",
     "DEPLOYMENT_MONITORING": "true",
     "VITE_ENABLE_ERROR_REPORTING": "true",
-    "VERCEL_ERROR_MONITORING": "enabled"
+    "VERCEL_ERROR_MONITORING": "enabled",
+    "CUSTOM_AI_ENDPOINT": "https://api.anthropic.com/v1/messages",
+    "CUSTOM_AI_MODEL": "claude-3-sonnet-20240229",
+    "VITE_AI_API_URL": "https://api.anthropic.com/v1/messages",
+    "VITE_AI_MODEL": "claude-3-sonnet-20240229",
+    "VITE_PAYMENT_API_URL": "https://api.transak.com"
   },
   "version": 2,
   "rewrites": [

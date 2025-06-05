@@ -13,10 +13,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
@@ -27,16 +27,33 @@ jobs:
     - name: Build project
       run: npm run build
       env:
-        # Supabase Configuration
+        # Supabase Configuration (Updated)
         VITE_SUPABASE_URL: https://wdgnllgbfvjgurbqhfqb.supabase.co
-        VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzA4MjksImV4cCI6MjA0OTUwNjgyOX0.XTKxF0kT9aH_HZPGZEqH4qGa_B2kK2VJH7dKZW4N0Zs
+        VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU
         
-        # Optional API Keys (will be set if available)
+        # AI API Keys
+        VITE_AI_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        VITE_AI_API_URL: https://api.anthropic.com/v1/messages
+        VITE_AI_MODEL: claude-3-sonnet-20240229
+        
+        # Custom AI Configuration
+        CUSTOM_AI_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        CUSTOM_AI_ENDPOINT: https://api.anthropic.com/v1/messages
+        CUSTOM_AI_MODEL: claude-3-sonnet-20240229
+        
+        # OpenAI Configuration
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        
+        # Payment Configuration
+        VITE_PAYMENT_API_KEY: ${{ secrets.TRANSAK_API_KEY }}
+        VITE_PAYMENT_API_URL: https://api.transak.com
+        TRANSAK_API_KEY: ${{ secrets.TRANSAK_API_KEY }}
+        
+        # Monitoring & Error Tracking
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-        VITE_AI_API_KEY: ${{ secrets.VITE_AI_API_KEY }}
-        VITE_AI_API_URL: ${{ secrets.VITE_AI_API_URL }}
-        VITE_PAYMENT_API_KEY: ${{ secrets.VITE_PAYMENT_API_KEY }}
-        VITE_PAYMENT_API_URL: ${{ secrets.VITE_PAYMENT_API_URL }}
+        VITE_ENABLE_ERROR_REPORTING: "true"
+        DEPLOYMENT_MONITORING: "true"
+        VERCEL_ERROR_MONITORING: "enabled"
         
         # Production Database Configuration
         POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
