@@ -17,10 +17,10 @@ export const usePlaceBid = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Must be logged in to bid');
 
-      // Check if bid is valid
+      // Check if bid is valid - get listing separately to avoid relationship issues
       const { data: listing, error: listingError } = await supabase
         .from('marketplace_listings')
-        .select('current_price, ends_at, seller_id, starting_price')
+        .select('current_price, ends_at, seller_id, starting_price, coin_id')
         .eq('id', listingId)
         .single();
 
@@ -37,14 +37,15 @@ export const usePlaceBid = () => {
         throw new Error('Bid must be higher than current price');
       }
 
-      // Place bid
+      // Place bid - include both user_id and bidder_id to satisfy TypeScript types
       const { data, error } = await supabase
         .from('bids')
         .insert({
           listing_id: listingId,
           bidder_id: user.id,
+          user_id: user.id, // Include this for TypeScript compatibility
           amount: amount,
-          coin_id: '', // We'll need to get this from the listing
+          coin_id: listing.coin_id,
         })
         .select()
         .single();
