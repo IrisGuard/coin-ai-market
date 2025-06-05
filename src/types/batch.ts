@@ -18,3 +18,5 @@ export interface CoinBatch {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type BatchStatus = CoinBatch['status'];

@@ -1,19 +1,11 @@
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Camera, RotateCcw, Check, X, Wifi, WifiOff, Upload, Download } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, RotateCcw, Check, X, Wifi, WifiOff, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { EnhancedOfflineItemData } from '@/types/offline';
-import CameraSquareGuide from './CameraSquareGuide';
-import CameraControls from './CameraControls';
-import CameraProgressIndicator from './CameraProgressIndicator';
-import CameraQualityTips from './CameraQualityTips';
-import CapturedImagesGrid from './CapturedImagesGrid';
-import OfflineStatusIndicator from './OfflineStatusIndicator';
 
 interface EnhancedMobileCameraUploaderProps {
   onImagesSelected: (images: { file: File; preview: string }[]) => void;
@@ -35,7 +27,13 @@ const EnhancedMobileCameraUploader = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const { queueOfflineItem, syncOfflineItems, offlineItems } = useOfflineSync();
+  const steps = [
+    "Position coin in center",
+    "Ensure good lighting", 
+    "Capture obverse (front)",
+    "Capture reverse (back)",
+    "Add detail shots (optional)"
+  ];
 
   useEffect(() => {
     const handleOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -101,19 +99,15 @@ const EnhancedMobileCameraUploader = ({
       const file = new File([blob], `coin_${Date.now()}.jpg`, { type: 'image/jpeg' });
       const preview = URL.createObjectURL(file);
 
-      if (!isOnline) {
-        await handleQueueOffline({ file, preview });
-      } else {
-        setCapturedImages(prevImages => [...prevImages, { file, preview }]);
-        setCurrentStep(prevStep => Math.min(prevStep + 1, steps.length - 1));
-      }
+      setCapturedImages(prevImages => [...prevImages, { file, preview }]);
+      setCurrentStep(prevStep => Math.min(prevStep + 1, steps.length - 1));
 
       toast({
         title: "Image Captured",
         description: "Image added to the queue.",
       });
     }, 'image/jpeg');
-  }, [isOnline, handleQueueOffline, steps.length]);
+  }, [steps.length]);
 
   const removeImage = useCallback((index: number) => {
     setCapturedImages(prevImages => {
@@ -123,11 +117,6 @@ const EnhancedMobileCameraUploader = ({
     });
     setCurrentStep(prevStep => Math.max(prevStep - 1, 0));
   }, []);
-
-  const retakeImage = useCallback((index: number) => {
-    removeImage(index);
-    setCurrentStep(index);
-  }, [removeImage]);
 
   const clearAllImages = useCallback(() => {
     setCapturedImages([]);
@@ -139,40 +128,18 @@ const EnhancedMobileCameraUploader = ({
     onComplete?.();
   }, [capturedImages, onImagesSelected, onComplete]);
 
-  const handleQueueOffline = useCallback(async (imageData: { file: File; preview: string }) => {
-    const offlineItem: EnhancedOfflineItemData = {
-      timestamp: Date.now(),
-      step: `coin-image-${capturedImages.length + 1}`,
-      data: {
-        imageData: imageData.preview,
-        fileName: imageData.file.name,
-        fileSize: imageData.file.size,
-        captureTime: new Date().toISOString()
-      },
-      id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      status: 'pending',
-      retryCount: 0
-    };
-
-    await queueOfflineItem(offlineItem);
-    
-    toast({
-      title: "Image Queued Offline",
-      description: "Image saved locally and will sync when connection is restored.",
-    });
-  }, [capturedImages.length, queueOfflineItem]);
-
-  const steps = [
-    "Position coin in center",
-    "Ensure good lighting", 
-    "Capture obverse (front)",
-    "Capture reverse (back)",
-    "Add detail shots (optional)"
-  ];
-
   return (
     <div className="space-y-4">
-      <OfflineStatusIndicator isOnline={isOnline} />
+      <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
+        {isOnline ? (
+          <Wifi className="w-4 h-4 text-green-600" />
+        ) : (
+          <WifiOff className="w-4 h-4 text-red-600" />
+        )}
+        <span className="text-sm">
+          {isOnline ? 'Online' : 'Offline'}
+        </span>
+      </div>
       
       <Card>
         <CardHeader className="pb-3">
@@ -188,11 +155,16 @@ const EnhancedMobileCameraUploader = ({
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <CameraProgressIndicator 
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            steps={steps}
-          />
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Progress: Step {currentStep + 1} of {steps.length}</div>
+            <div className="text-sm text-gray-600">{steps[currentStep]}</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              />
+            </div>
+          </div>
 
           {!isActive ? (
             <div className="text-center space-y-4">
@@ -218,29 +190,57 @@ const EnhancedMobileCameraUploader = ({
                   muted
                   className="w-full h-full object-cover"
                 />
-                <CameraSquareGuide />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-64 h-64 border-2 border-white rounded-lg opacity-50" />
+                </div>
                 <canvas ref={canvasRef} className="hidden" />
               </div>
 
-              <CameraControls
-                onCapture={captureImage}
-                onSwitchCamera={() => setCameraFacing(prev => prev === 'user' ? 'environment' : 'user')}
-                onClose={stopCamera}
-                isCapturing={false}
-              />
+              <div className="flex justify-center gap-4">
+                <Button onClick={captureImage} size="lg" className="flex-1">
+                  <Camera className="w-5 h-5 mr-2" />
+                  Capture
+                </Button>
+                <Button 
+                  onClick={() => setCameraFacing(prev => prev === 'user' ? 'environment' : 'user')}
+                  variant="outline"
+                  size="lg"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </Button>
+                <Button onClick={stopCamera} variant="outline" size="lg">
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           )}
 
-          <CameraQualityTips currentStep={currentStep} />
+          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+            <strong>Tip:</strong> {steps[currentStep]}
+          </div>
 
           {capturedImages.length > 0 && (
             <>
               <Separator />
-              <CapturedImagesGrid
-                images={capturedImages}
-                onRemoveImage={removeImage}
-                onRetakeImage={retakeImage}
-              />
+              <div className="grid grid-cols-3 gap-2">
+                {capturedImages.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img 
+                      src={image.preview} 
+                      alt={`Captured ${index + 1}`}
+                      className="w-full aspect-square object-cover rounded border"
+                    />
+                    <Button
+                      onClick={() => removeImage(index)}
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-1 right-1 w-6 h-6 p-0"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </>
           )}
 
@@ -249,10 +249,9 @@ const EnhancedMobileCameraUploader = ({
               <Button 
                 onClick={handleImagesConfirmed}
                 className="flex-1"
-                disabled={!isOnline && capturedImages.length === 0}
               >
                 <Check className="w-4 h-4 mr-2" />
-                {isOnline ? 'Use Images' : 'Queue Offline'}
+                Use Images ({capturedImages.length})
               </Button>
               
               <Button 
@@ -262,27 +261,6 @@ const EnhancedMobileCameraUploader = ({
               >
                 <X className="w-4 h-4 mr-2" />
                 Clear All
-              </Button>
-            </div>
-          )}
-
-          {!isOnline && offlineItems.length > 0 && (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <WifiOff className="w-4 h-4 text-orange-600" />
-                <span className="text-sm font-medium text-orange-800">
-                  {offlineItems.length} items queued offline
-                </span>
-              </div>
-              <Button 
-                onClick={syncOfflineItems}
-                size="sm"
-                variant="outline"
-                className="w-full"
-                disabled={!isOnline}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Sync When Online
               </Button>
             </div>
           )}

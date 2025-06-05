@@ -37,7 +37,6 @@ const BulkUploadQueue = ({
             index={index}
             isActive={index === currentBatchIndex && isProcessing}
             onRemove={() => onRemoveBatch(index)}
-            canRemove={batch.status === 'pending' || batch.status === 'failed'}
           />
         ))}
       </div>

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -26,7 +27,16 @@ export const useBulkImportSources = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (sourcesData: unknown[]) => {
+    mutationFn: async (sourcesData: Array<{
+      base_url: string;
+      source_name: string;
+      source_type: string;
+      category_id?: string;
+      region_id?: string;
+      priority_score?: number;
+      rate_limit_per_hour?: number;
+      reliability_score?: number;
+    }>) => {
       const { data, error } = await supabase
         .from('external_price_sources')
         .insert(sourcesData)
@@ -46,10 +56,10 @@ export const useBulkImportSources = () => {
         description: "Sources have been imported successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : String(error),
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },

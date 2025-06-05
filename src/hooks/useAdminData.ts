@@ -28,7 +28,7 @@ export const useAdminCoins = () => {
         .from('coins')
         .select(`
           *,
-          profiles (
+          owner:profiles!coins_user_id_fkey (
             id,
             name,
             email
@@ -51,7 +51,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          profiles (
+          user:profiles!notifications_user_id_fkey (
             name,
             email
           )
@@ -73,15 +73,15 @@ export const useTransactions = () => {
         .from('transactions')
         .select(`
           *,
-          seller:profiles!seller_id (
+          seller:profiles!transactions_seller_id_fkey (
             name,
             email
           ),
-          buyer:profiles!buyer_id (
+          buyer:profiles!transactions_buyer_id_fkey (
             name,
             email
           ),
-          coins (
+          coin:coins!transactions_coin_id_fkey (
             id,
             name,
             image

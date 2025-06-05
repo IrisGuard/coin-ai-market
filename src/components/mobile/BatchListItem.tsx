@@ -11,22 +11,20 @@ import BatchImagePreview from './BatchImagePreview';
 interface BatchListItemProps {
   batch: CoinBatch;
   index: number;
-  isCurrentBatch: boolean;
-  isProcessing: boolean;
+  isActive: boolean;
   onRemove: (index: number) => void;
 }
 
 const BatchListItem = ({ 
   batch, 
   index, 
-  isCurrentBatch, 
-  isProcessing, 
+  isActive, 
   onRemove 
 }: BatchListItemProps) => {
   return (
     <div
       className={`p-4 border rounded-lg ${
-        isCurrentBatch && isProcessing ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+        isActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
       }`}
     >
       <div className="flex items-center justify-between mb-2">

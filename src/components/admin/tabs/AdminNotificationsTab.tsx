@@ -55,10 +55,10 @@ const AdminNotificationsTab = () => {
               <TableCell>
                 <div>
                   <div className="font-medium">
-                    {notification.profiles?.name || 'Unknown User'}
+                    {notification.user?.name || 'Unknown User'}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {notification.profiles?.email || 'No email'}
+                    {notification.user?.email || 'No email'}
                   </div>
                 </div>
               </TableCell>
