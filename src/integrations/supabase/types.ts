@@ -69,6 +69,71 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_commands: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_commands_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_configuration: {
+        Row: {
+          config: Json
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       api_key_categories: {
         Row: {
           created_at: string
@@ -1497,6 +1562,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      url_cache: {
+        Row: {
+          content: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          scraped_at: string | null
+          title: string | null
+          url: string
+        }
+        Insert: {
+          content?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          scraped_at?: string | null
+          title?: string | null
+          url: string
+        }
+        Update: {
+          content?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          scraped_at?: string | null
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
       }
       user_favorites: {
         Row: {

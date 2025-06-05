@@ -10,6 +10,7 @@
   --brand-accent: #ec4899;
   --brand-light: #f8fafc;
   --brand-dark: #1e293b;
+  --max-width: 1400px;
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
@@ -77,30 +78,38 @@ body {
   background: var(--brand-light);
   overflow-x: hidden;
   min-height: 100vh;
-  position: relative;
   @apply bg-background text-foreground font-sans;
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-/* Fix container sizing issues */
-.container-padding {
-  padding-left: clamp(1rem, 5vw, 2rem);
-  padding-right: clamp(1rem, 5vw, 2rem);
-  max-width: 100%;
+/* FIXED CONTAINER SYSTEM */
+.container-fixed {
+  width: 100%;
+  max-width: var(--max-width);
   margin: 0 auto;
+  padding-left: clamp(1rem, 3vw, 3rem);
+  padding-right: clamp(1rem, 3vw, 3rem);
 }
 
 .section-spacing {
-  padding-top: clamp(2rem, 8vh, 4rem);
-  padding-bottom: clamp(2rem, 8vh, 4rem);
+  padding-top: clamp(3rem, 8vh, 6rem);
+  padding-bottom: clamp(3rem, 8vh, 6rem);
 }
 
-/* Fix responsive text scaling */
-.section-title {
-  font-size: clamp(2rem, 8vw, 4rem);
+/* CONSISTENT TEXT SCALING */
+.hero-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 700;
   line-height: 1.1;
   margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
@@ -111,16 +120,16 @@ body {
   background-clip: text;
 }
 
-/* Fix glass card scaling */
+/* FIXED CARD SYSTEM */
 .glass-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-  border-radius: 16px;
+  border-radius: 20px;
   transition: all 0.3s ease;
-  position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .glass-card:hover {
@@ -128,13 +137,13 @@ body {
   box-shadow: 0 20px 40px rgba(31, 38, 135, 0.2);
 }
 
-/* Fix button sizing */
-.coinvision-button {
+/* CONSISTENT BUTTON SIZING */
+.btn-primary {
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
+  padding: 16px 32px;
+  border-radius: 16px;
   font-weight: 600;
   font-size: 16px;
   transition: all 0.3s ease;
@@ -142,28 +151,33 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: 56px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
+  text-decoration: none;
 }
 
-.coinvision-button:hover {
+.btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
 }
 
-/* Fix grid layouts */
-.grid-responsive {
+/* GRID SYSTEM */
+.grid-auto {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
   width: 100%;
 }
 
-/* Fix navbar */
-.navbar-fixed {
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 3rem;
+  align-items: center;
+}
+
+/* NAVBAR FIXES */
+.navbar {
   position: fixed;
   top: 0;
   left: 0;
@@ -172,45 +186,34 @@ body {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.75rem 0;
+  height: 80px;
+  display: flex;
+  align-items: center;
 }
 
-/* Fix navbar on mobile */
-.nav-link {
-  display: block;
-  padding: 0.75rem 0;
-  color: var(--brand-dark);
-  text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.nav-link:hover {
-  color: var(--brand-primary);
-  border-bottom-color: var(--brand-primary);
-}
-
-.admin-link {
-  color: var(--brand-accent);
-}
-
-/* Fix image scaling */
-img {
-  max-width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-/* Fix image aspect ratios */
+/* FIXED IMAGE SCALING */
 .coin-image {
+  width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #f8fafc;
 }
 
-/* Fix mesh background */
+/* CONSISTENT SPACING */
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+/* MESH BACKGROUND */
 .mesh-bg {
   position: absolute;
   top: 0;
@@ -222,56 +225,70 @@ img {
   z-index: -1;
 }
 
-/* Fix modal responsive */
-.modal-content {
-  max-width: 95vw;
-  max-height: 95vh;
-  overflow-y: auto;
-}
-
-/* Fix mobile responsiveness */
-@media (max-width: 1024px) {
-  .container-padding {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
+/* RESPONSIVE BREAKPOINTS */
 @media (max-width: 768px) {
-  .section-title {
-    font-size: clamp(1.75rem, 6vw, 2.5rem);
+  .hero-title {
+    font-size: clamp(2rem, 8vw, 2.5rem);
   }
   
-  .container-padding {
+  .section-title {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+  
+  .btn-primary {
+    padding: 14px 24px;
+    min-height: 48px;
+    font-size: 14px;
+  }
+  
+  .container-fixed {
     padding-left: 1rem;
     padding-right: 1rem;
   }
   
-  .coinvision-button {
-    padding: 10px 20px;
-    font-size: 14px;
-    min-height: 44px;
-  }
-  
-  .grid-responsive {
+  .grid-auto {
     grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .section-spacing {
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+    gap: 1.5rem;
   }
   
-  .glass-card {
-    margin: 0.5rem;
-    border-radius: 12px;
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
 
-/* Optimized animations with motion preference support */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container-fixed {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* COIN SPECIFIC STYLES */
+.coin-button {
+  @apply bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 font-semibold py-2 px-4 rounded-lg shadow-lg hover:from-yellow-300 hover:to-yellow-500 transition-colors duration-200;
+}
+
+.coin-card {
+  @apply bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden;
+}
+
+.coin-card:hover {
+  @apply shadow-xl;
+  transition: box-shadow 0.2s ease-out;
+}
+
+.coin-grid {
+  @apply grid gap-6;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.marketplace-container {
+  @apply container mx-auto px-4 py-8;
+  max-width: 1200px;
+}
+
+/* OPTIMIZED ANIMATIONS */
 @media (prefers-reduced-motion: no-preference) {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
@@ -322,48 +339,12 @@ img {
   }
 }
 
-/* Coin-specific styles */
-.coin-button {
-  @apply bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 font-semibold py-2 px-4 rounded-lg shadow-lg hover:from-yellow-300 hover:to-yellow-500 transition-colors duration-200;
-}
-
-.coin-card {
-  @apply bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden;
-}
-
-.coin-card:hover {
-  @apply shadow-xl;
-  transition: box-shadow 0.2s ease-out;
-}
-
-/* Remove problematic scaling from previous implementation */
-.coin-grid {
-  @apply grid gap-6;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-/* Stable layout without dynamic scaling */
-.marketplace-container {
-  @apply container mx-auto px-4 py-8;
-  max-width: 1200px;
-}
-
-/* Typography improvements */
-.font-serif {
-  font-family: 'Georgia', 'Times New Roman', serif;
-}
-
-.font-sans {
-  font-family: 'Inter', sans-serif;
-}
-
-/* Ensure consistent sizing across the app */
+/* STABLE LAYOUT */
 .fixed-size {
   min-height: 0;
   overflow: hidden;
 }
 
-/* Remove any remaining transform animations that could cause scaling issues */
 * {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
