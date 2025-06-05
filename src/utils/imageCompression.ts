@@ -1,8 +1,22 @@
+
 export interface CompressionOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
   maxSizeKB?: number;
+}
+
+// Define the connection interface for non-standard navigator properties
+interface NavigatorConnection {
+  effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
+  downlink?: number;
+  rtt?: number;
+}
+
+interface ExtendedNavigator extends Navigator {
+  connection?: NavigatorConnection;
+  mozConnection?: NavigatorConnection;
+  webkitConnection?: NavigatorConnection;
 }
 
 export const compressImage = async (
@@ -97,7 +111,8 @@ export const compressImage = async (
 
 export const getBandwidthQuality = (): CompressionOptions => {
   // Detect connection type if available
-  const connection = (navigator as unknown).connection || (navigator as unknown).mozConnection || (navigator as unknown).webkitConnection;
+  const nav = navigator as ExtendedNavigator;
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
   
   if (!connection) {
     // Default to medium quality if no connection info
@@ -142,7 +157,7 @@ export const getBandwidthQuality = (): CompressionOptions => {
  * Checks if the user is on a slow connection
  */
 const isSlowConnection = (): boolean => {
-  const nav = navigator as any;
+  const nav = navigator as ExtendedNavigator;
   const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
   
   if (connection) {
