@@ -75,7 +75,7 @@ const TenantMarketplace = () => {
               <div className="flex justify-center items-center gap-6 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4" />
-                  <span>{currentTenant.subdomain}.coincollector.com</span>
+                  <span>{currentTenant.domain}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Crown className="w-4 h-4" />

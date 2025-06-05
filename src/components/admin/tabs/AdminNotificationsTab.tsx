@@ -55,14 +55,10 @@ const AdminNotificationsTab = () => {
               <TableCell>
                 <div>
                   <div className="font-medium">
-                    {notification.profiles && typeof notification.profiles === 'object' && 'name' in notification.profiles 
-                      ? notification.profiles.name || 'Unknown User'
-                      : 'Unknown User'}
+                    {notification.profiles?.name || 'Unknown User'}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {notification.profiles && typeof notification.profiles === 'object' && 'email' in notification.profiles 
-                      ? notification.profiles.email || 'No email'
-                      : 'No email'}
+                    {notification.profiles?.email || 'No email'}
                   </div>
                 </div>
               </TableCell>

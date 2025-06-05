@@ -101,9 +101,9 @@ const EnhancedMobileCameraUploader = ({
       // Handle offline storage
       if (!isOnline) {
         addPendingItem('coin_upload', {
-          image: newImage,
           timestamp: Date.now(),
-          step: step
+          step: step,
+          data: newImage
         });
       }
       

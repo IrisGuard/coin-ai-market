@@ -166,74 +166,77 @@ const TenantDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tenants.map((tenant, index) => (
-          <motion.div
-            key={tenant.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: tenant.settings?.primary_color || '#1F2937' }}
-                    >
-                      <Building2 className="w-6 h-6 text-white" />
+        {tenants.map((tenant, index) => {
+          const settings = tenant.settings as any;
+          return (
+            <motion.div
+              key={tenant.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: settings?.primary_color || '#1F2937' }}
+                      >
+                        <Building2 className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{tenant.name}</CardTitle>
+                        <CardDescription className="text-sm">
+                          {tenant.domain}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{tenant.name}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {tenant.domain}
-                      </CardDescription>
-                    </div>
+                    <Badge variant={tenant.is_active ? "default" : "secondary"}>
+                      {tenant.is_active ? "Active" : "Inactive"}
+                    </Badge>
                   </div>
-                  <Badge variant={tenant.is_active ? "default" : "secondary"}>
-                    {tenant.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {tenant.settings?.description && (
-                  <p className="text-sm text-gray-600 mb-4">{tenant.settings.description}</p>
-                )}
-                
-                <div className="flex items-center space-x-2 mb-4">
-                  <div 
-                    className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: tenant.settings?.primary_color || '#1F2937' }}
-                  ></div>
-                  <div 
-                    className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: tenant.settings?.secondary_color || '#3B82F6' }}
-                  ></div>
-                  <span className="text-xs text-gray-500">Brand Colors</span>
-                </div>
-                
-                <div className="space-y-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedTenant(tenant.id);
-                      setIsDomainOpen(true);
-                    }}
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Add Custom Domain (€600/year)
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Palette className="w-4 h-4 mr-2" />
-                    Customize Theme
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                </CardHeader>
+                <CardContent>
+                  {settings?.description && (
+                    <p className="text-sm text-gray-600 mb-4">{settings.description}</p>
+                  )}
+                  
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div 
+                      className="w-4 h-4 rounded border"
+                      style={{ backgroundColor: settings?.primary_color || '#1F2937' }}
+                    ></div>
+                    <div 
+                      className="w-4 h-4 rounded border"
+                      style={{ backgroundColor: settings?.secondary_color || '#3B82F6' }}
+                    ></div>
+                    <span className="text-xs text-gray-500">Brand Colors</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedTenant(tenant.id);
+                        setIsDomainOpen(true);
+                      }}
+                    >
+                      <Globe className="w-4 h-4 mr-2" />
+                      Add Custom Domain (€600/year)
+                    </Button>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Palette className="w-4 h-4 mr-2" />
+                      Customize Theme
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Custom Domain Dialog */}

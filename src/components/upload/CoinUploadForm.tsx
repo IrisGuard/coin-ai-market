@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,14 +21,19 @@ const CoinUploadForm = () => {
   const [isMobileMode, setIsMobileMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    year: new Date().getFullYear(),
+    year: '',
     grade: '',
-    price: 0,
+    price: '',
     rarity: '',
     image: '',
     country: '',
     denomination: '',
-    description: ''
+    description: '',
+    condition: '',
+    composition: '',
+    diameter: '',
+    weight: '',
+    mint: ''
   });
 
   // Check if device is mobile
@@ -132,9 +138,9 @@ const CoinUploadForm = () => {
     
     const coinData = {
       name: formData.name,
-      year: formData.year,
+      year: parseInt(formData.year) || new Date().getFullYear(),
       grade: formData.grade,
-      price: formData.price,
+      price: parseFloat(formData.price) || 0,
       rarity: formData.rarity,
       image: formData.image,
       country: formData.country,

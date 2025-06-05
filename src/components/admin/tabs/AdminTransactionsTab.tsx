@@ -62,28 +62,20 @@ const AdminTransactionsTab = () => {
               <TableCell>
                 <div>
                   <div className="font-medium">
-                    {transaction.seller && typeof transaction.seller === 'object' && 'name' in transaction.seller 
-                      ? transaction.seller.name || 'Unknown Seller'
-                      : 'Unknown Seller'}
+                    {transaction.seller?.name || 'Unknown Seller'}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {transaction.seller && typeof transaction.seller === 'object' && 'email' in transaction.seller 
-                      ? transaction.seller.email || 'No email'
-                      : 'No email'}
+                    {transaction.seller?.email || 'No email'}
                   </div>
                 </div>
               </TableCell>
               <TableCell>
                 <div>
                   <div className="font-medium">
-                    {transaction.buyer && typeof transaction.buyer === 'object' && 'name' in transaction.buyer 
-                      ? transaction.buyer.name || 'Unknown Buyer'
-                      : 'Unknown Buyer'}
+                    {transaction.buyer?.name || 'Unknown Buyer'}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {transaction.buyer && typeof transaction.buyer === 'object' && 'email' in transaction.buyer 
-                      ? transaction.buyer.email || 'No email'
-                      : 'No email'}
+                    {transaction.buyer?.email || 'No email'}
                   </div>
                 </div>
               </TableCell>
