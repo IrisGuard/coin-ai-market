@@ -11,6 +11,12 @@
     },
     "api/webhook/error-monitor.js": {
       "runtime": "nodejs18.x"
+    },
+    "api/console-monitor.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/notify-admin.js": {
+      "runtime": "nodejs18.x"
     }
   },
   "headers": [
@@ -43,7 +49,9 @@
   "env": {
     "VITE_SUPABASE_URL": "https://wdgnllgbfvjgurbqhfqb.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU",
-    "DEPLOYMENT_MONITORING": "true"
+    "DEPLOYMENT_MONITORING": "true",
+    "VITE_ENABLE_ERROR_REPORTING": "true",
+    "VERCEL_ERROR_MONITORING": "enabled"
   },
   "version": 2,
   "rewrites": [
