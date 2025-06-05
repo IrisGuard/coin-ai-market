@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -56,7 +55,11 @@ export const useOfflineSync = () => {
       reader.readAsDataURL(data.images[0]);
     });
 
-    // Create coin record
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    // Create coin record with required user_id
     const { error } = await supabase
       .from('coins')
       .insert({
@@ -70,7 +73,8 @@ export const useOfflineSync = () => {
         denomination: data.denomination,
         description: data.description,
         condition: data.condition,
-        authentication_status: 'pending'
+        authentication_status: 'pending',
+        user_id: user.id
       });
 
     if (error) throw error;

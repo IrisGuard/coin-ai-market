@@ -134,6 +134,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_recognition_cache: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          image_hash: string
+          processing_time_ms: number | null
+          recognition_results: Json
+          sources_consulted: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          image_hash: string
+          processing_time_ms?: number | null
+          recognition_results?: Json
+          sources_consulted?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          image_hash?: string
+          processing_time_ms?: number | null
+          recognition_results?: Json
+          sources_consulted?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       api_key_categories: {
         Row: {
           created_at: string
