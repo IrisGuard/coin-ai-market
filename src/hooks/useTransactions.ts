@@ -55,15 +55,11 @@ export const useTransactions = () => {
 
     try {
       setLoading(true);
+      
+      // First, let's get transactions without the problematic join
       let query = supabase
         .from('transactions')
-        .select(`
-          *,
-          coins (
-            name,
-            image
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id);
 
       // Apply filters
@@ -118,7 +114,19 @@ export const useTransactions = () => {
       const { data, error } = await query.limit(100);
 
       if (error) throw error;
-      setTransactions(data || []);
+
+      // Transform the data to match our expected format
+      const transformedTransactions = (data || []).map(transaction => ({
+        ...transaction,
+        type: transaction.type || 'purchase',
+        status: transaction.status || 'completed',
+        currency: transaction.currency || 'USD',
+        description: transaction.description || `Transaction ${transaction.id}`,
+        updated_at: transaction.updated_at || transaction.created_at,
+        coins: transaction.coin_id ? { name: 'Unknown Coin' } : undefined
+      }));
+
+      setTransactions(transformedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast.error('Failed to load transactions');
@@ -133,7 +141,7 @@ export const useTransactions = () => {
     try {
       const { data, error } = await supabase
         .from('transactions')
-        .select('type, status, amount, fees')
+        .select('amount, fees, status')
         .eq('user_id', user.id);
 
       if (error) throw error;
