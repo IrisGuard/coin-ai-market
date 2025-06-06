@@ -164,54 +164,7 @@ const notifyCriticalError = async (error: Error) => {
   }
 };
 
-// === DEVELOPMENT ERROR WIDGET ===
-if (import.meta.env.DEV) {
-  const createErrorWidget = () => {
-    const widget = document.createElement('div');
-    widget.id = 'error-widget';
-    widget.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: green;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 12px;
-      z-index: 9999;
-      cursor: pointer;
-      font-family: monospace;
-      border: 2px solid #333;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    `;
-    widget.textContent = 'Errors: 0';
-    widget.onclick = () => window.CoinAI.showErrors();
-    widget.title = 'Click to view errors in console';
-    document.body.appendChild(widget);
-    
-    // Update counter
-    setInterval(() => {
-      const errorCount = ConsoleMonitor.getErrors().length;
-      const warningCount = ConsoleMonitor.getWarnings().length;
-      widget.textContent = `E: ${errorCount} W: ${warningCount}`;
-      
-      if (errorCount > 0) {
-        widget.style.background = 'red';
-      } else if (warningCount > 0) {
-        widget.style.background = 'orange';
-      } else {
-        widget.style.background = 'green';
-      }
-    }, 1000);
-  };
-  
-  // Create widget after DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', createErrorWidget);
-  } else {
-    createErrorWidget();
-  }
-}
+// Development error widget removed - no visible debug elements
 
 // Add global error handler for production monitoring
 window.addEventListener('error', (event) => {

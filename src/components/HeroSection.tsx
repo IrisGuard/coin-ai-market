@@ -7,17 +7,17 @@ import { Link } from 'react-router-dom';
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen bg-white flex items-center justify-center overflow-hidden">
-      {/* Light background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20"></div>
+      {/* Subtle white background with minimal gradients */}
+      <div className="absolute inset-0 bg-white"></div>
       
-      {/* Floating elements with colorful gradients */}
+      {/* Very subtle floating elements - much more transparent */}
       <motion.div 
         animate={{ 
           y: [0, -20, 0],
           rotate: [0, 5, 0]
         }}
         transition={{ duration: 6, repeat: Infinity }}
-        className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-20 blur-xl"
+        className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-5 blur-xl"
       />
       <motion.div 
         animate={{ 
@@ -25,7 +25,7 @@ const HeroSection = () => {
           rotate: [0, -5, 0]
         }}
         transition={{ duration: 8, repeat: Infinity }}
-        className="absolute bottom-32 right-32 w-40 h-40 bg-gradient-to-br from-green-400 to-blue-500 rounded-full opacity-15 blur-xl"
+        className="absolute bottom-32 right-32 w-40 h-40 bg-gradient-to-br from-green-400 to-blue-500 rounded-full opacity-5 blur-xl"
       />
       <motion.div 
         animate={{ 
@@ -33,7 +33,7 @@ const HeroSection = () => {
           x: [-5, 5, -5]
         }}
         transition={{ duration: 10, repeat: Infinity }}
-        className="absolute top-1/2 left-10 w-24 h-24 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-25 blur-lg"
+        className="absolute top-1/2 left-10 w-24 h-24 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-5 blur-lg"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -106,7 +106,7 @@ const HeroSection = () => {
             </Link>
           </motion.div>
 
-          {/* Feature highlights */}
+          {/* Feature highlights with white backgrounds */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -138,7 +138,7 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-                className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
+                className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
               >
                 <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
                   {feature.icon}
