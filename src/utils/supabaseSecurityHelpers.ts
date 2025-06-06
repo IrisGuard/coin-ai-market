@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { logSecurityEvent } from './securityConfig';
 
 /**
  * Secure admin verification utility
@@ -18,12 +19,19 @@ export const verifyAdminAccess = async (userId?: string): Promise<boolean> => {
 
     if (error) {
       console.error('Admin verification error:', error);
+      await logSecurityEvent('admin_verification_failed', { error: error.message, userId });
       return false;
+    }
+
+    // Log successful admin verification
+    if (data) {
+      await logSecurityEvent('admin_verified', { userId });
     }
 
     return !!data;
   } catch (error) {
     console.error('Admin verification failed:', error);
+    await logSecurityEvent('admin_verification_error', { error: error instanceof Error ? error.message : 'Unknown error', userId });
     return false;
   }
 };
@@ -41,6 +49,7 @@ export const safeQuery = async <T>(
     if (error?.message?.includes('row-level security') || 
         error?.message?.includes('insufficient privilege')) {
       console.warn('RLS policy blocked query:', error.message);
+      await logSecurityEvent('rls_policy_violation', { error: error.message });
       return { data: null, error: { message: 'Access denied by security policy' } };
     }
     throw error;
@@ -50,7 +59,7 @@ export const safeQuery = async <T>(
 /**
  * Enhanced error handler for Supabase operations
  */
-export const handleSupabaseError = (error: any, operation: string) => {
+export const handleSupabaseError = async (error: any, operation: string) => {
   if (!error) return null;
 
   const errorMessage = error.message || 'Unknown error';
@@ -58,20 +67,24 @@ export const handleSupabaseError = (error: any, operation: string) => {
   // Log specific error types for debugging
   if (errorMessage.includes('row-level security')) {
     console.error(`RLS violation in ${operation}:`, errorMessage);
+    await logSecurityEvent('rls_violation', { operation, error: errorMessage });
     return 'Access denied by security policy';
   }
   
   if (errorMessage.includes('insufficient privilege')) {
     console.error(`Privilege error in ${operation}:`, errorMessage);
+    await logSecurityEvent('privilege_error', { operation, error: errorMessage });
     return 'Insufficient permissions';
   }
   
   if (errorMessage.includes('violates check constraint')) {
     console.error(`Constraint violation in ${operation}:`, errorMessage);
+    await logSecurityEvent('constraint_violation', { operation, error: errorMessage });
     return 'Data validation failed';
   }
 
   console.error(`Error in ${operation}:`, errorMessage);
+  await logSecurityEvent('general_error', { operation, error: errorMessage });
   return errorMessage;
 };
 
@@ -86,12 +99,15 @@ export const encryptApiKey = async (plainKey: string): Promise<string | null> =>
 
     if (error) {
       console.error('API key encryption error:', error);
+      await logSecurityEvent('api_key_encryption_failed', { error: error.message });
       return null;
     }
 
+    await logSecurityEvent('api_key_encrypted', { success: true });
     return data;
   } catch (error) {
     console.error('API key encryption failed:', error);
+    await logSecurityEvent('api_key_encryption_error', { error: error instanceof Error ? error.message : 'Unknown error' });
     return null;
   }
 };
@@ -106,12 +122,15 @@ export const validateTenantAccess = async (domain: string): Promise<string | nul
 
     if (error) {
       console.error('Tenant validation error:', error);
+      await logSecurityEvent('tenant_validation_failed', { domain, error: error.message });
       return null;
     }
 
+    await logSecurityEvent('tenant_validated', { domain, tenantId: data });
     return data;
   } catch (error) {
     console.error('Tenant validation failed:', error);
+    await logSecurityEvent('tenant_validation_error', { domain, error: error instanceof Error ? error.message : 'Unknown error' });
     return null;
   }
 };

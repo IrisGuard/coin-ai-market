@@ -5,23 +5,41 @@ import App from "./App.tsx";
 import "./index.css";
 import { ProdErrorHandler } from './utils/prodErrorHandler';
 import { initSentry } from './lib/sentry';
-import { validateSecurityConfig, validateOTPSecurity } from './utils/securityConfig';
+import { validateSecurityConfig, validateOTPSecurity, logSecurityEvent } from './utils/securityConfig';
 import { SessionSecurity } from './lib/securityEnhancements';
 
 // Initialize error monitoring
 initSentry();
 ProdErrorHandler.initializeGlobalErrorHandling();
 
-// Initialize security configurations
-validateSecurityConfig();
-SessionSecurity.validateSession();
+// Initialize security configurations with enhanced validation
+const initializeSecurity = async () => {
+  try {
+    // Validate basic security config
+    const configIssues = validateSecurityConfig();
+    if (configIssues.length > 0) {
+      await logSecurityEvent('config_validation_failed', { issues: configIssues });
+    }
 
-// Validate OTP security settings
-validateOTPSecurity().then(isValid => {
-  if (!isValid) {
-    console.warn('OTP security settings may need attention');
+    // Validate session security
+    SessionSecurity.validateSession();
+
+    // Validate OTP security settings with database integration
+    const otpValid = await validateOTPSecurity();
+    if (!otpValid) {
+      console.warn('OTP security settings may need attention');
+      await logSecurityEvent('otp_validation_failed', { timestamp: new Date().toISOString() });
+    } else {
+      await logSecurityEvent('security_validation_passed', { timestamp: new Date().toISOString() });
+    }
+  } catch (error) {
+    console.error('Security initialization failed:', error);
+    await logSecurityEvent('security_init_failed', { error: error instanceof Error ? error.message : 'Unknown error' });
   }
-});
+};
+
+// Initialize security
+initializeSecurity();
 
 // === ENHANCED CONSOLE MONITORING SYSTEM ===
 const ConsoleMonitor = {
@@ -137,6 +155,24 @@ window.CoinAI = {
     ConsoleMonitor.clearAll();
     console.clear();
     console.log('✅ All logs cleared');
+  },
+  
+  // NEW: Test security validation
+  async testSecurity() {
+    console.group('🔒 Security Validation Test');
+    try {
+      const otpValid = await validateOTPSecurity();
+      console.log('OTP Security Valid:', otpValid);
+      
+      const configIssues = validateSecurityConfig();
+      console.log('Config Issues:', configIssues);
+      
+      await logSecurityEvent('manual_security_test', { timestamp: new Date().toISOString() });
+      console.log('✅ Security test completed');
+    } catch (error) {
+      console.error('❌ Security test failed:', error);
+    }
+    console.groupEnd();
   }
 };
 

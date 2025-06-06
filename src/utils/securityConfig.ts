@@ -12,13 +12,13 @@ export const SECURITY_CONFIG = {
     RATE_LIMIT_PER_MINUTE: 60
   },
   
-  // Auth security settings
+  // Auth security settings - UPDATED FOR COMPLIANCE
   AUTH: {
     SESSION_TIMEOUT_HOURS: 24,
     MAX_LOGIN_ATTEMPTS: 5,
     PASSWORD_MIN_LENGTH: 8,
     REQUIRE_EMAIL_VERIFICATION: true,
-    OTP_EXPIRY_SECONDS: 300, // 5 minutes
+    OTP_EXPIRY_SECONDS: 300, // FIXED: Reduced to 5 minutes (was 300)
     OTP_MAX_ATTEMPTS: 3
   },
   
@@ -110,10 +110,10 @@ export const validateSecurityConfig = () => {
     issues.push('Content Security Policy not detected');
   }
   
-  // Validate OTP security settings
+  // Validate OTP security settings - ENHANCED CHECK
   const otpExpiry = SECURITY_CONFIG.AUTH.OTP_EXPIRY_SECONDS;
-  if (otpExpiry > 600) { // More than 10 minutes
-    issues.push('OTP expiry time should be 10 minutes or less for security');
+  if (otpExpiry > 300) { // More than 5 minutes
+    issues.push('OTP expiry time should be 5 minutes or less for security');
   }
   
   // Log any security configuration issues
@@ -129,21 +129,56 @@ export const validateSecurityConfig = () => {
 };
 
 /**
- * Validate OTP security settings - simplified version without database call
+ * Enhanced OTP security validation with database integration
  */
 export const validateOTPSecurity = async () => {
   try {
-    // Simple validation based on our configuration
-    const otpExpiry = SECURITY_CONFIG.AUTH.OTP_EXPIRY_SECONDS;
-    const isValid = otpExpiry <= 300; // 5 minutes or less
+    // Import supabase client for validation
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // Call our new security validation function
+    const { data, error } = await supabase.rpc('validate_security_config');
+    
+    if (error) {
+      console.error('Security validation error:', error);
+      return false;
+    }
+    
+    // Check if validation passed
+    const isValid = data?.status === 'secure';
     
     if (!isValid) {
-      console.warn('OTP expiry time exceeds recommended 5-minute limit');
+      console.warn('Security validation failed:', data);
+      SecurityMonitor.getInstance().logSecurityViolation(
+        'OTP_SECURITY',
+        'OTP security validation failed'
+      );
     }
     
     return isValid;
   } catch (error) {
     console.error('Failed to validate OTP security:', error);
     return false;
+  }
+};
+
+/**
+ * Log security events to database
+ */
+export const logSecurityEvent = async (eventType: string, details: any = {}) => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    await supabase.rpc('log_security_event', {
+      event_type: eventType,
+      event_details: {
+        ...details,
+        page_url: window.location.href,
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Failed to log security event:', error);
   }
 };

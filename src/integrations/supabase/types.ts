@@ -1868,9 +1868,17 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      log_security_event: {
+        Args: { event_type: string; event_details?: Json }
+        Returns: undefined
+      }
       set_tenant_context: {
         Args: { tenant_uuid: string }
         Returns: undefined
+      }
+      validate_security_config: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
     }
     Enums: {
