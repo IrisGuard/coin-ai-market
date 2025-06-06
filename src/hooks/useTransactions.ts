@@ -56,16 +56,20 @@ export const useTransactions = () => {
     try {
       setLoading(true);
       
-      // First, let's get transactions without the problematic join
+      // Query the existing transactions table structure
       let query = supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', user.id);
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
 
-      // Apply filters
+      // Apply filters based on the actual column names
       if (filters?.type && filters.type !== 'all') {
-        query = query.eq('type', filters.type);
+        // Map our filter types to the database transaction_type
+        if (filters.type === 'purchase' || filters.type === 'sale') {
+          query = query.eq('transaction_type', filters.type);
+        }
       }
+      
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
@@ -115,16 +119,30 @@ export const useTransactions = () => {
 
       if (error) throw error;
 
-      // Transform the data to match our expected format
-      const transformedTransactions = (data || []).map(transaction => ({
-        ...transaction,
-        type: transaction.type || 'purchase',
-        status: transaction.status || 'completed',
-        currency: transaction.currency || 'USD',
-        description: transaction.description || `Transaction ${transaction.id}`,
-        updated_at: transaction.updated_at || transaction.created_at,
-        coins: transaction.coin_id ? { name: 'Unknown Coin' } : undefined
-      }));
+      // Transform the existing data structure to match our interface
+      const transformedTransactions: Transaction[] = (data || []).map(record => {
+        // Determine if this user is the buyer or seller to set the transaction type
+        const isBuyer = record.buyer_id === user.id;
+        const type = record.transaction_type === 'purchase' ? 
+          (isBuyer ? 'purchase' : 'sale') : 
+          (record.transaction_type || 'purchase');
+
+        return {
+          id: record.id,
+          type: type as Transaction['type'],
+          status: (record.status || 'completed') as Transaction['status'],
+          amount: Number(record.amount) || 0,
+          currency: 'USD', // Default since not in existing schema
+          coin_id: record.coin_id,
+          description: `Transaction ${record.id}`, // Generate since not in existing schema
+          transaction_hash: record.stripe_payment_intent_id, // Use stripe ID as transaction reference
+          created_at: record.created_at,
+          updated_at: record.created_at, // Use created_at since updated_at doesn't exist
+          fees: 0, // Default since not in existing schema
+          user_id: isBuyer ? record.buyer_id : record.seller_id,
+          coins: record.coin_id ? { name: 'Unknown Coin' } : undefined
+        };
+      });
 
       setTransactions(transformedTransactions);
     } catch (error) {
@@ -141,14 +159,14 @@ export const useTransactions = () => {
     try {
       const { data, error } = await supabase
         .from('transactions')
-        .select('amount, fees, status')
-        .eq('user_id', user.id);
+        .select('amount, status')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
 
       if (error) throw error;
 
       const totalTransactions = data?.length || 0;
       const totalVolume = data?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-      const totalFees = data?.reduce((sum, t) => sum + (Number(t.fees) || 0), 0) || 0;
+      const totalFees = 0; // No fees column in existing schema
       const completedCount = data?.filter(t => t.status === 'completed').length || 0;
       const successRate = totalTransactions > 0 ? (completedCount / totalTransactions) * 100 : 0;
       const pendingCount = data?.filter(t => t.status === 'pending').length || 0;
