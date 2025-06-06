@@ -1,14 +1,20 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCoins } from '@/hooks/useCoins';
 import { useTenant } from '@/contexts/TenantContext';
 import Navbar from '@/components/Navbar';
 import CoinGrid from '@/components/CoinGrid';
 import TenantMarketplace from '@/components/tenant/TenantMarketplace';
 import { motion } from 'framer-motion';
-import { Search, Filter, SlidersHorizontal, Grid3x3, List, TrendingUp, Clock, Star, Sparkles, Target, Users, DollarSign } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Grid3x3, List, TrendingUp, Clock, Star, Sparkles, Target, Users, DollarSign, Heart, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Marketplace = () => {
   const { currentTenant } = useTenant();
@@ -21,17 +27,84 @@ const Marketplace = () => {
   const [showAuctionsOnly, setShowAuctionsOnly] = useState(false);
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [realStats, setRealStats] = useState({
+    total: 0,
+    auctions: 0,
+    featured: 0,
+    totalValue: 0,
+    activeUsers: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  // Filter and sort coins
+  // Fetch real statistics from database
+  useEffect(() => {
+    const fetchRealStats = async () => {
+      try {
+        setStatsLoading(true);
+        
+        // Fetch total coins count
+        const { count: totalCoins } = await supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('authentication_status', 'verified');
+
+        // Fetch auctions count
+        const { count: auctionsCount } = await supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_auction', true)
+          .eq('authentication_status', 'verified');
+
+        // Fetch featured count
+        const { count: featuredCount } = await supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('featured', true)
+          .eq('authentication_status', 'verified');
+
+        // Fetch price data for total value
+        const { data: priceData } = await supabase
+          .from('coins')
+          .select('price')
+          .eq('authentication_status', 'verified');
+
+        const totalValue = priceData?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
+
+        // Fetch active users count
+        const { count: activeUsers } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+
+        setRealStats({
+          total: totalCoins || 0,
+          auctions: auctionsCount || 0,
+          featured: featuredCount || 0,
+          totalValue,
+          activeUsers: activeUsers || 0
+        });
+      } catch (error) {
+        console.error('Error fetching marketplace stats:', error);
+        toast.error('Failed to load marketplace statistics');
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchRealStats();
+  }, []);
+
+  // Filter and sort coins with real data
   const filteredCoins = useMemo(() => {
+    if (!coins || coins.length === 0) return [];
+    
     return coins
       .filter((coin) => {
-        const matchesSearch = coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch = coin.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             coin.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             coin.country?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesRarity = !selectedRarity || coin.rarity === selectedRarity;
         const matchesCondition = !selectedCondition || coin.condition === selectedCondition;
-        const matchesPrice = coin.price >= priceRange[0] && coin.price <= priceRange[1];
+        const matchesPrice = (coin.price || 0) >= priceRange[0] && (coin.price || 0) <= priceRange[1];
         const matchesAuction = !showAuctionsOnly || coin.is_auction;
         const matchesFeatured = !showFeaturedOnly || coin.featured;
 
@@ -40,18 +113,18 @@ const Marketplace = () => {
       .sort((a, b) => {
         switch (sortBy) {
           case 'price-low':
-            return a.price - b.price;
+            return (a.price || 0) - (b.price || 0);
           case 'price-high':
-            return b.price - a.price;
+            return (b.price || 0) - (a.price || 0);
           case 'year-old':
-            return a.year - b.year;
+            return (a.year || 0) - (b.year || 0);
           case 'year-new':
-            return b.year - a.year;
+            return (b.year || 0) - (a.year || 0);
           case 'name':
-            return a.name.localeCompare(b.name);
+            return (a.name || '').localeCompare(b.name || '');
           case 'popularity':
-            return (b.views || 0) + (b.favorites || 0) - ((a.views || 0) + (a.favorites || 0));
-          default: // newest
+            return ((b.views || 0) + (b.favorites || 0)) - ((a.views || 0) + (a.favorites || 0));
+          default:
             return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
         }
       });
@@ -68,13 +141,6 @@ const Marketplace = () => {
 
   const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Ultra Rare'];
   const conditionOptions = ['Mint', 'Near Mint', 'Excellent', 'Good', 'Fair', 'Poor'];
-
-  const stats = {
-    total: coins.length,
-    auctions: coins.filter(c => c.is_auction).length,
-    featured: coins.filter(c => c.featured).length,
-    totalValue: coins.reduce((sum, coin) => sum + coin.price, 0)
-  };
 
   if (currentTenant) {
     return (
@@ -114,41 +180,48 @@ const Marketplace = () => {
             </p>
           </motion.div>
 
-          {/* Enhanced Stats Banner */}
+          {/* Real Statistics */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+            className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-12"
           >
             {[
               { 
                 icon: <Target className="w-8 h-8" />, 
-                value: stats.total, 
+                value: realStats.total, 
                 label: "Total Coins", 
                 color: "from-brand-primary to-electric-blue",
                 bgColor: "from-brand-primary/10 to-electric-blue/10"
               },
               { 
                 icon: <Clock className="w-8 h-8" />, 
-                value: stats.auctions, 
+                value: realStats.auctions, 
                 label: "Live Auctions", 
                 color: "from-brand-accent to-electric-pink",
                 bgColor: "from-brand-accent/10 to-electric-pink/10"
               },
               { 
                 icon: <Star className="w-8 h-8" />, 
-                value: stats.featured, 
+                value: realStats.featured, 
                 label: "Featured", 
                 color: "from-coin-gold to-electric-orange",
                 bgColor: "from-coin-gold/10 to-electric-orange/10"
               },
               { 
                 icon: <DollarSign className="w-8 h-8" />, 
-                value: `$${Math.round(stats.totalValue / 1000)}K`, 
+                value: `$${Math.round(realStats.totalValue / 1000)}K`, 
                 label: "Total Value", 
                 color: "from-electric-emerald to-electric-teal",
                 bgColor: "from-electric-emerald/10 to-electric-teal/10"
+              },
+              { 
+                icon: <Users className="w-8 h-8" />, 
+                value: realStats.activeUsers, 
+                label: "Active Users", 
+                color: "from-electric-purple to-brand-primary",
+                bgColor: "from-electric-purple/10 to-brand-primary/10"
               }
             ].map((stat, index) => (
               <motion.div
@@ -164,7 +237,11 @@ const Marketplace = () => {
                   </div>
                 </div>
                 <div className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2`}>
-                  {typeof stat.value === 'string' ? stat.value : stat.value.toLocaleString()}
+                  {statsLoading ? (
+                    <div className="w-12 h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded animate-pulse mx-auto"></div>
+                  ) : (
+                    typeof stat.value === 'string' ? stat.value : stat.value.toLocaleString()
+                  )}
                 </div>
                 <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
               </motion.div>
@@ -178,7 +255,7 @@ const Marketplace = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="glass-card p-8 rounded-3xl mb-12 border-2 border-white/30 shadow-2xl"
           >
-            {/* Search bar with enhanced styling */}
+            {/* Search bar */}
             <div className="relative mb-8">
               <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-brand-primary w-6 h-6 z-10" />
               <input
@@ -188,7 +265,6 @@ const Marketplace = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-modern pl-16 text-lg h-14 shadow-xl"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-electric-blue/5 to-brand-accent/5 rounded-2xl -z-10"></div>
             </div>
 
             {/* Quick Filter Pills */}
@@ -201,8 +277,8 @@ const Marketplace = () => {
               >
                 <Clock className="w-5 h-5 mr-2" />
                 Live Auctions
-                {stats.auctions > 0 && (
-                  <Badge className="ml-2 bg-white/20 text-current">{stats.auctions}</Badge>
+                {realStats.auctions > 0 && (
+                  <Badge className="ml-2 bg-white/20 text-current">{realStats.auctions}</Badge>
                 )}
               </Button>
               
@@ -214,8 +290,8 @@ const Marketplace = () => {
               >
                 <Star className="w-5 h-5 mr-2" />
                 Featured Only
-                {stats.featured > 0 && (
-                  <Badge className="ml-2 bg-white/20 text-current">{stats.featured}</Badge>
+                {realStats.featured > 0 && (
+                  <Badge className="ml-2 bg-white/20 text-current">{realStats.featured}</Badge>
                 )}
               </Button>
             </div>
@@ -224,47 +300,50 @@ const Marketplace = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
               <div className="space-y-2">
                 <label className="block text-sm font-bold text-gray-700">Rarity</label>
-                <select
-                  value={selectedRarity}
-                  onChange={(e) => setSelectedRarity(e.target.value)}
-                  className="input-modern h-12"
-                >
-                  <option value="">All Rarities</option>
-                  {rarityOptions.map(rarity => (
-                    <option key={rarity} value={rarity}>{rarity}</option>
-                  ))}
-                </select>
+                <Select value={selectedRarity} onValueChange={setSelectedRarity}>
+                  <SelectTrigger className="input-modern h-12">
+                    <SelectValue placeholder="All Rarities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Rarities</SelectItem>
+                    {rarityOptions.map(rarity => (
+                      <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
                 <label className="block text-sm font-bold text-gray-700">Condition</label>
-                <select
-                  value={selectedCondition}
-                  onChange={(e) => setSelectedCondition(e.target.value)}
-                  className="input-modern h-12"
-                >
-                  <option value="">All Conditions</option>
-                  {conditionOptions.map(condition => (
-                    <option key={condition} value={condition}>{condition}</option>
-                  ))}
-                </select>
+                <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+                  <SelectTrigger className="input-modern h-12">
+                    <SelectValue placeholder="All Conditions" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Conditions</SelectItem>
+                    {conditionOptions.map(condition => (
+                      <SelectItem key={condition} value={condition}>{condition}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
                 <label className="block text-sm font-bold text-gray-700">Sort By</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="input-modern h-12"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="popularity">Most Popular</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="year-old">Year: Oldest First</option>
-                  <option value="year-new">Year: Newest First</option>
-                  <option value="name">Name: A to Z</option>
-                </select>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                  <SelectTrigger className="input-modern h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="popularity">Most Popular</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="year-old">Year: Oldest First</SelectItem>
+                    <SelectItem value="year-new">Year: Newest First</SelectItem>
+                    <SelectItem value="name">Name: A to Z</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
@@ -288,6 +367,21 @@ const Marketplace = () => {
                   </Button>
                 </div>
               </div>
+            </div>
+
+            {/* Price Range Slider */}
+            <div className="space-y-4 mb-6">
+              <label className="block text-sm font-bold text-gray-700">
+                Price Range: ${priceRange[0]} - ${priceRange[1]}
+              </label>
+              <Slider
+                value={priceRange}
+                onValueChange={(value) => setPriceRange(value as [number, number])}
+                max={10000}
+                min={0}
+                step={100}
+                className="w-full"
+              />
             </div>
 
             {/* Results Summary */}
