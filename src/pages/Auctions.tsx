@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,7 +46,7 @@ interface Bid {
   bidder_id: string;
   amount: number;
   created_at: string;
-  profiles: {
+  profiles?: {
     name: string;
   };
 }
@@ -145,12 +144,14 @@ const Auctions = () => {
             .from('auction_bids')
             .select(`
               *,
-              profiles:bidder_id(name)
+              profiles!auction_bids_bidder_id_fkey(name)
             `)
             .eq('bidder_id', user.id)
             .order('created_at', { ascending: false });
 
-          setMyBids(userBids || []);
+          // Filter out any invalid bids and ensure proper typing
+          const validBids = (userBids || []).filter(bid => bid && bid.profiles) as Bid[];
+          setMyBids(validBids);
         }
 
       } catch (error) {
