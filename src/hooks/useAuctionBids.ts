@@ -31,14 +31,14 @@ export const useAuctionBids = (auctionId: string) => {
           .from('auction_bids')
           .select(`
             *,
-            profiles!inner(name, avatar_url)
+            profiles:bidder_id(name, avatar_url)
           `)
           .eq('auction_id', auctionId)
           .order('amount', { ascending: false });
 
         if (error) throw error;
         
-        // Filter out any bids without valid profile data
+        // Filter out any bids without valid profile data and ensure proper typing
         const validBids = (data || []).filter(bid => bid.profiles) as AuctionBid[];
         setBids(validBids);
       } catch (error) {
@@ -73,7 +73,7 @@ export const useAuctionBids = (auctionId: string) => {
             .from('auction_bids')
             .select(`
               *,
-              profiles!inner(name, avatar_url)
+              profiles:bidder_id(name, avatar_url)
             `)
             .eq('id', payload.new.id)
             .single();

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -91,7 +90,7 @@ const Auctions = () => {
             user_id,
             description,
             views,
-            profiles!coins_user_id_fkey(
+            profiles:user_id(
               name,
               reputation,
               verified_dealer
@@ -145,7 +144,7 @@ const Auctions = () => {
             .from('auction_bids')
             .select(`
               *,
-              profiles!inner(name)
+              profiles:bidder_id(name)
             `)
             .eq('bidder_id', user.id)
             .order('created_at', { ascending: false });
