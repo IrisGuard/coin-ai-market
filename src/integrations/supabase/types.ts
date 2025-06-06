@@ -305,6 +305,44 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_bids: {
+        Row: {
+          amount: number
+          auction_id: string
+          auto_bid_max: number | null
+          bidder_id: string
+          created_at: string
+          id: string
+          is_winning: boolean | null
+        }
+        Insert: {
+          amount: number
+          auction_id: string
+          auto_bid_max?: number | null
+          bidder_id: string
+          created_at?: string
+          id?: string
+          is_winning?: boolean | null
+        }
+        Update: {
+          amount?: number
+          auction_id?: string
+          auto_bid_max?: number | null
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          is_winning?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bids: {
         Row: {
           amount: number
@@ -566,6 +604,7 @@ export type Database = {
           starting_bid: number | null
           tags: string[] | null
           updated_at: string | null
+          uploaded_by: string | null
           user_id: string
           views: number | null
           weight: number | null
@@ -609,6 +648,7 @@ export type Database = {
           starting_bid?: number | null
           tags?: string[] | null
           updated_at?: string | null
+          uploaded_by?: string | null
           user_id: string
           views?: number | null
           weight?: number | null
@@ -652,6 +692,7 @@ export type Database = {
           starting_bid?: number | null
           tags?: string[] | null
           updated_at?: string | null
+          uploaded_by?: string | null
           user_id?: string
           views?: number | null
           weight?: number | null
