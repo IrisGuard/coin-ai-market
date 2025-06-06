@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -10,12 +9,12 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, userData: { fullName: string; username: string }) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   session: Session | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<any>;
+  signUp: (email: string, password: string, userData: { fullName: string; username: string }) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   resetPassword: (email: string) => Promise<any>;
 }
@@ -60,7 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, userData: { fullName: string; username: string }) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -69,30 +68,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          full_name: fullName,
-          name: fullName
+          full_name: userData.fullName,
+          name: userData.fullName,
+          username: userData.username
         }
       }
     });
     
     if (error) throw error;
-    
-    // Create profile if user was created
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email: data.user.email,
-          full_name: fullName,
-          name: fullName
-        });
-      
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw here as the user was created successfully
-      }
-    }
     
     return data;
   };
@@ -111,8 +94,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (error) throw error;
   };
 
-  const signup = async (email: string, password: string, name: string) => {
-    await signUp(email, password, name);
+  const signup = async (email: string, password: string, userData: { fullName: string; username: string }) => {
+    await signUp(email, password, userData);
   };
 
   const logout = async () => {
@@ -154,4 +137,3 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

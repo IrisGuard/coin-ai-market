@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +13,7 @@ import Index from "./pages/Index";
 import Upload from "./pages/Upload";
 import CoinUpload from "./pages/CoinUpload";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Marketplace from "./pages/Marketplace";
 import CoinDetails from "./pages/CoinDetails";
 import AdminSetup from "./pages/AdminSetup";
@@ -59,6 +59,7 @@ const App = () => (
                   <Route path="/upload-coin" element={<CoinUpload />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/login" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/coin/:id" element={<CoinDetails />} />
                   <Route path="/admin" element={<AdminSetup />} />
