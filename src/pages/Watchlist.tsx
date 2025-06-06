@@ -36,16 +36,19 @@ const Watchlist = () => {
   const filteredWatchlist = useMemo(() => {
     return watchlistItems
       .filter(item => {
-        const matchesSearch = item.coin?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            item.coin?.country?.toLowerCase().includes(searchTerm.toLowerCase());
+        const coin = item.coin;
+        if (!coin) return false;
+
+        const matchesSearch = coin.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            coin.country?.toLowerCase().includes(searchTerm.toLowerCase());
         
         let matchesFilter = true;
         switch (filterType) {
           case 'auctions':
-            matchesFilter = item.coin?.is_auction || false;
+            matchesFilter = coin.is_auction || false;
             break;
           case 'buy_now':
-            matchesFilter = !item.coin?.is_auction;
+            matchesFilter = !coin.is_auction;
             break;
           case 'price_drops':
             // For now, we'll use a simple heuristic since we don't have price history

@@ -75,14 +75,14 @@ export const useWatchlistData = (userId?: string) => {
 
         // Process the data and handle the coin relationship
         const processedWatchlist = (watchlistData || [])
-          .filter(item => item.coins && typeof item.coins === 'object' && 'name' in item.coins)
+          .filter(item => item.coins && typeof item.coins === 'object' && !('error' in item.coins) && 'name' in item.coins)
           .map(item => ({
             ...item,
             coin: {
               ...item.coins,
               // Add previous_price calculation if needed
-              previous_price: item.coins?.price || 0
-            }
+              previous_price: (item.coins as CoinData)?.price || 0
+            } as CoinData
           })) as WatchlistItem[];
 
         setWatchlistItems(processedWatchlist);

@@ -40,7 +40,7 @@ export const useAuctionBids = (auctionId: string) => {
         
         // Filter out any bids without valid profile data and ensure proper typing
         const validBids = (data || [])
-          .filter(bid => bid.profiles && typeof bid.profiles === 'object' && bid.profiles.name)
+          .filter(bid => bid.profiles && typeof bid.profiles === 'object' && !('error' in bid.profiles) && bid.profiles.name)
           .map(bid => ({
             ...bid,
             profiles: bid.profiles as { name: string; avatar_url?: string }
@@ -87,6 +87,7 @@ export const useAuctionBids = (auctionId: string) => {
           if (newBidData && 
               newBidData.profiles && 
               typeof newBidData.profiles === 'object' && 
+              !('error' in newBidData.profiles) &&
               newBidData.profiles.name) {
             const validBid = {
               ...newBidData,

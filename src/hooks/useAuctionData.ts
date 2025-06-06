@@ -82,6 +82,7 @@ export const useAuctionData = (userId?: string) => {
         const validAuctions = (auctionsData || []).filter(auction => 
           auction.profiles && 
           typeof auction.profiles === 'object' && 
+          !('error' in auction.profiles) &&
           'name' in auction.profiles
         );
 
@@ -139,7 +140,7 @@ export const useAuctionData = (userId?: string) => {
           } else {
             // Filter out any invalid bids and ensure proper typing
             const validBids = (userBids || []).filter(bid => 
-              bid && bid.profiles && typeof bid.profiles === 'object' && 'name' in bid.profiles
+              bid && bid.profiles && typeof bid.profiles === 'object' && !('error' in bid.profiles) && 'name' in bid.profiles
             ).map(bid => ({
               ...bid,
               profiles: bid.profiles as { name: string; }

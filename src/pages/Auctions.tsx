@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import { usePageView } from '@/hooks/usePageView';
 import { useAuctionData } from '@/hooks/useAuctionData';
 import { useAuctionActions } from '@/hooks/useAuctionActions';
-import { filterAndSortAuctions } from '@/utils/auctionUtils';
+import { filterAndSortAuctions, getTimeRemaining } from '@/utils/auctionUtils';
 import AuctionStats from '@/components/auctions/AuctionStats';
 import AuctionFilters from '@/components/auctions/AuctionFilters';
 import AuctionCard from '@/components/auctions/AuctionCard';
@@ -115,19 +115,27 @@ const Auctions = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAuctions.map((auction, index) => (
-                <AuctionCard
-                  key={auction.id}
-                  auction={auction}
-                  index={index}
-                  bidAmount={bidAmounts[auction.id] || ''}
-                  setBidAmount={(amount) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}
-                  onPlaceBid={() => placeBid(auction.id, auctions)}
-                  onAddToWatchlist={() => addToWatchlist(auction.id)}
-                  isUserSeller={auction.seller_id === user?.id}
-                  isUserHighestBidder={auction.highest_bidder_id === user?.id}
-                />
-              ))}
+              {filteredAuctions.map((auction, index) => {
+                const timeRemaining = getTimeRemaining(auction.auction_end);
+                const isEndingSoon = timeRemaining.days === 0 && timeRemaining.hours <= 24;
+                const isMyBid = auction.highest_bidder_id === user?.id;
+
+                return (
+                  <AuctionCard
+                    key={auction.id}
+                    auction={auction}
+                    index={index}
+                    timeRemaining={timeRemaining}
+                    isEndingSoon={isEndingSoon}
+                    isMyBid={isMyBid}
+                    bidAmount={bidAmounts[auction.id] || ''}
+                    setBidAmount={(amount) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}
+                    placeBid={(auctionId) => placeBid(auctionId, auctions)}
+                    addToWatchlist={() => addToWatchlist(auction.id)}
+                    userId={user?.id}
+                  />
+                );
+              })}
             </div>
           )}
         </motion.div>
