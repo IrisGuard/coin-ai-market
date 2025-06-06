@@ -24,6 +24,10 @@ interface CoinCardProps {
       verified_dealer?: boolean;
       rating?: number;
     };
+    profiles?: {
+      verified_dealer?: boolean;
+      rating?: number;
+    };
   };
   onFavorite?: () => void;
   isFavorited?: boolean;
@@ -40,6 +44,8 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onFavorite, isFavorited }) =>
     e.stopPropagation();
     onFavorite?.();
   };
+
+  const seller = coin.seller || coin.profiles;
 
   return (
     <Card 
@@ -128,7 +134,7 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onFavorite, isFavorited }) =>
               </div>
             </div>
             
-            {coin.seller?.verified_dealer && (
+            {seller?.verified_dealer && (
               <div className="flex items-center gap-1">
                 <Shield className="w-4 h-4 text-blue-600" />
                 <span className="text-blue-600">Verified Seller</span>

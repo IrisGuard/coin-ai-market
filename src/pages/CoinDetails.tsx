@@ -308,7 +308,9 @@ const CoinDetails = () => {
                     className="w-full h-96 object-cover"
                   />
                 ) : (
-                  <CoinViewer3D coinData={coin} />
+                  <div className="w-full h-96 bg-gray-100 flex items-center justify-center">
+                    <span className="text-gray-500">No image available</span>
+                  </div>
                 )}
               </CardContent>
             </Card>
