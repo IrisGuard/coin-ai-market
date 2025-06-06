@@ -6,23 +6,47 @@ import MarketplaceSorting from './MarketplaceSorting';
 import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 
 interface MarketplaceFilterPanelProps {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedRarity: string;
+  setSelectedRarity: (rarity: string) => void;
+  selectedCondition: string;
+  setSelectedCondition: (condition: string) => void;
+  priceRange: [number, number];
+  setPriceRange: (range: [number, number]) => void;
+  sortBy: string;
+  setSortBy: (sort: string) => void;
   showAuctionsOnly: boolean;
-  setShowAuctionsOnly: (value: boolean) => void;
-  selectedRarity: string | null;
-  setSelectedRarity: (value: string | null) => void;
-  sortBy: 'price' | 'year';
-  sortDirection: 'asc' | 'desc';
-  handleSort: (field: 'price' | 'year') => void;
+  setShowAuctionsOnly: (show: boolean) => void;
+  showFeaturedOnly: boolean;
+  setShowFeaturedOnly: (show: boolean) => void;
+  clearFilters: () => void;
+  filteredCount: number;
+  isLoading: boolean;
+  auctionsCount: number;
+  featuredCount: number;
 }
 
 const MarketplaceFilterPanel = ({
-  showAuctionsOnly,
-  setShowAuctionsOnly,
+  searchTerm,
+  setSearchTerm,
   selectedRarity,
   setSelectedRarity,
+  selectedCondition,
+  setSelectedCondition,
+  priceRange,
+  setPriceRange,
   sortBy,
-  sortDirection,
-  handleSort,
+  setSortBy,
+  showAuctionsOnly,
+  setShowAuctionsOnly,
+  showFeaturedOnly,
+  setShowFeaturedOnly,
+  clearFilters,
+  filteredCount,
+  isLoading,
+  auctionsCount,
+  featuredCount,
 }: MarketplaceFilterPanelProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -51,19 +75,27 @@ const MarketplaceFilterPanel = ({
         </div>
         
         <div className={`${isExpanded ? 'block' : 'hidden'} md:block mt-4`}>
-          <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center justify-between gap-4">
-            <MarketplaceFilters
-              showAuctionsOnly={showAuctionsOnly}
-              setShowAuctionsOnly={setShowAuctionsOnly}
-              selectedRarity={selectedRarity}
-              setSelectedRarity={setSelectedRarity}
-            />
-            <MarketplaceSorting
-              sortBy={sortBy}
-              sortDirection={sortDirection}
-              handleSort={handleSort}
-            />
-          </div>
+          <MarketplaceFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedRarity={selectedRarity}
+            setSelectedRarity={setSelectedRarity}
+            selectedCondition={selectedCondition}
+            setSelectedCondition={setSelectedCondition}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            showAuctionsOnly={showAuctionsOnly}
+            setShowAuctionsOnly={setShowAuctionsOnly}
+            showFeaturedOnly={showFeaturedOnly}
+            setShowFeaturedOnly={setShowFeaturedOnly}
+            clearFilters={clearFilters}
+            filteredCount={filteredCount}
+            isLoading={isLoading}
+            auctionsCount={auctionsCount}
+            featuredCount={featuredCount}
+          />
         </div>
       </div>
       
