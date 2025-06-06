@@ -58,31 +58,43 @@ const CoinDetails = () => {
     enabled: !!id,
   });
 
-  // Separate query for bids to avoid relation issues
+  // Fix the bids query to handle the relation properly
   const { data: bidsData } = useQuery({
     queryKey: ['coin-bids', id],
     queryFn: async () => {
       if (!id) return [];
       
-      const { data, error } = await supabase
+      // First get bids without trying to join profiles
+      const { data: bidsRaw, error: bidsError } = await supabase
         .from('bids')
-        .select(`
-          *,
-          profiles!bids_user_id_fkey (
-            full_name,
-            name,
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('coin_id', id)
         .order('amount', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching bids:', error);
+      if (bidsError) {
+        console.error('Error fetching bids:', bidsError);
         return [];
       }
-      return data || [];
+
+      if (!bidsRaw || bidsRaw.length === 0) return [];
+
+      // Then get profiles for each bid separately
+      const bidsWithProfiles = await Promise.all(
+        bidsRaw.map(async (bid) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, name, username, avatar_url')
+            .eq('id', bid.user_id)
+            .single();
+
+          return {
+            ...bid,
+            profiles: profile || { full_name: '', name: '', username: '', avatar_url: '' }
+          };
+        })
+      );
+
+      return bidsWithProfiles;
     },
     enabled: !!id,
   });
@@ -235,8 +247,8 @@ const CoinDetails = () => {
   
   const isOwner = user?.id === coin.user_id;
   
-  // Process bids data - filter out any bids without valid profiles
-  const validBids = (bidsData || []).filter(bid => bid.profiles && typeof bid.profiles === 'object');
+  // Process bids data - now they should have proper profile structure
+  const validBids = (bidsData || []).filter(bid => bid.profiles);
   const highestBid = Math.max(...validBids.map(bid => bid.amount), coin.starting_bid || coin.price || 0);
 
   return (
