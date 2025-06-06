@@ -31,6 +31,37 @@ interface AppSettings {
   compact_view: boolean;
 }
 
+// Type guards to check if data matches our interfaces
+const isNotificationSettings = (data: any): data is NotificationSettings => {
+  return data && typeof data === 'object' && 
+    typeof data.email_notifications === 'boolean' &&
+    typeof data.push_notifications === 'boolean' &&
+    typeof data.auction_alerts === 'boolean' &&
+    typeof data.price_alerts === 'boolean' &&
+    typeof data.new_messages === 'boolean' &&
+    typeof data.marketing_emails === 'boolean' &&
+    typeof data.weekly_digest === 'boolean';
+};
+
+const isPrivacySettings = (data: any): data is PrivacySettings => {
+  return data && typeof data === 'object' &&
+    ['public', 'private', 'friends'].includes(data.profile_visibility) &&
+    typeof data.show_collection === 'boolean' &&
+    typeof data.show_activity === 'boolean' &&
+    typeof data.show_location === 'boolean' &&
+    typeof data.allow_messages === 'boolean';
+};
+
+const isAppSettings = (data: any): data is AppSettings => {
+  return data && typeof data === 'object' &&
+    ['light', 'dark', 'auto'].includes(data.theme) &&
+    ['el', 'en'].includes(data.language) &&
+    ['EUR', 'USD', 'GBP'].includes(data.currency) &&
+    typeof data.sound_effects === 'boolean' &&
+    typeof data.auto_refresh === 'boolean' &&
+    typeof data.compact_view === 'boolean';
+};
+
 export const useUserSettings = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -82,14 +113,14 @@ export const useUserSettings = () => {
       if (settingsError && settingsError.code !== 'PGRST116') {
         console.error('Settings fetch error:', settingsError);
       } else if (settingsData) {
-        if (settingsData.notifications) {
-          setNotifications(settingsData.notifications as NotificationSettings);
+        if (isNotificationSettings(settingsData.notifications)) {
+          setNotifications(settingsData.notifications);
         }
-        if (settingsData.privacy) {
-          setPrivacy(settingsData.privacy as PrivacySettings);
+        if (isPrivacySettings(settingsData.privacy)) {
+          setPrivacy(settingsData.privacy);
         }
-        if (settingsData.app_settings) {
-          setAppSettings(settingsData.app_settings as AppSettings);
+        if (isAppSettings(settingsData.app_settings)) {
+          setAppSettings(settingsData.app_settings);
         }
       }
     } catch (error) {
@@ -108,9 +139,9 @@ export const useUserSettings = () => {
         .from('user_settings')
         .upsert({
           user_id: user?.id!,
-          notifications,
-          privacy,
-          app_settings: appSettings,
+          notifications: notifications as any,
+          privacy: privacy as any,
+          app_settings: appSettings as any,
           updated_at: new Date().toISOString()
         });
 
