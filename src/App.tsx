@@ -16,7 +16,6 @@ import Auth from "./pages/Auth";
 import Marketplace from "./pages/Marketplace";
 import CoinDetails from "./pages/CoinDetails";
 import AdminSetup from "./pages/AdminSetup";
-import ProfileSettings from "./pages/ProfileSettings";
 
 // Validate environment variables on app start
 try {
@@ -59,7 +58,6 @@ const App = () => (
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/coins/:id" element={<CoinDetails />} />
                   <Route path="/admin" element={<AdminSetup />} />
-                  <Route path="/profile" element={<ProfileSettings />} />
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>

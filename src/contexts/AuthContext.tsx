@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -103,6 +104,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return { data, error };
   };
 
+  // Legacy method aliases for backward compatibility
+  const login = async (email: string, password: string) => {
+    const { data, error } = await signIn(email, password);
+    if (error) throw error;
+  };
+
+  const signup = async (email: string, password: string, name: string) => {
+    const data = await signUp(email, password, name);
+    return data;
+  };
+
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -115,15 +127,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return { error };
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    if (!user) throw new Error('No user logged in');
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id);
+    
+    if (error) throw error;
+  };
+
   const value = {
     user,
     session,
     loading,
     isAuthenticated: !!user,
+    login,
+    signup,
     signUp,
     signIn,
     logout,
     resetPassword,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
