@@ -57,34 +57,34 @@ export const safeQuery = async <T>(
 };
 
 /**
- * Enhanced error handler for Supabase operations
+ * Enhanced error handler for Supabase operations - FIXED: Now returns string directly
  */
-export const handleSupabaseError = async (error: any, operation: string) => {
+export const handleSupabaseError = (error: any, operation: string): string | null => {
   if (!error) return null;
 
   const errorMessage = error.message || 'Unknown error';
   
-  // Log specific error types for debugging
+  // Log specific error types for debugging (async operations moved to separate function)
   if (errorMessage.includes('row-level security')) {
     console.error(`RLS violation in ${operation}:`, errorMessage);
-    await logSecurityEvent('rls_violation', { operation, error: errorMessage });
+    logSecurityEvent('rls_violation', { operation, error: errorMessage });
     return 'Access denied by security policy';
   }
   
   if (errorMessage.includes('insufficient privilege')) {
     console.error(`Privilege error in ${operation}:`, errorMessage);
-    await logSecurityEvent('privilege_error', { operation, error: errorMessage });
+    logSecurityEvent('privilege_error', { operation, error: errorMessage });
     return 'Insufficient permissions';
   }
   
   if (errorMessage.includes('violates check constraint')) {
     console.error(`Constraint violation in ${operation}:`, errorMessage);
-    await logSecurityEvent('constraint_violation', { operation, error: errorMessage });
+    logSecurityEvent('constraint_violation', { operation, error: errorMessage });
     return 'Data validation failed';
   }
 
   console.error(`Error in ${operation}:`, errorMessage);
-  await logSecurityEvent('general_error', { operation, error: errorMessage });
+  logSecurityEvent('general_error', { operation, error: errorMessage });
   return errorMessage;
 };
 

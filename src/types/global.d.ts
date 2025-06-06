@@ -7,6 +7,7 @@ declare global {
       showWarnings(): void;
       exportErrorReport(): void;
       clearLogs(): void;
+      testSecurity(): Promise<void>;
     };
     MonitoringUtils: {
       getPerformanceMetrics(): any;

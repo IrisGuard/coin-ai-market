@@ -144,8 +144,18 @@ export const validateOTPSecurity = async () => {
       return false;
     }
     
-    // Check if validation passed
-    const isValid = data?.status === 'secure';
+    // FIXED: Proper type handling for database response
+    let isValid = false;
+    if (data && typeof data === 'object' && 'status' in data) {
+      isValid = (data as any).status === 'secure';
+    } else if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data);
+        isValid = parsed.status === 'secure';
+      } catch {
+        isValid = false;
+      }
+    }
     
     if (!isValid) {
       console.warn('Security validation failed:', data);
