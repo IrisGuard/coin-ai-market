@@ -289,6 +289,44 @@ export type Database = {
           },
         ]
       }
+      coin_analysis_logs: {
+        Row: {
+          accuracy_score: number
+          analysis_time: number
+          analysis_type: string
+          coin_id: string | null
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_score?: number
+          analysis_time?: number
+          analysis_type?: string
+          coin_id?: string | null
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          accuracy_score?: number
+          analysis_time?: number
+          analysis_type?: string
+          coin_id?: string | null
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_analysis_logs_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coin_data_cache: {
         Row: {
           cached_data: Json
