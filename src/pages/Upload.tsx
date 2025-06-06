@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Zap, CheckCircle, Upload as UploadIcon, Sparkles, TrendingUp, Award, DollarSign, Clock, AlertCircle, Loader2 } from 'lucide-react';
@@ -159,6 +158,8 @@ const Upload = () => {
           image: coinData.imageUrl,
           is_auction: isAuction,
           user_id: user?.id,
+          seller_id: user?.id,
+          starting_bid: isAuction ? parseFloat(listingPrice) : null,
           ai_confidence: coinData.confidence || 0.5,
           pcgs_number: coinData.pcgs_number || null,
           ngc_number: coinData.ngc_number || null,
@@ -194,7 +195,7 @@ const Upload = () => {
       const coinData = await saveCoinToDatabase(analysisResult);
       
       toast.success(`Successfully listed ${analysisResult.identification?.name || 'coin'}!`);
-      navigate(`/coin-details/${coinData.id}`);
+      navigate(`/coin/${coinData.id}`);
     } catch (error) {
       console.error('Listing error:', error);
       toast.error('Failed to list coin. Please try again.');

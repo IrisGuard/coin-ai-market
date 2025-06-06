@@ -1,120 +1,116 @@
-
-import React, { useState } from 'react';
-import { Coins, Menu, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAdmin } from '@/contexts/AdminContext';
-import NavbarAuth from './NavbarAuth';
-import AdminPanel from './admin/AdminPanel';
-import AdminKeyboardHandler from './admin/AdminKeyboardHandler';
-import LanguageSwitcher from './LanguageSwitcher';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const { currentTenant } = useTenant();
-  const { user } = useAuth();
-  const { isAdmin } = useAdmin();
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // Clean navigation items for public site
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   const navItems = [
-    { href: '/marketplace', label: 'Marketplace' },
-    { href: '/upload', label: 'Sell Coin' },
+    { label: 'Home', href: '/' },
+    { label: 'Marketplace', href: '/marketplace' },
+    { label: 'Upload Coin', href: '/upload' },
   ];
 
-  const primaryColor = currentTenant?.primary_color || '#007AFF';
-  const secondaryColor = currentTenant?.secondary_color || '#FF9500';
-
   return (
-    <>
-      <nav className="navbar-fixed bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto container-padding">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-3">
-                {currentTenant?.logo_url ? (
-                  <img 
-                    src={currentTenant.logo_url} 
-                    alt={currentTenant.name}
-                    className="h-8 w-8 object-contain"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-electric-blue to-electric-orange flex items-center justify-center" 
-                       style={{ 
-                         backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
-                       }}>
-                    <Coins className="w-6 h-6 text-white" />
-                  </div>
-                )}
-                <span className="text-xl font-bold bg-gradient-to-r from-electric-blue to-electric-orange bg-clip-text text-transparent">
-                  {currentTenant?.name || 'CoinVision AI'}
-                </span>
-              </Link>
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-purple-100' 
+          : 'bg-transparent'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">CV</span>
             </div>
+            <span className="text-xl font-bold gradient-text">CoinVision</span>
+          </motion.div>
 
-            {/* Desktop Navigation - Clean public navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className="text-gray-700 hover:text-electric-blue px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
-              
-              <LanguageSwitcher />
-              <NavbarAuth />
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden flex items-center space-x-2">
-              <LanguageSwitcher />
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-gray-700 hover:text-gray-900 focus:outline-none p-2 rounded-lg hover:bg-gray-100"
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <motion.a
+                key={item.label}
+                href={item.href}
+                className={`font-medium transition-colors duration-300 hover:text-purple-600 ${
+                  isScrolled ? 'text-gray-700' : 'text-gray-700'
+                }`}
+                whileHover={{ y: -2 }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(item.href);
+                }}
               >
-                {isOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
+                {item.label}
+              </motion.a>
+            ))}
           </div>
 
-          {/* Mobile Navigation - Clean mobile menu */}
-          {isOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t shadow-lg">
-              <div className="container-padding py-4 space-y-4">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className="text-gray-700 hover:text-electric-blue block px-3 py-2 rounded-md text-base font-medium transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                
-                <div className="border-t pt-3">
-                  <NavbarAuth />
-                </div>
+          {/* Auth Section */}
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  Logout
+                </Button>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/auth')}
+                  className="text-purple-700 hover:bg-purple-50"
+                >
+                  Login
+                </Button>
+                <Button
+                  onClick={() => navigate('/auth')}
+                  className="coinvision-button"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </nav>
-
-      {/* Hidden admin access - only accessible via keyboard shortcut */}
-      <AdminPanel isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
-      <AdminKeyboardHandler />
-    </>
+      </div>
+    </motion.nav>
   );
 };
 

@@ -394,6 +394,10 @@ export type Database = {
           rarity: string
           reserve_price: number | null
           reverse_image: string | null
+          seller_id: string | null
+          sold: boolean | null
+          sold_at: string | null
+          starting_bid: number | null
           tags: string[] | null
           updated_at: string | null
           user_id: string
@@ -433,6 +437,10 @@ export type Database = {
           rarity: string
           reserve_price?: number | null
           reverse_image?: string | null
+          seller_id?: string | null
+          sold?: boolean | null
+          sold_at?: string | null
+          starting_bid?: number | null
           tags?: string[] | null
           updated_at?: string | null
           user_id: string
@@ -472,6 +480,10 @@ export type Database = {
           rarity?: string
           reserve_price?: number | null
           reverse_image?: string | null
+          seller_id?: string | null
+          sold?: boolean | null
+          sold_at?: string | null
+          starting_bid?: number | null
           tags?: string[] | null
           updated_at?: string | null
           user_id?: string
@@ -1247,9 +1259,11 @@ export type Database = {
           ngc_member_id: string | null
           pcgs_member_id: string | null
           phone_number: string | null
+          rating: number | null
           reputation: number | null
           role: string | null
           updated_at: string | null
+          username: string | null
           verified_dealer: boolean | null
           website: string | null
         }
@@ -1267,9 +1281,11 @@ export type Database = {
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
           phone_number?: string | null
+          rating?: number | null
           reputation?: number | null
           role?: string | null
           updated_at?: string | null
+          username?: string | null
           verified_dealer?: boolean | null
           website?: string | null
         }
@@ -1287,9 +1303,11 @@ export type Database = {
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
           phone_number?: string | null
+          rating?: number | null
           reputation?: number | null
           role?: string | null
           updated_at?: string | null
+          username?: string | null
           verified_dealer?: boolean | null
           website?: string | null
         }

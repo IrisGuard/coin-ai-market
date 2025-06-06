@@ -60,7 +60,7 @@ const App = () => (
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/login" element={<Auth />} />
                   <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/coins/:id" element={<CoinDetails />} />
+                  <Route path="/coin/:id" element={<CoinDetails />} />
                   <Route path="/admin" element={<AdminSetup />} />
                 </Routes>
               </BrowserRouter>
