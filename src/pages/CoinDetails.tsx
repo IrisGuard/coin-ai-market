@@ -48,15 +48,6 @@ const CoinDetails = () => {
             created_at,
             rating,
             name
-          ),
-          bids (
-            *,
-            profiles!bids_bidder_id_fkey (
-              full_name,
-              name,
-              username,
-              avatar_url
-            )
           )
         `)
         .eq('id', id)
@@ -64,6 +55,35 @@ const CoinDetails = () => {
 
       if (error) throw error;
       return data;
+    },
+    enabled: !!id,
+  });
+
+  // Separate query for bids to avoid relation issues
+  const { data: bidsData } = useQuery({
+    queryKey: ['coin-bids', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('bids')
+        .select(`
+          *,
+          profiles!bids_user_id_fkey (
+            full_name,
+            name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('coin_id', id)
+        .order('amount', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bids:', error);
+        return [];
+      }
+      return data || [];
     },
     enabled: !!id,
   });
@@ -210,10 +230,10 @@ const CoinDetails = () => {
     );
   }
 
-  // Handle profile data - it could be an object or null
-  const profile = coin.profiles && !Array.isArray(coin.profiles) ? coin.profiles : null;
+  // Handle profile data - extract first profile from array if it exists
+  const profile = coin.profiles && Array.isArray(coin.profiles) ? coin.profiles[0] : coin.profiles;
   const isOwner = user?.id === coin.user_id;
-  const bids = coin.bids?.filter(bid => bid.profiles) || [];
+  const bids = bidsData?.filter(bid => bid.profiles) || [];
   const highestBid = Math.max(...bids.map(bid => bid.amount), coin.starting_bid || coin.price || 0);
 
   return (
