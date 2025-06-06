@@ -1,18 +1,18 @@
 
-import React from 'react';
-import Navbar from '@/components/Navbar';
-import HeroSection from '@/components/HeroSection';
-import FeatureSection from '@/components/FeatureSection';
-import Footer from '@/components/Footer';
+import { usePageView } from '@/hooks/usePageView';
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import FeatureSection from "@/components/FeatureSection";
+import Footer from "@/components/Footer";
 
 const Index = () => {
+  usePageView();
+
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main>
-        <HeroSection />
-        <FeatureSection />
-      </main>
+      <HeroSection />
+      <FeatureSection />
       <Footer />
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Marketplace from "./pages/Marketplace";
 import CoinDetails from "./pages/CoinDetails";
 import AdminSetup from "./pages/AdminSetup";
+import NotFound from "./pages/NotFound";
 
 // Validate environment variables on app start
 try {
@@ -63,6 +65,8 @@ const App = () => (
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/coin/:id" element={<CoinDetails />} />
                   <Route path="/admin" element={<AdminSetup />} />
+                  {/* Catch-all route for 404 pages */}
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>

@@ -167,6 +167,36 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_url: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_url: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       api_key_categories: {
         Row: {
           created_at: string
@@ -1232,6 +1262,30 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          id: string
+          last_viewed: string
+          page_path: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          id?: string
+          last_viewed?: string
+          page_path: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          id?: string
+          last_viewed?: string
+          page_path?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           amount: number
@@ -1805,6 +1859,10 @@ export type Database = {
       get_tenant_from_domain: {
         Args: { domain_name: string }
         Returns: string
+      }
+      increment_page_view: {
+        Args: { page_path_param: string }
+        Returns: undefined
       }
       is_admin_user: {
         Args: { user_id?: string }
