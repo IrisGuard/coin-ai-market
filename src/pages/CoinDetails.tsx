@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlaceBid } from '@/hooks/useBids';
 import Navbar from '@/components/Navbar';
 import CoinHeader from '@/components/coin-details/CoinHeader';
 import CoinImage from '@/components/coin-details/CoinImage';
@@ -23,6 +24,11 @@ const CoinDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
+  const [bidAmount, setBidAmount] = useState('');
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isBidding, setIsBidding] = useState(false);
+  
+  const placeBid = usePlaceBid();
 
   const { data: coin, isLoading, error } = useQuery({
     queryKey: ['coin', id],
@@ -121,6 +127,58 @@ const CoinDetails = () => {
     }
   };
 
+  const handlePurchase = async () => {
+    if (!user || !coin) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to make a purchase",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPurchasing(true);
+    try {
+      // Add purchase logic here
+      toast({
+        title: "Purchase Initiated",
+        description: "Processing your purchase...",
+      });
+    } catch (error) {
+      toast({
+        title: "Purchase Failed",
+        description: "There was an error processing your purchase",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  const handleBid = async () => {
+    if (!user || !coin || !bidAmount) {
+      toast({
+        title: "Invalid Bid",
+        description: "Please enter a valid bid amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBidding(true);
+    try {
+      await placeBid.mutateAsync({ 
+        coinId: coin.id, 
+        amount: parseFloat(bidAmount) 
+      });
+      setBidAmount('');
+    } catch (error) {
+      console.error('Bid error:', error);
+    } finally {
+      setIsBidding(false);
+    }
+  };
+
   if (!id) {
     return <Navigate to="/marketplace" replace />;
   }
@@ -154,6 +212,9 @@ const CoinDetails = () => {
 
   // Handle profile data - it could be an object or null
   const profile = coin.profiles && !Array.isArray(coin.profiles) ? coin.profiles : null;
+  const isOwner = user?.id === coin.user_id;
+  const bids = coin.bids?.filter(bid => bid.profiles) || [];
+  const highestBid = Math.max(...bids.map(bid => bid.amount), coin.starting_bid || coin.price || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -174,8 +235,24 @@ const CoinDetails = () => {
             {/* Right Column - Details */}
             <div className="space-y-8">
               <CoinHeader coin={coin} />
-              <CoinPriceSection coin={coin} />
-              {profile && <CoinSellerInfo profile={profile} />}
+              <CoinPriceSection 
+                coin={coin}
+                highestBid={highestBid}
+                bidAmount={bidAmount}
+                setBidAmount={setBidAmount}
+                onPurchase={handlePurchase}
+                onBid={handleBid}
+                isOwner={isOwner}
+                isPurchasing={isPurchasing}
+                isBidding={isBidding}
+                bidsCount={bids.length}
+              />
+              {profile && (
+                <CoinSellerInfo 
+                  seller={profile} 
+                  coinCreatedAt={coin.created_at} 
+                />
+              )}
             </div>
           </div>
 
@@ -195,9 +272,7 @@ const CoinDetails = () => {
                 </TabsContent>
                 
                 <TabsContent value="bids" className="mt-6">
-                  <CoinBidHistory 
-                    bids={coin.bids?.filter(bid => bid.profiles) || []} 
-                  />
+                  <CoinBidHistory bids={bids} />
                 </TabsContent>
                 
                 <TabsContent value="authentication" className="mt-6">
@@ -214,7 +289,7 @@ const CoinDetails = () => {
           {/* Related Coins */}
           {relatedCoins && relatedCoins.length > 0 && (
             <div className="mt-12">
-              <RelatedCoins coins={relatedCoins} />
+              <RelatedCoins relatedCoins={relatedCoins} />
             </div>
           )}
         </div>
