@@ -6,8 +6,8 @@ import MarketplaceSorting from './MarketplaceSorting';
 import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 
 interface MarketplaceFilterPanelProps {
-  isAuctionOnly: boolean;
-  setIsAuctionOnly: (value: boolean) => void;
+  showAuctionsOnly: boolean;
+  setShowAuctionsOnly: (value: boolean) => void;
   selectedRarity: string | null;
   setSelectedRarity: (value: string | null) => void;
   sortBy: 'price' | 'year';
@@ -16,8 +16,8 @@ interface MarketplaceFilterPanelProps {
 }
 
 const MarketplaceFilterPanel = ({
-  isAuctionOnly,
-  setIsAuctionOnly,
+  showAuctionsOnly,
+  setShowAuctionsOnly,
   selectedRarity,
   setSelectedRarity,
   sortBy,
@@ -53,8 +53,8 @@ const MarketplaceFilterPanel = ({
         <div className={`${isExpanded ? 'block' : 'hidden'} md:block mt-4`}>
           <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center justify-between gap-4">
             <MarketplaceFilters
-              isAuctionOnly={isAuctionOnly}
-              setIsAuctionOnly={setIsAuctionOnly}
+              showAuctionsOnly={showAuctionsOnly}
+              setShowAuctionsOnly={setShowAuctionsOnly}
               selectedRarity={selectedRarity}
               setSelectedRarity={setSelectedRarity}
             />
