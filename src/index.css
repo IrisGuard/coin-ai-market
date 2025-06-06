@@ -1,79 +1,96 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Unified Brand Variables for CoinVision AI */
-  --brand-primary: #6366F1;
-  --brand-secondary: #8B5CF6;
-  --brand-accent: #EC4899;
-  --brand-light: #F8FAFC;
-  --brand-dark: #1E293B;
-  --brand-medium: #64748B;
+  /* Professional Dark Theme Variables */
+  --brand-primary: #8B5CF6;      /* Professional purple */
+  --brand-secondary: #6366F1;    /* Deeper purple */
+  --brand-accent: #10B981;       /* Success green */
+  --brand-danger: #EF4444;       /* Error red */
+  --brand-warning: #F59E0B;      /* Warning amber */
+  
+  /* Dark Backgrounds */
+  --bg-primary: #0F0F23;         /* Darkest background */
+  --bg-secondary: #1A1B3A;       /* Secondary dark */
+  --bg-tertiary: #252649;        /* Card backgrounds */
+  --bg-surface: #2A2D5A;         /* Elevated surfaces */
+  
+  /* Text Colors */
+  --text-primary: #FFFFFF;       /* Primary white text */
+  --text-secondary: #B8BCC8;     /* Secondary gray text */
+  --text-muted: #6B7280;         /* Muted text */
+  --text-accent: #8B5CF6;        /* Accent purple text */
+  
+  /* Border Colors */
+  --border-primary: #374151;     /* Primary borders */
+  --border-secondary: #4B5563;   /* Secondary borders */
+  --border-accent: #8B5CF6;      /* Accent borders */
   
   /* Theme Variables */
-  --background: 248 250 252;
-  --foreground: 30 41 59;
-  --card: 255 255 255;
-  --card-foreground: 30 41 59;
-  --popover: 255 255 255;
-  --popover-foreground: 30 41 59;
-  --primary: 99 102 241;
-  --primary-foreground: 248 250 252;
-  --secondary: 241 245 249;
-  --secondary-foreground: 30 41 59;
-  --muted: 241 245 249;
-  --muted-foreground: 100 116 139;
-  --accent: 241 245 249;
-  --accent-foreground: 30 41 59;
+  --background: 15 15 35;
+  --foreground: 255 255 255;
+  --card: 37 38 58;
+  --card-foreground: 255 255 255;
+  --popover: 26 27 58;
+  --popover-foreground: 255 255 255;
+  --primary: 139 92 246;
+  --primary-foreground: 255 255 255;
+  --secondary: 37 38 73;
+  --secondary-foreground: 255 255 255;
+  --muted: 55 65 81;
+  --muted-foreground: 184 188 200;
+  --accent: 139 92 246;
+  --accent-foreground: 255 255 255;
   --destructive: 239 68 68;
-  --destructive-foreground: 248 250 252;
-  --border: 226 232 240;
-  --input: 226 232 240;
-  --ring: 99 102 241;
+  --destructive-foreground: 255 255 255;
+  --border: 55 65 81;
+  --input: 55 65 81;
+  --ring: 139 92 246;
   --radius: 0.75rem;
   
   /* Sidebar Variables */
-  --sidebar-background: 255 255 255;
-  --sidebar-foreground: 30 41 59;
-  --sidebar-primary: 99 102 241;
-  --sidebar-primary-foreground: 248 250 252;
-  --sidebar-accent: 241 245 249;
-  --sidebar-accent-foreground: 30 41 59;
-  --sidebar-border: 226 232 240;
-  --sidebar-ring: 99 102 241;
+  --sidebar-background: 26 27 58;
+  --sidebar-foreground: 255 255 255;
+  --sidebar-primary: 139 92 246;
+  --sidebar-primary-foreground: 255 255 255;
+  --sidebar-accent: 37 38 73;
+  --sidebar-accent-foreground: 255 255 255;
+  --sidebar-border: 55 65 81;
+  --sidebar-ring: 139 92 246;
 }
 
 .dark {
-  --background: 15 23 42;
-  --foreground: 248 250 252;
-  --card: 30 41 59;
-  --card-foreground: 248 250 252;
-  --popover: 30 41 59;
-  --popover-foreground: 248 250 252;
-  --primary: 129 140 248;
-  --primary-foreground: 15 23 42;
-  --secondary: 51 65 85;
-  --secondary-foreground: 248 250 252;
-  --muted: 51 65 85;
-  --muted-foreground: 148 163 184;
-  --accent: 51 65 85;
-  --accent-foreground: 248 250 252;
+  --background: 15 15 35;
+  --foreground: 255 255 255;
+  --card: 37 38 58;
+  --card-foreground: 255 255 255;
+  --popover: 26 27 58;
+  --popover-foreground: 255 255 255;
+  --primary: 139 92 246;
+  --primary-foreground: 255 255 255;
+  --secondary: 37 38 73;
+  --secondary-foreground: 255 255 255;
+  --muted: 55 65 81;
+  --muted-foreground: 184 188 200;
+  --accent: 139 92 246;
+  --accent-foreground: 255 255 255;
   --destructive: 239 68 68;
-  --destructive-foreground: 248 250 252;
-  --border: 51 65 85;
-  --input: 51 65 85;
-  --ring: 129 140 248;
+  --destructive-foreground: 255 255 255;
+  --border: 55 65 81;
+  --input: 55 65 81;
+  --ring: 139 92 246;
   
-  --sidebar-background: 30 41 59;
-  --sidebar-foreground: 248 250 252;
-  --sidebar-primary: 129 140 248;
-  --sidebar-primary-foreground: 15 23 42;
-  --sidebar-accent: 51 65 85;
-  --sidebar-accent-foreground: 248 250 252;
-  --sidebar-border: 51 65 85;
-  --sidebar-ring: 129 140 248;
+  --sidebar-background: 26 27 58;
+  --sidebar-foreground: 255 255 255;
+  --sidebar-primary: 139 92 246;
+  --sidebar-primary-foreground: 255 255 255;
+  --sidebar-accent: 37 38 73;
+  --sidebar-accent-foreground: 255 255 255;
+  --sidebar-border: 55 65 81;
+  --sidebar-ring: 139 92 246;
 }
 
 * {
@@ -91,7 +108,9 @@ html {
 }
 
 body {
-  @apply bg-background text-foreground font-sans;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
   min-height: 100vh;
   line-height: 1.6;
@@ -99,103 +118,185 @@ body {
 
 /* Typography System */
 .text-display {
-  @apply text-6xl font-serif font-bold leading-tight tracking-tight;
+  @apply text-6xl font-serif font-bold leading-tight tracking-tight text-white;
 }
 
 .text-hero {
-  @apply text-5xl font-serif font-bold leading-tight;
+  @apply text-5xl font-serif font-bold leading-tight text-white;
 }
 
 .text-section {
-  @apply text-4xl font-sans font-bold leading-tight;
+  @apply text-4xl font-sans font-bold leading-tight text-white;
 }
 
 .text-subsection {
-  @apply text-3xl font-sans font-semibold;
+  @apply text-3xl font-sans font-semibold text-white;
 }
 
 .text-body-large {
   @apply text-xl font-sans leading-relaxed;
+  color: var(--text-secondary);
 }
 
 .text-body {
   @apply text-base font-sans leading-relaxed;
+  color: var(--text-secondary);
 }
 
 .text-body-small {
   @apply text-sm font-sans;
+  color: var(--text-secondary);
 }
 
 .text-caption {
-  @apply text-xs font-sans text-muted-foreground;
+  @apply text-xs font-sans;
+  color: var(--text-muted);
 }
 
 /* Navigation Components */
 .navbar-fixed {
-  @apply fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-200/20 shadow-sm;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
 .nav-link {
-  @apply text-gray-700 hover:text-brand-primary px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-brand-primary/5;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+  background: rgba(139, 92, 246, 0.1);
 }
 
 .gradient-text {
-  @apply bg-clip-text text-transparent;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Brand Components */
+/* Professional Dark Components */
 .brand-gradient {
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary), var(--brand-accent));
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
 }
 
 .brand-gradient-text {
-  @apply bg-clip-text text-transparent;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .coinvision-button {
-  @apply inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: white;
+  transition: all 0.2s ease;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
 }
 
 .coinvision-button:hover {
-  @apply transform -translate-y-1 shadow-xl;
-  background: linear-gradient(135deg, #5856EB, #7C3AED);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
 }
 
 .coinvision-button-outline {
-  @apply inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-semibold border-2 transition-all duration-200;
-  border-color: var(--brand-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  border: 2px solid var(--brand-primary);
   color: var(--brand-primary);
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(139, 92, 246, 0.1);
+  transition: all 0.2s ease;
 }
 
 .coinvision-button-outline:hover {
-  @apply transform -translate-y-1 shadow-lg;
   background: var(--brand-primary);
   color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
 }
 
-/* Card Components */
+/* Dark Card Components */
 .glass-card {
-  @apply bg-white/95 backdrop-blur-xl border border-white/20 shadow-xl rounded-2xl overflow-hidden;
+  background: rgba(37, 38, 73, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border-radius: 1rem;
+  overflow: hidden;
 }
 
 .glass-card-dark {
-  @apply bg-gray-900/90 backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl overflow-hidden;
+  background: rgba(26, 27, 58, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-radius: 1rem;
+  overflow: hidden;
 }
 
 .feature-card {
-  @apply glass-card p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2;
+  background: rgba(37, 38, 73, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: 1rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-color: var(--brand-primary);
 }
 
 .stats-card {
-  @apply glass-card p-6 text-center;
+  background: rgba(37, 38, 73, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .coin-card {
-  @apply glass-card transition-all duration-200 hover:shadow-xl hover:-translate-y-1;
+  background: rgba(37, 38, 73, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.coin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-color: var(--brand-primary);
 }
 
 /* Layout Components */
@@ -211,13 +312,66 @@ body {
   @apply py-20 sm:py-24 lg:py-32;
 }
 
+/* Professional Input Styles */
+.input-modern {
+  background: rgba(37, 38, 73, 0.8);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.input-modern:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.input-modern::placeholder {
+  color: var(--text-muted);
+}
+
+/* Brand Button Styles */
+.brand-button-outline {
+  border: 1px solid var(--border-primary);
+  background: rgba(37, 38, 73, 0.5);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.brand-button-outline:hover {
+  border-color: var(--brand-primary);
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--text-primary);
+}
+
 /* Accessibility Improvements */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2;
+  outline: none;
+}
+
+.focus-ring:focus {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5);
 }
 
 .skip-link {
-  @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  padding: 1rem;
+  background: var(--brand-primary);
+  color: white;
+  border-radius: 0.5rem;
+  transform: translateY(-100px);
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 /* Animation Classes */
@@ -230,12 +384,19 @@ body {
 }
 
 .hover-lift {
-  @apply transition-transform duration-200 hover:-translate-y-1;
+  transition: transform 0.2s ease;
 }
 
-/* Footer */
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Professional Footer */
 .coinvision-footer {
-  @apply bg-gradient-to-r from-brand-dark to-gray-800 text-white py-16;
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+  color: var(--text-primary);
+  padding: 4rem 0;
+  border-top: 1px solid var(--border-primary);
 }
 
 /* Responsive breakpoints optimizations */
@@ -243,7 +404,10 @@ body {
   .text-display { @apply text-4xl; }
   .text-hero { @apply text-3xl; }
   .text-section { @apply text-2xl; }
-  .coinvision-button { @apply px-6 py-3 text-sm; }
+  .coinvision-button { 
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
   .section-spacing { @apply py-12; }
   .hero-spacing { @apply py-16; }
 }
@@ -273,6 +437,31 @@ body {
   }
   
   .glass-card {
-    @apply bg-white border-2 border-gray-300;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-secondary);
   }
+}
+
+/* Section Title Styling */
+.section-title {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+}
+
+/* Mesh Background for Professional Look */
+.mesh-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
 }
