@@ -48,7 +48,7 @@ export const useWatchlistData = (userId?: string) => {
           .from('watchlist')
           .select(`
             *,
-            coins!watchlist_listing_id_fkey(
+            coins (
               id,
               name,
               year,
@@ -61,7 +61,7 @@ export const useWatchlistData = (userId?: string) => {
               auction_end,
               views,
               user_id,
-              profiles!coins_user_id_fkey(
+              profiles (
                 name,
                 reputation,
                 verified_dealer
@@ -75,13 +75,23 @@ export const useWatchlistData = (userId?: string) => {
 
         // Process the data and handle the coin relationship
         const processedWatchlist = (watchlistData || [])
-          .filter(item => item.coins && typeof item.coins === 'object' && !('error' in item.coins) && 'name' in item.coins)
+          .filter(item => 
+            item.coins && 
+            typeof item.coins === 'object' && 
+            !('error' in item.coins) && 
+            'name' in item.coins &&
+            item.coins.profiles &&
+            typeof item.coins.profiles === 'object' &&
+            !('error' in item.coins.profiles) &&
+            'name' in item.coins.profiles
+          )
           .map(item => ({
             ...item,
             coin: {
-              ...item.coins,
+              ...(item.coins as any),
+              profiles: item.coins.profiles as { name: string; reputation: number; verified_dealer: boolean; },
               // Add previous_price calculation if needed
-              previous_price: (item.coins as CoinData)?.price || 0
+              previous_price: (item.coins as any)?.price || 0
             } as CoinData
           })) as WatchlistItem[];
 

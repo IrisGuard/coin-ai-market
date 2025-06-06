@@ -10,7 +10,7 @@ interface AuctionBid {
   bidder_id: string;
   amount: number;
   created_at: string;
-  profiles?: {
+  profiles: {
     name: string;
     avatar_url?: string;
   };
@@ -31,7 +31,7 @@ export const useAuctionBids = (auctionId: string) => {
           .from('auction_bids')
           .select(`
             *,
-            profiles!auction_bids_bidder_id_fkey(name, avatar_url)
+            profiles (name, avatar_url)
           `)
           .eq('auction_id', auctionId)
           .order('amount', { ascending: false });
@@ -40,7 +40,12 @@ export const useAuctionBids = (auctionId: string) => {
         
         // Filter out any bids without valid profile data and ensure proper typing
         const validBids = (data || [])
-          .filter(bid => bid.profiles && typeof bid.profiles === 'object' && !('error' in bid.profiles) && bid.profiles.name)
+          .filter(bid => 
+            bid.profiles && 
+            typeof bid.profiles === 'object' && 
+            !('error' in bid.profiles) && 
+            bid.profiles.name
+          )
           .map(bid => ({
             ...bid,
             profiles: bid.profiles as { name: string; avatar_url?: string }
@@ -79,7 +84,7 @@ export const useAuctionBids = (auctionId: string) => {
             .from('auction_bids')
             .select(`
               *,
-              profiles!auction_bids_bidder_id_fkey(name, avatar_url)
+              profiles (name, avatar_url)
             `)
             .eq('id', payload.new.id)
             .single();

@@ -34,7 +34,7 @@ interface Bid {
   bidder_id: string;
   amount: number;
   created_at: string;
-  profiles?: {
+  profiles: {
     name: string;
   };
 }
@@ -66,7 +66,7 @@ export const useAuctionData = (userId?: string) => {
             user_id,
             description,
             views,
-            profiles!coins_user_id_fkey(
+            profiles (
               name,
               reputation,
               verified_dealer
@@ -129,7 +129,7 @@ export const useAuctionData = (userId?: string) => {
             .from('auction_bids')
             .select(`
               *,
-              profiles!auction_bids_bidder_id_fkey(name)
+              profiles (name)
             `)
             .eq('bidder_id', userId)
             .order('created_at', { ascending: false });
