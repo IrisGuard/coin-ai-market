@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ const Watchlist = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
 
-  // Get user's watchlist items
+  // Get user's watchlist items with proper foreign key hint
   const { data: watchlistItems, isLoading } = useQuery({
     queryKey: ['user-watchlist', user?.id],
     queryFn: async () => {
@@ -33,7 +32,7 @@ const Watchlist = () => {
             ends_at,
             status,
             listing_type,
-            coins(
+            coins!marketplace_listings_coin_id_fkey(
               id,
               name,
               year,
@@ -46,7 +45,7 @@ const Watchlist = () => {
               condition,
               user_id,
               created_at,
-              profiles(
+              profiles!coins_user_id_fkey(
                 id,
                 name,
                 reputation,
@@ -163,7 +162,7 @@ const Watchlist = () => {
             {filteredWatchlist.map((item) => (
               <div key={item.id} className="relative">
                 {item.marketplace_listings?.coins && (
-                  <CoinCard coin={item.marketplace_listings.coins} />
+                  <CoinCard coin={item.marketplace_listings.coins as any} />
                 )}
                 <Button
                   variant="destructive"

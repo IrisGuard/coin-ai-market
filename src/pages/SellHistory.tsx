@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ const SellHistory = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get user's selling history
+  // Get user's selling history with proper foreign key hint
   const { data: salesHistory, isLoading } = useQuery({
     queryKey: ['sales-history', user?.id],
     queryFn: async () => {
@@ -24,7 +23,7 @@ const SellHistory = () => {
         .from('transactions')
         .select(`
           *,
-          coins(
+          coins!transactions_coin_id_fkey(
             id,
             name,
             image,
@@ -176,7 +175,7 @@ const SellHistory = () => {
                       {sale.coins?.image && (
                         <img 
                           src={sale.coins.image} 
-                          alt={sale.coins.name}
+                          alt={sale.coins.name || 'Coin'}
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                       )}

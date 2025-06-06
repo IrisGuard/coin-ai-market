@@ -73,32 +73,50 @@ export type Database = {
         Row: {
           avg_price: number
           coin_identifier: string
+          confidence_level: number | null
           date_range: string
+          grade: string | null
           id: string
           last_updated: string
           max_price: number
           min_price: number
+          price_sources: string[] | null
+          price_trend: string | null
+          sample_size: number | null
           source_count: number
+          trend_percentage: number | null
         }
         Insert: {
           avg_price?: number
           coin_identifier: string
+          confidence_level?: number | null
           date_range?: string
+          grade?: string | null
           id?: string
           last_updated?: string
           max_price?: number
           min_price?: number
+          price_sources?: string[] | null
+          price_trend?: string | null
+          sample_size?: number | null
           source_count?: number
+          trend_percentage?: number | null
         }
         Update: {
           avg_price?: number
           coin_identifier?: string
+          confidence_level?: number | null
           date_range?: string
+          grade?: string | null
           id?: string
           last_updated?: string
           max_price?: number
           min_price?: number
+          price_sources?: string[] | null
+          price_trend?: string | null
+          sample_size?: number | null
           source_count?: number
+          trend_percentage?: number | null
         }
         Relationships: []
       }
@@ -467,27 +485,47 @@ export type Database = {
           coin_identifier: string
           created_at: string
           date_recorded: string
+          external_source_id: string | null
+          grade: string | null
           id: string
           price: number
+          sale_date: string | null
+          sale_type: string | null
           source: string
         }
         Insert: {
           coin_identifier: string
           created_at?: string
           date_recorded?: string
+          external_source_id?: string | null
+          grade?: string | null
           id?: string
           price: number
+          sale_date?: string | null
+          sale_type?: string | null
           source: string
         }
         Update: {
           coin_identifier?: string
           created_at?: string
           date_recorded?: string
+          external_source_id?: string | null
+          grade?: string | null
           id?: string
           price?: number
+          sale_date?: string | null
+          sale_type?: string | null
           source?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coin_price_history_external_source_id_fkey"
+            columns: ["external_source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coins: {
         Row: {

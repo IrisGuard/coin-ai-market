@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,12 +58,12 @@ const Dashboard = () => {
     queryFn: async () => {
       const activities = [];
       
-      // Get recent bids
+      // Get recent bids with proper foreign key hint
       const { data: recentBids } = await supabase
         .from('bids')
         .select(`
           *,
-          coins(name, image)
+          coins!bids_coin_id_fkey(name, image)
         `)
         .eq('user_id', user?.id!)
         .order('created_at', { ascending: false })
@@ -80,12 +79,12 @@ const Dashboard = () => {
         })));
       }
 
-      // Get recent favorites
+      // Get recent favorites with proper foreign key hint
       const { data: recentFavorites } = await supabase
         .from('user_favorites')
         .select(`
           *,
-          coins(name, image)
+          coins!user_favorites_coin_id_fkey(name, image)
         `)
         .eq('user_id', user?.id!)
         .order('created_at', { ascending: false })

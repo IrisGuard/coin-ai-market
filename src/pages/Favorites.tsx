@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ const Favorites = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
 
-  // Get user's favorite coins
+  // Get user's favorite coins with proper foreign key hint
   const { data: favoriteCoins, isLoading } = useQuery({
     queryKey: ['user-favorites', user?.id],
     queryFn: async () => {
@@ -26,7 +25,7 @@ const Favorites = () => {
         .from('user_favorites')
         .select(`
           *,
-          coins(
+          coins!user_favorites_coin_id_fkey(
             id,
             name,
             year,
@@ -39,7 +38,7 @@ const Favorites = () => {
             condition,
             user_id,
             created_at,
-            profiles(
+            profiles!coins_user_id_fkey(
               id,
               name,
               reputation,
@@ -150,7 +149,7 @@ const Favorites = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredFavorites.map((favorite) => (
               <div key={favorite.id} className="relative">
-                {favorite.coins && <CoinCard coin={favorite.coins} />}
+                {favorite.coins && <CoinCard coin={favorite.coins as any} />}
                 <Button
                   variant="destructive"
                   size="sm"
