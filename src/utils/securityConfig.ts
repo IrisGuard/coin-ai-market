@@ -1,4 +1,3 @@
-
 /**
  * Security configuration and monitoring utilities
  * Centralizes security settings and provides monitoring capabilities
@@ -144,10 +143,14 @@ export const validateOTPSecurity = async () => {
       return false;
     }
     
-    // FIXED: Proper type handling for database response
+    // Enhanced type handling for database response
     let isValid = false;
-    if (data && typeof data === 'object' && 'status' in data) {
-      isValid = (data as any).status === 'secure';
+    if (data && typeof data === 'object') {
+      // Handle JSONB response properly
+      const responseData = data as any;
+      if ('status' in responseData) {
+        isValid = responseData.status === 'secure';
+      }
     } else if (typeof data === 'string') {
       try {
         const parsed = JSON.parse(data);
