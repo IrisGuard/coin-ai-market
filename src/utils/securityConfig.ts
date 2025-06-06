@@ -17,7 +17,9 @@ export const SECURITY_CONFIG = {
     SESSION_TIMEOUT_HOURS: 24,
     MAX_LOGIN_ATTEMPTS: 5,
     PASSWORD_MIN_LENGTH: 8,
-    REQUIRE_EMAIL_VERIFICATION: true
+    REQUIRE_EMAIL_VERIFICATION: true,
+    OTP_EXPIRY_SECONDS: 300, // 5 minutes
+    OTP_MAX_ATTEMPTS: 3
   },
   
   // API security settings
@@ -108,6 +110,12 @@ export const validateSecurityConfig = () => {
     issues.push('Content Security Policy not detected');
   }
   
+  // Validate OTP security settings
+  const otpExpiry = SECURITY_CONFIG.AUTH.OTP_EXPIRY_SECONDS;
+  if (otpExpiry > 600) { // More than 10 minutes
+    issues.push('OTP expiry time should be 10 minutes or less for security');
+  }
+  
   // Log any security configuration issues
   if (issues.length > 0) {
     console.warn('Security configuration issues detected:', issues);
@@ -118,4 +126,24 @@ export const validateSecurityConfig = () => {
   }
   
   return issues;
+};
+
+/**
+ * Validate OTP security settings from database
+ */
+export const validateOTPSecurity = async () => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.rpc('validate_otp_security');
+    
+    if (error) {
+      console.error('OTP security validation failed:', error);
+      return false;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Failed to validate OTP security:', error);
+    return false;
+  }
 };

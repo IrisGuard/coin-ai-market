@@ -1,10 +1,11 @@
+
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { ProdErrorHandler } from './utils/prodErrorHandler';
 import { initSentry } from './lib/sentry';
-import { validateSecurityConfig } from './utils/securityConfig';
+import { validateSecurityConfig, validateOTPSecurity } from './utils/securityConfig';
 import { SessionSecurity } from './lib/securityEnhancements';
 
 // Initialize error monitoring
@@ -14,6 +15,13 @@ ProdErrorHandler.initializeGlobalErrorHandling();
 // Initialize security configurations
 validateSecurityConfig();
 SessionSecurity.validateSession();
+
+// Validate OTP security settings
+validateOTPSecurity().then(isValid => {
+  if (!isValid) {
+    console.warn('OTP security settings may need attention');
+  }
+});
 
 // === ENHANCED CONSOLE MONITORING SYSTEM ===
 const ConsoleMonitor = {
@@ -28,17 +36,11 @@ const ConsoleMonitor = {
     timestamp: string;
     url: string;
   }>,
-  logs: [] as Array<{
-    message: string;
-    timestamp: string;
-    url: string;
-  }>,
   
   init() {
-    // Capture all console methods
+    // Capture console errors and warnings
     const originalError = console.error;
     const originalWarn = console.warn;
-    const originalLog = console.log;
     
     console.error = (...args) => {
       this.errors.push({
@@ -60,39 +62,31 @@ const ConsoleMonitor = {
       originalWarn.apply(console, args);
       this.sendToMonitoring('warning', args);
     };
-    
-    console.log = (...args) => {
-      this.logs.push({
-        message: args.join(' '),
-        timestamp: new Date().toISOString(),
-        url: window.location.href
-      });
-      originalLog.apply(console, args);
-    };
   },
   
   sendToMonitoring(level: string, args: any[]) {
-    fetch('/api/console-monitor', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        level,
-        message: args.join(' '),
-        timestamp: new Date().toISOString(),
-        url: window.location.href,
-        userAgent: navigator.userAgent
-      })
-    }).catch(() => {}); // Silent fail
+    // Send to monitoring in production only
+    if (process.env.NODE_ENV === 'production') {
+      fetch('/api/console-monitor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level,
+          message: args.join(' '),
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+          userAgent: navigator.userAgent
+        })
+      }).catch(() => {}); // Silent fail
+    }
   },
   
   getErrors() { return this.errors; },
   getWarnings() { return this.warnings; },
-  getLogs() { return this.logs; },
   
   clearAll() {
     this.errors = [];
     this.warnings = [];
-    this.logs = [];
   }
 };
 
@@ -149,7 +143,7 @@ window.CoinAI = {
 // Initialize console monitoring
 ConsoleMonitor.init();
 
-// === CRITICAL ERROR NOTIFICATION SYSTEM ===
+// === GLOBAL ERROR HANDLERS ===
 const notifyCriticalError = async (error: Error) => {
   if (error.message.includes('database') || 
       error.message.includes('authentication') ||
@@ -169,61 +163,17 @@ const notifyCriticalError = async (error: Error) => {
   }
 };
 
-// Development error widget removed - no visible debug elements
-
-// Add global error handler for production monitoring
+// Global error handlers
 window.addEventListener('error', (event) => {
-  const errorData = {
-    error: event.error?.message,
-    stack: event.error?.stack,
-    url: window.location.href,
-    userAgent: navigator.userAgent,
-    timestamp: new Date().toISOString()
-  };
-  
   if (event.error) {
     notifyCriticalError(event.error);
   }
-  
-  fetch('/api/console-monitor', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      level: 'error',
-      message: errorData.error,
-      stack: errorData.stack,
-      timestamp: errorData.timestamp,
-      url: errorData.url,
-      userAgent: errorData.userAgent
-    })
-  }).catch(console.error);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  const errorData = {
-    error: event.reason?.message || 'Unhandled Promise Rejection',
-    stack: event.reason?.stack,
-    url: window.location.href,
-    userAgent: navigator.userAgent,
-    timestamp: new Date().toISOString()
-  };
-  
   if (event.reason) {
     notifyCriticalError(event.reason);
   }
-  
-  fetch('/api/console-monitor', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      level: 'error',
-      message: errorData.error,
-      stack: errorData.stack,
-      timestamp: errorData.timestamp,
-      url: errorData.url,
-      userAgent: errorData.userAgent
-    })
-  }).catch(console.error);
 });
 
 createRoot(document.getElementById("root")!).render(
