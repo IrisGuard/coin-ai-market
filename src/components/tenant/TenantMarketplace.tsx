@@ -16,7 +16,7 @@ const TenantMarketplace = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-brand-primary mx-auto mb-6"></div>
           <h2 className="text-subsection text-brand-dark mb-4">Loading Marketplace</h2>
-          <p className="text-body text-brand-medium">Preparing your personalized experience...</p>
+          <p className="text-body text-brand-medium">Preparing your coin collection...</p>
         </div>
       </div>
     );
@@ -72,7 +72,7 @@ const TenantMarketplace = () => {
               </div>
               
               <h1 className="text-hero mb-6 tenant-primary">
-                {currentTenant.name} Marketplace
+                {currentTenant.name} Collection
               </h1>
               
               {currentTenant.description && (
@@ -84,21 +84,21 @@ const TenantMarketplace = () => {
               <div className="flex justify-center items-center gap-8 text-body-small text-brand-medium">
                 <div className="flex items-center gap-2">
                   <Globe className="w-5 h-5 text-brand-primary" />
-                  <span>{currentTenant.domain}</span>
+                  <span>Trusted Dealer</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-brand-success" />
-                  <span>Verified Marketplace</span>
+                  <span>Verified Authentic</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-coin-gold" />
-                  <span>Premium Partner</span>
+                  <span>Premium Quality</span>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* Default Header for non-tenant */}
+          {/* Default Header for global marketplace */}
           {!currentTenant && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -113,18 +113,18 @@ const TenantMarketplace = () => {
               </div>
 
               <h1 className="text-hero mb-6 brand-gradient-text">
-                Global Coin Marketplace
+                Premium Coin Collection
               </h1>
               
               <p className="text-body-large text-brand-medium max-w-3xl mx-auto leading-relaxed mb-8">
-                Discover authenticated coins from verified collectors worldwide. Every coin is AI-verified 
-                and professionally graded for your confidence.
+                Discover authenticated coins from verified collectors worldwide. Every coin is professionally 
+                graded and authenticated for your confidence.
               </p>
 
               <div className="flex justify-center items-center gap-8 text-body-small text-brand-medium">
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-brand-success" />
-                  <span>AI-Verified Authenticity</span>
+                  <span>Authenticated Quality</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="w-5 h-5 text-brand-primary" />
@@ -132,7 +132,7 @@ const TenantMarketplace = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-coin-gold" />
-                  <span>Premium Quality</span>
+                  <span>Premium Collection</span>
                 </div>
               </div>
             </motion.div>
@@ -151,17 +151,17 @@ const TenantMarketplace = () => {
                 <div className="glass-card p-12 rounded-3xl max-w-2xl mx-auto">
                   <Building2 className="w-16 h-16 text-brand-primary mx-auto mb-6" />
                   <h3 className="text-subsection text-brand-dark mb-4">
-                    {currentTenant ? `${currentTenant.name} Collection` : 'Marketplace'}
+                    {currentTenant ? `${currentTenant.name} Collection` : 'Featured Collection'}
                   </h3>
                   <p className="text-body text-brand-medium mb-6">
                     {currentTenant 
-                      ? `${currentTenant.name} is setting up their exclusive collection. Check back soon for amazing coins!`
-                      : 'New coins are being added to our marketplace. Check back soon for exciting finds!'
+                      ? `${currentTenant.name} is curating their exclusive collection. Check back soon for premium coins!`
+                      : 'New premium coins are being added to our collection. Check back soon for exceptional finds!'
                     }
                   </p>
                   <div className="flex items-center justify-center gap-2 text-body-small text-brand-medium">
                     <Star className="w-4 h-4 text-coin-gold" />
-                    <span>Premium collections coming soon</span>
+                    <span>Premium coins coming soon</span>
                   </div>
                 </div>
               </div>

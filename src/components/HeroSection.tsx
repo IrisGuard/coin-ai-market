@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   const features = [
-    'Instant AI recognition in under 2 seconds',
-    'Professional-grade authentication & grading',
-    'Real-time market value estimation',
-    'Global marketplace with 50K+ collectors'
+    'Instant AI coin identification in seconds',
+    'Professional authentication & grading',
+    'Real-time market value estimates',
+    'Connect with verified collectors worldwide'
   ];
 
   return (
@@ -50,7 +50,7 @@ const HeroSection = () => {
               className="inline-flex items-center px-6 py-3 glass-card-dark rounded-full border border-white/30"
             >
               <Sparkles className="w-5 h-5 mr-3 text-coin-gold animate-pulse" />
-              <span className="text-sm font-semibold">Powered by Advanced AI Technology</span>
+              <span className="text-sm font-semibold">AI-Powered Coin Recognition</span>
               <Zap className="w-4 h-4 ml-3 text-electric-cyan animate-pulse" />
             </motion.div>
 
@@ -60,11 +60,10 @@ const HeroSection = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-display leading-tight"
             >
-              Discover the{' '}
+              Discover Your{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-coin-gold via-white to-coin-gold">
-                True Value
-              </span>{' '}
-              of Your Coins
+                Coin's True Value
+              </span>
             </motion.h1>
             
             <motion.p 
@@ -73,8 +72,8 @@ const HeroSection = () => {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="text-body-large opacity-95 leading-relaxed max-w-2xl"
             >
-              Upload a photo and let CoinVision AI instantly identify your coin, assess its grade, 
-              estimate market value, and connect you with collectors worldwide through our premium marketplace.
+              Upload a photo and let our advanced AI instantly identify your coin, assess its condition, 
+              estimate market value, and connect you with collectors worldwide through our trusted marketplace.
             </motion.p>
 
             {/* Features List */}
@@ -101,19 +100,19 @@ const HeroSection = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/upload" className="coinvision-button group focus-ring" aria-label="Start coin recognition">
                   <Upload className="mr-3 h-6 w-6 group-hover:animate-bounce" />
-                  Start Recognition
+                  Get Started
                   <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform" />
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/marketplace" className="coinvision-button-outline group focus-ring" aria-label="Explore coin marketplace">
                   <Search className="mr-3 h-6 w-6" />
-                  Explore Marketplace
+                  Browse Marketplace
                 </Link>
               </motion.div>
             </motion.div>
 
-            {/* Enhanced Stats */}
+            {/* Trust Indicators */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -175,13 +174,13 @@ const HeroSection = () => {
               </h3>
               
               <p className="text-center text-white/90 mb-10 text-body leading-relaxed">
-                Our cutting-edge AI analyzes every detail of your coin with professional-grade precision and accuracy.
+                Our cutting-edge AI analyzes every detail of your coin with professional-grade precision.
               </p>
               
               <div className="space-y-5">
                 {[
-                  { text: "Real-time image analysis", delay: 0 },
-                  { text: "Instant market valuation", delay: 0.5 },
+                  { text: "Instant identification", delay: 0 },
+                  { text: "Market value estimation", delay: 0.5 },
                   { text: "Global marketplace access", delay: 1 }
                 ].map((item, index) => (
                   <motion.div 
@@ -202,7 +201,7 @@ const HeroSection = () => {
               </div>
             </div>
 
-            {/* Enhanced Floating elements */}
+            {/* Floating elements */}
             <motion.div 
               animate={{ y: [-20, 20, -20], rotate: [0, 180, 360] }}
               transition={{ duration: 8, repeat: Infinity }}

@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
-import { Coins, Menu, X, Settings, Shield } from 'lucide-react';
+import { Coins, Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -20,19 +19,11 @@ const Navbar = () => {
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
-  const openAdminPanel = () => {
-    setShowAdminPanel(true);
-  };
-
+  // Clean navigation items for public site
   const navItems = [
     { href: '/marketplace', label: 'Marketplace' },
     { href: '/upload', label: 'Sell Coin' },
   ];
-
-  const handleAdminSetupClick = () => {
-    navigate('/admin-setup');
-    setIsOpen(false);
-  };
 
   const primaryColor = currentTenant?.primary_color || '#6366f1';
   const secondaryColor = currentTenant?.secondary_color || '#8b5cf6';
@@ -59,12 +50,12 @@ const Navbar = () => {
                   </div>
                 )}
                 <span className="text-xl font-bold gradient-text">
-                  {currentTenant?.name || 'CoinVision'}
+                  {currentTenant?.name || 'CoinVision AI'}
                 </span>
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - Clean public navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item) => (
                 <Link
@@ -77,34 +68,6 @@ const Navbar = () => {
               ))}
               
               <LanguageSwitcher />
-              
-              {isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openAdminPanel}
-                  className="flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  Admin
-                  <Badge variant="secondary" className="ml-1">
-                    Pro
-                  </Badge>
-                </Button>
-              )}
-
-              {!isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAdminSetupClick}
-                  className="admin-link flex items-center gap-2"
-                >
-                  <Shield className="h-4 w-4" />
-                  Admin Setup
-                </Button>
-              )}
-
               <NavbarAuth />
             </div>
 
@@ -124,7 +87,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Clean mobile menu */}
           {isOpen && (
             <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t shadow-lg">
               <div className="container-padding py-4 space-y-4">
@@ -132,40 +95,12 @@ const Navbar = () => {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="nav-link"
+                    className="nav-link block"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}
                   </Link>
                 ))}
-                
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      openAdminPanel();
-                      setIsOpen(false);
-                    }}
-                    className="nav-link w-full text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      Admin Panel
-                      <Badge variant="secondary">Pro</Badge>
-                    </div>
-                  </button>
-                )}
-
-                {!isAdmin && (
-                  <button
-                    onClick={handleAdminSetupClick}
-                    className="admin-link nav-link w-full text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Admin Setup
-                    </div>
-                  </button>
-                )}
                 
                 <div className="border-t pt-3">
                   <NavbarAuth />
@@ -176,6 +111,7 @@ const Navbar = () => {
         </div>
       </nav>
 
+      {/* Hidden admin access - only accessible via keyboard shortcut */}
       <AdminPanel isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
       <AdminKeyboardHandler />
     </>
