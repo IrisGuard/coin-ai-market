@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -16,11 +15,12 @@ const LoginForm = ({ isLogin, setIsLogin }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || (!isLogin && !name)) {
+    if (!email || !password || (!isLogin && (!name || !username))) {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
@@ -33,7 +33,10 @@ const LoginForm = ({ isLogin, setIsLogin }: LoginFormProps) => {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password, name);
+        await signup(email, password, {
+          fullName: name,
+          username: username
+        });
       }
     } catch (error) {
       // Error is already handled in the auth context
@@ -44,24 +47,45 @@ const LoginForm = ({ isLogin, setIsLogin }: LoginFormProps) => {
   return (
     <form onSubmit={handleSubmit}>
       {!isLogin && (
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Full Name
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <User size={16} className="text-gray-400" />
+        <>
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Full Name
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User size={16} className="text-gray-400" />
+              </div>
+              <input
+                id="name"
+                type="text"
+                className="coin-input pl-10 w-full"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
-            <input
-              id="name"
-              type="text"
-              className="coin-input pl-10 w-full"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
           </div>
-        </div>
+          
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              Username
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User size={16} className="text-gray-400" />
+              </div>
+              <input
+                id="username"
+                type="text"
+                className="coin-input pl-10 w-full"
+                placeholder="johndoe"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+          </div>
+        </>
       )}
       
       <div className="mb-4">
