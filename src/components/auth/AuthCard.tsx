@@ -1,30 +1,60 @@
 
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import LoginForm from './LoginForm';
 import SocialLogin from './SocialLogin';
+import { motion } from 'framer-motion';
 
 const AuthCard = () => {
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
 
+  // Check URL params for mode
+  const urlParams = new URLSearchParams(location.search);
+  const mode = urlParams.get('mode');
+  
+  // Set initial state based on URL
+  useState(() => {
+    if (mode === 'signup') {
+      setIsLogin(false);
+    }
+  });
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-6">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/50"
+    >
+      <div className="p-6 sm:p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-serif font-bold text-coin-blue">
-            {isLogin ? 'Login to Your Account' : 'Create an Account'}
-          </h1>
-          <p className="mt-2 text-gray-600">
+          <motion.h1 
+            key={isLogin ? 'login' : 'signup'}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mb-2"
+          >
+            {isLogin ? 'Welcome Back' : 'Join CoinVision'}
+          </motion.h1>
+          <motion.p 
+            key={isLogin ? 'login-desc' : 'signup-desc'}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-gray-600"
+          >
             {isLogin 
-              ? 'Sign in to access your collection and bids'
-              : 'Join the global community of coin collectors'
+              ? 'Sign in to access your collection and continue your coin journey'
+              : 'Create your account and start discovering the world of numismatics'
             }
-          </p>
+          </motion.p>
         </div>
         
         <LoginForm isLogin={isLogin} setIsLogin={setIsLogin} />
         <SocialLogin />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
