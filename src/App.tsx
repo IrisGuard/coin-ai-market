@@ -5,59 +5,69 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { AdminProvider } from "@/contexts/AdminContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { AdminProvider } from "@/contexts/AdminContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { validateEnvironment } from "@/utils/envCheck";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import CoinDetails from "./pages/CoinDetails";
 import Upload from "./pages/Upload";
-import MobileUpload from "./pages/MobileUpload";
 import CoinUpload from "./pages/CoinUpload";
+import Auth from "./pages/Auth";
 import Marketplace from "./pages/Marketplace";
-import NotFound from "./pages/NotFound";
+import CoinDetails from "./pages/CoinDetails";
 import AdminSetup from "./pages/AdminSetup";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { logAdminSetupInstructions } from "@/utils/adminUtils";
+import ProfileSettings from "./pages/ProfileSettings";
 
-const queryClient = new QueryClient();
-
-// Log admin setup instructions in development
-if (process.env.NODE_ENV === 'development') {
-  logAdminSetupInstructions();
+// Validate environment variables on app start
+try {
+  validateEnvironment();
+} catch (error) {
+  console.error('Environment validation failed:', error);
 }
 
-function App() {
-  return (
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error) => {
+        // Don't retry on 404s
+        if (error instanceof Error && error.message.includes('404')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+});
+
+const App = () => (
+  <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <TooltipProvider>
-          <ErrorBoundary>
-            <AuthProvider>
-              <AdminProvider>
-                <TenantProvider>
-                  <div className="min-h-screen bg-white">
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/admin-setup" element={<AdminSetup />} />
-                      <Route path="/coins/:id" element={<CoinDetails />} />
-                      <Route path="/upload" element={<Upload />} />
-                      <Route path="/mobile-upload" element={<MobileUpload />} />
-                      <Route path="/coin-upload" element={<CoinUpload />} />
-                      <Route path="/marketplace" element={<Marketplace />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                  <Toaster />
-                  <Sonner />
-                </TenantProvider>
-              </AdminProvider>
-            </AuthProvider>
-          </ErrorBoundary>
-        </TooltipProvider>
-      </BrowserRouter>
+      <TenantProvider>
+        <AuthProvider>
+          <AdminProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/upload" element={<Upload />} />
+                  <Route path="/upload-coin" element={<CoinUpload />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/login" element={<Auth />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/coins/:id" element={<CoinDetails />} />
+                  <Route path="/admin" element={<AdminSetup />} />
+                  <Route path="/profile" element={<ProfileSettings />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AdminProvider>
+        </AuthProvider>
+      </TenantProvider>
     </QueryClientProvider>
-  );
-}
+  </ErrorBoundary>
+);
 
 export default App;

@@ -25,9 +25,9 @@ const CoinCard = ({
   const getRarityColor = () => {
     switch(rarity) {
       case 'Ultra Rare': return 'bg-red-500';
-      case 'Rare': return 'bg-coin-purple';
-      case 'Uncommon': return 'bg-blue-500';
-      case 'Common': return 'bg-green-500';
+      case 'Rare': return 'bg-brand-primary';
+      case 'Uncommon': return 'bg-electric-blue';
+      case 'Common': return 'bg-electric-emerald';
       default: return 'bg-gray-500';
     }
   };
@@ -53,9 +53,9 @@ const CoinCard = ({
       whileHover={{ y: -5 }}
     >
       <Link to={`/coins/${id}`} className="block h-full">
-        <div className="relative h-full glassmorphism overflow-hidden flex flex-col transition-all duration-300 group-hover:shadow-xl">
+        <div className="relative h-full glass-card overflow-hidden flex flex-col transition-all duration-300 group-hover:shadow-xl">
           {featured && (
-            <div className="absolute -right-12 top-5 bg-gradient-to-r from-coin-orange to-coin-gold px-10 py-1 rotate-45 z-10">
+            <div className="absolute -right-12 top-5 bg-gradient-to-r from-electric-orange to-coin-gold px-10 py-1 rotate-45 z-10">
               <span className="text-white text-xs font-bold">Προτεινόμενο</span>
             </div>
           )}
@@ -72,7 +72,7 @@ const CoinCard = ({
             <div className="absolute top-3 left-3 flex flex-col gap-2">
               <Badge variant="outline" className={`${getRarityColor()} text-white border-0 font-semibold`}>{rarity}</Badge>
               {isAuction && (
-                <Badge variant="outline" className="bg-coin-orange text-white border-0 font-semibold">Δημοπρασία</Badge>
+                <Badge variant="outline" className="bg-electric-orange text-white border-0 font-semibold">Δημοπρασία</Badge>
               )}
             </div>
             
@@ -96,7 +96,7 @@ const CoinCard = ({
           <div className="p-4 flex-grow flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-start">
-                <h3 className="font-semibold text-gray-800 group-hover:text-coin-purple transition-colors text-lg truncate">
+                <h3 className="font-semibold text-gray-800 group-hover:text-brand-primary transition-colors text-lg truncate">
                   {name}
                 </h3>
                 <span className="text-xs text-gray-500 whitespace-nowrap ml-2">{year}</span>
@@ -112,14 +112,14 @@ const CoinCard = ({
                   {isAuction ? (
                     <div className="text-gray-800">
                       <span className="text-xs text-gray-500">Τρέχουσα προσφορά</span>
-                      <p className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-coin-purple to-coin-skyblue">
+                      <p className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-electric-blue">
                         {formatPrice(price)}
                       </p>
                     </div>
                   ) : (
                     <div className="text-gray-800">
                       <span className="text-xs text-gray-500">Τιμή</span>
-                      <p className="font-bold text-lg text-coin-purple">{formatPrice(price)}</p>
+                      <p className="font-bold text-lg text-brand-primary">{formatPrice(price)}</p>
                     </div>
                   )}
                 </div>
@@ -144,7 +144,7 @@ const CoinCard = ({
               </div>
               
               <motion.div 
-                className="mt-3 text-coin-purple font-medium text-sm flex items-center justify-center py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                className="mt-3 text-brand-primary font-medium text-sm flex items-center justify-center py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
                 initial={{ y: 10 }}
                 animate={isHovered ? { y: 0 } : { y: 10 }}
               >

@@ -59,40 +59,27 @@ export const useCoins = () => {
                 id,
                 amount,
                 user_id,
-                created_at
+                created_at,
+                profiles!bids_user_id_fkey(name)
               `)
               .eq('coin_id', coin.id)
               .order('amount', { ascending: false });
 
-            // Get profile names for bids
-            const bidsWithProfiles = await Promise.all(
-              (bids || []).map(async (bid) => {
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('name')
-                  .eq('id', bid.user_id)
-                  .single();
-
-                return {
-                  ...bid,
-                  profiles: profile || { name: 'Anonymous' }
-                };
-              })
-            );
-
-            return {
+            return transformSupabaseCoinData({
               ...coin,
-              bids: bidsWithProfiles
-            };
+              bids: bids || []
+            });
           })
         );
-        
-        return coinsWithBids.map(transformSupabaseCoinData);
+
+        return coinsWithBids;
       } catch (error) {
-        console.error('Connection error:', error);
+        console.error('Error in useCoins:', error);
         return [];
       }
     },
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
@@ -101,7 +88,7 @@ export const useCoin = (id: string) => {
     queryKey: ['coin', id],
     queryFn: async () => {
       try {
-        const { data: coin, error: coinError } = await supabase
+        const { data: coin, error } = await supabase
           .from('coins')
           .select(`
             *,
@@ -116,52 +103,37 @@ export const useCoin = (id: string) => {
           .eq('id', id)
           .single();
 
-        if (coinError) {
-          console.error('Error fetching coin:', coinError);
-          return null;
+        if (error) {
+          console.error('Error fetching coin:', error);
+          throw error;
         }
 
         if (!coin) return null;
 
-        // Fetch bids for this coin
+        // Fetch bids separately
         const { data: bids } = await supabase
           .from('bids')
           .select(`
             id,
             amount,
             user_id,
-            created_at
+            created_at,
+            profiles!bids_user_id_fkey(name, avatar_url)
           `)
-          .eq('coin_id', coin.id)
+          .eq('coin_id', id)
           .order('amount', { ascending: false });
 
-        // Get profile names for bids
-        const bidsWithProfiles = await Promise.all(
-          (bids || []).map(async (bid) => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('name')
-              .eq('id', bid.user_id)
-              .single();
-
-            return {
-              ...bid,
-              profiles: profile || { name: 'Anonymous' }
-            };
-          })
-        );
-
-        const coinWithBids = {
+        return transformSupabaseCoinData({
           ...coin,
-          bids: bidsWithProfiles
-        };
-        
-        return transformSupabaseCoinData(coinWithBids);
+          bids: bids || []
+        });
       } catch (error) {
-        console.error('Connection error:', error);
-        return null;
+        console.error('Error in useCoin:', error);
+        throw error;
       }
     },
     enabled: !!id,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 };

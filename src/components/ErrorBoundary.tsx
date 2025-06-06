@@ -1,9 +1,7 @@
-import React from 'react';
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { logError } from '@/utils/errorHandler';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   children: ReactNode;
@@ -13,91 +11,86 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
-  errorInfo?: ErrorInfo;
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): State {
-    return {
-      hasError: true,
-      error,
-    };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({
-      error,
-      errorInfo,
-    });
-
-    console.error('Error caught by boundary:', error, errorInfo);
-    
-    // Log error to our system
-    logError(error, 'React Error Boundary');
-  }
-
-  handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  public state: State = {
+    hasError: false
   };
 
-  render() {
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Log error to Supabase
+    this.logError(error, errorInfo);
+  }
+
+  private logError = async (error: Error, errorInfo: ErrorInfo) => {
+    try {
+      // This would typically send to your error logging service
+      console.log('Error logged:', {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString()
+      });
+    } catch (loggingError) {
+      console.error('Failed to log error:', loggingError);
+    }
+  };
+
+  private handleReset = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+
+  public render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
       return (
-        <Card className="max-w-2xl mx-auto mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Something went wrong
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-600">
-              An unexpected error occurred. The error has been logged and our team has been notified.
+            </h2>
+            <p className="text-gray-600 mb-6">
+              We apologize for the inconvenience. An unexpected error occurred.
             </p>
-            
-            {this.state.error && (
-              <div className="bg-gray-50 p-4 rounded-md">
-                <p className="text-sm font-mono text-red-600">
-                  {this.state.error.message}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button onClick={this.handleRetry} className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
+            <div className="space-y-3">
+              <Button 
+                onClick={this.handleReset}
+                className="w-full bg-brand-primary hover:bg-brand-primary/90"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/'}
+                className="w-full"
               >
-                Reload Page
+                Go Home
               </Button>
             </div>
-
-            {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm text-gray-600">
-                  Development Error Details
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <details className="mt-4 text-left">
+                <summary className="text-sm text-gray-500 cursor-pointer">
+                  Error Details (Development)
                 </summary>
-                <pre className="text-xs bg-gray-100 p-4 mt-2 overflow-auto rounded">
-                  {this.state.error && this.state.error.stack}
-                  {this.state.errorInfo.componentStack}
+                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
+                  {this.state.error.stack}
                 </pre>
               </details>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       );
     }
 
