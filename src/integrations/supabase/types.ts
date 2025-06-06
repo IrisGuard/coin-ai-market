@@ -1480,19 +1480,23 @@ export type Database = {
           address: Json | null
           avatar_url: string | null
           bio: string | null
+          birth_date: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          instagram: string | null
           kyc_verified: boolean | null
           location: string | null
           name: string | null
           ngc_member_id: string | null
           pcgs_member_id: string | null
+          phone: string | null
           phone_number: string | null
           rating: number | null
           reputation: number | null
           role: string | null
+          twitter: string | null
           updated_at: string | null
           username: string | null
           verified_dealer: boolean | null
@@ -1502,19 +1506,23 @@ export type Database = {
           address?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          instagram?: string | null
           kyc_verified?: boolean | null
           location?: string | null
           name?: string | null
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
+          phone?: string | null
           phone_number?: string | null
           rating?: number | null
           reputation?: number | null
           role?: string | null
+          twitter?: string | null
           updated_at?: string | null
           username?: string | null
           verified_dealer?: boolean | null
@@ -1524,19 +1532,23 @@ export type Database = {
           address?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          instagram?: string | null
           kyc_verified?: boolean | null
           location?: string | null
           name?: string | null
           ngc_member_id?: string | null
           pcgs_member_id?: string | null
+          phone?: string | null
           phone_number?: string | null
           rating?: number | null
           reputation?: number | null
           role?: string | null
+          twitter?: string | null
           updated_at?: string | null
           username?: string | null
           verified_dealer?: boolean | null
@@ -2037,6 +2049,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_settings: {
+        Row: {
+          app_settings: Json | null
+          created_at: string | null
+          id: string
+          notifications: Json | null
+          privacy: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          app_settings?: Json | null
+          created_at?: string | null
+          id?: string
+          notifications?: Json | null
+          privacy?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          app_settings?: Json | null
+          created_at?: string | null
+          id?: string
+          notifications?: Json | null
+          privacy?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       vpn_proxies: {
         Row: {
