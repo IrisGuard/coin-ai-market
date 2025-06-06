@@ -62,7 +62,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// RAL 7016 Dark Gray Brand Colors
+				// White Theme Brand Colors
 				brand: {
 					primary: '#007AFF',     /* Blue */
 					secondary: '#5856D6',   /* Purple-blue */
@@ -71,29 +71,32 @@ export default {
 					warning: '#FF9500',     /* Orange */
 					danger: '#FF3B30',      /* Red */
 					info: '#007AFF',        /* Blue */
-					dark: '#1C1C1C',        /* RAL 7016 */
-					light: '#FFFFFF',       /* White text */
-					medium: '#E5E5E5',      /* Secondary text */
-					muted: '#A3A3A3',       /* Muted text */
+					light: '#1C1C1C',       /* Dark text */
+					medium: '#4A4A4A',      /* Medium text */
+					muted: '#6B7280',       /* Muted text */
+					yellow: '#FFCC00',      /* Yellow */
 				},
-				// Background Colors - RAL 7016 Theme
+				// Light Background Colors
 				bg: {
-					primary: '#1C1C1C',     /* RAL 7016 */
-					secondary: '#262626',   /* Slightly lighter */
-					tertiary: '#303030',    /* Card backgrounds */
-					surface: '#3A3A3A',     /* Elevated surfaces */
+					primary: '#FFFFFF',     /* Pure white */
+					secondary: '#F8F9FA',   /* Very light gray */
+					tertiary: '#F1F3F4',    /* Light gray */
+					surface: '#FFFFFF',     /* White surfaces */
 				},
-				// Text Colors
+				// Colorful Text Colors
 				text: {
-					primary: '#FFFFFF',     /* Primary white text */
-					secondary: '#E5E5E5',   /* Secondary gray text */
-					muted: '#A3A3A3',       /* Muted text */
-					accent: '#007AFF',      /* Blue accent text */
+					primary: '#1C1C1C',     /* Dark gray text */
+					secondary: '#4A4A4A',   /* Medium gray text */
+					muted: '#6B7280',       /* Light gray text */
+					blue: '#007AFF',        /* Blue accent text */
+					yellow: '#FFCC00',      /* Yellow accent text */
+					orange: '#FF9500',      /* Orange accent text */
+					green: '#34C759',       /* Green accent text */
 				},
-				// Border Colors
+				// Light Border Colors
 				'border-custom': {
-					primary: '#404040',     /* Primary borders */
-					secondary: '#4A4A4A',   /* Secondary borders */
+					primary: '#E5E7EB',     /* Light borders */
+					secondary: '#D1D5DB',   /* Medium borders */
 					accent: '#007AFF',      /* Blue borders */
 				},
 				// Coin-specific colors
@@ -104,7 +107,7 @@ export default {
 					platinum: '#E5E4E2',    /* Platinum */
 					copper: '#B87333',      /* Copper */
 				},
-				// Vibrant accent colors
+				// Vibrant accent colors for colorful text
 				electric: {
 					blue: '#007AFF',        /* Blue */
 					purple: '#5856D6',      /* Purple */
@@ -116,6 +119,7 @@ export default {
 					indigo: '#5856D6',      /* Indigo */
 					teal: '#5AC8FA',        /* Teal */
 					lime: '#34C759',        /* Lime */
+					yellow: '#FFCC00',      /* Yellow */
 				},
 				// Status colors
 				status: {
@@ -152,8 +156,8 @@ export default {
 					'100%': { transform: 'translateX(0)' }
 				},
 				'glow': {
-					'0%, 100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)' },
-					'50%': { boxShadow: '0 0 40px rgba(139, 92, 246, 0.6)' }
+					'0%, 100%': { boxShadow: '0 0 20px rgba(0, 122, 255, 0.3)' },
+					'50%': { boxShadow: '0 0 40px rgba(0, 122, 255, 0.6)' }
 				},
 				'pulse-slow': {
 					'0%, 100%': { opacity: '1' },

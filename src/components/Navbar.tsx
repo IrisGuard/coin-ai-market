@@ -25,12 +25,12 @@ const Navbar = () => {
     { href: '/upload', label: 'Sell Coin' },
   ];
 
-  const primaryColor = currentTenant?.primary_color || '#6366f1';
-  const secondaryColor = currentTenant?.secondary_color || '#8b5cf6';
+  const primaryColor = currentTenant?.primary_color || '#007AFF';
+  const secondaryColor = currentTenant?.secondary_color || '#FF9500';
 
   return (
     <>
-      <nav className="navbar-fixed">
+      <nav className="navbar-fixed bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto container-padding">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -42,14 +42,14 @@ const Navbar = () => {
                     className="h-8 w-8 object-contain"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center" 
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-electric-blue to-electric-orange flex items-center justify-center" 
                        style={{ 
                          backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
                        }}>
                     <Coins className="w-6 h-6 text-white" />
                   </div>
                 )}
-                <span className="text-xl font-bold gradient-text">
+                <span className="text-xl font-bold bg-gradient-to-r from-electric-blue to-electric-orange bg-clip-text text-transparent">
                   {currentTenant?.name || 'CoinVision AI'}
                 </span>
               </Link>
@@ -61,7 +61,7 @@ const Navbar = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className="nav-link"
+                  className="text-gray-700 hover:text-electric-blue px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -95,7 +95,7 @@ const Navbar = () => {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="nav-link block"
+                    className="text-gray-700 hover:text-electric-blue block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}
