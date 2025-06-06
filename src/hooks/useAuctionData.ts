@@ -25,7 +25,7 @@ interface AuctionCoin {
     name: string;
     reputation: number;
     verified_dealer: boolean;
-  };
+  } | null;
 }
 
 interface Bid {
@@ -36,7 +36,7 @@ interface Bid {
   created_at: string;
   profiles?: {
     name: string;
-  };
+  } | null;
 }
 
 export const useAuctionData = (userId?: string) => {
@@ -79,7 +79,7 @@ export const useAuctionData = (userId?: string) => {
         if (auctionsError) throw auctionsError;
 
         // Filter out auctions without valid profile data
-        const validAuctions = (auctionsData || []).filter(auction => 
+        const validAuctions = (auctionsData || []).filter((auction: any) => 
           auction.profiles && 
           typeof auction.profiles === 'object' && 
           !Array.isArray(auction.profiles) &&
@@ -88,7 +88,7 @@ export const useAuctionData = (userId?: string) => {
 
         // Fetch bid counts and current bids for each auction
         const auctionsWithBids = await Promise.all(
-          validAuctions.map(async (auction) => {
+          validAuctions.map(async (auction: any) => {
             const { data: bids } = await supabase
               .from('auction_bids')
               .select('amount, bidder_id')
@@ -116,7 +116,11 @@ export const useAuctionData = (userId?: string) => {
               highest_bidder_id: highestBidderId,
               seller_id: auction.user_id,
               watchers: watcherCount || 0,
-              profiles: auction.profiles as { name: string; reputation: number; verified_dealer: boolean; }
+              profiles: {
+                name: auction.profiles.name,
+                reputation: auction.profiles.reputation,
+                verified_dealer: auction.profiles.verified_dealer
+              }
             };
           })
         );
@@ -139,16 +143,18 @@ export const useAuctionData = (userId?: string) => {
             setMyBids([]);
           } else {
             // Filter out any invalid bids and ensure proper typing
-            const validBids = (userBids || []).filter(bid => 
+            const validBids: Bid[] = (userBids || []).filter((bid: any) => 
               bid && 
               bid.profiles && 
               typeof bid.profiles === 'object' && 
               !Array.isArray(bid.profiles) &&
               'name' in bid.profiles
-            ).map(bid => ({
+            ).map((bid: any) => ({
               ...bid,
-              profiles: bid.profiles as { name: string; }
-            })) as Bid[];
+              profiles: {
+                name: bid.profiles.name
+              }
+            }));
             setMyBids(validBids);
           }
         }

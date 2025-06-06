@@ -13,7 +13,7 @@ interface AuctionBid {
   profiles?: {
     name: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 export const useAuctionBids = (auctionId: string) => {
@@ -39,18 +39,22 @@ export const useAuctionBids = (auctionId: string) => {
         if (error) throw error;
         
         // Filter out any bids without valid profile data and ensure proper typing
-        const validBids = (data || [])
-          .filter(bid => 
-            bid.profiles && 
-            typeof bid.profiles === 'object' && 
-            !Array.isArray(bid.profiles) &&
-            'name' in bid.profiles &&
-            bid.profiles.name
-          )
-          .map(bid => ({
+        const validBids: AuctionBid[] = (data || [])
+          .filter((bid: any) => {
+            return bid && 
+                   bid.profiles && 
+                   typeof bid.profiles === 'object' && 
+                   !Array.isArray(bid.profiles) &&
+                   'name' in bid.profiles &&
+                   bid.profiles.name;
+          })
+          .map((bid: any) => ({
             ...bid,
-            profiles: bid.profiles as { name: string; avatar_url?: string }
-          })) as AuctionBid[];
+            profiles: {
+              name: bid.profiles.name,
+              avatar_url: bid.profiles.avatar_url
+            }
+          }));
         
         setBids(validBids);
       } catch (error) {
@@ -95,11 +99,15 @@ export const useAuctionBids = (auctionId: string) => {
               typeof newBidData.profiles === 'object' && 
               !Array.isArray(newBidData.profiles) &&
               'name' in newBidData.profiles &&
-              newBidData.profiles.name) {
-            const validBid = {
+              (newBidData.profiles as any).name) {
+            
+            const validBid: AuctionBid = {
               ...newBidData,
-              profiles: newBidData.profiles as { name: string; avatar_url?: string }
-            } as AuctionBid;
+              profiles: {
+                name: (newBidData.profiles as any).name,
+                avatar_url: (newBidData.profiles as any).avatar_url
+              }
+            };
 
             setBids(prev => {
               const updated = [validBid, ...prev.filter(bid => bid.id !== validBid.id)];

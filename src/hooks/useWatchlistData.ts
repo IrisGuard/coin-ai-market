@@ -20,7 +20,7 @@ interface CoinData {
     name: string;
     reputation: number;
     verified_dealer: boolean;
-  };
+  } | null;
 }
 
 interface WatchlistItem {
@@ -30,7 +30,7 @@ interface WatchlistItem {
   price_alert_enabled: boolean;
   target_price: number | null;
   price_change_percentage: number | null;
-  coin?: CoinData;
+  coin: CoinData; // Make this required since we filter for valid coins
 }
 
 export const useWatchlistData = (userId?: string) => {
@@ -74,8 +74,8 @@ export const useWatchlistData = (userId?: string) => {
         if (error) throw error;
 
         // Process the data and handle the coin relationship
-        const processedWatchlist = (watchlistData || [])
-          .filter(item => 
+        const processedWatchlist: WatchlistItem[] = (watchlistData || [])
+          .filter((item: any) => 
             item.coins && 
             typeof item.coins === 'object' && 
             !Array.isArray(item.coins) &&
@@ -85,15 +85,19 @@ export const useWatchlistData = (userId?: string) => {
             !Array.isArray(item.coins.profiles) &&
             'name' in item.coins.profiles
           )
-          .map(item => ({
+          .map((item: any) => ({
             ...item,
             coin: {
-              ...(item.coins as any),
-              profiles: item.coins.profiles as { name: string; reputation: number; verified_dealer: boolean; },
+              ...item.coins,
+              profiles: {
+                name: item.coins.profiles.name,
+                reputation: item.coins.profiles.reputation,
+                verified_dealer: item.coins.profiles.verified_dealer
+              },
               // Add previous_price calculation if needed
-              previous_price: (item.coins as any)?.price || 0
+              previous_price: item.coins?.price || 0
             } as CoinData
-          })) as WatchlistItem[];
+          }));
 
         setWatchlistItems(processedWatchlist);
 
