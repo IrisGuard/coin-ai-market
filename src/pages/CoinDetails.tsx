@@ -1,12 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import CoinHeader from '@/components/coin-details/CoinHeader';
 import CoinImage from '@/components/coin-details/CoinImage';
@@ -20,17 +20,15 @@ import CoinBidHistory from '@/components/coin-details/CoinBidHistory';
 import RelatedCoins from '@/components/coin-details/RelatedCoins';
 
 const CoinDetails = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
-  const queryClient = useQueryClient();
-  const [bidAmount, setBidAmount] = useState('');
+  const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
 
-  // Fetch coin details with real data
-  const { data: coin, isLoading: coinLoading, error: coinError } = useQuery({
+  const { data: coin, isLoading, error } = useQuery({
     queryKey: ['coin', id],
     queryFn: async () => {
+      if (!id) throw new Error('No coin ID provided');
+      
       const { data, error } = await supabase
         .from('coins')
         .select(`
@@ -44,335 +42,182 @@ const CoinDetails = () => {
             created_at,
             rating,
             name
+          ),
+          bids (
+            *,
+            profiles!bids_bidder_id_fkey (
+              full_name,
+              name,
+              username,
+              avatar_url
+            )
           )
         `)
         .eq('id', id)
         .single();
 
       if (error) throw error;
-      if (!data) throw new Error('Coin not found');
-
-      // Update view count
-      await supabase
-        .from('coins')
-        .update({ views: (data.views || 0) + 1 })
-        .eq('id', id);
-
       return data;
     },
-    enabled: !!id
+    enabled: !!id,
   });
 
-  // Fetch bids for auction coins
-  const { data: bids = [], isLoading: bidsLoading } = useQuery({
-    queryKey: ['coinBids', id],
-    queryFn: async () => {
-      if (!coin?.is_auction) return [];
-      
-      const { data, error } = await supabase
-        .from('bids')
-        .select(`
-          *,
-          profiles!bids_user_id_fkey (
-            username,
-            avatar_url,
-            full_name,
-            verified_dealer,
-            name
-          )
-        `)
-        .eq('coin_id', id)
-        .order('amount', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!coin?.is_auction && !!id
-  });
-
-  // Fetch related coins
-  const { data: relatedCoins = [] } = useQuery({
-    queryKey: ['related-coins', coin?.year, coin?.country, coin?.id],
+  const { data: relatedCoins } = useQuery({
+    queryKey: ['related-coins', coin?.rarity, coin?.country],
     queryFn: async () => {
       if (!coin) return [];
       
       const { data, error } = await supabase
         .from('coins')
         .select('*')
-        .or(`year.eq.${coin.year},country.eq.${coin.country}`)
+        .or(`rarity.eq.${coin.rarity},country.eq.${coin.country}`)
         .neq('id', coin.id)
-        .eq('authentication_status', 'verified')
-        .limit(6);
-      
+        .limit(4);
+
       if (error) throw error;
       return data || [];
     },
-    enabled: !!coin
-  });
-
-  // Check if user has favorited this coin
-  useEffect(() => {
-    const checkFavorite = async () => {
-      if (!user || !id) return;
-      
-      const { data } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('coin_id', id)
-        .single();
-      
-      setIsFavorited(!!data);
-    };
-    
-    checkFavorite();
-  }, [user, id]);
-
-  // Purchase mutation
-  const purchaseMutation = useMutation({
-    mutationFn: async () => {
-      if (!coin || !user) throw new Error('Missing data');
-      
-      const { data, error } = await supabase
-        .from('transactions')
-        .insert({
-          coin_id: coin.id,
-          buyer_id: user.id,
-          seller_id: coin.seller_id,
-          amount: coin.price,
-          transaction_type: 'purchase',
-          status: 'completed'
-        });
-      
-      if (error) throw error;
-      
-      // Update coin as sold
-      await supabase
-        .from('coins')
-        .update({ sold: true, sold_at: new Date().toISOString() })
-        .eq('id', coin.id);
-      
-      return data;
-    },
-    onSuccess: () => {
-      toast.success('Purchase successful!');
-      queryClient.invalidateQueries({ queryKey: ['coin', id] });
-      navigate('/marketplace');
-    },
-    onError: (error) => {
-      toast.error('Purchase failed: ' + error.message);
-    }
-  });
-
-  // Bid mutation
-  const bidMutation = useMutation({
-    mutationFn: async (amount: number) => {
-      if (!coin || !user) throw new Error('Missing data');
-      
-      const { data, error } = await supabase
-        .from('bids')
-        .insert({
-          coin_id: coin.id,
-          user_id: user.id,
-          amount: amount
-        });
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success('Bid placed successfully!');
-      setBidAmount('');
-      queryClient.invalidateQueries({ queryKey: ['coinBids', id] });
-    },
-    onError: (error) => {
-      toast.error('Bid failed: ' + error.message);
-    }
+    enabled: !!coin,
   });
 
   const toggleFavorite = async () => {
-    if (!user) {
-      toast.error('Please log in to favorite coins');
+    if (!user || !coin) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to add favorites",
+        variant: "destructive",
+      });
       return;
     }
-    
-    if (isFavorited) {
-      await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('coin_id', id);
-      setIsFavorited(false);
-      toast.success('Removed from favorites');
-    } else {
-      await supabase
-        .from('favorites')
-        .insert({ user_id: user.id, coin_id: id });
-      setIsFavorited(true);
-      toast.success('Added to favorites');
+
+    try {
+      if (isFavorited) {
+        await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('coin_id', coin.id);
+      } else {
+        await supabase
+          .from('favorites')
+          .insert({
+            user_id: user.id,
+            coin_id: coin.id,
+          });
+      }
+      
+      setIsFavorited(!isFavorited);
+      toast({
+        title: isFavorited ? "Removed from Favorites" : "Added to Favorites",
+        description: isFavorited ? "Coin removed from your favorites" : "Coin added to your favorites",
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites",
+        variant: "destructive",
+      });
     }
   };
 
-  const handlePurchase = () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to purchase');
-      navigate('/auth');
-      return;
-    }
-    
-    if (user?.id === coin?.seller_id) {
-      toast.error('You cannot purchase your own coin');
-      return;
-    }
-    
-    purchaseMutation.mutate();
-  };
+  if (!id) {
+    return <Navigate to="/marketplace" replace />;
+  }
 
-  const handleBid = () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to bid');
-      navigate('/auth');
-      return;
-    }
-    
-    const amount = parseFloat(bidAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast.error('Please enter a valid bid amount');
-      return;
-    }
-    
-    const highestBid = bids[0]?.amount || coin?.starting_bid || coin?.price;
-    if (amount <= highestBid) {
-      toast.error('Bid must be higher than current highest bid');
-      return;
-    }
-    
-    bidMutation.mutate(amount);
-  };
-
-  if (coinLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <Navbar />
-        <div className="container mx-auto px-4 py-24">
-          <div className="animate-pulse">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-gray-200 rounded-3xl h-96"></div>
-              <div className="space-y-4">
-                <div className="bg-gray-200 rounded h-8 w-3/4"></div>
-                <div className="bg-gray-200 rounded h-6 w-1/2"></div>
-                <div className="bg-gray-200 rounded h-32"></div>
-              </div>
-            </div>
+        <div className="pt-20 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading coin details...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!coin) {
+  if (error || !coin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <Navbar />
-        <div className="container mx-auto px-4 py-24 text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Coin Not Found</h1>
-          <p className="text-gray-600 mb-8">The coin you're looking for doesn't exist or has been removed.</p>
-          <button onClick={() => navigate('/marketplace')} className="coinvision-button">
-            Back to Marketplace
-          </button>
+        <div className="pt-20 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <p className="text-gray-600">Coin not found</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  const highestBid = bids[0]?.amount || coin.starting_bid || coin.price;
-  const isOwner = user?.id === coin.seller_id;
+  // Handle profile data - it could be an object or null
+  const profile = coin.profiles && !Array.isArray(coin.profiles) ? coin.profiles : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16"
-        >
-          {/* Image Section */}
-          <div className="space-y-6">
-            <CoinImage coin={coin} />
-            <CoinActionButtons 
-              isFavorited={isFavorited}
-              onToggleFavorite={toggleFavorite}
-            />
+      <div className="pt-20 pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+            {/* Left Column - Image */}
+            <div className="space-y-6">
+              <CoinImage coin={coin} />
+              <CoinActionButtons 
+                isFavorited={isFavorited} 
+                onToggleFavorite={toggleFavorite} 
+              />
+            </div>
+
+            {/* Right Column - Details */}
+            <div className="space-y-8">
+              <CoinHeader coin={coin} />
+              <CoinPriceSection coin={coin} />
+              {profile && <CoinSellerInfo profile={profile} />}
+            </div>
           </div>
 
-          {/* Details Section */}
-          <div className="space-y-8">
-            <CoinHeader coin={coin} />
+          {/* Tabs Section */}
+          <Card className="glass-card border-2 border-purple-200">
+            <CardContent className="p-6">
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="bids">Bid History</TabsTrigger>
+                  <TabsTrigger value="authentication">Authentication</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="mt-6">
+                  <CoinDetailsTab coin={coin} />
+                </TabsContent>
+                
+                <TabsContent value="bids" className="mt-6">
+                  <CoinBidHistory 
+                    bids={coin.bids?.filter(bid => bid.profiles) || []} 
+                  />
+                </TabsContent>
+                
+                <TabsContent value="authentication" className="mt-6">
+                  <CoinAuthenticationTab coin={coin} />
+                </TabsContent>
+                
+                <TabsContent value="history" className="mt-6">
+                  <CoinHistoryTab coin={coin} />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
 
-            <CoinPriceSection
-              coin={coin}
-              highestBid={highestBid}
-              bidAmount={bidAmount}
-              setBidAmount={setBidAmount}
-              onPurchase={handlePurchase}
-              onBid={handleBid}
-              isOwner={isOwner}
-              isPurchasing={purchaseMutation.isPending}
-              isBidding={bidMutation.isPending}
-              bidsCount={bids.length}
-            />
-
-            <CoinSellerInfo 
-              seller={coin.profiles}
-              coinCreatedAt={coin.created_at}
-            />
-
-            {/* Coin Specifications */}
-            <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-                <TabsTrigger value="authentication">Authentication</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="details" className="space-y-4">
-                <CoinDetailsTab coin={coin} />
-              </TabsContent>
-              
-              <TabsContent value="history">
-                <CoinHistoryTab coin={coin} />
-              </TabsContent>
-              
-              <TabsContent value="authentication">
-                <CoinAuthenticationTab coin={coin} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </motion.div>
-
-        {/* Auction Bids */}
-        {coin.is_auction && bids.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="mb-16"
-          >
-            <CoinBidHistory bids={bids} />
-          </motion.div>
-        )}
-
-        {/* Related Coins */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <RelatedCoins relatedCoins={relatedCoins} />
-        </motion.div>
+          {/* Related Coins */}
+          {relatedCoins && relatedCoins.length > 0 && (
+            <div className="mt-12">
+              <RelatedCoins coins={relatedCoins} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
