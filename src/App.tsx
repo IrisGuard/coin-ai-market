@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 import { validateEnvironment } from "@/utils/envCheck";
 import Index from "./pages/Index";
 import Upload from "./pages/Upload";
@@ -49,6 +50,9 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                {/* Hidden admin keyboard handler - no visible UI elements */}
+                <AdminKeyboardHandler />
+                
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/upload" element={<Upload />} />
