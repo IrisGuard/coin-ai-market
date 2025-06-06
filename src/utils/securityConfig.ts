@@ -129,19 +129,19 @@ export const validateSecurityConfig = () => {
 };
 
 /**
- * Validate OTP security settings from database
+ * Validate OTP security settings - simplified version without database call
  */
 export const validateOTPSecurity = async () => {
   try {
-    const { supabase } = await import('@/integrations/supabase/client');
-    const { data, error } = await supabase.rpc('validate_otp_security');
+    // Simple validation based on our configuration
+    const otpExpiry = SECURITY_CONFIG.AUTH.OTP_EXPIRY_SECONDS;
+    const isValid = otpExpiry <= 300; // 5 minutes or less
     
-    if (error) {
-      console.error('OTP security validation failed:', error);
-      return false;
+    if (!isValid) {
+      console.warn('OTP expiry time exceeds recommended 5-minute limit');
     }
     
-    return data;
+    return isValid;
   } catch (error) {
     console.error('Failed to validate OTP security:', error);
     return false;

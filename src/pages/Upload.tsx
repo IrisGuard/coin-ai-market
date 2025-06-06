@@ -88,26 +88,15 @@ const Upload = () => {
       }
 
       // Call the AI analysis edge function
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      const response = await fetch('/supabase/functions/v1/ai-coin-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionData.session?.access_token}`
-        },
-        body: JSON.stringify({ 
+      const { data: result, error } = await supabase.functions.invoke('ai-coin-analysis', {
+        body: { 
           image: imageData,
           imageUrl: imageUrl
-        })
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Analysis failed: ${response.statusText}`);
-      }
+      if (error) throw error;
 
-      const result = await response.json();
       setAnalysisResult({
         ...result,
         imageUrl: imageUrl
