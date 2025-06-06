@@ -39,7 +39,13 @@ export const useAuctionBids = (auctionId: string) => {
         if (error) throw error;
         
         // Filter out any bids without valid profile data and ensure proper typing
-        const validBids = (data || []).filter(bid => bid.profiles) as AuctionBid[];
+        const validBids = (data || [])
+          .filter(bid => bid.profiles && typeof bid.profiles === 'object' && 'name' in bid.profiles)
+          .map(bid => ({
+            ...bid,
+            profiles: bid.profiles as { name: string; avatar_url?: string }
+          })) as AuctionBid[];
+        
         setBids(validBids);
       } catch (error) {
         console.error('Error fetching bids:', error);
@@ -78,9 +84,17 @@ export const useAuctionBids = (auctionId: string) => {
             .eq('id', payload.new.id)
             .single();
 
-          if (newBidData && newBidData.profiles) {
+          if (newBidData && 
+              newBidData.profiles && 
+              typeof newBidData.profiles === 'object' && 
+              'name' in newBidData.profiles) {
+            const validBid = {
+              ...newBidData,
+              profiles: newBidData.profiles as { name: string; avatar_url?: string }
+            } as AuctionBid;
+
             setBids(prev => {
-              const updated = [newBidData as AuctionBid, ...prev.filter(bid => bid.id !== newBidData.id)];
+              const updated = [validBid, ...prev.filter(bid => bid.id !== validBid.id)];
               return updated.sort((a, b) => b.amount - a.amount);
             });
           }
