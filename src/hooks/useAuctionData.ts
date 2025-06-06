@@ -66,7 +66,7 @@ export const useAuctionData = (userId?: string) => {
             user_id,
             description,
             views,
-            profiles:user_id(
+            profiles!coins_user_id_fkey(
               name,
               reputation,
               verified_dealer
@@ -79,7 +79,11 @@ export const useAuctionData = (userId?: string) => {
         if (auctionsError) throw auctionsError;
 
         // Filter out auctions without valid profile data
-        const validAuctions = (auctionsData || []).filter(auction => auction.profiles);
+        const validAuctions = (auctionsData || []).filter(auction => 
+          auction.profiles && 
+          typeof auction.profiles === 'object' && 
+          'name' in auction.profiles
+        );
 
         // Fetch bid counts and current bids for each auction
         const auctionsWithBids = await Promise.all(
@@ -110,7 +114,8 @@ export const useAuctionData = (userId?: string) => {
               bid_count: bidCount || 0,
               highest_bidder_id: highestBidderId,
               seller_id: auction.user_id,
-              watchers: watcherCount || 0
+              watchers: watcherCount || 0,
+              profiles: auction.profiles as { name: string; reputation: number; verified_dealer: boolean; }
             };
           })
         );
@@ -123,7 +128,7 @@ export const useAuctionData = (userId?: string) => {
             .from('auction_bids')
             .select(`
               *,
-              profiles:bidder_id(name)
+              profiles!auction_bids_bidder_id_fkey(name)
             `)
             .eq('bidder_id', userId)
             .order('created_at', { ascending: false });
@@ -133,7 +138,12 @@ export const useAuctionData = (userId?: string) => {
             setMyBids([]);
           } else {
             // Filter out any invalid bids and ensure proper typing
-            const validBids = (userBids || []).filter(bid => bid && bid.profiles) as Bid[];
+            const validBids = (userBids || []).filter(bid => 
+              bid && bid.profiles && typeof bid.profiles === 'object' && 'name' in bid.profiles
+            ).map(bid => ({
+              ...bid,
+              profiles: bid.profiles as { name: string; }
+            })) as Bid[];
             setMyBids(validBids);
           }
         }

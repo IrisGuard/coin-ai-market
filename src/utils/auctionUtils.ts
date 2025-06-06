@@ -1,11 +1,21 @@
 
+import { TimeRemaining } from '@/types/auction';
+
 // Calculate time remaining for each auction
-export const getTimeRemaining = (endTime: string) => {
+export const getTimeRemaining = (endTime: string): TimeRemaining => {
   const now = new Date().getTime();
   const end = new Date(endTime).getTime();
   const remaining = end - now;
 
-  if (remaining <= 0) return { expired: true };
+  if (remaining <= 0) {
+    return { 
+      days: 0, 
+      hours: 0, 
+      minutes: 0, 
+      seconds: 0, 
+      expired: true 
+    };
+  }
 
   const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
   const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
