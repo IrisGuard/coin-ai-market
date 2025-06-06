@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Secure admin verification utility
- * Uses the new is_admin_user function to avoid RLS recursion
+ * Uses the updated is_admin_user function with proper security settings
  */
 export const verifyAdminAccess = async (userId?: string): Promise<boolean> => {
   try {
@@ -73,4 +73,45 @@ export const handleSupabaseError = (error: any, operation: string) => {
 
   console.error(`Error in ${operation}:`, errorMessage);
   return errorMessage;
+};
+
+/**
+ * Secure API key encryption helper
+ * Uses the new encrypt_api_key_secure function
+ */
+export const encryptApiKey = async (plainKey: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('encrypt_api_key_secure', { plain_key: plainKey });
+
+    if (error) {
+      console.error('API key encryption error:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('API key encryption failed:', error);
+    return null;
+  }
+};
+
+/**
+ * Enhanced security validation for tenant operations
+ */
+export const validateTenantAccess = async (domain: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_tenant_from_domain', { domain_name: domain });
+
+    if (error) {
+      console.error('Tenant validation error:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Tenant validation failed:', error);
+    return null;
+  }
 };

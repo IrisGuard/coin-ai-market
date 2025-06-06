@@ -1742,6 +1742,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      encrypt_api_key_secure: {
+        Args: { plain_key: string }
+        Returns: string
+      }
       get_tenant_from_domain: {
         Args: { domain_name: string }
         Returns: string

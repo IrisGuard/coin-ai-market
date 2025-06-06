@@ -1,14 +1,19 @@
-
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { ProdErrorHandler } from './utils/prodErrorHandler';
 import { initSentry } from './lib/sentry';
+import { validateSecurityConfig } from './utils/securityConfig';
+import { SessionSecurity } from './lib/securityEnhancements';
 
 // Initialize error monitoring
 initSentry();
 ProdErrorHandler.initializeGlobalErrorHandling();
+
+// Initialize security configurations
+validateSecurityConfig();
+SessionSecurity.validateSession();
 
 // === ENHANCED CONSOLE MONITORING SYSTEM ===
 const ConsoleMonitor = {
@@ -172,7 +177,8 @@ window.addEventListener('error', (event) => {
     error: event.error?.message,
     stack: event.error?.stack,
     url: window.location.href,
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    timestamp: new Date().toISOString()
   };
   
   if (event.error) {
@@ -186,7 +192,7 @@ window.addEventListener('error', (event) => {
       level: 'error',
       message: errorData.error,
       stack: errorData.stack,
-      timestamp: new Date().toISOString(),
+      timestamp: errorData.timestamp,
       url: errorData.url,
       userAgent: errorData.userAgent
     })
@@ -198,7 +204,8 @@ window.addEventListener('unhandledrejection', (event) => {
     error: event.reason?.message || 'Unhandled Promise Rejection',
     stack: event.reason?.stack,
     url: window.location.href,
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    timestamp: new Date().toISOString()
   };
   
   if (event.reason) {
@@ -212,7 +219,7 @@ window.addEventListener('unhandledrejection', (event) => {
       level: 'error',
       message: errorData.error,
       stack: errorData.stack,
-      timestamp: new Date().toISOString(),
+      timestamp: errorData.timestamp,
       url: errorData.url,
       userAgent: errorData.userAgent
     })
