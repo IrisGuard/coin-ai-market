@@ -229,11 +229,15 @@ const CoinDetails = () => {
     );
   }
 
-  // Handle profile data - extract first profile from array if it exists
-  const profile = coin.profiles && Array.isArray(coin.profiles) ? coin.profiles[0] : coin.profiles;
+  // Handle profile data - extract first profile from array if it exists, or use as object
+  const rawProfile = coin.profiles;
+  const profile = Array.isArray(rawProfile) ? rawProfile[0] : rawProfile;
+  
   const isOwner = user?.id === coin.user_id;
-  const bids = bidsData?.filter(bid => bid.profiles) || [];
-  const highestBid = Math.max(...bids.map(bid => bid.amount), coin.starting_bid || coin.price || 0);
+  
+  // Process bids data - filter out any bids without valid profiles
+  const validBids = (bidsData || []).filter(bid => bid.profiles && typeof bid.profiles === 'object');
+  const highestBid = Math.max(...validBids.map(bid => bid.amount), coin.starting_bid || coin.price || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -264,7 +268,7 @@ const CoinDetails = () => {
                 isOwner={isOwner}
                 isPurchasing={isPurchasing}
                 isBidding={isBidding}
-                bidsCount={bids.length}
+                bidsCount={validBids.length}
               />
               {profile && (
                 <CoinSellerInfo 
@@ -291,7 +295,7 @@ const CoinDetails = () => {
                 </TabsContent>
                 
                 <TabsContent value="bids" className="mt-6">
-                  <CoinBidHistory bids={bids} />
+                  <CoinBidHistory bids={validBids} />
                 </TabsContent>
                 
                 <TabsContent value="authentication" className="mt-6">
