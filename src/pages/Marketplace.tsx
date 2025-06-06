@@ -5,18 +5,19 @@ import { useMarketplaceStats } from '@/hooks/useMarketplaceStats';
 import { useCoins } from '@/hooks/useCoins';
 import { useAdvancedMarketplaceFilters } from '@/hooks/useAdvancedMarketplaceFilters';
 import { useRealTimeMarketplace } from '@/hooks/useRealTimeMarketplace';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import EnhancedMarketplaceFilters from "@/components/marketplace/EnhancedMarketplaceFilters";
+import EnhancedMarketplaceHeader from "@/components/marketplace/EnhancedMarketplaceHeader";
+import ThemeAwareMarketplaceFilters from "@/components/marketplace/ThemeAwareMarketplaceFilters";
 import MarketplaceGrid from "@/components/marketplace/MarketplaceGrid";
-import MarketplaceStats from "@/components/marketplace/MarketplaceStats";
 
 const Marketplace = () => {
   usePageView();
   
   const { data: coins = [], isLoading: coinsLoading } = useCoins();
   const { stats, loading: statsLoading } = useMarketplaceStats();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // Use enhanced filtering system
   const {
@@ -40,40 +41,51 @@ const Marketplace = () => {
 
   const filterOptions = getFilterOptions();
 
+  // Calculate enhanced stats
+  const enhancedStats = {
+    total: coins.length,
+    auctions: coins.filter(c => c.is_auction).length,
+    featured: coins.filter(c => c.featured).length,
+    totalValue: coins.reduce((sum, coin) => sum + (coin.price || 0), 0)
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <MarketplaceHeader 
-          searchTerm={filters.searchTerm}
-          setSearchTerm={(term) => updateFilter('searchTerm', term)}
-        />
-        
-        <MarketplaceStats 
-          stats={stats}
-          loading={statsLoading}
-        />
-        
-        <EnhancedMarketplaceFilters
-          filters={filters}
-          updateFilter={updateFilter}
-          clearFilters={clearFilters}
-          filterOptions={filterOptions}
-          totalResults={totalResults}
-          hasActiveFilters={hasActiveFilters}
-          isLoading={coinsLoading}
-        />
-        
-        <MarketplaceGrid
-          filteredCoins={enhancedCoins}
-          searchTerm={filters.searchTerm}
-          isAuctionOnly={filters.showAuctionsOnly}
-          selectedRarity={filters.selectedRarity}
-          clearFilters={clearFilters}
-        />
+    <ThemeProvider>
+      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <EnhancedMarketplaceHeader 
+            searchTerm={filters.searchTerm}
+            setSearchTerm={(term) => updateFilter('searchTerm', term)}
+            stats={enhancedStats}
+          />
+          
+          <ThemeAwareMarketplaceFilters
+            filters={filters}
+            updateFilter={updateFilter}
+            clearFilters={clearFilters}
+            filterOptions={filterOptions}
+            totalResults={totalResults}
+            hasActiveFilters={hasActiveFilters}
+            isLoading={coinsLoading}
+            auctionsCount={enhancedStats.auctions}
+            featuredCount={enhancedStats.featured}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            stats={enhancedStats}
+          />
+          
+          <MarketplaceGrid
+            filteredCoins={enhancedCoins}
+            searchTerm={filters.searchTerm}
+            isAuctionOnly={filters.showAuctionsOnly}
+            selectedRarity={filters.selectedRarity}
+            clearFilters={clearFilters}
+          />
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </ThemeProvider>
   );
 };
 
