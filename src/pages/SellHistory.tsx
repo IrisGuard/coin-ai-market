@@ -7,16 +7,71 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, TrendingUp, Package, DollarSign } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { usePageView } from '@/hooks/usePageView';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const SellHistory = () => {
   usePageView();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // TODO: Connect to real selling history data from Supabase
-  const salesHistory: any[] = [];
+  // Get user's selling history
+  const { data: salesHistory, isLoading } = useQuery({
+    queryKey: ['sales-history', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          coins(
+            id,
+            name,
+            image,
+            year,
+            grade,
+            country
+          ),
+          buyer:profiles!transactions_buyer_id_fkey(
+            id,
+            name,
+            email,
+            reputation
+          )
+        `)
+        .eq('seller_id', user?.id!)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Calculate real statistics
+  const totalSales = salesHistory?.reduce((sum, sale) => sum + Number(sale.amount), 0) || 0;
+  const itemsSold = salesHistory?.filter(sale => sale.status === 'completed').length || 0;
+  const totalListings = salesHistory?.length || 0;
+  const successRate = totalListings > 0 ? ((itemsSold / totalListings) * 100).toFixed(0) : '0';
+
+  const filteredSales = salesHistory?.filter(sale =>
+    sale.coins?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sale.coins?.country?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[400px] pt-16">
+          <div className="animate-spin h-8 w-8 border-4 border-brand-primary border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       <Navbar />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -24,7 +79,7 @@ const SellHistory = () => {
             <h1 className="text-3xl font-bold text-gray-900">Selling History</h1>
             <p className="text-gray-600 mt-2">Track your sales performance and completed listings</p>
           </div>
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button className="bg-brand-primary hover:bg-brand-primary/90">
             Create New Listing
           </Button>
         </div>
@@ -37,9 +92,9 @@ const SellHistory = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$8,900</div>
+              <div className="text-2xl font-bold">${totalSales.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                +15% from last month
+                From {itemsSold} completed sales
               </p>
             </CardContent>
           </Card>
@@ -50,9 +105,9 @@ const SellHistory = () => {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{itemsSold}</div>
               <p className="text-xs text-muted-foreground">
-                This year
+                Out of {totalListings} listings
               </p>
             </CardContent>
           </Card>
@@ -63,7 +118,7 @@ const SellHistory = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">85%</div>
+              <div className="text-2xl font-bold">{successRate}%</div>
               <p className="text-xs text-muted-foreground">
                 Listings sold successfully
               </p>
@@ -88,15 +143,23 @@ const SellHistory = () => {
           </Button>
         </div>
 
-        {salesHistory.length === 0 ? (
+        {filteredSales.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No sales history yet</h3>
-              <p className="text-gray-600 mb-4">Start selling your coins to build your sales history.</p>
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                Create Your First Listing
-              </Button>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {salesHistory?.length === 0 ? 'No sales history yet' : 'No sales match your search'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {salesHistory?.length === 0 
+                  ? 'Start selling your coins to build your sales history.' 
+                  : 'Try adjusting your search terms.'}
+              </p>
+              {salesHistory?.length === 0 && (
+                <Button className="bg-brand-primary hover:bg-brand-primary/90">
+                  Create Your First Listing
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -107,7 +170,40 @@ const SellHistory = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Sales history items will be mapped here */}
+                {filteredSales.map((sale) => (
+                  <div key={sale.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      {sale.coins?.image && (
+                        <img 
+                          src={sale.coins.image} 
+                          alt={sale.coins.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-medium">{sale.coins?.name || 'Unknown Coin'}</h4>
+                        <p className="text-sm text-gray-600">
+                          {sale.coins?.year} • {sale.coins?.country} • {sale.coins?.grade}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Sold to {sale.buyer?.name || 'Unknown Buyer'} • {new Date(sale.created_at || '').toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold">${Number(sale.amount).toLocaleString()}</div>
+                      <Badge 
+                        variant={
+                          sale.status === 'completed' ? 'default' :
+                          sale.status === 'pending' ? 'secondary' :
+                          sale.status === 'cancelled' ? 'destructive' : 'outline'
+                        }
+                      >
+                        {sale.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

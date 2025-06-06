@@ -5,49 +5,57 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Filter, Grid, List, TrendingUp, DollarSign, Coins } from 'lucide-react';
+import { Search, Filter, Grid, List, TrendingUp, DollarSign, Coins, Plus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CoinCard from '@/components/CoinCard';
-import { useCoins } from '@/hooks/useCoins';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePageView } from '@/hooks/usePageView';
+import { useUserPortfolio } from '@/hooks/useEnhancedDataSources';
 
 const Portfolio = () => {
   usePageView();
   const { user } = useAuth();
-  const { data: coins, isLoading } = useCoins();
+  const { data: portfolioItems, isLoading } = useUserPortfolio(user?.id);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Filter coins by current user
-  const userCoins = coins?.filter(coin => coin.user_id === user?.id) || [];
+  // Calculate real portfolio statistics
+  const totalValue = portfolioItems?.reduce((sum, item) => 
+    sum + (item.coins?.price || item.purchase_price || 0) * item.quantity, 0) || 0;
+  const totalCoins = portfolioItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const uniqueCountries = new Set(portfolioItems?.map(item => item.coins?.country).filter(Boolean)).size;
 
-  const totalValue = userCoins.reduce((sum, coin) => sum + (coin.price || 0), 0);
-  const totalCoins = userCoins.length;
+  // Calculate portfolio performance
+  const totalPurchaseValue = portfolioItems?.reduce((sum, item) => 
+    sum + (item.purchase_price || 0) * item.quantity, 0) || 0;
+  const performancePercentage = totalPurchaseValue > 0 
+    ? ((totalValue - totalPurchaseValue) / totalPurchaseValue * 100).toFixed(1)
+    : '0.0';
 
-  const filteredCoins = userCoins.filter(coin =>
-    coin.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    coin.country?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPortfolio = portfolioItems?.filter(item =>
+    item.coins?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.coins?.country?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin h-8 w-8 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-8 w-8 border-4 border-brand-primary border-t-transparent rounded-full"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       <Navbar />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">My Portfolio</h1>
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button className="bg-brand-primary hover:bg-brand-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
             Add New Coin
           </Button>
         </div>
@@ -62,7 +70,9 @@ const Portfolio = () => {
             <CardContent>
               <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                +2.5% from last month
+                <span className={`${parseFloat(performancePercentage) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {parseFloat(performancePercentage) >= 0 ? '+' : ''}{performancePercentage}%
+                </span> from purchase price
               </p>
             </CardContent>
           </Card>
@@ -74,7 +84,7 @@ const Portfolio = () => {
             <CardContent>
               <div className="text-2xl font-bold">{totalCoins}</div>
               <p className="text-xs text-muted-foreground">
-                Across {new Set(userCoins.map(c => c.country)).size} countries
+                Across {uniqueCountries} countries
               </p>
             </CardContent>
           </Card>
@@ -84,9 +94,13 @@ const Portfolio = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12.3%</div>
+              <div className="text-2xl font-bold">
+                <span className={parseFloat(performancePercentage) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {parseFloat(performancePercentage) >= 0 ? '+' : ''}{performancePercentage}%
+                </span>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Portfolio growth this year
+                Portfolio growth
               </p>
             </CardContent>
           </Card>
@@ -137,13 +151,13 @@ const Portfolio = () => {
           </TabsList>
           
           <TabsContent value="all" className="space-y-6">
-            {filteredCoins.length === 0 ? (
+            {filteredPortfolio.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <Coins className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No coins in your portfolio</h3>
                   <p className="text-gray-600 mb-4">Start building your collection by adding your first coin.</p>
-                  <Button className="bg-purple-600 hover:bg-purple-700">
+                  <Button className="bg-brand-primary hover:bg-brand-primary/90">
                     Add Your First Coin
                   </Button>
                 </CardContent>
@@ -154,8 +168,18 @@ const Portfolio = () => {
                   ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
                   : 'grid-cols-1'
               }`}>
-                {filteredCoins.map((coin) => (
-                  <CoinCard key={coin.id} coin={coin} />
+                {filteredPortfolio.map((item) => (
+                  <div key={item.id} className="relative">
+                    {item.coins && <CoinCard coin={item.coins} />}
+                    <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-medium shadow-md">
+                      Qty: {item.quantity}
+                    </div>
+                    {item.purchase_price && (
+                      <div className="absolute bottom-2 left-2 bg-white rounded-full px-2 py-1 text-xs shadow-md">
+                        Bought: ${item.purchase_price}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -167,11 +191,16 @@ const Portfolio = () => {
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
                 : 'grid-cols-1'
             }`}>
-              {filteredCoins
+              {filteredPortfolio
                 .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
                 .slice(0, 8)
-                .map((coin) => (
-                  <CoinCard key={coin.id} coin={coin} />
+                .map((item) => (
+                  <div key={item.id} className="relative">
+                    {item.coins && <CoinCard coin={item.coins} />}
+                    <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-medium shadow-md">
+                      Qty: {item.quantity}
+                    </div>
+                  </div>
                 ))}
             </div>
           </TabsContent>
@@ -182,11 +211,16 @@ const Portfolio = () => {
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
                 : 'grid-cols-1'
             }`}>
-              {filteredCoins
-                .sort((a, b) => (b.price || 0) - (a.price || 0))
+              {filteredPortfolio
+                .sort((a, b) => (b.coins?.price || 0) - (a.coins?.price || 0))
                 .slice(0, 8)
-                .map((coin) => (
-                  <CoinCard key={coin.id} coin={coin} />
+                .map((item) => (
+                  <div key={item.id} className="relative">
+                    {item.coins && <CoinCard coin={item.coins} />}
+                    <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-medium shadow-md">
+                      Qty: {item.quantity}
+                    </div>
+                  </div>
                 ))}
             </div>
           </TabsContent>

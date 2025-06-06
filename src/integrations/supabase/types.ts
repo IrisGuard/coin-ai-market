@@ -69,6 +69,39 @@ export type Database = {
         }
         Relationships: []
       }
+      aggregated_coin_prices: {
+        Row: {
+          avg_price: number
+          coin_identifier: string
+          date_range: string
+          id: string
+          last_updated: string
+          max_price: number
+          min_price: number
+          source_count: number
+        }
+        Insert: {
+          avg_price?: number
+          coin_identifier: string
+          date_range?: string
+          id?: string
+          last_updated?: string
+          max_price?: number
+          min_price?: number
+          source_count?: number
+        }
+        Update: {
+          avg_price?: number
+          coin_identifier?: string
+          date_range?: string
+          id?: string
+          last_updated?: string
+          max_price?: number
+          min_price?: number
+          source_count?: number
+        }
+        Relationships: []
+      }
       ai_commands: {
         Row: {
           category: string | null
@@ -428,6 +461,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      coin_price_history: {
+        Row: {
+          coin_identifier: string
+          created_at: string
+          date_recorded: string
+          id: string
+          price: number
+          source: string
+        }
+        Insert: {
+          coin_identifier: string
+          created_at?: string
+          date_recorded?: string
+          id?: string
+          price: number
+          source: string
+        }
+        Update: {
+          coin_identifier?: string
+          created_at?: string
+          date_recorded?: string
+          id?: string
+          price?: number
+          source?: string
+        }
+        Relationships: []
       }
       coins: {
         Row: {
@@ -1405,6 +1465,51 @@ export type Database = {
         }
         Relationships: []
       }
+      proxy_rotation_log: {
+        Row: {
+          error_message: string | null
+          id: string
+          proxy_id: string | null
+          reason: string | null
+          rotation_time: string
+          source_id: string | null
+          success: boolean
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          proxy_id?: string | null
+          reason?: string | null
+          rotation_time?: string
+          source_id?: string | null
+          success?: boolean
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          proxy_id?: string | null
+          reason?: string | null
+          rotation_time?: string
+          source_id?: string | null
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proxy_rotation_log_proxy_id_fkey"
+            columns: ["proxy_id"]
+            isOneToOne: false
+            referencedRelation: "vpn_proxies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proxy_rotation_log_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scraping_jobs: {
         Row: {
           completed_at: string | null
@@ -1469,6 +1574,47 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scraping_schedules: {
+        Row: {
+          created_at: string
+          cron_expression: string
+          id: string
+          is_active: boolean
+          last_run: string | null
+          next_run: string | null
+          schedule_type: string
+          source_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          cron_expression: string
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          next_run?: string | null
+          schedule_type?: string
+          source_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          cron_expression?: string
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          next_run?: string | null
+          schedule_type?: string
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraping_schedules_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "external_price_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -1765,6 +1911,47 @@ export type Database = {
           },
           {
             foreignKeyName: "user_favorites_coin_id_fkey"
+            columns: ["coin_id"]
+            isOneToOne: false
+            referencedRelation: "coins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_portfolios: {
+        Row: {
+          coin_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          purchase_date: string
+          purchase_price: number | null
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          coin_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          purchase_date?: string
+          purchase_price?: number | null
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          coin_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          purchase_date?: string
+          purchase_price?: number | null
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_portfolios_coin_id_fkey"
             columns: ["coin_id"]
             isOneToOne: false
             referencedRelation: "coins"
