@@ -10,6 +10,17 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ name, description, icon, color, index }: FeatureCardProps) => {
+  // Map colors to text colors for better readability
+  const getTextColor = (color: string) => {
+    if (color.includes('blue')) return 'text-blue-700';
+    if (color.includes('green')) return 'text-green-700';
+    if (color.includes('purple')) return 'text-purple-700';
+    if (color.includes('orange')) return 'text-orange-700';
+    if (color.includes('red')) return 'text-red-700';
+    if (color.includes('cyan')) return 'text-cyan-700';
+    return 'text-gray-700';
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 30 }}
@@ -21,7 +32,7 @@ const FeatureCard = ({ name, description, icon, color, index }: FeatureCardProps
       <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center mb-6 text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
         {icon}
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+      <h3 className={`text-2xl font-bold mb-4 ${getTextColor(color)}`}>
         {name}
       </h3>
       <p className="text-gray-600 leading-relaxed">{description}</p>

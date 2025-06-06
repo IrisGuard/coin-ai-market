@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen bg-white flex items-center justify-center overflow-hidden">
-      {/* Subtle white background with minimal gradients */}
+      {/* Pure white background */}
       <div className="absolute inset-0 bg-white"></div>
       
       {/* Very subtle floating elements - much more transparent */}
@@ -38,23 +38,23 @@ const HeroSection = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center">
-          {/* Main heading with colorful gradient */}
+          {/* Main heading with solid colorful text */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-5xl md:text-7xl font-bold mb-8 leading-tight"
           >
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 bg-clip-text text-transparent">
+            <span className="text-blue-600">
               AI-Powered
             </span>
             <br />
-            <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="text-orange-500">
               Coin Recognition
             </span>
           </motion.h1>
 
-          {/* Subtitle */}
+          {/* Subtitle with colorful text */}
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -62,15 +62,15 @@ const HeroSection = () => {
             className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
           >
             Upload photos of your coins and get instant{' '}
-            <span className="font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <span className="font-semibold text-blue-600">
               AI identification
             </span>
             , accurate{' '}
-            <span className="font-semibold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
+            <span className="font-semibold text-green-500">
               valuations
             </span>
             , and access to a global{' '}
-            <span className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="font-semibold text-purple-500">
               marketplace
             </span>
           </motion.p>
@@ -118,19 +118,22 @@ const HeroSection = () => {
                 icon: <Zap className="w-8 h-8" />,
                 title: 'Instant Recognition',
                 description: '99% accuracy in seconds',
-                color: 'from-yellow-500 to-orange-500'
+                color: 'from-yellow-500 to-orange-500',
+                textColor: 'text-orange-600'
               },
               {
                 icon: <TrendingUp className="w-8 h-8" />,
                 title: 'Real-time Pricing',
                 description: 'Live market valuations',
-                color: 'from-green-500 to-emerald-500'
+                color: 'from-green-500 to-emerald-500',
+                textColor: 'text-green-600'
               },
               {
                 icon: <Shield className="w-8 h-8" />,
                 title: 'Secure Trading',
                 description: 'Protected transactions',
-                color: 'from-blue-500 to-cyan-500'
+                color: 'from-blue-500 to-cyan-500',
+                textColor: 'text-blue-600'
               }
             ].map((feature, index) => (
               <motion.div
@@ -143,7 +146,7 @@ const HeroSection = () => {
                 <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                <h3 className={`text-xl font-bold mb-2 ${feature.textColor}`}>
                   {feature.title}
                 </h3>
                 <p className="text-gray-600">{feature.description}</p>

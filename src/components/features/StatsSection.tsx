@@ -2,10 +2,10 @@
 import { motion } from 'framer-motion';
 
 const stats = [
-  { number: '50K+', label: 'Coins Analyzed', color: 'from-blue-600 to-blue-700' },
-  { number: '99%', label: 'Accuracy Rate', color: 'from-green-500 to-green-600' },
-  { number: '25K+', label: 'Active Users', color: 'from-purple-500 to-purple-600' },
-  { number: '$2M+', label: 'Trading Volume', color: 'from-orange-500 to-red-500' }
+  { number: '50K+', label: 'Coins Analyzed', color: 'text-blue-600' },
+  { number: '99%', label: 'Accuracy Rate', color: 'text-green-500' },
+  { number: '25K+', label: 'Active Users', color: 'text-purple-500' },
+  { number: '$2M+', label: 'Trading Volume', color: 'text-orange-500' }
 ];
 
 const StatsSection = () => {
@@ -26,7 +26,7 @@ const StatsSection = () => {
           viewport={{ once: true }}
           className="text-center bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
         >
-          <div className={`text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+          <div className={`text-4xl md:text-5xl font-bold mb-2 ${stat.color}`}>
             {stat.number}
           </div>
           <div className="text-gray-600 font-medium">{stat.label}</div>
