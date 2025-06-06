@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,67 +62,67 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Professional Dark Brand Colors
+				// RAL 7016 Dark Gray Brand Colors
 				brand: {
-					primary: '#8B5CF6',     // Professional purple
-					secondary: '#6366F1',   // Deeper purple
-					accent: '#10B981',      // Success green
-					success: '#10B981',     // Success green
-					warning: '#F59E0B',     // Warning amber
-					danger: '#EF4444',      // Error red
-					info: '#3B82F6',        // Info blue
-					dark: '#0F0F23',        // Darkest background
-					light: '#FFFFFF',       // White text
-					medium: '#B8BCC8',      // Secondary text
-					muted: '#6B7280',       // Muted text
+					primary: '#007AFF',     /* Blue */
+					secondary: '#5856D6',   /* Purple-blue */
+					accent: '#34C759',      /* Green */
+					success: '#34C759',     /* Green */
+					warning: '#FF9500',     /* Orange */
+					danger: '#FF3B30',      /* Red */
+					info: '#007AFF',        /* Blue */
+					dark: '#1C1C1C',        /* RAL 7016 */
+					light: '#FFFFFF',       /* White text */
+					medium: '#E5E5E5',      /* Secondary text */
+					muted: '#A3A3A3',       /* Muted text */
 				},
-				// Background Colors
+				// Background Colors - RAL 7016 Theme
 				bg: {
-					primary: '#0F0F23',     // Darkest background
-					secondary: '#1A1B3A',   // Secondary dark
-					tertiary: '#252649',    // Card backgrounds
-					surface: '#2A2D5A',     // Elevated surfaces
+					primary: '#1C1C1C',     /* RAL 7016 */
+					secondary: '#262626',   /* Slightly lighter */
+					tertiary: '#303030',    /* Card backgrounds */
+					surface: '#3A3A3A',     /* Elevated surfaces */
 				},
 				// Text Colors
 				text: {
-					primary: '#FFFFFF',     // Primary white text
-					secondary: '#B8BCC8',   // Secondary gray text
-					muted: '#6B7280',       // Muted text
-					accent: '#8B5CF6',      // Accent purple text
+					primary: '#FFFFFF',     /* Primary white text */
+					secondary: '#E5E5E5',   /* Secondary gray text */
+					muted: '#A3A3A3',       /* Muted text */
+					accent: '#007AFF',      /* Blue accent text */
 				},
 				// Border Colors
 				'border-custom': {
-					primary: '#374151',     // Primary borders
-					secondary: '#4B5563',   // Secondary borders
-					accent: '#8B5CF6',      // Accent borders
+					primary: '#404040',     /* Primary borders */
+					secondary: '#4A4A4A',   /* Secondary borders */
+					accent: '#007AFF',      /* Blue borders */
 				},
-				// Coin-specific colors (updated for dark theme)
+				// Coin-specific colors
 				coin: {
-					gold: '#FFD700',        // Gold
-					silver: '#C0C0C0',      // Silver  
-					bronze: '#CD7F32',      // Bronze
-					platinum: '#E5E4E2',    // Platinum
-					copper: '#B87333',      // Copper
+					gold: '#FFD700',        /* Gold */
+					silver: '#C0C0C0',      /* Silver  */
+					bronze: '#CD7F32',      /* Bronze */
+					platinum: '#E5E4E2',    /* Platinum */
+					copper: '#B87333',      /* Copper */
 				},
-				// Professional electric colors (muted for dark theme)
+				// Vibrant accent colors
 				electric: {
-					blue: '#3B82F6',        // Blue 500
-					purple: '#8B5CF6',      // Violet 500
-					pink: '#EC4899',        // Pink 500
-					cyan: '#06B6D4',        // Cyan 500
-					emerald: '#10B981',     // Emerald 500
-					orange: '#F97316',      // Orange 500
-					red: '#EF4444',         // Red 500
-					indigo: '#6366F1',      // Indigo 500
-					teal: '#14B8A6',        // Teal 500
-					lime: '#84CC16',        // Lime 500
+					blue: '#007AFF',        /* Blue */
+					purple: '#5856D6',      /* Purple */
+					pink: '#FF2D92',        /* Pink */
+					cyan: '#5AC8FA',        /* Cyan */
+					emerald: '#34C759',     /* Green */
+					orange: '#FF9500',      /* Orange */
+					red: '#FF3B30',         /* Red */
+					indigo: '#5856D6',      /* Indigo */
+					teal: '#5AC8FA',        /* Teal */
+					lime: '#34C759',        /* Lime */
 				},
-				// Status colors with proper dark theme contrast
+				// Status colors
 				status: {
-					online: '#10B981',      // Emerald 500
-					offline: '#6B7280',     // Gray 500
-					away: '#F59E0B',        // Amber 500
-					busy: '#EF4444',        // Red 500
+					online: '#34C759',      /* Green */
+					offline: '#8E8E93',     /* Gray */
+					away: '#FF9500',        /* Orange */
+					busy: '#FF3B30',        /* Red */
 				}
 			},
 			borderRadius: {
