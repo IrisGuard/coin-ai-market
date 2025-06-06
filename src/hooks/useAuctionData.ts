@@ -34,7 +34,7 @@ interface Bid {
   bidder_id: string;
   amount: number;
   created_at: string;
-  profiles: {
+  profiles?: {
     name: string;
   };
 }
@@ -66,7 +66,7 @@ export const useAuctionData = (userId?: string) => {
             user_id,
             description,
             views,
-            profiles (
+            profiles!user_id (
               name,
               reputation,
               verified_dealer
@@ -82,7 +82,7 @@ export const useAuctionData = (userId?: string) => {
         const validAuctions = (auctionsData || []).filter(auction => 
           auction.profiles && 
           typeof auction.profiles === 'object' && 
-          !('error' in auction.profiles) &&
+          !Array.isArray(auction.profiles) &&
           'name' in auction.profiles
         );
 
@@ -129,7 +129,7 @@ export const useAuctionData = (userId?: string) => {
             .from('auction_bids')
             .select(`
               *,
-              profiles (name)
+              profiles!bidder_id (name)
             `)
             .eq('bidder_id', userId)
             .order('created_at', { ascending: false });
@@ -140,7 +140,11 @@ export const useAuctionData = (userId?: string) => {
           } else {
             // Filter out any invalid bids and ensure proper typing
             const validBids = (userBids || []).filter(bid => 
-              bid && bid.profiles && typeof bid.profiles === 'object' && !('error' in bid.profiles) && 'name' in bid.profiles
+              bid && 
+              bid.profiles && 
+              typeof bid.profiles === 'object' && 
+              !Array.isArray(bid.profiles) &&
+              'name' in bid.profiles
             ).map(bid => ({
               ...bid,
               profiles: bid.profiles as { name: string; }

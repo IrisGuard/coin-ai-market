@@ -16,7 +16,7 @@ interface CoinData {
   auction_end: string | null;
   views: number;
   user_id: string;
-  profiles: {
+  profiles?: {
     name: string;
     reputation: number;
     verified_dealer: boolean;
@@ -30,7 +30,7 @@ interface WatchlistItem {
   price_alert_enabled: boolean;
   target_price: number | null;
   price_change_percentage: number | null;
-  coin: CoinData;
+  coin?: CoinData;
 }
 
 export const useWatchlistData = (userId?: string) => {
@@ -48,7 +48,7 @@ export const useWatchlistData = (userId?: string) => {
           .from('watchlist')
           .select(`
             *,
-            coins (
+            coins!listing_id (
               id,
               name,
               year,
@@ -61,7 +61,7 @@ export const useWatchlistData = (userId?: string) => {
               auction_end,
               views,
               user_id,
-              profiles (
+              profiles!user_id (
                 name,
                 reputation,
                 verified_dealer
@@ -78,11 +78,11 @@ export const useWatchlistData = (userId?: string) => {
           .filter(item => 
             item.coins && 
             typeof item.coins === 'object' && 
-            !('error' in item.coins) && 
+            !Array.isArray(item.coins) &&
             'name' in item.coins &&
             item.coins.profiles &&
             typeof item.coins.profiles === 'object' &&
-            !('error' in item.coins.profiles) &&
+            !Array.isArray(item.coins.profiles) &&
             'name' in item.coins.profiles
           )
           .map(item => ({
