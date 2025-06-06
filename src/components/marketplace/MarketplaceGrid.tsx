@@ -83,7 +83,7 @@ const MarketplaceGrid = ({
       >
         {filteredCoins.map((coin) => (
           <motion.div key={coin.id} variants={itemVariants}>
-            <CoinCard {...coin} />
+            <CoinCard coin={coin} />
           </motion.div>
         ))}
       </motion.div>

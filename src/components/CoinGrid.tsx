@@ -69,7 +69,7 @@ const CoinGrid = ({ coins, loading, viewMode = 'grid' }: CoinGridProps) => {
     >
       {coins.map((coin) => (
         <motion.div key={coin.id} variants={itemVariants}>
-          <CoinCard {...coin} />
+          <CoinCard coin={coin} />
         </motion.div>
       ))}
     </motion.div>

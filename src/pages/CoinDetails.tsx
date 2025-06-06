@@ -14,7 +14,6 @@ import { toast } from 'sonner';
 import { Heart, Share2, Flag, Eye, Calendar, ShoppingCart, Gavel, Star, Shield, Award, TrendingUp, Clock, User, MapPin, DollarSign, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import CoinViewer3D from '@/components/coin-details/CoinViewer3D';
 
 const CoinDetails = () => {
   const { id } = useParams();
