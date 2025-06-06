@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,112 +13,126 @@ serve(async (req) => {
 
   try {
     const { image, imageUrl } = await req.json()
-    
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    )
 
-    // Get user from auth header
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-    if (authError || !user) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
-    }
-
-    // Check if we have Anthropic API key configured
-    const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!anthropicApiKey) {
+    if (!image) {
       return new Response(
-        JSON.stringify({ error: 'AI service not configured' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'No image provided' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       )
     }
 
-    // Call Anthropic Claude API for coin analysis
-    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    if (!anthropicApiKey) {
+      console.error('ANTHROPIC_API_KEY not found in environment variables')
+      return new Response(
+        JSON.stringify({ error: 'AI service not configured' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    console.log('Analyzing coin image with Anthropic Claude...')
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${anthropicApiKey}`,
+        'x-api-key': anthropicApiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `Analyze this coin image and provide detailed information in the following JSON format:
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2000,
+        messages: [
+          {
+            role: 'user',
+            content: [
               {
-                "identification": {
-                  "name": "coin name",
-                  "year": year,
-                  "country": "country",
-                  "denomination": "denomination",
-                  "mint": "mint mark"
-                },
-                "grading": {
-                  "condition": "grade (MS-70, AU-58, etc)",
-                  "grade": "condition description",
-                  "details": "detailed condition notes"
-                },
-                "valuation": {
-                  "current_value": estimated_value_number,
-                  "low_estimate": low_value,
-                  "high_estimate": high_value,
-                  "market_trend": "trend description"
-                },
-                "specifications": {
-                  "composition": "metal composition",
-                  "weight": "weight in grams",
-                  "diameter": "diameter in mm",
-                  "edge": "edge type"
-                },
-                "rarity": "rarity level",
-                "confidence": confidence_score_0_to_1,
-                "pcgs_number": "PCGS number if known",
-                "ngc_number": "NGC number if known"
+                type: 'text',
+                text: `Analyze this coin image and provide detailed information. Return ONLY a valid JSON object with this exact structure:
+
+{
+  "identification": {
+    "name": "Full coin name",
+    "year": 2023,
+    "country": "Country name",
+    "denomination": "Denomination",
+    "mint": "Mint location"
+  },
+  "grading": {
+    "condition": "Grade abbreviation (e.g., MS-65, AU-50)",
+    "grade": "Full grade description",
+    "details": "Detailed condition assessment"
+  },
+  "valuation": {
+    "current_value": 25.50,
+    "low_estimate": 20.00,
+    "high_estimate": 30.00,
+    "market_trend": "stable"
+  },
+  "specifications": {
+    "composition": "Metal composition",
+    "diameter": 24.3,
+    "weight": 6.25
+  },
+  "rarity": "Common/Uncommon/Rare/Very Rare",
+  "confidence": 0.85,
+  "pcgs_number": "PCGS catalog number if known",
+  "ngc_number": "NGC catalog number if known"
+}
+
+Provide realistic values. If you cannot determine specific information, use reasonable estimates or "Unknown" for strings and null for numbers.`
+              },
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: 'image/jpeg',
+                  data: image
+                }
               }
-              
-              Be as accurate as possible based on visible features.`
-            },
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: 'image/jpeg',
-                data: image.replace(/^data:image\/[a-z]+;base64,/, '')
-              }
-            }
-          ]
-        }]
+            ]
+          }
+        ]
       })
     })
 
-    if (!anthropicResponse.ok) {
-      throw new Error(`Anthropic API error: ${anthropicResponse.statusText}`)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Anthropic API error:', response.status, errorText)
+      throw new Error(`Anthropic API error: ${response.status}`)
     }
 
-    const anthropicResult = await anthropicResponse.json()
-    const analysisText = anthropicResult.content[0].text
-    
-    // Parse the JSON response from Claude
+    const data = await response.json()
+    console.log('Anthropic response received')
+
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      throw new Error('Invalid response format from Anthropic')
+    }
+
     let analysisResult
     try {
-      analysisResult = JSON.parse(analysisText)
+      // Extract JSON from the response text
+      const responseText = data.content[0].text
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response')
+      }
+
+      analysisResult = JSON.parse(jsonMatch[0])
     } catch (parseError) {
-      // If parsing fails, create a structured response from the text
+      console.error('Failed to parse AI response as JSON:', parseError)
+      
+      // Fallback response if parsing fails
       analysisResult = {
         identification: {
-          name: "Unknown Coin",
+          name: "Coin Analysis",
           year: new Date().getFullYear(),
           country: "Unknown",
           denomination: "Unknown",
@@ -127,47 +140,79 @@ serve(async (req) => {
         },
         grading: {
           condition: "Good",
-          grade: "Needs professional grading",
-          details: analysisText.substring(0, 200)
+          grade: "Good condition",
+          details: "Unable to determine specific grade from image"
         },
         valuation: {
-          current_value: 1.00,
-          low_estimate: 0.50,
-          high_estimate: 2.00,
-          market_trend: "Stable"
+          current_value: 5.00,
+          low_estimate: 2.00,
+          high_estimate: 10.00,
+          market_trend: "stable"
         },
         specifications: {
           composition: "Unknown",
-          weight: "Unknown",
-          diameter: "Unknown",
-          edge: "Unknown"
+          diameter: null,
+          weight: null
         },
         rarity: "Common",
-        confidence: 0.5
+        confidence: 0.3,
+        pcgs_number: null,
+        ngc_number: null
       }
     }
 
-    // Cache the analysis result
-    await supabaseClient
-      .from('ai_recognition_cache')
-      .insert({
-        image_hash: btoa(image).substring(0, 64),
-        recognition_results: analysisResult,
-        confidence_score: analysisResult.confidence || 0.5,
-        sources_consulted: ['anthropic-claude'],
-        processing_time_ms: Date.now()
-      })
+    // Validate and ensure all required fields are present
+    const validatedResult = {
+      identification: {
+        name: analysisResult.identification?.name || "Unknown Coin",
+        year: analysisResult.identification?.year || new Date().getFullYear(),
+        country: analysisResult.identification?.country || "Unknown",
+        denomination: analysisResult.identification?.denomination || "Unknown",
+        mint: analysisResult.identification?.mint || "Unknown"
+      },
+      grading: {
+        condition: analysisResult.grading?.condition || "Good",
+        grade: analysisResult.grading?.grade || "Good condition",
+        details: analysisResult.grading?.details || "Condition assessment based on image analysis"
+      },
+      valuation: {
+        current_value: parseFloat(analysisResult.valuation?.current_value) || 5.00,
+        low_estimate: parseFloat(analysisResult.valuation?.low_estimate) || 2.00,
+        high_estimate: parseFloat(analysisResult.valuation?.high_estimate) || 10.00,
+        market_trend: analysisResult.valuation?.market_trend || "stable"
+      },
+      specifications: {
+        composition: analysisResult.specifications?.composition || "Unknown",
+        diameter: analysisResult.specifications?.diameter || null,
+        weight: analysisResult.specifications?.weight || null
+      },
+      rarity: analysisResult.rarity || "Common",
+      confidence: Math.min(Math.max(parseFloat(analysisResult.confidence) || 0.5, 0), 1),
+      pcgs_number: analysisResult.pcgs_number || null,
+      ngc_number: analysisResult.ngc_number || null
+    }
+
+    console.log('Analysis complete:', validatedResult.identification.name)
 
     return new Response(
-      JSON.stringify(analysisResult),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify(validatedResult),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     )
 
   } catch (error) {
-    console.error('AI analysis error:', error)
+    console.error('Error in ai-coin-analysis function:', error)
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: 'Analysis failed',
+        details: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     )
   }
 })

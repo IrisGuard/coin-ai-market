@@ -1,18 +1,17 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Zap, CheckCircle, Upload as UploadIcon, Sparkles, TrendingUp, Award, DollarSign, Clock, AlertCircle } from 'lucide-react';
+import { Camera, Zap, CheckCircle, Upload as UploadIcon, Sparkles, TrendingUp, Award, DollarSign, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { SecurityUtils } from '@/utils/securityUtils';
-import { SessionSecurity } from '@/lib/securityEnhancements';
+import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
+import { supabase } from '@/integrations/supabase/client';
 
 const Upload = () => {
   const { isAuthenticated, user } = useAuth();
@@ -20,159 +19,185 @@ const Upload = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [uploadedImage, setUploadedImage] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isListing, setIsListing] = useState(false);
-  const [uploadError, setUploadError] = useState<string>('');
+  const [listingPrice, setListingPrice] = useState('');
+  const [listingDescription, setListingDescription] = useState('');
+  const [isAuction, setIsAuction] = useState(false);
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Validate session security
-  React.useEffect(() => {
-    if (!SessionSecurity.validateSession()) {
-      toast({
-        title: "Security Warning",
-        description: "Session validation failed. Please log in again.",
-        variant: "destructive",
-      });
-      navigate('/auth');
-    }
-  }, [navigate]);
+  const uploadImageToStorage = async (file: File): Promise<string> => {
+    const fileName = `${user?.id}/${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage
+      .from('coin-images')
+      .upload(fileName, file);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    if (error) throw error;
 
-    setUploadError('');
+    const { data: { publicUrl } } = supabase.storage
+      .from('coin-images')
+      .getPublicUrl(fileName);
 
-    // Security validation
-    const fileValidation = SecurityUtils.validateFileUpload(file);
-    if (!fileValidation.isValid) {
-      setUploadError(fileValidation.error!);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setUploadedImage(result);
-      analyzeImage(result, file);
-    };
-    reader.readAsDataURL(file);
+    return publicUrl;
   };
 
-  const analyzeImage = async (imageData: string, file: File) => {
-    setIsAnalyzing(true);
-    setUploadError('');
-    
+  const analyzeImageWithAI = async (imageBase64: string, imageUrl: string) => {
     try {
-      let imageUrl = '';
-      
-      if (file) {
-        // Upload image to Supabase Storage
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('coin-images')
-          .upload(fileName, file);
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('coin-images')
-          .getPublicUrl(fileName);
-        
-        imageUrl = publicUrl;
-      }
-
-      // Call the AI analysis edge function
-      const { data: result, error } = await supabase.functions.invoke('ai-coin-analysis', {
+      const { data, error } = await supabase.functions.invoke('ai-coin-analysis', {
         body: { 
-          image: imageData,
+          image: imageBase64,
           imageUrl: imageUrl
         }
       });
 
       if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('AI Analysis error:', error);
+      throw error;
+    }
+  };
 
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a valid image file');
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setUploadedImage(result);
+      analyzeImage(file);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const analyzeImage = async (file: File) => {
+    setIsAnalyzing(true);
+    try {
+      toast.info('Uploading image and analyzing with AI...');
+      
+      // Convert to base64 for AI analysis
+      const base64Image = await convertToBase64(file);
+      
+      // Upload image to Supabase storage
+      const imageUrl = await uploadImageToStorage(file);
+      
+      // Analyze with AI
+      const result = await analyzeImageWithAI(base64Image, imageUrl);
+      
       setAnalysisResult({
         ...result,
-        imageUrl: imageUrl
-      });
-      
-      toast({
-        title: "Analysis Complete!",
-        description: `${result.identification.name} identified with ${(result.confidence * 100).toFixed(1)}% confidence`,
+        imageUrl
       });
 
+      // Set suggested price from AI valuation
+      if (result.valuation?.current_value) {
+        setListingPrice(result.valuation.current_value.toString());
+      }
+
+      // Set suggested description
+      if (result.identification?.name && result.grading?.condition) {
+        setListingDescription(`${result.identification.name} in ${result.grading.condition} condition. ${result.grading?.details || ''}`);
+      }
+      
+      toast.success(`Coin identified: ${result.identification?.name || 'Unknown'}`);
     } catch (error) {
       console.error('Analysis error:', error);
-      setUploadError(error.message || "Unable to analyze the coin image. Please try again.");
-      toast({
-        title: "Analysis Failed",
-        description: error.message || "Unable to analyze the coin image. Please try again.",
-        variant: "destructive",
-      });
+      toast.error('Failed to analyze coin. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const listOnMarketplace = async (listingType: 'sale' | 'auction') => {
-    if (!analysisResult || !user) return;
-    
-    setIsListing(true);
-    
+  const saveCoinToDatabase = async (coinData: any) => {
     try {
-      const coinData = {
-        name: analysisResult.identification.name,
-        year: analysisResult.identification.year,
-        country: analysisResult.identification.country || 'Unknown',
-        denomination: analysisResult.identification.denomination,
-        mint: analysisResult.identification.mint,
-        grade: analysisResult.grading.condition,
-        rarity: analysisResult.rarity || 'Common',
-        condition: analysisResult.grading.grade,
-        price: parseFloat(analysisResult.valuation.current_value) || 1.00,
-        image: analysisResult.imageUrl || uploadedImage,
-        description: `${analysisResult.identification.name} - ${analysisResult.grading.details}`,
-        composition: analysisResult.specifications.composition,
-        diameter: parseFloat(analysisResult.specifications.diameter) || null,
-        weight: parseFloat(analysisResult.specifications.weight) || null,
-        is_auction: listingType === 'auction',
-        auction_end: listingType === 'auction' ? 
-          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
-        user_id: user.id,
-        authentication_status: 'pending',
-        pcgs_number: analysisResult.pcgs_number || null,
-        ngc_number: analysisResult.ngc_number || null,
-        ai_confidence: analysisResult.confidence || 0.5,
-        ai_provider: 'anthropic-claude'
-      };
-
       const { data, error } = await supabase
         .from('coins')
-        .insert(coinData)
+        .insert({
+          name: coinData.identification?.name || 'Unknown Coin',
+          year: coinData.identification?.year || new Date().getFullYear(),
+          country: coinData.identification?.country || 'Unknown',
+          denomination: coinData.identification?.denomination || '',
+          mint: coinData.identification?.mint || '',
+          condition: coinData.grading?.condition || 'Good',
+          grade: coinData.grading?.grade || coinData.grading?.condition || 'Ungraded',
+          price: parseFloat(listingPrice) || coinData.valuation?.current_value || 1,
+          description: listingDescription || `${coinData.identification?.name || 'Coin'} - ${coinData.grading?.condition || 'Good condition'}`,
+          rarity: coinData.rarity || 'Common',
+          composition: coinData.specifications?.composition || '',
+          diameter: coinData.specifications?.diameter || null,
+          weight: coinData.specifications?.weight || null,
+          image: coinData.imageUrl,
+          is_auction: isAuction,
+          user_id: user?.id,
+          ai_confidence: coinData.confidence || 0.5,
+          pcgs_number: coinData.pcgs_number || null,
+          ngc_number: coinData.ngc_number || null,
+          featured: false,
+          views: 0,
+          favorites: 0,
+          authentication_status: 'pending',
+          ai_provider: 'anthropic-claude'
+        })
         .select()
         .single();
 
       if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Database save error:', error);
+      throw error;
+    }
+  };
+
+  const listOnMarketplace = async (listingType: 'sale' | 'auction') => {
+    if (!analysisResult) return;
+    if (!listingPrice || parseFloat(listingPrice) <= 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+
+    setIsListing(true);
+    
+    try {
+      setIsAuction(listingType === 'auction');
       
-      toast({
-        title: "Listed Successfully!",
-        description: `Your ${analysisResult.identification.name} has been added to the marketplace`,
-      });
+      const coinData = await saveCoinToDatabase(analysisResult);
       
-      navigate(`/coin-details/${data.id}`);
+      toast.success(`Successfully listed ${analysisResult.identification?.name || 'coin'}!`);
+      navigate(`/coin-details/${coinData.id}`);
     } catch (error) {
       console.error('Listing error:', error);
-      toast({
-        title: "Listing Failed",
-        description: error.message || "Unable to list your coin. Please try again.",
-        variant: "destructive",
-      });
+      toast.error('Failed to list coin. Please try again.');
     } finally {
       setIsListing(false);
     }
@@ -186,7 +211,6 @@ const Upload = () => {
         <div className="mesh-bg"></div>
         
         <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -222,13 +246,6 @@ const Upload = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {uploadError && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{uploadError}</AlertDescription>
-                      </Alert>
-                    )}
-
                     {!uploadedImage ? (
                       <div className="border-2 border-dashed border-purple-300 rounded-2xl p-12 text-center bg-gradient-to-br from-purple-50 to-blue-50">
                         <Camera className="w-16 h-16 text-purple-600 mx-auto mb-4" />
@@ -262,29 +279,36 @@ const Upload = () => {
                           />
                           {isAnalyzing && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                              <div className="text-white text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                                <p className="font-semibold">Analyzing with AI...</p>
+                              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 flex items-center gap-3">
+                                <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                                <span className="font-semibold text-purple-600">Analyzing with AI...</span>
                               </div>
                             </div>
                           )}
                         </div>
                         
-                        {!isAnalyzing && !analysisResult && (
-                          <Button 
-                            onClick={() => analyzeImage(uploadedImage, null)}
-                            className="w-full coinvision-button"
-                          >
-                            <Zap className="w-5 h-5 mr-2" />
-                            Analyze Coin
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setUploadedImage('');
+                            setAnalysisResult(null);
+                            setImageFile(null);
+                            setListingPrice('');
+                            setListingDescription('');
+                          }}
+                          className="w-full"
+                        >
+                          Upload Different Image
+                        </Button>
                       </div>
                     )}
 
-                    {/* Tips */}
+                    {/* AI Tips */}
                     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-purple-200">
-                      <h4 className="font-semibold text-gray-800 mb-2">Tips for Best Results:</h4>
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-purple-600" />
+                        Photography Tips
+                      </h4>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• Use good lighting, avoid shadows</li>
                         <li>• Keep camera steady and focused</li>
@@ -297,108 +321,151 @@ const Upload = () => {
               </Card>
             </motion.div>
 
-            {/* Analysis Results */}
+            {/* Results Section */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
               {analysisResult ? (
-                <Card className="glass-card border-2 border-green-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-green-700">
-                      <CheckCircle className="w-6 h-6" />
-                      Analysis Complete
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Confidence Score */}
-                    <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
+                <div className="space-y-6">
+                  <Card className="glass-card border-2 border-green-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="flex items-center gap-3 text-green-700">
+                          <CheckCircle className="w-6 h-6" />
+                          Analysis Complete
+                        </span>
+                        <Badge className="bg-green-600 text-white">
+                          {((analysisResult.confidence || 0.5) * 100).toFixed(1)}% Confidence
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Identification */}
                       <div>
-                        <div className="font-semibold text-gray-800">
-                          {(analysisResult.confidence * 100).toFixed(1)}% Confidence
+                        <h3 className="text-2xl font-bold gradient-text mb-4">
+                          {analysisResult.identification?.name || 'Unknown Coin'}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Year:</span>
+                            <span className="ml-2 font-semibold">{analysisResult.identification?.year || 'Unknown'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Country:</span>
+                            <span className="ml-2 font-semibold">{analysisResult.identification?.country || 'Unknown'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Denomination:</span>
+                            <span className="ml-2 font-semibold">{analysisResult.identification?.denomination || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Mint:</span>
+                            <span className="ml-2 font-semibold">{analysisResult.identification?.mint || 'Unknown'}</span>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">AI identification accuracy</div>
                       </div>
-                    </div>
 
-                    {/* Identification Details */}
-                    <div className="space-y-3">
-                      <h3 className="font-bold text-2xl gradient-text">
-                        {analysisResult.identification.name}
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-600">Year:</span>
-                          <span className="ml-2 font-medium">{analysisResult.identification.year}</span>
+                      {/* Grading */}
+                      <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                          <Award className="w-5 h-5 text-yellow-600" />
+                          Professional Grade
+                        </h4>
+                        <div className="text-lg font-bold text-yellow-700">
+                          {analysisResult.grading?.condition || analysisResult.grading?.grade || 'Good'}
                         </div>
-                        <div>
-                          <span className="text-gray-600">Country:</span>
-                          <span className="ml-2 font-medium">{analysisResult.identification.country}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Mint:</span>
-                          <span className="ml-2 font-medium">{analysisResult.identification.mint}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Denomination:</span>
-                          <span className="ml-2 font-medium">{analysisResult.identification.denomination}</span>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {analysisResult.grading?.details || 'Professional grading assessment'}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Grading */}
-                    <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Award className="w-5 h-5 text-yellow-600" />
-                        <h4 className="font-semibold text-gray-800">Professional Grade</h4>
+                      {/* Valuation */}
+                      <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                          Market Valuation
+                        </h4>
+                        <div className="text-3xl font-bold text-green-600 mb-1">
+                          ${analysisResult.valuation?.current_value || '0'}
+                        </div>
+                        <div className="text-sm text-gray-600 mb-2">
+                          Range: ${analysisResult.valuation?.low_estimate || '0'} - ${analysisResult.valuation?.high_estimate || '0'}
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          {analysisResult.valuation?.market_trend || 'Stable'}
+                        </Badge>
                       </div>
-                      <div className="text-lg font-bold text-yellow-700">{analysisResult.grading.condition}</div>
-                      <div className="text-sm text-gray-600">{analysisResult.grading.details}</div>
-                    </div>
 
-                    {/* Valuation */}
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
-                        <h4 className="font-semibold text-gray-800">Market Valuation</h4>
-                      </div>
-                      <div className="text-3xl font-bold text-green-600 mb-1">${analysisResult.valuation.current_value}</div>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Range: ${analysisResult.valuation.low_estimate} - ${analysisResult.valuation.high_estimate}
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        <TrendingUp className="w-3 h-3 mr-1" />
-                        {analysisResult.valuation.market_trend}
-                      </Badge>
-                    </div>
+                      {/* Listing Section */}
+                      <div className="border-t pt-6">
+                        <h4 className="font-semibold text-gray-800 mb-4">List on Marketplace</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Your Price ($) *
+                            </label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Enter your listing price"
+                              value={listingPrice}
+                              onChange={(e) => setListingPrice(e.target.value)}
+                              className="w-full"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Description
+                            </label>
+                            <Textarea
+                              placeholder="Add any additional details about your coin..."
+                              value={listingDescription}
+                              onChange={(e) => setListingDescription(e.target.value)}
+                              className="w-full"
+                              rows={3}
+                            />
+                          </div>
 
-                    {/* Action Buttons */}
-                    <div className="space-y-3 pt-4">
-                      <Button 
-                        onClick={() => listOnMarketplace('sale')} 
-                        className="coinvision-button w-full"
-                        disabled={isListing}
-                      >
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        List for Sale - ${analysisResult.valuation.current_value}
-                      </Button>
-                      <Button 
-                        onClick={() => listOnMarketplace('auction')} 
-                        variant="outline" 
-                        className="coinvision-button-outline w-full"
-                        disabled={isListing}
-                      >
-                        <TrendingUp className="w-5 h-5 mr-2" />
-                        Start Auction
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <Button
+                              onClick={() => listOnMarketplace('sale')}
+                              disabled={isListing || !listingPrice}
+                              className="coinvision-button w-full"
+                            >
+                              {isListing ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <Sparkles className="w-4 h-4 mr-2" />
+                              )}
+                              List for Sale
+                            </Button>
+                            
+                            <Button
+                              onClick={() => listOnMarketplace('auction')}
+                              disabled={isListing || !listingPrice}
+                              variant="outline"
+                              className="coinvision-button-outline w-full"
+                            >
+                              {isListing ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <Clock className="w-4 h-4 mr-2" />
+                              )}
+                              Start Auction
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               ) : (
                 <Card className="glass-card border-2 border-gray-200">
-                  <CardContent className="p-12 text-center">
+                  <CardContent className="text-center py-16">
                     <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">
                       Ready for Analysis
