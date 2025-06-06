@@ -137,13 +137,13 @@ export const useUserSettings = () => {
       
       const { error } = await supabase
         .from('user_settings')
-        .upsert({
+        .upsert([{
           user_id: user?.id!,
           notifications: notifications as any,
           privacy: privacy as any,
           app_settings: appSettings as any,
           updated_at: new Date().toISOString()
-        });
+        }]);
 
       if (error) throw error;
       
