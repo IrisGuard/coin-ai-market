@@ -2078,22 +2078,34 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          last_price_check: number | null
           listing_id: string | null
           max_bid_alert: number | null
+          price_alert_enabled: boolean | null
+          price_change_percentage: number | null
+          target_price: number | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          last_price_check?: number | null
           listing_id?: string | null
           max_bid_alert?: number | null
+          price_alert_enabled?: boolean | null
+          price_change_percentage?: number | null
+          target_price?: number | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          last_price_check?: number | null
           listing_id?: string | null
           max_bid_alert?: number | null
+          price_alert_enabled?: boolean | null
+          price_change_percentage?: number | null
+          target_price?: number | null
           user_id?: string | null
         }
         Relationships: [

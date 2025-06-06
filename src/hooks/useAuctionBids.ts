@@ -31,16 +31,18 @@ export const useAuctionBids = (auctionId: string) => {
           .from('auction_bids')
           .select(`
             *,
-            profiles!auction_bids_bidder_id_fkey(name, avatar_url)
+            profiles!inner(name, avatar_url)
           `)
           .eq('auction_id', auctionId)
           .order('amount', { ascending: false });
 
         if (error) throw error;
-        setBids(data || []);
+        
+        // Filter out any bids without valid profile data
+        const validBids = (data || []).filter(bid => bid.profiles) as AuctionBid[];
+        setBids(validBids);
       } catch (error) {
         console.error('Error fetching bids:', error);
-        // Set empty array with proper type to avoid type errors
         setBids([]);
       } finally {
         setIsLoading(false);
@@ -71,14 +73,14 @@ export const useAuctionBids = (auctionId: string) => {
             .from('auction_bids')
             .select(`
               *,
-              profiles!auction_bids_bidder_id_fkey(name, avatar_url)
+              profiles!inner(name, avatar_url)
             `)
             .eq('id', payload.new.id)
             .single();
 
-          if (newBidData) {
+          if (newBidData && newBidData.profiles) {
             setBids(prev => {
-              const updated = [newBidData, ...prev.filter(bid => bid.id !== newBidData.id)];
+              const updated = [newBidData as AuctionBid, ...prev.filter(bid => bid.id !== newBidData.id)];
               return updated.sort((a, b) => b.amount - a.amount);
             });
           }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -140,18 +141,23 @@ const Auctions = () => {
 
         // Fetch user's bids if authenticated
         if (user?.id) {
-          const { data: userBids } = await supabase
+          const { data: userBids, error: bidsError } = await supabase
             .from('auction_bids')
             .select(`
               *,
-              profiles!auction_bids_bidder_id_fkey(name)
+              profiles!inner(name)
             `)
             .eq('bidder_id', user.id)
             .order('created_at', { ascending: false });
 
-          // Filter out any invalid bids and ensure proper typing
-          const validBids = (userBids || []).filter(bid => bid && bid.profiles) as Bid[];
-          setMyBids(validBids);
+          if (bidsError) {
+            console.error('Error fetching user bids:', bidsError);
+            setMyBids([]);
+          } else {
+            // Filter out any invalid bids and ensure proper typing
+            const validBids = (userBids || []).filter(bid => bid && bid.profiles) as Bid[];
+            setMyBids(validBids);
+          }
         }
 
       } catch (error) {
