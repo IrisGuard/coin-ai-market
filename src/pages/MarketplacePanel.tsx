@@ -21,7 +21,7 @@ const MarketplacePanel = () => {
     totalCoins: coins?.length || 0,
     verifiedCoins: coins?.filter(coin => coin.authentication_status === 'verified').length || 0,
     pendingCoins: coins?.filter(coin => coin.authentication_status === 'pending').length || 0,
-    activeAuctions: auctions?.filter(auction => auction.status === 'active').length || 0,
+    activeAuctions: auctions?.filter(auction => new Date(auction.auction_end) > new Date()).length || 0,
     totalAuctions: auctions?.length || 0
   };
 
