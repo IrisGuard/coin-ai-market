@@ -7,9 +7,11 @@ import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
 import DashboardTabsContent from '@/components/dashboard/DashboardTabsContent';
 import { DataSyncStatus } from '@/components/dashboard/DataSyncStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { stats, watchlistItems, recentTransactions, favorites } = useDashboardData();
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -23,7 +25,7 @@ const Dashboard = () => {
         {/* Data Sync Status */}
         <DataSyncStatus />
         
-        <DashboardStatsGrid />
+        <DashboardStatsGrid stats={stats} />
         
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
@@ -33,7 +35,11 @@ const Dashboard = () => {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
-          <DashboardTabsContent />
+          <DashboardTabsContent 
+            watchlistItems={watchlistItems}
+            recentTransactions={recentTransactions}
+            favorites={favorites}
+          />
         </Tabs>
       </div>
     </div>
