@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { uploadImage } from '@/utils/imageUpload';
@@ -235,6 +234,7 @@ export const useCoinUpload = () => {
     isSubmitting,
     dragActive,
     coinData,
+    setCoinData,
     handleDrag,
     handleDrop,
     removeImage,
