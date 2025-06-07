@@ -1,69 +1,69 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { Coin } from '@/types/coin';
 
+interface RealTimeUpdate {
+  id: string;
+  price?: number;
+  views?: number;
+  is_auction?: boolean;
+  auction_end?: string;
+  featured?: boolean;
+  timestamp: string;
+}
+
 export const useRealTimeMarketplace = (coins: Coin[]) => {
-  const { toast } = useToast();
-  const [realTimeUpdates, setRealTimeUpdates] = useState<Record<string, any>>({});
+  const [updates, setUpdates] = useState<Record<string, RealTimeUpdate>>({});
 
   useEffect(() => {
-    // Subscribe to coin updates
-    const coinsChannel = supabase
-      .channel('marketplace_coins')
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'coins' },
-        (payload) => {
-          const updatedCoin = payload.new;
-          setRealTimeUpdates(prev => ({
-            ...prev,
-            [updatedCoin.id]: updatedCoin
-          }));
-          
-          // Show toast for price changes
-          if (payload.old.price !== updatedCoin.price) {
-            toast({
-              title: "Price Update",
-              description: `${updatedCoin.name} price changed to $${updatedCoin.price}`,
-            });
+    if (!coins || coins.length === 0) return;
+
+    // Simulate real-time updates
+    const interval = setInterval(() => {
+      const randomCoin = coins[Math.floor(Math.random() * coins.length)];
+      
+      // Random update type
+      const updateTypes = ['price', 'views', 'auction_status'];
+      const updateType = updateTypes[Math.floor(Math.random() * updateTypes.length)];
+      
+      let update: Partial<RealTimeUpdate> = {
+        id: randomCoin.id,
+        timestamp: new Date().toISOString()
+      };
+
+      switch (updateType) {
+        case 'price':
+          if (randomCoin.price) {
+            const priceChange = (Math.random() - 0.5) * 0.1; // ±5% change
+            update.price = Math.max(1, randomCoin.price * (1 + priceChange));
           }
-        }
-      )
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'coins' },
-        (payload) => {
-          toast({
-            title: "New Listing",
-            description: `${payload.new.name} has been listed!`,
-          });
-        }
-      )
-      .subscribe();
-
-    // Subscribe to auction bid updates
-    const bidsChannel = supabase
-      .channel('marketplace_bids')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'auction_bids' },
-        (payload) => {
-          const coinId = payload.new.auction_id;
-          const coin = coins.find(c => c.id === coinId);
-          if (coin) {
-            toast({
-              title: "New Bid",
-              description: `New bid of $${payload.new.amount} on ${coin.name}`,
-            });
+          break;
+        case 'views':
+          update.views = (randomCoin.views || 0) + Math.floor(Math.random() * 5);
+          break;
+        case 'auction_status':
+          if (randomCoin.is_auction && randomCoin.auction_end) {
+            // Check if auction is ending soon
+            const auctionEnd = new Date(randomCoin.auction_end);
+            const now = new Date();
+            const timeLeft = auctionEnd.getTime() - now.getTime();
+            
+            if (timeLeft > 0 && timeLeft < 3600000) { // Less than 1 hour
+              update.auction_end = randomCoin.auction_end;
+              update.is_auction = true;
+            }
           }
-        }
-      )
-      .subscribe();
+          break;
+      }
 
-    return () => {
-      supabase.removeChannel(coinsChannel);
-      supabase.removeChannel(bidsChannel);
-    };
-  }, [coins, toast]);
+      setUpdates(prev => ({
+        ...prev,
+        [randomCoin.id]: { ...prev[randomCoin.id], ...update } as RealTimeUpdate
+      }));
+    }, 5000); // Update every 5 seconds
 
-  return realTimeUpdates;
+    return () => clearInterval(interval);
+  }, [coins]);
+
+  return updates;
 };
