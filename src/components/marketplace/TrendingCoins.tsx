@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useCoins } from '@/hooks/useCoins';
 import EnhancedCoinCard from '@/components/EnhancedCoinCard';
-import { TrendingUp, Eye } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 const TrendingCoins = () => {
   const { data: coins } = useCoins();
@@ -15,7 +14,7 @@ const TrendingCoins = () => {
     return coins
       .filter(coin => coin.authentication_status === 'verified')
       .sort((a, b) => (b.views || 0) - (a.views || 0))
-      .slice(0, 8);
+      .slice(0, 6); // Fewer coins for trending section
   }, [coins]);
 
   if (!trendingCoins.length) {
@@ -23,30 +22,21 @@ const TrendingCoins = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">
-            Trending Now
-          </h2>
-        </div>
-        <div className="flex items-center gap-1 text-sm text-gray-600">
-          <Eye className="w-4 h-4" />
-          <span>Most viewed this week</span>
-        </div>
+    <div className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingUp className="w-5 h-5 text-orange-600" />
+        <h2 className="text-xl font-medium text-gray-900">
+          Trending right now
+        </h2>
       </div>
       
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-      >
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {trendingCoins.map((coin, index) => (
-          <EnhancedCoinCard key={coin.id} coin={coin} index={index} />
+          <div key={coin.id} className="w-full">
+            <EnhancedCoinCard coin={coin} index={index} />
+          </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };

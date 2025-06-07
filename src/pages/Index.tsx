@@ -23,14 +23,31 @@ const Index = () => {
       {/* Etsy-style marketplace layout */}
       <MarketplaceHero />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Categories */}
         <CategoriesGrid />
-        <FeaturedCoinsGrid />
+        
+        {/* Trending Section */}
         <TrendingCoins />
+        
+        {/* Main Coins Grid - No title, just the grid like Etsy */}
+        <div className="mb-8">
+          <FeaturedCoinsGrid />
+        </div>
+        
+        {/* View All Link */}
+        <div className="text-center mb-12">
+          <a 
+            href="/marketplace" 
+            className="inline-block px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            View all coins
+          </a>
+        </div>
       </div>
 
-      {/* Move existing components to bottom - still available but secondary */}
-      <div className="bg-gray-50 mt-16">
+      {/* Secondary content moved to bottom */}
+      <div className="bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
           <QuickActionsSection />
           <ServicesSection />

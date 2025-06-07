@@ -1,84 +1,71 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Coins, Clock, Star, Globe, TrendingUp, Shield } from 'lucide-react';
 
 const categories = [
   {
     name: 'Ancient Coins',
-    icon: <Globe className="w-8 h-8" />,
-    count: '245',
-    color: 'from-amber-500 to-orange-600',
+    icon: <Globe className="w-6 h-6" />,
+    count: '245+',
     href: '/marketplace?category=ancient'
   },
   {
     name: 'Modern Coins',
-    icon: <Coins className="w-8 h-8" />,
-    count: '1,245',
-    color: 'from-blue-500 to-blue-600',
+    icon: <Coins className="w-6 h-6" />,
+    count: '1.2k+',
     href: '/marketplace?category=modern'
   },
   {
     name: 'Error Coins',
-    icon: <Star className="w-8 h-8" />,
-    count: '89',
-    color: 'from-purple-500 to-purple-600',
+    icon: <Star className="w-6 h-6" />,
+    count: '89+',
     href: '/marketplace?category=error'
   },
   {
     name: 'Live Auctions',
-    icon: <Clock className="w-8 h-8" />,
-    count: '126',
-    color: 'from-red-500 to-red-600',
+    icon: <Clock className="w-6 h-6" />,
+    count: '126+',
     href: '/marketplace?auctions=true'
   },
   {
     name: 'Graded Coins',
-    icon: <Shield className="w-8 h-8" />,
-    count: '567',
-    color: 'from-green-500 to-green-600',
+    icon: <Shield className="w-6 h-6" />,
+    count: '567+',
     href: '/marketplace?graded=true'
   },
   {
     name: 'Trending',
-    icon: <TrendingUp className="w-8 h-8" />,
-    count: '89',
-    color: 'from-pink-500 to-pink-600',
+    icon: <TrendingUp className="w-6 h-6" />,
+    count: '89+',
     href: '/marketplace?trending=true'
   }
 ];
 
 const CategoriesGrid = () => {
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">
-        Shop by Category
+    <div className="mb-8">
+      <h2 className="text-xl font-medium text-gray-900 mb-4">
+        Shop by category
       </h2>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {categories.map((category, index) => (
-          <motion.div
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+        {categories.map((category) => (
+          <Link
             key={category.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
+            to={category.href}
+            className="group text-center p-4 hover:bg-gray-50 rounded-lg transition-colors"
           >
-            <Link
-              to={category.href}
-              className="group block p-6 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 text-center"
-            >
-              <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${category.color} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
-                {category.icon}
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                {category.name}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {category.count} items
-              </p>
-            </Link>
-          </motion.div>
+            <div className="w-12 h-12 mx-auto mb-2 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 group-hover:bg-orange-200 transition-colors">
+              {category.icon}
+            </div>
+            <h3 className="text-sm font-medium text-gray-900 mb-1">
+              {category.name}
+            </h3>
+            <p className="text-xs text-gray-600">
+              {category.count}
+            </p>
+          </Link>
         ))}
       </div>
     </div>
