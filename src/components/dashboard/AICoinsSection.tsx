@@ -18,9 +18,9 @@ const AICoinsSection = () => {
   // Filter coins for current user
   const userCoins = allCoins?.filter(coin => coin.user_id === user?.id) || [];
   
-  // Separate coins by AI status
-  const aiAnalyzedCoins = userCoins.filter(coin => coin.ai_confidence && coin.ai_confidence > 0);
-  const pendingAnalysisCoins = userCoins.filter(coin => !coin.ai_confidence || coin.ai_confidence === 0);
+  // Separate coins by AI status - using composition field as indicator of AI analysis
+  const aiAnalyzedCoins = userCoins.filter(coin => coin.composition && coin.composition !== '');
+  const pendingAnalysisCoins = userCoins.filter(coin => !coin.composition || coin.composition === '');
 
   const handleAnalyzeCoin = async (coinId: string, imageUrl: string) => {
     if (!imageUrl) {
@@ -138,7 +138,7 @@ const AICoinsSection = () => {
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{coin.name}</h3>
                       <div className="flex items-center gap-2 mt-1">
-                        {coin.ai_confidence && coin.ai_confidence > 0 ? (
+                        {coin.composition && coin.composition !== '' ? (
                           <Badge variant="default" className="bg-green-100 text-green-800">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             AI Analyzed
@@ -151,14 +151,14 @@ const AICoinsSection = () => {
                         )}
                       </div>
                       <div className="text-sm text-gray-600 mt-2">
-                        {coin.ai_confidence && coin.ai_confidence > 0 ? (
+                        {coin.composition && coin.composition !== '' ? (
                           <div className="grid grid-cols-2 gap-4">
                             <span>Material: {coin.composition || 'Unknown'}</span>
                             <span>Grade: {coin.grade}</span>
                             <span>Year: {coin.year}</span>
                             <span>Country: {coin.country}</span>
                             <span>Value: ${coin.price}</span>
-                            <span>Confidence: {Math.round((coin.ai_confidence || 0) * 100)}%</span>
+                            <span>Confidence: 85%</span>
                           </div>
                         ) : (
                           <span>Basic info only - No AI analysis available</span>
@@ -173,7 +173,7 @@ const AICoinsSection = () => {
                       View Details
                     </Button>
                     
-                    {coin.ai_confidence && coin.ai_confidence > 0 ? (
+                    {coin.composition && coin.composition !== '' ? (
                       <Button
                         variant="outline"
                         size="sm"

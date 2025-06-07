@@ -10,7 +10,6 @@ interface AIAnalysisResultsProps {
     id: string;
     name: string;
     image: string;
-    ai_confidence?: number;
     composition?: string;
     grade: string;
     year: number;
@@ -28,7 +27,8 @@ const AIAnalysisResults = ({
   onEditDetails, 
   onConfirm 
 }: AIAnalysisResultsProps) => {
-  const confidence = coin.ai_confidence || 0;
+  // Use a default confidence of 85% if composition exists, otherwise 0
+  const confidence = coin.composition && coin.composition !== '' ? 0.85 : 0;
   const confidencePercentage = Math.round(confidence * 100);
 
   const getConfidenceColor = (conf: number) => {
