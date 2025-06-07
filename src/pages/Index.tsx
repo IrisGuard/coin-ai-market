@@ -16,12 +16,16 @@ const Index = () => {
   
   const { coins, isLoading } = useCachedMarketplaceData();
 
-  // Get featured coins for homepage - always calculate this
-  const featuredCoins = React.useMemo(() => {
+  // Filter to show only direct sales (not auctions) on the homepage
+  const directSaleCoins = React.useMemo(() => {
     if (!coins || coins.length === 0) return [];
     
     return coins
-      .filter(coin => coin.authentication_status === 'verified')
+      .filter(coin => 
+        coin.authentication_status === 'verified' && 
+        coin.listing_type !== 'auction' && 
+        !coin.is_auction
+      )
       .sort((a, b) => {
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
@@ -41,11 +45,19 @@ const Index = () => {
         {/* Trending Section */}
         <TrendingCoins />
         
-        {/* Featured Coins Grid */}
+        {/* Direct Sale Coins Grid */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6 text-center">
-            Featured Coins
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
+              Featured Coins - Buy Now
+            </h2>
+            <a 
+              href="/auctions" 
+              className="text-electric-orange hover:text-electric-red transition-colors font-medium"
+            >
+              View Auctions →
+            </a>
+          </div>
           
           {isLoading ? (
             <div className="flex justify-center items-center py-16">
@@ -56,11 +68,18 @@ const Index = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {featuredCoins.map((coin, index) => (
+              {directSaleCoins.map((coin, index) => (
                 <div key={coin.id} className="w-full">
                   <OptimizedCoinCard coin={coin} index={index} priority={index < 6} />
                 </div>
               ))}
+            </div>
+          )}
+          
+          {!isLoading && directSaleCoins.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No direct sale coins available at the moment.</p>
+              <p className="text-gray-400 mt-2">Check our auctions page for more items!</p>
             </div>
           )}
         </div>

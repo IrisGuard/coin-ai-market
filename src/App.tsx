@@ -1,77 +1,74 @@
 
-// Force GitHub sync - Updated at 2025-01-09 to ensure proper deployment
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ErrorBoundary from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import Index from "./pages/Index";
-import Marketplace from "./pages/Marketplace";
-import ActiveMarketplace from "./pages/ActiveMarketplace";
-import DealerStorePage from "./pages/DealerStorePage";
-import CoinUpload from "./pages/CoinUpload";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import Auth from "./pages/Auth";
-import CoinDetails from "./pages/CoinDetails";
-import Auctions from "./pages/Auctions";
-import CoinSale from "./pages/CoinSale";
-import NotFound from "./pages/NotFound";
-import EnhancedSearch from "./pages/EnhancedSearch";
-import MobileAIFeatures from '@/pages/MobileAIFeatures';
-import AIFeatures from './pages/AIFeatures';
-import { AdminProvider } from "@/contexts/AdminContext";
-import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Index from "@/pages/Index";
+import Auctions from "@/pages/Auctions";
+import CoinDetails from "@/pages/CoinDetails";
+import Dashboard from "@/pages/Dashboard";
+import Marketplace from "@/pages/Marketplace";
+import CoinUpload from "@/pages/CoinUpload";
+import Auth from "@/pages/Auth";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <AdminProvider>
-                <ErrorBoundary>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/marketplace" element={<ActiveMarketplace />} />
-                    <Route path="/marketplace-old" element={<Marketplace />} />
-                    <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
-                    <Route path="/search" element={<EnhancedSearch />} />
-                    <Route path="/upload" element={<CoinUpload />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/coin/:id" element={<CoinDetails />} />
-                    <Route path="/auctions" element={<Auctions />} />
-                    <Route path="/sell/:id" element={<CoinSale />} />
-                    <Route path="/mobile-ai" element={<MobileAIFeatures />} />
-                    <Route path="/ai-features" element={<AIFeatures />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <AdminKeyboardHandler />
-                </ErrorBoundary>
-              </AdminProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </ThemeProvider>
-      </TooltipProvider>
-      <Toaster />
-      <Sonner />
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/auctions" element={<Auctions />} />
+            <Route path="/coin/:id" element={<CoinDetails />} />
+            
+            {/* Auth Route - only accessible when not logged in */}
+            <Route 
+              path="/auth" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Auth />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Protected Routes - require authentication */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/marketplace" 
+              element={
+                <ProtectedRoute>
+                  <Marketplace />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/coin-upload" 
+              element={
+                <ProtectedRoute>
+                  <CoinUpload />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
