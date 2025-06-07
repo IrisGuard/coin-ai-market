@@ -48,6 +48,7 @@ function App() {
                     <Route path="/" element={<Index />} />
                     <Route path="/marketplace" element={<ActiveMarketplace />} />
                     <Route path="/marketplace-old" element={<Marketplace />} />
+                    <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
                     <Route path="/search" element={<EnhancedSearch />} />
                     <Route path="/upload" element={<CoinUpload />} />
                     <Route path="/dashboard" element={<Dashboard />} />

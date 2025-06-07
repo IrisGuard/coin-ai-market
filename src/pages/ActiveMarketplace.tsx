@@ -1,121 +1,141 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
-import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useDealerStores } from '@/hooks/useDealerStores';
+import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import Navbar from "@/components/Navbar";
+import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
+import TrendingCoins from "@/components/marketplace/TrendingCoins";
+import FeaturedCoinsGrid from "@/components/marketplace/FeaturedCoinsGrid";
 import Footer from "@/components/Footer";
-import MarketplaceSearch from "@/components/marketplace/MarketplaceSearch";
-import DealerStoresGrid from "@/components/marketplace/DealerStoresGrid";
-import { Store, Users, Shield, TrendingUp } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 
 const ActiveMarketplace = () => {
   usePageView();
-  usePerformanceMonitoring('ActiveMarketplace');
   
-  const { data: stores = [], isLoading } = useDealerStores();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { data: dealers, isLoading: dealersLoading } = useDealerStores();
+  const { stats } = useCachedMarketplaceData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
+      {/* Hero Section */}
+      <MarketplaceHero />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-4">
-            Dealer Marketplace
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover authenticated coins from verified dealers worldwide. Browse professional stores and find the perfect addition to your collection.
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-electric-blue to-electric-purple rounded-lg flex items-center justify-center mr-4">
-                <Store className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Verified Stores</h3>
-                <p className="text-2xl font-bold text-electric-blue">{stores.length}</p>
-              </div>
-            </div>
+        
+        {/* Trending Section */}
+        <TrendingCoins />
+        
+        {/* Dealer Stores Section */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <Store className="w-6 h-6 text-electric-orange" />
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
+              Verified Dealer Stores
+            </h2>
+            {stats && (
+              <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
+                {dealers?.length || 0} Active Dealers
+              </Badge>
+            )}
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-electric-green to-electric-emerald rounded-lg flex items-center justify-center mr-4">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Active Dealers</h3>
-                <p className="text-2xl font-bold text-electric-green">{stores.filter(s => s.verified_dealer).length}</p>
-              </div>
+          {dealersLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="glass-card animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        <div className="h-3 bg-gray-200 rounded w-24"></div>
+                      </div>
+                    </div>
+                    <div className="h-16 bg-gray-200 rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-electric-orange to-electric-red rounded-lg flex items-center justify-center mr-4">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Avg Rating</h3>
-                <p className="text-2xl font-bold text-electric-orange">
-                  {stores.length > 0 ? (stores.reduce((acc, store) => acc + (store.rating || 5), 0) / stores.length).toFixed(1) : '5.0'}
-                </p>
-              </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dealers?.map((dealer) => (
+                <Link key={dealer.id} to={`/dealer/${dealer.id}`}>
+                  <Card className="glass-card hover:shadow-lg transition-all duration-300 group cursor-pointer border border-electric-blue/10 hover:border-electric-blue/30">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4 mb-4">
+                        <Avatar className="w-16 h-16 border-2 border-electric-blue/20">
+                          <AvatarImage src={dealer.avatar_url} />
+                          <AvatarFallback className="bg-electric-blue/10 text-electric-blue font-bold">
+                            {dealer.full_name?.[0] || dealer.username?.[0] || 'D'}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gray-800 truncate">
+                              {dealer.full_name || dealer.username}
+                            </h3>
+                            {dealer.verified_dealer && (
+                              <Shield className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            {dealer.location && (
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                <span className="truncate">{dealer.location}</span>
+                              </div>
+                            )}
+                            {dealer.rating && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                <span>{Number(dealer.rating).toFixed(1)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <ArrowRight className="w-5 h-5 text-electric-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </div>
+                      
+                      {dealer.bio && (
+                        <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                          {dealer.bio}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        <Badge 
+                          variant="secondary" 
+                          className="bg-electric-blue/10 text-electric-blue border-electric-blue/20"
+                        >
+                          <Store className="w-3 h-3 mr-1" />
+                          View Store
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-electric-purple to-electric-pink rounded-lg flex items-center justify-center mr-4">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Global Reach</h3>
-                <p className="text-2xl font-bold text-electric-purple">25+</p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Search */}
+        {/* Featured Coins Grid */}
         <div className="mb-8">
-          <MarketplaceSearch
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-          />
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6 text-center">
+            Featured Coins
+          </h2>
+          <FeaturedCoinsGrid />
         </div>
-
-        {/* Results Stats */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Showing <span className="font-semibold text-electric-blue">
-              {stores.filter(store => {
-                if (!searchTerm) return true;
-                const searchLower = searchTerm.toLowerCase();
-                return (
-                  store.username?.toLowerCase().includes(searchLower) ||
-                  store.full_name?.toLowerCase().includes(searchLower) ||
-                  store.bio?.toLowerCase().includes(searchLower) ||
-                  store.location?.toLowerCase().includes(searchLower)
-                );
-              }).length}
-            </span> of <span className="font-semibold text-electric-purple">{stores.length}</span> dealer stores
-          </p>
-        </div>
-
-        {/* Dealer Stores Grid */}
-        <DealerStoresGrid 
-          stores={stores}
-          isLoading={isLoading}
-          searchTerm={searchTerm}
-        />
       </div>
 
       <Footer />
