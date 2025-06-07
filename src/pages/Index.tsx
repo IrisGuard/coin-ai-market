@@ -1,19 +1,18 @@
 
+import React from 'react';
+import Navbar from '@/components/Navbar';
+import WelcomeSection from '@/components/WelcomeSection';
+import CoinGrid from '@/components/CoinGrid';
 import { usePageView } from '@/hooks/usePageView';
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import FeatureSection from "@/components/FeatureSection";
-import Footer from "@/components/Footer";
 
 const Index = () => {
   usePageView();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50">
       <Navbar />
-      <HeroSection />
-      <FeatureSection />
-      <Footer />
+      <WelcomeSection />
+      <CoinGrid />
     </div>
   );
 };
