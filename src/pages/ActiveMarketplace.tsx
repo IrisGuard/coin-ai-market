@@ -32,15 +32,15 @@ const ActiveMarketplace = () => {
         {/* Trending Section */}
         <TrendingCoins />
         
-        {/* Dealer Stores Section */}
+        {/* Dealer Stores Section - ΚΥΡΙΑ ΛΕΙΤΟΥΡΓΙΑ MARKETPLACE */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
             <Store className="w-6 h-6 text-electric-orange" />
             <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-              Verified Dealer Stores
+              Καταστήματα Χρηστών
             </h2>
             <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-              {dealers?.length || 0} Active Dealers
+              {dealers?.length || 0} Ενεργά Καταστήματα
             </Badge>
           </div>
           
@@ -116,7 +116,7 @@ const ActiveMarketplace = () => {
                           className="bg-electric-blue/10 text-electric-blue border-electric-blue/20"
                         >
                           <Store className="w-3 h-3 mr-1" />
-                          View Store
+                          Δες Κατάστημα
                         </Badge>
                       </div>
                     </CardContent>
@@ -127,10 +127,10 @@ const ActiveMarketplace = () => {
           )}
         </div>
 
-        {/* Featured Coins Grid */}
+        {/* Featured Coins Grid - ΝΟΜΙΣΜΑΤΑ ΑΠΟ ΧΡΗΣΤΕΣ */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6 text-center">
-            Featured Coins
+            Προτεινόμενα Νομίσματα
           </h2>
           <FeaturedCoinsGrid />
         </div>

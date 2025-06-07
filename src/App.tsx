@@ -10,7 +10,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
-import Marketplace from "./pages/Marketplace";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
 import DealerStorePage from "./pages/DealerStorePage";
 import CoinUpload from "./pages/CoinUpload";
@@ -49,7 +48,6 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/marketplace" element={<ActiveMarketplace />} />
-                    <Route path="/marketplace-old" element={<Marketplace />} />
                     <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
                     <Route path="/search" element={<EnhancedSearch />} />
                     <Route path="/upload" element={
