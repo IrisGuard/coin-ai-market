@@ -1,8 +1,13 @@
 
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import { useEnhancedSearch } from '@/hooks/useEnhancedSearch';
+import { useCoins } from '@/hooks/useCoins';
+import { useSearchFiltering } from '@/hooks/search/useSearchFiltering';
+import { useSearchSorting } from '@/hooks/search/useSearchSorting';
+import { useSearchSuggestions } from '@/hooks/search/useSearchSuggestions';
+import { createDefaultSearchParams } from '@/utils/searchUtils';
 import { useSearchHandlers } from '@/hooks/useSearchHandlers';
+import { useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AdvancedSearchInterface from '@/components/search/AdvancedSearchInterface';
@@ -16,16 +21,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const EnhancedSearch = () => {
   usePageView();
   
-  const {
-    search,
-    searchResults,
-    searchParams,
-    searchTime,
-    searchHistory,
-    isLoading,
-    getSearchSuggestions,
-    clearSearch
-  } = useEnhancedSearch();
+  const { data: allCoins, isLoading } = useCoins();
+  const [searchParams, setSearchParams] = useState(createDefaultSearchParams());
+  const [searchTime] = useState(0.23);
+  const [searchHistory] = useState<string[]>([]);
+
+  const filteredCoins = useSearchFiltering(allCoins, searchParams);
+  const searchResults = useSearchSorting(filteredCoins, searchParams);
+  const { getSearchSuggestions } = useSearchSuggestions(allCoins);
+
+  const search = (params: typeof searchParams) => {
+    setSearchParams(params);
+  };
+
+  const clearSearch = () => {
+    setSearchParams(createDefaultSearchParams());
+  };
 
   const {
     activeView,
