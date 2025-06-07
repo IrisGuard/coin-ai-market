@@ -45,7 +45,7 @@ export const initSentry = () => {
 
       integrations: [
         // React error boundary integration
-        new Sentry.Replay({
+        Sentry.replayIntegration({
           maskAllInputs: true,
           maskAllText: false,
         }),

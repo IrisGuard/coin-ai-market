@@ -177,37 +177,42 @@ export const useMemoryMonitoring = () => {
 
 export const useWebVitals = () => {
   useEffect(() => {
-    if (import.meta.env.PROD && 'web-vitals' in window) {
-      // Web Vitals monitoring for Vercel
-      import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
-        function sendToVercel(metric: any) {
-          if (window.va) {
-            window.va('track', 'web_vital', {
-              name: metric.name,
+    if (import.meta.env.PROD) {
+      // Dynamic import for web-vitals to avoid build issues
+      const loadWebVitals = async () => {
+        try {
+          const { onCLS, onFID, onFCP, onLCP, onTTFB } = await import('web-vitals');
+          
+          function sendToVercel(metric: any) {
+            if (window.va) {
+              window.va('track', 'web_vital', {
+                name: metric.name,
+                value: metric.value,
+                rating: metric.rating,
+                delta: metric.delta
+              });
+            }
+
+            trackPerformance(window.location.pathname, {
+              type: 'web_vital',
+              metric: metric.name,
               value: metric.value,
               rating: metric.rating,
               delta: metric.delta
             });
           }
 
-          trackPerformance(window.location.pathname, {
-            type: 'web_vital',
-            metric: metric.name,
-            value: metric.value,
-            rating: metric.rating,
-            delta: metric.delta
-          });
+          onCLS(sendToVercel);
+          onFID(sendToVercel);
+          onFCP(sendToVercel);
+          onLCP(sendToVercel);
+          onTTFB(sendToVercel);
+        } catch (error) {
+          console.log('Web Vitals library failed to load:', error);
         }
+      };
 
-        onCLS(sendToVercel);
-        onFID(sendToVercel);
-        onFCP(sendToVercel);
-        onLCP(sendToVercel);
-        onTTFB(sendToVercel);
-      }).catch(() => {
-        // Fallback if web-vitals not available
-        console.log('Web Vitals library not available');
-      });
+      loadWebVitals();
     }
   }, []);
 };
