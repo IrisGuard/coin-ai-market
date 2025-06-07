@@ -1,6 +1,14 @@
 
 export type AuctionRarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare';
 
+export interface TimeRemaining {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  expired: boolean;
+}
+
 export interface AuctionCoin {
   id: string;
   name: string;

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -115,8 +116,6 @@ const Auctions = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAuctions.map((auction, index) => {
-                const timeRemaining = getTimeRemaining(auction.auction_end);
-                const isEndingSoon = timeRemaining.days === 0 && timeRemaining.hours <= 24;
                 const isMyBid = auction.highest_bidder_id === user?.id;
 
                 return (
@@ -124,7 +123,6 @@ const Auctions = () => {
                     key={auction.id}
                     auction={auction}
                     index={index}
-                    isEndingSoon={isEndingSoon}
                     isMyBid={isMyBid}
                     bidAmount={bidAmounts[auction.id] || ''}
                     setBidAmount={(amount) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}
