@@ -33,7 +33,7 @@ const AuthCard = () => {
             key={isLogin ? 'login' : 'signup'}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mb-2"
+            className="text-2xl sm:text-3xl font-serif font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-2"
           >
             {isLogin ? 'Welcome Back' : 'Join CoinVision'}
           </motion.h1>
@@ -42,7 +42,7 @@ const AuthCard = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-gray-600"
+            className="text-electric-green"
           >
             {isLogin 
               ? 'Sign in to access your collection and continue your coin journey'

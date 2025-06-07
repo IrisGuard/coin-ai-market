@@ -100,10 +100,10 @@ const ActiveMarketplace = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-4">
             Marketplace
           </h1>
-          <p className="text-gray-600">
+          <p className="text-electric-green">
             Discover authentic coins from collectors worldwide
           </p>
         </div>
@@ -124,7 +124,7 @@ const ActiveMarketplace = () => {
                 checked={showAuctionsOnly}
                 onCheckedChange={setShowAuctionsOnly}
               />
-              <label className="text-sm font-medium">Live Auctions Only</label>
+              <label className="text-sm font-medium text-electric-orange">Live Auctions Only</label>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -132,7 +132,7 @@ const ActiveMarketplace = () => {
                 checked={showFeaturedOnly}
                 onCheckedChange={setShowFeaturedOnly}
               />
-              <label className="text-sm font-medium">Featured Only</label>
+              <label className="text-sm font-medium text-electric-purple">Featured Only</label>
             </div>
 
             <Select value={selectedCondition} onValueChange={setSelectedCondition}>
@@ -187,7 +187,7 @@ const ActiveMarketplace = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className={viewMode === 'grid' ? 'bg-orange-50 border-orange-200' : ''}
+                className={viewMode === 'grid' ? 'bg-electric-orange/10 border-electric-orange text-electric-orange' : 'text-electric-blue'}
               >
                 <Grid className="w-4 h-4" />
               </Button>
@@ -195,7 +195,7 @@ const ActiveMarketplace = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className={viewMode === 'list' ? 'bg-orange-50 border-orange-200' : ''}
+                className={viewMode === 'list' ? 'bg-electric-orange/10 border-electric-orange text-electric-orange' : 'text-electric-purple'}
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -206,7 +206,7 @@ const ActiveMarketplace = () => {
                 variant="outline"
                 size="sm"
                 onClick={clearFilters}
-                className="text-gray-600"
+                className="text-electric-red hover:text-electric-orange"
               >
                 Clear Filters
               </Button>
@@ -216,8 +216,8 @@ const ActiveMarketplace = () => {
 
         {/* Results */}
         <div className="mb-6 flex items-center justify-between">
-          <p className="text-gray-600">
-            Showing <span className="font-semibold">{filteredCoins.length}</span> of <span className="font-semibold">{coins.length}</span> coins
+          <p className="text-electric-green">
+            Showing <span className="font-semibold text-electric-blue">{filteredCoins.length}</span> of <span className="font-semibold text-electric-purple">{coins.length}</span> coins
           </p>
         </div>
 
@@ -225,21 +225,21 @@ const ActiveMarketplace = () => {
         {isLoading ? (
           <div className="flex justify-center items-center py-16">
             <div className="flex items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-              <span className="text-gray-600">Loading marketplace...</span>
+              <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
+              <span className="text-electric-blue">Loading marketplace...</span>
             </div>
           </div>
         ) : filteredCoins.length === 0 ? (
           <div className="text-center py-16">
             <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-electric-blue to-electric-purple rounded-full flex items-center justify-center mx-auto mb-6">
                 <div className="text-4xl">🔍</div>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">No coins found</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-2xl font-semibold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent mb-2">No coins found</h2>
+              <p className="text-electric-blue mb-6">
                 We couldn't find any coins matching your search criteria.
               </p>
-              <Button onClick={clearFilters} className="bg-orange-600 hover:bg-orange-700">
+              <Button onClick={clearFilters} className="bg-gradient-to-r from-electric-orange to-electric-red hover:from-electric-red hover:to-electric-orange text-white">
                 Clear all filters
               </Button>
             </div>
