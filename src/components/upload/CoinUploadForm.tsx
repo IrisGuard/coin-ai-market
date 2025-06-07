@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import MobileCameraUploader from '@/components/MobileCameraUploader';
+import ListingTypeSelector from './ListingTypeSelector';
 
 const CoinUploadForm = () => {
   const createCoin = useCreateCoin();
@@ -33,7 +34,9 @@ const CoinUploadForm = () => {
     composition: '',
     diameter: '',
     weight: '',
-    mint: ''
+    mint: '',
+    isAuction: false,
+    auctionDuration: '7'
   });
 
   // Check if device is mobile
@@ -44,7 +47,6 @@ const CoinUploadForm = () => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        // Remove data:image/...;base64, prefix to get just the base64 string
         const base64 = result.split(',')[1];
         resolve(base64);
       };
@@ -62,7 +64,6 @@ const CoinUploadForm = () => {
       });
 
       if (result.success) {
-        // Update form with AI results
         setFormData(prev => ({
           ...prev,
           name: result.identification.name || '',
@@ -102,7 +103,6 @@ const CoinUploadForm = () => {
     setImagePreview(primaryImage.preview);
     setFormData(prev => ({ ...prev, image: primaryImage.preview }));
 
-    // Run AI analysis on the image
     await handleAIAnalysis(primaryImage.file);
   };
 
@@ -110,7 +110,6 @@ const CoinUploadForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -119,7 +118,6 @@ const CoinUploadForm = () => {
     };
     reader.readAsDataURL(file);
 
-    // Run AI analysis on the image
     await handleAIAnalysis(file);
   };
 
@@ -136,6 +134,14 @@ const CoinUploadForm = () => {
       country: formData.country,
       denomination: formData.denomination,
       description: formData.description,
+      // Add auction-specific fields
+      is_auction: formData.isAuction,
+      listing_type: formData.isAuction ? 'auction' : 'direct_sale',
+      auction_end: formData.isAuction ? 
+        new Date(Date.now() + (parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000)).toISOString() : 
+        null,
+      starting_price: formData.isAuction ? parseFloat(formData.price) || 0 : null,
+      reserve_price: formData.isAuction ? parseFloat(formData.price) || 0 : null
     };
     
     createCoin.mutate(coinData);
@@ -152,10 +158,9 @@ const CoinUploadForm = () => {
           <CardHeader>
             <CardTitle className="text-2xl font-serif flex items-center gap-2">
               <Upload className="w-6 h-6" />
-              Upload Your Coin
+              List Your Coin
             </CardTitle>
             
-            {/* Mobile Mode Toggle */}
             {isMobileDevice && (
               <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2">
@@ -176,7 +181,13 @@ const CoinUploadForm = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Image Upload */}
+              {/* Listing Type Selection */}
+              <ListingTypeSelector
+                isAuction={formData.isAuction}
+                onSelectionChange={(isAuction) => setFormData(prev => ({ ...prev, isAuction }))}
+              />
+
+              {/* Image Upload Section */}
               <div className="space-y-4">
                 <Label>Coin Image</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -204,7 +215,6 @@ const CoinUploadForm = () => {
                     </div>
                   )}
                   
-                  {/* Image Upload Options */}
                   <div className="mt-4 space-y-3">
                     {!isMobileMode ? (
                       <Input
@@ -253,7 +263,59 @@ const CoinUploadForm = () => {
                 </div>
               </div>
 
-              {/* Coin Details */}
+              {/* Auction-specific fields */}
+              {formData.isAuction && (
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold mb-4 text-purple-800">Auction Settings</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="startingBid">Starting Bid (USD)*</Label>
+                      <Input
+                        id="startingBid"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                        placeholder="Starting bid amount"
+                        required={formData.isAuction}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="auctionDuration">Auction Duration</Label>
+                      <Select value={formData.auctionDuration} onValueChange={(value) => setFormData(prev => ({ ...prev, auctionDuration: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 days</SelectItem>
+                          <SelectItem value="5">5 days</SelectItem>
+                          <SelectItem value="7">7 days</SelectItem>
+                          <SelectItem value="10">10 days</SelectItem>
+                          <SelectItem value="14">14 days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Direct Sale specific fields */}
+              {!formData.isAuction && (
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (USD)*</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="e.g., 85.00"
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Coin Details - keeping existing code structure */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Coin Name*</Label>
@@ -305,19 +367,6 @@ const CoinUploadForm = () => {
                     value={formData.grade}
                     onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
                     placeholder="e.g., MS-65, AU-50, VF-20"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (USD)*</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="e.g., 85.00"
                     required
                   />
                 </div>
@@ -418,10 +467,10 @@ const CoinUploadForm = () => {
                 {createCoin.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Uploading Coin...
+                    {formData.isAuction ? 'Starting Auction...' : 'Listing Coin...'}
                   </>
                 ) : (
-                  'List Coin for Sale'
+                  formData.isAuction ? 'Start Auction' : 'List Coin for Sale'
                 )}
               </Button>
             </form>

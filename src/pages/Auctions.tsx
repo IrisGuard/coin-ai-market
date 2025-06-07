@@ -21,24 +21,27 @@ const Auctions = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'ending_soon' | 'just_started' | 'hot'>('all');
   const [sortBy, setSortBy] = useState<'ending_soon' | 'highest_bid' | 'most_bids' | 'newest'>('ending_soon');
 
+  // Filter auctions to only show actual auctions (not direct sales)
+  const auctionOnlyItems = auctions.filter(item => item.listing_type === 'auction' || item.is_auction);
+
   // Filter and sort auctions
   const filteredAuctions = useMemo(() => {
-    return filterAndSortAuctions(auctions, searchTerm, filterStatus, sortBy);
-  }, [auctions, searchTerm, filterStatus, sortBy]);
+    return filterAndSortAuctions(auctionOnlyItems, searchTerm, filterStatus, sortBy);
+  }, [auctionOnlyItems, searchTerm, filterStatus, sortBy]);
 
   // Calculate stats
-  const endingSoonCount = auctions.filter(auction => {
+  const endingSoonCount = auctionOnlyItems.filter(auction => {
     const now = new Date().getTime();
     const end = new Date(auction.auction_end).getTime();
     const hoursRemaining = (end - now) / (1000 * 60 * 60);
     return hoursRemaining <= 24 && hoursRemaining > 0;
   }).length;
 
-  const hotAuctionsCount = auctions.filter(auction => 
+  const hotAuctionsCount = auctionOnlyItems.filter(auction => 
     auction.bid_count >= 5 || auction.watchers >= 10
   ).length;
 
-  const totalValue = auctions.reduce((sum, auction) => sum + auction.current_bid, 0);
+  const totalValue = auctionOnlyItems.reduce((sum, auction) => sum + auction.current_bid, 0);
   const userBidsCount = myBids.length;
 
   if (isLoading) {
@@ -68,7 +71,7 @@ const Auctions = () => {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Live Auctions</h1>
-          <p className="text-gray-600">Bid on rare and valuable coins from dealers worldwide</p>
+          <p className="text-gray-600">Bid on rare and valuable coins from collectors worldwide</p>
         </motion.div>
 
         {/* Auction Stats */}
@@ -126,7 +129,7 @@ const Auctions = () => {
                     isMyBid={isMyBid}
                     bidAmount={bidAmounts[auction.id] || ''}
                     setBidAmount={(amount) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}
-                    placeBid={(auctionId) => placeBid(auctionId, auctions)}
+                    placeBid={(auctionId) => placeBid(auctionId, auctionOnlyItems)}
                     addToWatchlist={() => addToWatchlist(auction.id)}
                     userId={user?.id}
                   />
