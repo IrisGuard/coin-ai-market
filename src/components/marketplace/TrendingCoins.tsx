@@ -1,12 +1,22 @@
 
 import React from 'react';
-import { useCoins } from '@/hooks/useCoins';
-import EnhancedCoinCard from '@/components/EnhancedCoinCard';
+import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
+import OptimizedCoinCard from '@/components/OptimizedCoinCard';
 import { TrendingUp, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const TrendingCoins = () => {
-  const { data: coins, isLoading, error } = useCoins();
+  const { coins, isLoading, error } = useCachedMarketplaceData();
+
+  // Always calculate trending coins, even if empty
+  const trendingCoins = React.useMemo(() => {
+    if (!coins || coins.length === 0) return [];
+    
+    return coins
+      .filter(coin => coin.authentication_status === 'verified')
+      .sort((a, b) => (b.views || 0) - (a.views || 0))
+      .slice(0, 6); // Fewer coins for trending section
+  }, [coins]);
 
   // Don't render anything while loading
   if (isLoading) {
@@ -18,8 +28,8 @@ const TrendingCoins = () => {
     return (
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-brand-primary" />
-          <h2 className="text-xl font-medium text-text-primary">
+          <TrendingUp className="w-5 h-5 text-orange-600" />
+          <h2 className="text-xl font-medium text-gray-900">
             Trending right now
           </h2>
         </div>
@@ -33,16 +43,6 @@ const TrendingCoins = () => {
     );
   }
 
-  // Get trending coins (highest views, recent activity)
-  const trendingCoins = React.useMemo(() => {
-    if (!coins || coins.length === 0) return [];
-    
-    return coins
-      .filter(coin => coin.authentication_status === 'verified')
-      .sort((a, b) => (b.views || 0) - (a.views || 0))
-      .slice(0, 6); // Fewer coins for trending section
-  }, [coins]);
-
   // Don't render if no trending coins
   if (!trendingCoins.length) {
     return null;
@@ -51,8 +51,8 @@ const TrendingCoins = () => {
   return (
     <div className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-5 h-5 text-brand-primary" />
-        <h2 className="text-xl font-medium text-text-primary">
+        <TrendingUp className="w-5 h-5 text-orange-600" />
+        <h2 className="text-xl font-medium text-gray-900">
           Trending right now
         </h2>
       </div>
@@ -60,7 +60,7 @@ const TrendingCoins = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {trendingCoins.map((coin, index) => (
           <div key={coin.id} className="w-full">
-            <EnhancedCoinCard coin={coin} index={index} />
+            <OptimizedCoinCard coin={coin} index={index} priority={index < 3} />
           </div>
         ))}
       </div>

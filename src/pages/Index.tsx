@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
 import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
@@ -16,15 +17,19 @@ const Index = () => {
   
   const { coins, isLoading } = useCachedMarketplaceData();
 
-  // Get featured coins for homepage
-  const featuredCoins = coins
-    .filter(coin => coin.authentication_status === 'verified')
-    .sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return (b.views || 0) - (a.views || 0);
-    })
-    .slice(0, 12);
+  // Get featured coins for homepage - always calculate this
+  const featuredCoins = React.useMemo(() => {
+    if (!coins || coins.length === 0) return [];
+    
+    return coins
+      .filter(coin => coin.authentication_status === 'verified')
+      .sort((a, b) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return (b.views || 0) - (a.views || 0);
+      })
+      .slice(0, 12);
+  }, [coins]);
 
   return (
     <div className="min-h-screen bg-white">
