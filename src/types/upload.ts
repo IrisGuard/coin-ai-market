@@ -25,5 +25,5 @@ export interface CoinData {
   composition: string;
   diameter: string;
   weight: string;
-  auctionDuration: string;  // Changed to string to fix type conflict
+  auctionDuration: string;
 }
