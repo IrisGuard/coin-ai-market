@@ -66,7 +66,7 @@ const ListingTypeSelector = ({ isAuction, onSelectionChange }: ListingTypeSelect
               )}
             </div>
           </CardContent>
-        </div>
+        </Card>
       </div>
     </div>
   );
