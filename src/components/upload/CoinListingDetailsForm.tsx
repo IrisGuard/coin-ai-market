@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -5,25 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText } from 'lucide-react';
-
-interface CoinData {
-  title: string;
-  description: string;
-  price: string;
-  condition: string;
-  year: string;
-  country: string;
-  denomination: string;
-  mint: string;
-  composition: string;
-  diameter: string;
-  weight: string;
-  grade: string;
-  rarity: string;
-  isAuction: boolean;
-  startingBid: string;
-  auctionDuration: string;
-}
+import type { CoinData } from '@/types/upload';
 
 interface CoinListingDetailsFormProps {
   coinData: CoinData;
@@ -210,7 +193,6 @@ const CoinListingDetailsForm = ({ coinData, onCoinDataChange }: CoinListingDetai
           />
         </div>
 
-        {/* Auction Option */}
         <div className="p-6 bg-purple-50 rounded-xl border border-purple-200">
           <div className="flex items-center space-x-3 mb-4">
             <input
