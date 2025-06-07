@@ -1,4 +1,3 @@
-
 // Force GitHub sync - Updated at 2025-01-09 to ensure proper deployment
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -20,6 +19,8 @@ import CoinSale from "./pages/CoinSale";
 import NotFound from "./pages/NotFound";
 import EnhancedSearch from "./pages/EnhancedSearch";
 import MobileAIFeatures from '@/pages/MobileAIFeatures';
+import { AdminProvider } from "@/contexts/AdminContext";
+import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,23 +37,26 @@ function App() {
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/marketplace" element={<ActiveMarketplace />} />
-                <Route path="/marketplace-old" element={<Marketplace />} />
-                <Route path="/search" element={<EnhancedSearch />} />
-                <Route path="/upload" element={<CoinUpload />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/coin/:id" element={<CoinDetails />} />
-                <Route path="/auctions" element={<Auctions />} />
-                <Route path="/sell/:id" element={<CoinSale />} />
-                <Route path="/mobile-ai" element={<MobileAIFeatures />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ErrorBoundary>
+            <AdminProvider>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/marketplace" element={<ActiveMarketplace />} />
+                  <Route path="/marketplace-old" element={<Marketplace />} />
+                  <Route path="/search" element={<EnhancedSearch />} />
+                  <Route path="/upload" element={<CoinUpload />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/coin/:id" element={<CoinDetails />} />
+                  <Route path="/auctions" element={<Auctions />} />
+                  <Route path="/sell/:id" element={<CoinSale />} />
+                  <Route path="/mobile-ai" element={<MobileAIFeatures />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <AdminKeyboardHandler />
+              </ErrorBoundary>
+            </AdminProvider>
           </AuthProvider>
         </BrowserRouter>
         <Toaster />

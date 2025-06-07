@@ -2,135 +2,155 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logSecurityEvent } from './securityConfig';
 
+export interface SafeQueryResult<T> {
+  data: T | null;
+  error: string | null;
+}
+
 /**
- * Secure admin verification utility
- * Uses the updated is_admin_user function with proper security settings
+ * Verifies admin access using the secure RPC function
  */
-export const verifyAdminAccess = async (userId?: string): Promise<boolean> => {
+export const verifyAdminAccess = async (): Promise<boolean> => {
   try {
-    if (!userId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      userId = user.id;
-    }
-
-    const { data, error } = await supabase
-      .rpc('is_admin_user', { user_id: userId });
-
-    if (error) {
-      console.error('Admin verification error:', error);
-      await logSecurityEvent('admin_verification_failed', { error: error.message, userId });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      await logSecurityEvent('ADMIN_ACCESS_DENIED', { reason: 'No authenticated user' });
       return false;
     }
 
-    // Log successful admin verification
-    if (data) {
-      await logSecurityEvent('admin_verified', { userId });
+    const { data, error } = await supabase
+      .rpc('is_admin_user', { user_id: user.id });
+
+    if (error) {
+      console.error('Admin verification error:', error);
+      await logSecurityEvent('ADMIN_VERIFICATION_ERROR', { 
+        error: error.message, 
+        userId: user.id 
+      });
+      return false;
+    }
+
+    if (!data) {
+      await logSecurityEvent('ADMIN_ACCESS_DENIED', { 
+        reason: 'Insufficient privileges',
+        userId: user.id 
+      });
     }
 
     return !!data;
   } catch (error) {
-    console.error('Admin verification failed:', error);
-    await logSecurityEvent('admin_verification_error', { error: error instanceof Error ? error.message : 'Unknown error', userId });
+    console.error('Admin access verification failed:', error);
+    await logSecurityEvent('ADMIN_ACCESS_ERROR', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     return false;
   }
 };
 
 /**
- * Safe query wrapper that handles RLS policy violations gracefully
+ * Safe query wrapper that handles errors and provides consistent return format
  */
 export const safeQuery = async <T>(
-  queryFn: () => Promise<{ data: T | null; error: any }>
-): Promise<{ data: T | null; error: any }> => {
+  queryFn: () => Promise<{ data: T; error: any }>
+): Promise<SafeQueryResult<T>> => {
   try {
     const result = await queryFn();
-    return result;
-  } catch (error: any) {
-    if (error?.message?.includes('row-level security') || 
-        error?.message?.includes('insufficient privilege')) {
-      console.warn('RLS policy blocked query:', error.message);
-      await logSecurityEvent('rls_policy_violation', { error: error.message });
-      return { data: null, error: { message: 'Access denied by security policy' } };
+    
+    if (result.error) {
+      const handledError = handleSupabaseError(result.error, 'database query');
+      return { data: null, error: handledError };
     }
-    throw error;
-  }
-};
-
-/**
- * Enhanced error handler for Supabase operations - Returns string directly
- */
-export const handleSupabaseError = (error: any, operation: string): string | null => {
-  if (!error) return null;
-
-  const errorMessage = error.message || 'Unknown error';
-  
-  // Log specific error types for debugging (async operations are fire-and-forget)
-  if (errorMessage.includes('row-level security')) {
-    console.error(`RLS violation in ${operation}:`, errorMessage);
-    logSecurityEvent('rls_violation', { operation, error: errorMessage }).catch(() => {});
-    return 'Access denied by security policy';
-  }
-  
-  if (errorMessage.includes('insufficient privilege')) {
-    console.error(`Privilege error in ${operation}:`, errorMessage);
-    logSecurityEvent('privilege_error', { operation, error: errorMessage }).catch(() => {});
-    return 'Insufficient permissions';
-  }
-  
-  if (errorMessage.includes('violates check constraint')) {
-    console.error(`Constraint violation in ${operation}:`, errorMessage);
-    logSecurityEvent('constraint_violation', { operation, error: errorMessage }).catch(() => {});
-    return 'Data validation failed';
-  }
-
-  console.error(`Error in ${operation}:`, errorMessage);
-  logSecurityEvent('general_error', { operation, error: errorMessage }).catch(() => {});
-  return errorMessage;
-};
-
-/**
- * Secure API key encryption helper
- * Uses the new encrypt_api_key_secure function
- */
-export const encryptApiKey = async (plainKey: string): Promise<string | null> => {
-  try {
-    const { data, error } = await supabase
-      .rpc('encrypt_api_key_secure', { plain_key: plainKey });
-
-    if (error) {
-      console.error('API key encryption error:', error);
-      await logSecurityEvent('api_key_encryption_failed', { error: error.message });
-      return null;
-    }
-
-    await logSecurityEvent('api_key_encrypted', { success: true });
-    return data;
+    
+    return { data: result.data, error: null };
   } catch (error) {
-    console.error('API key encryption failed:', error);
-    await logSecurityEvent('api_key_encryption_error', { error: error instanceof Error ? error.message : 'Unknown error' });
-    return null;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Safe query error:', errorMessage);
+    return { data: null, error: errorMessage };
   }
 };
 
 /**
- * Enhanced security validation for tenant operations
+ * Enhanced error handler for Supabase operations
  */
-export const validateTenantAccess = async (domain: string): Promise<string | null> => {
-  try {
-    const { data, error } = await supabase
-      .rpc('get_tenant_from_domain', { domain_name: domain });
-
-    if (error) {
-      console.error('Tenant validation error:', error);
-      await logSecurityEvent('tenant_validation_failed', { domain, error: error.message });
-      return null;
-    }
-
-    await logSecurityEvent('tenant_validated', { domain, tenantId: data });
-    return data;
-  } catch (error) {
-    console.error('Tenant validation failed:', error);
-    await logSecurityEvent('tenant_validation_error', { domain, error: error instanceof Error ? error.message : 'Unknown error' });
-    return null;
+export const handleSupabaseError = (error: any, operation: string): string => {
+  if (!error) return 'Unknown error occurred';
+  
+  // Handle common Supabase error patterns
+  if (error.code === 'PGRST116') {
+    return 'The requested resource was not found.';
   }
+  
+  if (error.code === '42501') {
+    return 'Access denied. Please check your permissions.';
+  }
+  
+  if (error.code === '23505') {
+    return 'This record already exists.';
+  }
+  
+  if (error.code === '23503') {
+    return 'Cannot complete operation due to missing dependencies.';
+  }
+  
+  if (error.message?.includes('JWT')) {
+    return 'Authentication token expired. Please log in again.';
+  }
+  
+  if (error.message?.includes('RLS')) {
+    return 'Access denied by security policy.';
+  }
+  
+  // Log the error for debugging
+  console.error(`Supabase error in ${operation}:`, error);
+  
+  // Return user-friendly message
+  return error.message || `An error occurred during ${operation}`;
+};
+
+/**
+ * Validates sensitive operations before execution
+ */
+export const validateSensitiveOperation = async (
+  operationType: string,
+  context?: Record<string, any>
+): Promise<boolean> => {
+  const isAdmin = await verifyAdminAccess();
+  
+  if (!isAdmin) {
+    await logSecurityEvent('UNAUTHORIZED_OPERATION_ATTEMPT', {
+      operation: operationType,
+      context
+    });
+    return false;
+  }
+  
+  await logSecurityEvent('ADMIN_OPERATION', {
+    operation: operationType,
+    context
+  });
+  
+  return true;
+};
+
+/**
+ * Rate limiting helper for admin operations
+ */
+const operationCounts = new Map<string, { count: number; resetTime: number }>();
+
+export const checkRateLimit = (operation: string, limit: number = 10, windowMs: number = 60000): boolean => {
+  const now = Date.now();
+  const key = `${operation}_rate_limit`;
+  const current = operationCounts.get(key);
+  
+  if (!current || now > current.resetTime) {
+    operationCounts.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  
+  if (current.count >= limit) {
+    return false;
+  }
+  
+  current.count++;
+  return true;
 };
