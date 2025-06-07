@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Upload } from 'lucide-react';
+import { User, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -31,7 +32,8 @@ const Navbar = () => {
   const navItems = [
     { label: 'Home', href: '/' },
     { label: 'Marketplace', href: '/marketplace' },
-    { label: 'Auctions', href: '/auctions' }
+    { label: 'Auctions', href: '/auctions' },
+    { label: 'Coin Sale', href: '/coin-sale' }
   ];
 
   return (
@@ -79,33 +81,33 @@ const Navbar = () => {
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/upload')}
-                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/profile')}
-                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleLogout}
-                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                >
-                  Logout
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    {user?.user_metadata?.full_name || 'Profile'}
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-4">
                 <Button
