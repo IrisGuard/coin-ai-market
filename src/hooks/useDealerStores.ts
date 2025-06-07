@@ -1,6 +1,5 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 interface DealerProfile {
   id: string;
@@ -120,23 +119,8 @@ export const useDealerStores = () => {
   return useQuery({
     queryKey: ['dealer-stores'],
     queryFn: async () => {
-      // Try to fetch real dealers from the database
-      const { data: realDealers, error } = await supabase
-        .from('profiles')
-        .select('id, username, full_name, bio, avatar_url, rating, location, verified_dealer')
-        .eq('verified_dealer', true)
-        .limit(20);
-
-      if (error) {
-        console.log('Error fetching dealers, using mock data:', error);
-        return mockDealers;
-      }
-
-      // If we have real dealers, use them, otherwise use mock data
-      if (realDealers && realDealers.length > 0) {
-        return realDealers as DealerProfile[];
-      }
-
+      // Simulate loading time
+      await new Promise(resolve => setTimeout(resolve, 500));
       return mockDealers;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
