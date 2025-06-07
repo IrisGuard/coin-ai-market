@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 
 export const AccountTab = () => {
   const { user } = useAuth();
-  const { profile, setProfile, updateProfile, uploadAvatar, saving } = useUserProfile();
+  const { data: profileData, profile, setProfile, updateProfile, uploadAvatar, saving } = useUserProfile();
   const [showPassword, setShowPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -91,7 +91,7 @@ export const AccountTab = () => {
               <h3 className="text-xl font-semibold">{profile?.full_name || 'Anonymous User'}</h3>
               <p className="text-gray-600">{user?.email}</p>
               <p className="text-sm text-gray-500">
-                Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
+                Member since {profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString() : 'Unknown'}
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export const AccountTab = () => {
               <Label htmlFor="firstName">Full Name</Label>
               <Input 
                 id="firstName" 
-                value={profile.full_name || ''} 
+                value={profile?.full_name || ''} 
                 onChange={(e) => setProfile({...profile, full_name: e.target.value})}
                 placeholder="Enter your full name"
               />
@@ -116,7 +116,7 @@ export const AccountTab = () => {
             <Input 
               id="phone" 
               type="tel" 
-              value={profile.phone || ''} 
+              value={profile?.phone || ''} 
               onChange={(e) => setProfile({...profile, phone: e.target.value})}
               placeholder="+1 (555) 123-4567" 
             />
@@ -125,7 +125,7 @@ export const AccountTab = () => {
             <Label htmlFor="location">Location</Label>
             <Input 
               id="location" 
-              value={profile.location || ''} 
+              value={profile?.location || ''} 
               onChange={(e) => setProfile({...profile, location: e.target.value})}
               placeholder="City, Country" 
             />
@@ -134,7 +134,7 @@ export const AccountTab = () => {
             <Label htmlFor="bio">Bio</Label>
             <Textarea 
               id="bio" 
-              value={profile.bio || ''} 
+              value={profile?.bio || ''} 
               onChange={(e) => setProfile({...profile, bio: e.target.value})}
               placeholder="Tell us about yourself..."
               rows={4}
