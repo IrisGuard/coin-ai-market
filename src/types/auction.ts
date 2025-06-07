@@ -39,13 +39,13 @@ export interface AuctionCoin {
   auction_end: string;
   reserve_price?: number;
   starting_bid?: number;
-  starting_price: number;
-  current_bid: number;
-  bid_count: number;
-  seller_id: string;
-  highest_bidder_id: string | null;
-  watchers: number;
-  views: number;
+  starting_price?: number;
+  current_bid?: number;
+  bid_count?: number;
+  seller_id?: string;
+  highest_bidder_id?: string | null;
+  watchers?: number;
+  views?: number;
   authentication_status?: 'pending' | 'verified' | 'rejected';
   featured?: boolean;
   profiles?: {

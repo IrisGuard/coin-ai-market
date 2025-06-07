@@ -1,3 +1,4 @@
+
 import { AuctionCoin, AuctionRarity, CoinType, Dealer } from '@/types/auction';
 import { coinTypes } from '@/data/coinTypes';
 import { dealers } from '@/data/dealers';
@@ -39,6 +40,7 @@ export const generateAuctionCoin = (id: number): AuctionCoin => {
     price: startingPrice,
     user_id: randomDealer.id,
     starting_bid: startingPrice,
+    starting_price: startingPrice,
     current_bid: currentBid,
     reserve_price: reservePrice,
     auction_end: auctionEnd,
