@@ -2,13 +2,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { verifyAdminAccess, logSecurityEvent } from '@/utils/supabaseSecurityHelpers';
 
 interface AdminContextType {
   isAdmin: boolean;
   isAdminAuthenticated: boolean;
   isLoading: boolean;
   adminLogin: (email: string, password: string) => Promise<boolean>;
-  adminLogout: () => Promise<void>;
+  adminLogout: () => void;
   checkAdminStatus: () => Promise<void>;
 }
 
@@ -21,27 +22,16 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const checkAdminStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAdmin(false);
-        setIsAdminAuthenticated(false);
-        return;
+      setIsLoading(true);
+      const hasAdminAccess = await verifyAdminAccess();
+      setIsAdmin(hasAdminAccess);
+      setIsAdminAuthenticated(hasAdminAccess);
+      
+      if (hasAdminAccess) {
+        await logSecurityEvent('admin_access_verified');
       }
-
-      const { data, error } = await supabase
-        .rpc('is_admin_user', { user_id: user.id });
-
-      if (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-        setIsAdminAuthenticated(false);
-        return;
-      }
-
-      setIsAdmin(!!data);
-      setIsAdminAuthenticated(!!data);
     } catch (error) {
-      console.error('Error in checkAdminStatus:', error);
+      console.error('Admin status check failed:', error);
       setIsAdmin(false);
       setIsAdminAuthenticated(false);
     } finally {
@@ -51,76 +41,89 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const adminLogin = async (email: string, password: string): Promise<boolean> => {
     try {
+      setIsLoading(true);
+      
+      // First authenticate with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
+        await logSecurityEvent('admin_login_failed', { email, error: error.message });
         toast({
-          title: "Admin Login Failed",
+          title: "Login Failed",
           description: error.message,
           variant: "destructive",
         });
         return false;
       }
 
-      if (data.user) {
-        const { data: isAdminUser, error: adminError } = await supabase
-          .rpc('is_admin_user', { user_id: data.user.id });
-
-        if (adminError || !isAdminUser) {
-          await supabase.auth.signOut();
-          toast({
-            title: "Access Denied",
-            description: "Admin privileges required",
-            variant: "destructive",
-          });
-          return false;
-        }
-
-        setIsAdmin(true);
-        setIsAdminAuthenticated(true);
+      // Then verify admin status
+      const hasAdminAccess = await verifyAdminAccess();
+      
+      if (!hasAdminAccess) {
+        await supabase.auth.signOut();
+        await logSecurityEvent('admin_privilege_denied', { email });
         toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the admin panel",
+          title: "Access Denied",
+          description: "Admin privileges required",
+          variant: "destructive",
         });
-        return true;
+        return false;
       }
+
+      setIsAdmin(true);
+      setIsAdminAuthenticated(true);
+      
+      await logSecurityEvent('admin_login_success', { email });
+      toast({
+        title: "Admin Access Granted",
+        description: "Welcome to the admin panel",
+      });
+      
+      return true;
     } catch (error) {
       console.error('Admin login error:', error);
+      await logSecurityEvent('admin_login_error', { email, error });
       toast({
         title: "Login Error",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-    return false;
   };
 
   const adminLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAdmin(false);
-    setIsAdminAuthenticated(false);
-    toast({
-      title: "Admin Logged Out",
-      description: "You have been logged out from admin panel",
-    });
+    try {
+      await logSecurityEvent('admin_logout');
+      await supabase.auth.signOut();
+      setIsAdmin(false);
+      setIsAdminAuthenticated(false);
+      toast({
+        title: "Logged Out",
+        description: "Admin session ended",
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   useEffect(() => {
     checkAdminStatus();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          setIsAdmin(false);
-          setIsAdminAuthenticated(false);
-        } else if (event === 'SIGNED_IN' && session?.user) {
-          checkAdminStatus();
-        }
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsAdmin(false);
+        setIsAdminAuthenticated(false);
+      } else if (event === 'SIGNED_IN' && session) {
+        await checkAdminStatus();
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
   }, []);

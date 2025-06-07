@@ -4,67 +4,85 @@ import { supabase } from '@/integrations/supabase/client';
 import { Coin } from '@/types/coin';
 
 interface RealTimeUpdate {
-  id: string;
-  price?: number;
   views?: number;
-  favorites?: number;
-  sold?: boolean;
+  price?: number;
+  auction_end?: string;
+  current_bid?: number;
+  bid_count?: number;
 }
 
 export const useRealTimeMarketplace = (coins: Coin[]) => {
-  const [updates, setUpdates] = useState<Record<string, RealTimeUpdate>>({});
+  const [realTimeUpdates, setRealTimeUpdates] = useState<Record<string, RealTimeUpdate>>({});
 
   useEffect(() => {
     if (!coins.length) return;
 
-    // Set up real-time subscription for coin updates
-    const channel = supabase
-      .channel('marketplace-updates')
-      .on('postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'coins' 
+    // Subscribe to coin updates
+    const coinChannel = supabase
+      .channel('coin-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'coins'
         },
         (payload) => {
-          const coinUpdate = payload.new as any;
-          setUpdates(prev => ({
+          const { new: newCoin } = payload;
+          setRealTimeUpdates(prev => ({
             ...prev,
-            [coinUpdate.id]: {
-              id: coinUpdate.id,
-              price: coinUpdate.price,
-              views: coinUpdate.views,
-              favorites: coinUpdate.favorites,
-              sold: coinUpdate.sold
-            }
-          }));
-        }
-      )
-      .on('postgres_changes',
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'bids' 
-        },
-        (payload) => {
-          const bid = payload.new as any;
-          // Update the coin's current bid price in real-time
-          setUpdates(prev => ({
-            ...prev,
-            [bid.coin_id]: {
-              ...prev[bid.coin_id],
-              id: bid.coin_id,
-              price: bid.amount
+            [newCoin.id]: {
+              views: newCoin.views,
+              price: newCoin.price,
+              auction_end: newCoin.auction_end
             }
           }));
         }
       )
       .subscribe();
 
+    // Subscribe to bid updates
+    const bidChannel = supabase
+      .channel('bid-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bids'
+        },
+        async (payload) => {
+          const { new: newBid, old: oldBid } = payload;
+          const coinId = newBid?.coin_id || oldBid?.coin_id;
+          
+          if (coinId) {
+            // Fetch updated bid count and highest bid
+            const { data: bids } = await supabase
+              .from('bids')
+              .select('amount')
+              .eq('coin_id', coinId)
+              .order('amount', { ascending: false });
+
+            if (bids) {
+              setRealTimeUpdates(prev => ({
+                ...prev,
+                [coinId]: {
+                  ...prev[coinId],
+                  current_bid: bids[0]?.amount || 0,
+                  bid_count: bids.length
+                }
+              }));
+            }
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(coinChannel);
+      supabase.removeChannel(bidChannel);
     };
   }, [coins]);
 
-  return updates;
+  return realTimeUpdates;
 };
