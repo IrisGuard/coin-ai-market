@@ -22,7 +22,10 @@ const Auctions = () => {
   const [sortBy, setSortBy] = useState<'ending_soon' | 'highest_bid' | 'most_bids' | 'newest'>('ending_soon');
 
   // Filter auctions to only show actual auctions (not direct sales)
-  const auctionOnlyItems = auctions.filter(item => item.listing_type === 'auction' || item.is_auction);
+  const auctionOnlyItems = auctions.filter(item => 
+    (item.listing_type && item.listing_type === 'auction') || 
+    (item.is_auction === true)
+  );
 
   // Filter and sort auctions
   const filteredAuctions = useMemo(() => {
