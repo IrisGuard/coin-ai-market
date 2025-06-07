@@ -61,14 +61,14 @@ export const useCachedMarketplaceData = () => {
   const { data: rawCoins, isLoading, error } = useAllDealerCoins();
   const [cachedStats, setCachedStats] = useState<any>(null);
 
-  // Memoize processed coins data
+  // Always memoize processed coins data - never conditional
   const processedCoins = useMemo(() => {
-    if (!rawCoins) return [];
+    if (!rawCoins || rawCoins.length === 0) return [];
     
     const cacheKey = `processed-coins-${rawCoins.length}`;
     const cached = marketplaceCache.get<Coin[]>(cacheKey);
     
-    if (cached) {
+    if (cached && cached.length > 0) {
       return cached;
     }
     
@@ -86,9 +86,22 @@ export const useCachedMarketplaceData = () => {
     return processed;
   }, [rawCoins]);
 
-  // Memoize marketplace statistics
+  // Always memoize marketplace statistics - never conditional
   const enhancedStats = useMemo(() => {
-    if (!processedCoins.length) return null;
+    if (!processedCoins || processedCoins.length === 0) {
+      return {
+        total: 0,
+        auctions: 0,
+        featured: 0,
+        totalValue: 0,
+        averagePrice: 0,
+        categories: {
+          rare: 0,
+          common: 0,
+          uncommon: 0,
+        }
+      };
+    }
     
     const cacheKey = `marketplace-stats-${processedCoins.length}`;
     const cached = marketplaceCache.get(cacheKey);
@@ -120,7 +133,7 @@ export const useCachedMarketplaceData = () => {
 
   // Cache invalidation on data changes
   useEffect(() => {
-    if (rawCoins) {
+    if (rawCoins && rawCoins.length > 0) {
       marketplaceCache.invalidate('processed-coins');
       marketplaceCache.invalidate('marketplace-stats');
     }

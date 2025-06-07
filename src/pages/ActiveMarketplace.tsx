@@ -39,11 +39,9 @@ const ActiveMarketplace = () => {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
               Verified Dealer Stores
             </h2>
-            {stats && (
-              <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-                {dealers?.length || 0} Active Dealers
-              </Badge>
-            )}
+            <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
+              {dealers?.length || 0} Active Dealers
+            </Badge>
           </div>
           
           {dealersLoading ? (
@@ -124,7 +122,7 @@ const ActiveMarketplace = () => {
                     </CardContent>
                   </Card>
                 </Link>
-              ))}
+              )) || []}
             </div>
           )}
         </div>

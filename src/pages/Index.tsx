@@ -17,7 +17,7 @@ const Index = () => {
   
   const { coins, isLoading } = useCachedMarketplaceData();
 
-  // Get featured coins for homepage - always calculate this
+  // Always calculate featuredCoins - never conditional
   const featuredCoins = React.useMemo(() => {
     if (!coins || coins.length === 0) return [];
     
