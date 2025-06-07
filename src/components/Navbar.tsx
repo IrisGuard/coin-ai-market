@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store } from 'lucide-react';
+import { Search, ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/hooks/useI18n';
@@ -38,18 +38,25 @@ const Navbar = () => {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
             <Link
+              to="/"
+              className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </Link>
+            <Link
               to="/marketplace"
               className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               <Store className="w-4 h-4" />
-              {t('nav.marketplace')}
+              Marketplace
             </Link>
             <Link
               to="/auctions"
               className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               <Gavel className="w-4 h-4" />
-              {t('nav.auctions')}
+              Auctions
             </Link>
             <Link
               to="/ai-features"
@@ -63,7 +70,7 @@ const Navbar = () => {
               className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               <Search className="w-4 h-4" />
-              {t('nav.search')}
+              Search
             </Link>
             {user && (
               <Link
@@ -71,7 +78,7 @@ const Navbar = () => {
                 className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
               >
                 <Upload className="w-4 h-4" />
-                {t('nav.upload')}
+                Upload
               </Link>
             )}
           </div>
@@ -83,7 +90,7 @@ const Navbar = () => {
                 <Link to="/dashboard">
                   <Button variant="ghost" size="sm" className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('nav.dashboard')}</span>
+                    <span className="hidden sm:inline">Dashboard</span>
                   </Button>
                 </Link>
                 <Button
@@ -93,13 +100,13 @@ const Navbar = () => {
                   className="flex items-center gap-2 text-red-600 hover:text-red-700"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('nav.logout')}</span>
+                  <span className="hidden sm:inline">Logout</span>
                 </Button>
               </>
             ) : (
               <Link to="/auth">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  {t('nav.login')}
+                  Login
                 </Button>
               </Link>
             )}
