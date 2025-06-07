@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
+import DealerStorePage from "./pages/DealerStorePage";
 import CoinUpload from "./pages/CoinUpload";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
