@@ -18,7 +18,8 @@ import {
   Settings, 
   Coins,
   Menu,
-  X
+  X,
+  Smartphone
 } from 'lucide-react';
 import AdminAccessButton from './AdminAccessButton';
 
@@ -36,6 +37,7 @@ const Navbar = () => {
   const navItems = [
     { name: 'Browse', path: '/', icon: Coins },
     { name: 'Upload', path: '/upload', icon: Upload },
+    { name: 'Mobile Upload', path: '/mobile-upload', icon: Smartphone },
   ];
 
   return (
