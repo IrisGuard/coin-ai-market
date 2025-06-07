@@ -235,7 +235,6 @@ export const useCoinUpload = () => {
     isSubmitting,
     dragActive,
     coinData,
-    setCoinData,
     handleDrag,
     handleDrop,
     removeImage,

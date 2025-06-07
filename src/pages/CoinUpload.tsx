@@ -12,7 +12,7 @@ import ImageUploadCard from '@/components/upload/ImageUploadCard';
 import AnalysisResultsCard from '@/components/upload/AnalysisResultsCard';
 import CoinListingDetailsForm from '@/components/upload/CoinListingDetailsForm';
 import CoinUploadTips from '@/components/upload/CoinUploadTips';
-import { useCoinUpload } from '@/hooks/useCoinUpload';
+import { useCoinUpload, type UploadedImage, type CoinData } from '@/hooks/useCoinUpload';
 
 const CoinUpload = () => {
   const { isAuthenticated } = useAuth();
