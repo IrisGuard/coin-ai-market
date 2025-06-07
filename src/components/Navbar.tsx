@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -26,6 +28,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { profile } = useUserProfile();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -111,7 +114,7 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 p-0">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar_url} />
+                      <AvatarImage src={profile?.avatar_url} />
                       <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
