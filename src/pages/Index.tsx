@@ -1,22 +1,19 @@
 
-import React from 'react';
-import Navbar from '@/components/Navbar';
-import WelcomeSection from '@/components/WelcomeSection';
-import CoinGrid from '@/components/CoinGrid';
 import { usePageView } from '@/hooks/usePageView';
-import { useCoins } from '@/hooks/useCoins';
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import FeatureSection from "@/components/FeatureSection";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   usePageView();
-  const { data: coins = [], isLoading } = useCoins();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50">
+    <div className="min-h-screen">
       <Navbar />
-      <WelcomeSection />
-      <div className="container mx-auto px-4 py-8">
-        <CoinGrid coins={coins} loading={isLoading} />
-      </div>
+      <HeroSection />
+      <FeatureSection />
+      <Footer />
     </div>
   );
 };
