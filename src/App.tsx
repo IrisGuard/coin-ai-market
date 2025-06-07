@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -66,9 +65,6 @@ const App = () => (
                     {/* Protected routes */}
                     <Route path="/upload" element={<ProtectedRoute><CoinUpload /></ProtectedRoute>} />
                     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                    
-                    {/* Admin route */}
-                    <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                     
                     {/* Catch-all route */}
                     <Route path="*" element={<NotFound />} />
