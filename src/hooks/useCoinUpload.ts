@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
@@ -22,6 +21,7 @@ interface CoinData {
   diameter: string;
   weight: string;
   mint: string;
+  auctionDuration: string;
 }
 
 export const useCoinUpload = () => {
@@ -47,7 +47,8 @@ export const useCoinUpload = () => {
     composition: '',
     diameter: '',
     weight: '',
-    mint: ''
+    mint: '',
+    auctionDuration: '7'
   });
 
   const aiRecognition = useRealAICoinRecognition();
