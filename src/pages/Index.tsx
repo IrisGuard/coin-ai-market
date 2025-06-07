@@ -9,7 +9,7 @@ import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection"
 import Footer from "@/components/Footer";
 import AdminPanel from "@/components/admin/AdminPanel";
 import { Button } from '@/components/ui/button';
-import { Search, Star, Shield, Zap, TrendingUp, Award } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const Index = () => {
   usePageView();
@@ -17,7 +17,7 @@ const Index = () => {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       {/* Hero Section */}
@@ -76,46 +76,6 @@ const Index = () => {
                 <div className="text-3xl md:text-4xl font-bold text-white">$1.2M+</div>
                 <div className="text-blue-200">Trading Volume</div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose CoinVision?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Advanced AI technology meets traditional numismatics for the ultimate collecting experience
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Recognition</h3>
-              <p className="text-gray-600">Instant coin identification with 99% accuracy using advanced computer vision</p>
-            </div>
-
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure Trading</h3>
-              <p className="text-gray-600">Bank-level security with buyer protection and verified sellers</p>
-            </div>
-
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center">
-                <Award className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Expert Authentication</h3>
-              <p className="text-gray-600">Professional numismatists verify high-value coins for authenticity</p>
             </div>
           </div>
         </div>
