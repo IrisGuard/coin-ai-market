@@ -3,6 +3,7 @@ import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
 import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
+import { Coin } from '@/types/coin';
 import Navbar from "@/components/Navbar";
 import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
 import TrendingCoins from "@/components/marketplace/TrendingCoins";
@@ -21,12 +22,12 @@ const Index = () => {
     if (!coins || coins.length === 0) return [];
     
     return coins
-      .filter(coin => 
+      .filter((coin: Coin) => 
         coin.authentication_status === 'verified' && 
-        coin.listing_type !== 'auction' && 
+        (!coin.listing_type || coin.listing_type !== 'auction') && 
         !coin.is_auction
       )
-      .sort((a, b) => {
+      .sort((a: Coin, b: Coin) => {
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
         return (b.views || 0) - (a.views || 0);

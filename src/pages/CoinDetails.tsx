@@ -18,6 +18,14 @@ const CoinDetails = () => {
     error,
     bidsData,
     relatedCoins,
+    isFavorited,
+    bidAmount,
+    setBidAmount,
+    isPurchasing,
+    isBidding,
+    toggleFavorite,
+    handlePurchase,
+    handleBid,
     user
   } = useCoinDetails(id!);
 
@@ -42,6 +50,14 @@ const CoinDetails = () => {
                   coin={coin} 
                   bidsData={bidsData} 
                   relatedCoins={relatedCoins}
+                  isFavorited={isFavorited}
+                  bidAmount={bidAmount}
+                  setBidAmount={setBidAmount}
+                  isPurchasing={isPurchasing}
+                  isBidding={isBidding}
+                  toggleFavorite={toggleFavorite}
+                  handlePurchase={handlePurchase}
+                  handleBid={handleBid}
                 />
               </div>
 

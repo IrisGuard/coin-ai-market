@@ -2,36 +2,47 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
+import { Coin } from '@/types/coin';
 
-interface LoadingStateProps {
-  children?: never;
+interface CoinDetailsStatesProps {
+  isLoading: boolean;
+  error: any;
+  coin: Coin | null;
 }
 
-interface ErrorStateProps {
-  children?: never;
-}
-
-export const LoadingState = () => (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-    <Navbar />
-    <div className="pt-20 flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading coin details...</p>
+const CoinDetailsStates: React.FC<CoinDetailsStatesProps> = ({ isLoading, error, coin }) => {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <Navbar />
+        <div className="pt-20 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading coin details...</p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-);
+    );
+  }
 
-export const ErrorState = () => (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-    <Navbar />
-    <div className="pt-20 flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <p className="text-gray-600">Coin not found</p>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <Navbar />
+        <div className="pt-20 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <p className="text-gray-600">Error loading coin details</p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-);
+    );
+  }
 
-export const InvalidIdState = () => <Navigate to="/marketplace" replace />;
+  if (!coin) {
+    return <Navigate to="/marketplace" replace />;
+  }
+
+  return null;
+};
+
+export default CoinDetailsStates;

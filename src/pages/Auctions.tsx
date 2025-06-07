@@ -1,15 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuctionData } from '@/hooks/useAuctionData';
 import { useAuctionActions } from '@/hooks/useAuctionActions';
 import { getTimeRemaining, filterAndSortAuctions } from '@/utils/auctionUtils';
+import { AuctionCoin, TimeRemaining } from '@/types/auction';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AuctionFilters from '@/components/auctions/AuctionFilters';
 import AuctionStats from '@/components/auctions/AuctionStats';
 import AuctionCard from '@/components/auctions/AuctionCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Gavel, Clock } from 'lucide-react';
@@ -20,12 +21,12 @@ const Auctions = () => {
   const { bidAmounts, setBidAmounts, placeBid, addToWatchlist } = useAuctionActions(user?.id);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [sortBy, setSortBy] = useState('ending_soon');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'ending_soon' | 'just_started' | 'hot'>('all');
+  const [sortBy, setSortBy] = useState<'ending_soon' | 'highest_bid' | 'most_bids' | 'newest'>('ending_soon');
 
   // Filter auctions to show only auction-type listings
   const auctionListings = React.useMemo(() => {
-    return auctions.filter(auction => 
+    return auctions.filter((auction: AuctionCoin) => 
       auction.is_auction || auction.listing_type === 'auction'
     );
   }, [auctions]);
@@ -34,7 +35,7 @@ const Auctions = () => {
 
   const auctionStats = {
     total: auctionListings.length,
-    ending_soon: auctionListings.filter(auction => {
+    ending_soon: auctionListings.filter((auction: AuctionCoin) => {
       const timeLeft = getTimeRemaining(auction.auction_end);
       const hoursLeft = timeLeft.days * 24 + timeLeft.hours;
       return hoursLeft <= 24 && !timeLeft.expired;
@@ -90,8 +91,8 @@ const Auctions = () => {
             </div>
           ) : filteredAuctions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {filteredAuctions.map((auction) => {
-                const timeRemaining = getTimeRemaining(auction.auction_end);
+              {filteredAuctions.map((auction: AuctionCoin) => {
+                const timeRemaining: TimeRemaining = getTimeRemaining(auction.auction_end);
                 const isEndingSoon = (timeRemaining.days * 24 + timeRemaining.hours) <= 24;
                 const isMyBid = myBids.some(bid => bid.auction_id === auction.id);
 
@@ -103,7 +104,7 @@ const Auctions = () => {
                     isEndingSoon={isEndingSoon}
                     isMyBid={isMyBid}
                     bidAmount={bidAmounts[auction.id] || ''}
-                    setBidAmount={(amount) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}
+                    setBidAmount={(amount: string) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}
                     placeBid={() => placeBid(auction.id, auctionListings)}
                     addToWatchlist={addToWatchlist}
                     userId={user?.id}
