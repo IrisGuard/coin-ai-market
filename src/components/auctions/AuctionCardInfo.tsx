@@ -36,18 +36,18 @@ const AuctionCardInfo = ({ auction }: AuctionCardInfoProps) => {
       {/* Bidding Info */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Current Bid:</span>
-          <span className="text-xl font-bold text-green-600">${auction.current_bid.toLocaleString()}</span>
+          <span className="text-sm text-gray-600">Τρέχουσα Προσφορά:</span>
+          <span className="text-xl font-bold text-green-600">€{auction.current_bid}</span>
         </div>
         
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Bids: {auction.bid_count}</span>
-          <span className="text-gray-600">Watching: {auction.watchers}</span>
+          <span className="text-gray-600">Προσφορές: {auction.bid_count}</span>
+          <span className="text-gray-600">Παρακολουθούν: {auction.watchers}</span>
         </div>
 
         {auction.reserve_price > auction.current_bid && (
           <div className="text-sm text-orange-600">
-            Reserve not met (${auction.reserve_price.toLocaleString()})
+            Δεν έχει φτάσει το όριο (€{auction.reserve_price})
           </div>
         )}
       </div>
@@ -64,7 +64,7 @@ const AuctionCardInfo = ({ auction }: AuctionCardInfoProps) => {
               </div>
               {auction.profiles.verified_dealer && (
                 <Badge variant="outline" className="text-xs">
-                  Verified
+                  Πιστοποιημένος
                 </Badge>
               )}
             </div>

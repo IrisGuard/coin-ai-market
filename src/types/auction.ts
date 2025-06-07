@@ -32,7 +32,6 @@ export interface AuctionCoin {
   watchers: number;
   views: number;
   is_auction: boolean;
-  listing_type?: string;
   authentication_status: 'verified';
   featured: boolean;
   profiles: {

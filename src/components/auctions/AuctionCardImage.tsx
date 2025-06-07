@@ -25,14 +25,11 @@ const AuctionCardImage = ({
   return (
     <div className="relative mb-4">
       <Link to={`/coin/${auction.id}`}>
-        {/* Square aspect ratio for auction images */}
-        <div className="aspect-square overflow-hidden rounded-lg">
-          <img 
-            src={auction.image} 
-            alt={auction.name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform"
-          />
-        </div>
+        <img 
+          src={auction.image} 
+          alt={auction.name}
+          className="w-full h-48 object-cover rounded-lg hover:scale-105 transition-transform"
+        />
       </Link>
       
       {/* Status Badges */}
@@ -40,7 +37,7 @@ const AuctionCardImage = ({
         {isEndingSoon && (
           <Badge className="bg-red-100 text-red-800">
             <AlertCircle className="w-3 h-3 mr-1" />
-            Ending Soon
+            Λήγει Σύντομα
           </Badge>
         )}
       </div>
@@ -49,7 +46,7 @@ const AuctionCardImage = ({
         {isMyBid && (
           <Badge className="bg-green-100 text-green-800">
             <Trophy className="w-3 h-3 mr-1" />
-            Your Bid
+            Η Προσφορά σας
           </Badge>
         )}
       </div>

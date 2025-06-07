@@ -27,8 +27,6 @@ const AuctionCardBidding = ({
   placeBid,
   userId
 }: AuctionCardBiddingProps) => {
-  const minBid = auction.current_bid + 1;
-
   return (
     <div className="space-y-2">
       {/* Bidding Section */}
@@ -37,7 +35,7 @@ const AuctionCardBidding = ({
           <div className="flex gap-2">
             <Input
               type="number"
-              placeholder={`Min: $${minBid.toLocaleString()}`}
+              placeholder={`Ελάχιστο: €${auction.current_bid + 1}`}
               value={bidAmount}
               onChange={(e) => setBidAmount(e.target.value)}
               className="flex-1"
@@ -48,12 +46,12 @@ const AuctionCardBidding = ({
               className="flex items-center gap-2"
             >
               <Gavel className="w-4 h-4" />
-              Bid
+              Προσφορά
             </Button>
           </div>
           
           <div className="text-xs text-gray-500 text-center">
-            Next bid must be at least ${minBid.toLocaleString()}
+            Η επόμενη προσφορά πρέπει να είναι τουλάχιστον €{auction.current_bid + 1}
           </div>
         </div>
       )}
@@ -61,7 +59,7 @@ const AuctionCardBidding = ({
       {/* View Details Button */}
       <Link to={`/coin/${auction.id}`}>
         <Button variant="outline" className="w-full">
-          View Details
+          Προβολή Λεπτομερειών
         </Button>
       </Link>
     </div>

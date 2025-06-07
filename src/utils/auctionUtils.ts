@@ -1,75 +1,20 @@
 
-export const filterAndSortAuctions = (
-  auctions: any[],
-  searchTerm: string,
-  filterStatus: 'all' | 'ending_soon' | 'just_started' | 'hot',
-  sortBy: 'ending_soon' | 'highest_bid' | 'most_bids' | 'newest'
-) => {
-  // Filter by search term
-  let filtered = auctions.filter(auction =>
-    auction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    auction.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+import { TimeRemaining } from '@/types/auction';
 
-  // Filter by status
-  const now = new Date().getTime();
-  
-  switch (filterStatus) {
-    case 'ending_soon':
-      filtered = filtered.filter(auction => {
-        const end = new Date(auction.auction_end).getTime();
-        const hoursRemaining = (end - now) / (1000 * 60 * 60);
-        return hoursRemaining <= 24 && hoursRemaining > 0;
-      });
-      break;
-    case 'just_started':
-      filtered = filtered.filter(auction => {
-        const start = new Date(auction.created_at || auction.auction_end).getTime();
-        const hoursAgo = (now - start) / (1000 * 60 * 60);
-        return hoursAgo <= 24;
-      });
-      break;
-    case 'hot':
-      filtered = filtered.filter(auction => 
-        auction.bid_count >= 5 || auction.watchers >= 10
-      );
-      break;
-  }
-
-  // Sort auctions
-  switch (sortBy) {
-    case 'ending_soon':
-      filtered.sort((a, b) => {
-        const aEnd = new Date(a.auction_end).getTime();
-        const bEnd = new Date(b.auction_end).getTime();
-        return aEnd - bEnd;
-      });
-      break;
-    case 'highest_bid':
-      filtered.sort((a, b) => b.current_bid - a.current_bid);
-      break;
-    case 'most_bids':
-      filtered.sort((a, b) => b.bid_count - a.bid_count);
-      break;
-    case 'newest':
-      filtered.sort((a, b) => {
-        const aCreated = new Date(a.created_at || a.auction_end).getTime();
-        const bCreated = new Date(b.created_at || b.auction_end).getTime();
-        return bCreated - aCreated;
-      });
-      break;
-  }
-
-  return filtered;
-};
-
-export const getTimeRemaining = (endTime: string) => {
+// Calculate time remaining for each auction
+export const getTimeRemaining = (endTime: string): TimeRemaining => {
   const now = new Date().getTime();
   const end = new Date(endTime).getTime();
   const remaining = end - now;
 
   if (remaining <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+    return { 
+      days: 0, 
+      hours: 0, 
+      minutes: 0, 
+      seconds: 0, 
+      expired: true 
+    };
   }
 
   const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
@@ -78,4 +23,48 @@ export const getTimeRemaining = (endTime: string) => {
   const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
   return { days, hours, minutes, seconds, expired: false };
+};
+
+// Filter and sort auctions
+export const filterAndSortAuctions = (
+  auctions: any[],
+  searchTerm: string,
+  filterStatus: string,
+  sortBy: string
+) => {
+  return auctions
+    .filter(auction => {
+      const matchesSearch = auction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          auction.country.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const timeRemaining = getTimeRemaining(auction.auction_end);
+      const hoursRemaining = timeRemaining.days * 24 + timeRemaining.hours;
+      
+      let matchesFilter = true;
+      switch (filterStatus) {
+        case 'ending_soon':
+          matchesFilter = hoursRemaining <= 24;
+          break;
+        case 'just_started':
+          matchesFilter = auction.bid_count <= 2;
+          break;
+        case 'hot':
+          matchesFilter = auction.bid_count >= 5 || auction.watchers >= 10;
+          break;
+      }
+
+      return matchesSearch && matchesFilter && !timeRemaining.expired;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'highest_bid':
+          return b.current_bid - a.current_bid;
+        case 'most_bids':
+          return b.bid_count - a.bid_count;
+        case 'newest':
+          return new Date(b.auction_end).getTime() - new Date(a.auction_end).getTime();
+        default: // ending_soon
+          return new Date(a.auction_end).getTime() - new Date(b.auction_end).getTime();
+      }
+    });
 };
