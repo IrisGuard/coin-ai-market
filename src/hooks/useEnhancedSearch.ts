@@ -89,7 +89,7 @@ export const useEnhancedSearch = () => {
         if (params.condition && coin.condition !== params.condition) return false;
 
         // Boolean filters
-        if (params.hasImage && !coin.image_url) return false;
+        if (params.hasImage && !coin.image) return false;
         if (params.isAuction && !coin.is_auction) return false;
         if (params.hasGrading && !coin.grade) return false;
 
@@ -122,7 +122,7 @@ export const useEnhancedSearch = () => {
         if (coin.featured) relevanceScore += 25;
         
         // Boost score for items with images
-        if (coin.image_url) relevanceScore += 10;
+        if (coin.image) relevanceScore += 10;
         
         // Boost score for graded items
         if (coin.grade) relevanceScore += 15;
