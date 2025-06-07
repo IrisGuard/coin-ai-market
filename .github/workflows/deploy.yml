@@ -27,35 +27,20 @@ jobs:
     - name: Build project
       run: npm run build
       env:
-        # Supabase Configuration (Updated)
+        # Public Supabase Configuration (Safe to include)
         VITE_SUPABASE_URL: https://wdgnllgbfvjgurbqhfqb.supabase.co
         VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU
         
-        # AI API Keys
-        VITE_AI_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        VITE_AI_API_URL: https://api.anthropic.com/v1/messages
-        VITE_AI_MODEL: claude-3-sonnet-20240229
+        # App Configuration
+        VITE_APP_ENV: production
+        VITE_ENABLE_ERROR_REPORTING: "true"
         
-        # Custom AI Configuration
-        CUSTOM_AI_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        CUSTOM_AI_ENDPOINT: https://api.anthropic.com/v1/messages
-        CUSTOM_AI_MODEL: claude-3-sonnet-20240229
-        
-        # OpenAI Configuration
+        # Private API Keys (from GitHub Secrets)
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        
-        # Payment Configuration
-        VITE_PAYMENT_API_KEY: ${{ secrets.TRANSAK_API_KEY }}
-        VITE_PAYMENT_API_URL: https://api.transak.com
         TRANSAK_API_KEY: ${{ secrets.TRANSAK_API_KEY }}
         
-        # Monitoring & Error Tracking
-        VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-        VITE_ENABLE_ERROR_REPORTING: "true"
-        DEPLOYMENT_MONITORING: "true"
-        VERCEL_ERROR_MONITORING: "enabled"
-        
-        # Production Database Configuration
+        # Database Configuration (from GitHub Secrets)
         POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -63,6 +48,9 @@ jobs:
         POSTGRES_DATABASE: ${{ secrets.POSTGRES_DATABASE }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+        
+        # Monitoring (from GitHub Secrets)
+        VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       
     - name: Deploy to Vercel
       uses: vercel/action@v1
