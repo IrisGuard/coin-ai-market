@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
 import { useEnhancedSearch } from '@/hooks/useEnhancedSearch';
+import { useSearchHandlers } from '@/hooks/useSearchHandlers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AdvancedSearchInterface from '@/components/search/AdvancedSearchInterface';
@@ -26,35 +27,21 @@ const EnhancedSearch = () => {
     clearSearch
   } = useEnhancedSearch();
 
-  const [activeView, setActiveView] = useState<'search' | 'discover'>('search');
-  const [showSuggestions, setShowSuggestions] = useState(true);
-
-  const handleSearch = (searchParams: any) => {
-    search(searchParams);
-    setShowSuggestions(false);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    search({ ...searchParams, query: suggestion });
-    setShowSuggestions(false);
-  };
-
-  const handleTrendingClick = (trend: string) => {
-    search({ ...searchParams, query: trend });
-    setShowSuggestions(false);
-  };
-
-  const handleCoinClick = (coinId: string) => {
-    // Navigate to coin details
-    console.log('Navigate to coin:', coinId);
-  };
+  const {
+    activeView,
+    setActiveView,
+    showSuggestions,
+    handleSearch,
+    handleSuggestionClick,
+    handleTrendingClick,
+    handleCoinClick
+  } = useSearchHandlers(search, searchParams);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Enhanced Search & Discovery
@@ -64,7 +51,6 @@ const EnhancedSearch = () => {
           </p>
         </div>
 
-        {/* Main Content */}
         <Tabs value={activeView} onValueChange={(value) => setActiveView(value as any)} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
             <TabsTrigger value="search">Advanced Search</TabsTrigger>
@@ -73,7 +59,6 @@ const EnhancedSearch = () => {
 
           <TabsContent value="search" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Search Interface */}
               <div className="lg:col-span-3 space-y-6">
                 <AdvancedSearchInterface
                   onSearch={handleSearch}
@@ -81,7 +66,6 @@ const EnhancedSearch = () => {
                   isLoading={isLoading}
                 />
 
-                {/* Search Results */}
                 {searchResults.length > 0 && (
                   <div className="space-y-6">
                     <MarketplaceGrid
@@ -100,7 +84,6 @@ const EnhancedSearch = () => {
                   </div>
                 )}
 
-                {/* No Results */}
                 {!isLoading && searchResults.length === 0 && searchParams.query && (
                   <Card>
                     <CardContent className="p-8 text-center">
@@ -114,7 +97,6 @@ const EnhancedSearch = () => {
                 )}
               </div>
 
-              {/* Sidebar */}
               <div className="space-y-6">
                 {showSuggestions && (
                   <SmartSearchSuggestions

@@ -1,86 +1,53 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  TrendingUp, 
-  DollarSign, 
-  Coins, 
-  Clock 
+  Package,
+  Eye,
+  DollarSign,
+  TrendingUp
 } from 'lucide-react';
 
-interface DashboardStatsGridProps {
-  stats: {
-    totalValue: number;
-    profitPercentage: number;
-    totalProfit: number;
-    totalCoins: number;
-  };
-  activeBidsCount?: number;
+interface StatItem {
+  title: string;
+  value: string;
+  icon: string;
+  color: string;
 }
 
-const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ 
-  stats, 
-  activeBidsCount = 0 
-}) => {
+interface DashboardStatsGridProps {
+  stats: StatItem[];
+}
+
+const iconMap = {
+  Package,
+  Eye,
+  DollarSign,
+  TrendingUp
+};
+
+const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ stats }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Portfolio Value</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">${stats.totalValue.toLocaleString()}</div>
-          <p className={`text-xs flex items-center gap-1 ${stats.profitPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {stats.profitPercentage >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingUp className="h-3 w-3 rotate-180" />}
-            {stats.profitPercentage >= 0 ? '+' : ''}{stats.profitPercentage.toFixed(2)}%
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Profit/Loss</CardTitle>
-          {stats.totalProfit >= 0 ? 
-            <TrendingUp className="h-4 w-4 text-green-600" /> : 
-            <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />
-          }
-        </CardHeader>
-        <CardContent>
-          <div className={`text-2xl font-bold ${stats.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {stats.totalProfit >= 0 ? '+' : ''}${Math.abs(stats.totalProfit).toLocaleString()}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Total portfolio gain/loss
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Coins Owned</CardTitle>
-          <Coins className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.totalCoins}</div>
-          <p className="text-xs text-muted-foreground">
-            In your portfolio
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Bids</CardTitle>
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{activeBidsCount}</div>
-          <p className="text-xs text-muted-foreground">
-            Auctions in progress
-          </p>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {stats.map((stat, index) => {
+        const IconComponent = iconMap[stat.icon as keyof typeof iconMap];
+        
+        return (
+          <Card key={stat.title}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+                <div className={stat.color}>
+                  {IconComponent && <IconComponent className="w-5 h-5" />}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
