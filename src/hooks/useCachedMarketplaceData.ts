@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { useCoins } from './useCoins';
+import { useAllDealerCoins } from './useDealerCoins';
 import { Coin } from '@/types/coin';
 
 interface CacheEntry<T> {
@@ -58,7 +58,7 @@ class MarketplaceCache {
 const marketplaceCache = new MarketplaceCache();
 
 export const useCachedMarketplaceData = () => {
-  const { data: rawCoins, isLoading, error } = useCoins();
+  const { data: rawCoins, isLoading, error } = useAllDealerCoins();
   const [cachedStats, setCachedStats] = useState<any>(null);
 
   // Memoize processed coins data
