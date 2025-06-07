@@ -1,56 +1,125 @@
 
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useDashboardData = () => {
-  const stats = [
-    {
-      title: "Listed Coins",
-      value: "12",
-      icon: "Package",
-      color: "text-blue-600"
-    },
-    {
-      title: "Watchlist Items", 
-      value: "24",
-      icon: "Eye",
-      color: "text-green-600"
-    },
-    {
-      title: "Total Sales",
-      value: "$2,450",
-      icon: "DollarSign",
-      color: "text-purple-600"
-    },
-    {
-      title: "Profile Views",
-      value: "156",
-      icon: "TrendingUp",
-      color: "text-orange-600"
-    }
-  ];
+  const { user } = useAuth();
 
-  const watchlistItems = [
-    { id: 1, name: "1909-S VDB Lincoln Cent", currentBid: "$850", timeLeft: "2d 14h", image: "/placeholder.svg" },
-    { id: 2, name: "1916-D Mercury Dime", currentBid: "$1,200", timeLeft: "5d 8h", image: "/placeholder.svg" },
-    { id: 3, name: "1937-D Three-Legged Buffalo Nickel", currentBid: "$2,100", timeLeft: "1d 3h", image: "/placeholder.svg" }
-  ];
+  const { data: stats = {
+    totalValue: 0,
+    totalCoins: 0,
+    profitLoss: 0,
+    profitPercentage: 0,
+    portfolioItems: []
+  }, isLoading: statsLoading } = useQuery({
+    queryKey: ['dashboard-stats', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
 
-  const recentTransactions = [
-    { id: 1, type: "sale", coin: "Morgan Silver Dollar 1881-S", amount: "$45.00", date: "2024-01-15", status: "completed" },
-    { id: 2, type: "purchase", coin: "Walking Liberty Half Dollar 1947", amount: "$28.50", date: "2024-01-12", status: "completed" },
-    { id: 3, type: "sale", coin: "Indian Head Penny 1907", amount: "$12.25", date: "2024-01-10", status: "pending" }
-  ];
+      const { data: coins, error } = await supabase
+        .from('coins')
+        .select('*')
+        .eq('user_id', user.id);
 
-  const favorites = [
-    { id: 1, name: "Mercury Dimes", count: 8, image: "/placeholder.svg" },
-    { id: 2, name: "Morgan Silver Dollars", count: 15, image: "/placeholder.svg" },
-    { id: 3, name: "Buffalo Nickels", count: 6, image: "/placeholder.svg" }
-  ];
+      if (error) throw error;
+
+      const totalValue = coins?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
+      const totalCoins = coins?.length || 0;
+
+      return {
+        totalValue,
+        totalCoins,
+        profitLoss: totalValue * 0.12, // Mock 12% profit
+        profitPercentage: 12.5,
+        portfolioItems: coins || []
+      };
+    },
+    enabled: !!user,
+  });
+
+  const { data: watchlistItems = [], isLoading: watchlistLoading } = useQuery({
+    queryKey: ['watchlist', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('watchlist')
+        .select(`
+          *,
+          listing_id (
+            id,
+            current_price,
+            coin_id (
+              name,
+              image,
+              year
+            )
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: recentTransactions = [], isLoading: transactionsLoading } = useQuery({
+    queryKey: ['recent-transactions', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          coin_id (
+            name,
+            image,
+            year
+          )
+        `)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: favorites = [], isLoading: favoritesLoading } = useQuery({
+    queryKey: ['favorites', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select(`
+          *,
+          coin_id (
+            id,
+            name,
+            image,
+            year,
+            price
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   return {
     stats,
     watchlistItems,
     recentTransactions,
-    favorites
+    favorites,
+    isLoading: statsLoading || watchlistLoading || transactionsLoading || favoritesLoading
   };
 };
