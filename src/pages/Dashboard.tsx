@@ -1,4 +1,3 @@
-
 import { usePageView } from '@/hooks/usePageView';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, Clock, DollarSign, Settings, Star, Eye, TrendingUp, Package } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import SmartPortfolioAI from '@/components/dashboard/SmartPortfolioAI';
 
 const Dashboard = () => {
   usePageView();
@@ -63,8 +63,16 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="pt-20 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DashboardHeader userName={user?.user_metadata?.name} />
+        
+        {/* Smart Portfolio AI Section */}
+        <div className="mt-8">
+          <SmartPortfolioAI />
+        </div>
+
+        {/* Original Dashboard Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
