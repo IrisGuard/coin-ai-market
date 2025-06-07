@@ -74,13 +74,21 @@ export const useCachedMarketplaceData = () => {
     
     // Process coins (sorting, filtering verified, etc.)
     const processed = rawCoins
-      .filter(coin => coin.authentication_status === 'verified')
+      .filter(coin => {
+        // Type guard to check if coin has authentication_status
+        return 'authentication_status' in coin ? coin.authentication_status === 'verified' : true;
+      })
       .sort((a, b) => {
         // Featured coins first, then by views
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        return (b.views || 0) - (a.views || 0);
-      });
+        const aFeatured = 'featured' in a ? a.featured : false;
+        const bFeatured = 'featured' in b ? b.featured : false;
+        const aViews = 'views' in a ? a.views || 0 : 0;
+        const bViews = 'views' in b ? b.views || 0 : 0;
+        
+        if (aFeatured && !bFeatured) return -1;
+        if (!aFeatured && bFeatured) return 1;
+        return bViews - aViews;
+      }) as Coin[];
     
     marketplaceCache.set(cacheKey, processed);
     return processed;
@@ -100,8 +108,8 @@ export const useCachedMarketplaceData = () => {
     
     const stats = {
       total: processedCoins.length,
-      auctions: processedCoins.filter(c => c.is_auction).length,
-      featured: processedCoins.filter(c => c.featured).length,
+      auctions: processedCoins.filter(c => 'is_auction' in c && c.is_auction).length,
+      featured: processedCoins.filter(c => 'featured' in c && c.featured).length,
       totalValue: processedCoins.reduce((sum, coin) => sum + (coin.price || 0), 0),
       averagePrice: processedCoins.length > 0 
         ? processedCoins.reduce((sum, coin) => sum + (coin.price || 0), 0) / processedCoins.length 

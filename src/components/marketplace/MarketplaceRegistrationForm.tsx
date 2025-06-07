@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -346,7 +345,7 @@ const MarketplaceRegistrationForm = () => {
                       <div className="flex items-center space-x-2">
                         <Checkbox 
                           checked={formData.specialties.includes(specialty)}
-                          readOnly
+                          onChange={() => handleSpecialtyToggle(specialty)}
                         />
                         <span className="text-sm">{specialty}</span>
                       </div>
