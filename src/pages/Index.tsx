@@ -4,7 +4,10 @@ import { usePageView } from '@/hooks/usePageView';
 import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import Navbar from "@/components/Navbar";
-import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
+import HeroSection from "@/components/HeroSection";
+import FeatureSection from "@/components/FeatureSection";
+import ServicesSection from "@/components/ServicesSection";
+import QuickActionsSection from "@/components/QuickActionsSection";
 import TrendingCoins from "@/components/marketplace/TrendingCoins";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
@@ -35,8 +38,14 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Hero Section with colorful categories */}
-      <MarketplaceHero />
+      {/* Hero Section with AI-Powered Coin Recognition */}
+      <HeroSection />
+      
+      {/* Feature Section */}
+      <FeatureSection />
+      
+      {/* Services Section */}
+      <ServicesSection />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Categories Grid */}
@@ -69,6 +78,9 @@ const Index = () => {
           )}
         </div>
       </div>
+
+      {/* Quick Actions Section */}
+      <QuickActionsSection />
 
       <Footer />
     </div>
