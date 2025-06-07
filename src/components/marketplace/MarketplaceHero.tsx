@@ -1,11 +1,13 @@
 
 import React from 'react';
-import { Search, Menu, Home, Store, Upload, User, Gavel, Brain, LogIn } from 'lucide-react';
+import { Search, Menu, Coins, Gavel, Globe, MapPin, Star, DollarSign, Crown, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
@@ -30,18 +32,20 @@ const MarketplaceHero = () => {
     { name: 'Rare', href: '/marketplace?category=rare', color: 'bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700' }
   ];
 
-  // All pages from the app
-  const allPages = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Marketplace', href: '/marketplace', icon: Store },
-    { name: 'Search', href: '/search', icon: Search },
-    { name: 'Upload', href: '/upload', icon: Upload },
-    { name: 'Dashboard', href: '/dashboard', icon: User },
-    { name: 'Profile', href: '/profile', icon: User },
-    { name: 'Auth', href: '/auth', icon: LogIn },
-    { name: 'Auctions', href: '/auctions', icon: Gavel },
-    { name: 'AI Features', href: '/ai-features', icon: Brain },
-    { name: 'Mobile AI', href: '/mobile-ai', icon: Brain },
+  // All coin categories for dropdown with icons
+  const allCategories = [
+    { name: 'Ancient Coins', href: '/marketplace?category=ancient', icon: Crown },
+    { name: 'Modern Coins', href: '/marketplace?category=modern', icon: Coins },
+    { name: 'Error Coins', href: '/marketplace?category=error', icon: Shield },
+    { name: 'Graded', href: '/marketplace?category=graded', icon: Star },
+    { name: 'Auctions', href: '/marketplace?auctions=true', icon: Gavel },
+    { name: 'European', href: '/marketplace?category=european', icon: Globe },
+    { name: 'American', href: '/marketplace?category=american', icon: MapPin },
+    { name: 'Asian', href: '/marketplace?category=asian', icon: Globe },
+    { name: 'Collectibles', href: '/marketplace?category=collectible', icon: Star },
+    { name: 'Gold Coins', href: '/marketplace?category=gold', icon: DollarSign },
+    { name: 'Silver Coins', href: '/marketplace?category=silver', icon: Coins },
+    { name: 'Rare', href: '/marketplace?category=rare', icon: Crown }
   ];
 
   return (
@@ -72,7 +76,7 @@ const MarketplaceHero = () => {
                 </button>
               </div>
 
-              {/* Pages Dropdown */}
+              {/* Categories Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -80,18 +84,38 @@ const MarketplaceHero = () => {
                     className="px-6 py-4 h-auto text-lg border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <Menu className="w-5 h-5 mr-2" />
-                    Browse All Pages
+                    Browse Categories
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-lg" align="end">
-                  {allPages.map((page) => (
-                    <DropdownMenuItem key={page.name} asChild>
+                <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-lg z-50" align="end">
+                  <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-gray-700">
+                    Main Categories
+                  </DropdownMenuLabel>
+                  {mainCategories.map((category) => (
+                    <DropdownMenuItem key={category.name} asChild>
                       <a 
-                        href={page.href}
+                        href={category.href}
                         className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors cursor-pointer"
                       >
-                        <page.icon className="w-4 h-4" />
-                        <span>{page.name}</span>
+                        <Coins className="w-4 h-4" />
+                        <span>{category.name}</span>
+                      </a>
+                    </DropdownMenuItem>
+                  ))}
+                  
+                  <DropdownMenuSeparator className="my-1" />
+                  
+                  <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-gray-700">
+                    Specialty Categories
+                  </DropdownMenuLabel>
+                  {secondaryCategories.map((category) => (
+                    <DropdownMenuItem key={category.name} asChild>
+                      <a 
+                        href={category.href}
+                        className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors cursor-pointer"
+                      >
+                        <Coins className="w-4 h-4" />
+                        <span>{category.name}</span>
                       </a>
                     </DropdownMenuItem>
                   ))}
@@ -100,26 +124,26 @@ const MarketplaceHero = () => {
             </div>
           </div>
 
-          {/* First Row - 5 Main Categories */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6 max-w-5xl mx-auto">
+          {/* First Row - 5 Main Categories (Larger Buttons) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 max-w-5xl mx-auto">
             {mainCategories.map((category) => (
               <a
                 key={category.name}
                 href={category.href}
-                className={`${category.color} text-white px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105`}
+                className={`${category.color} text-white px-6 py-4 rounded-lg text-base font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105`}
               >
                 {category.name}
               </a>
             ))}
           </div>
 
-          {/* Second Row - 7 Secondary Categories */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 max-w-6xl mx-auto">
+          {/* Second Row - 7 Secondary Categories (Larger Buttons) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 max-w-6xl mx-auto">
             {secondaryCategories.map((category) => (
               <a
                 key={category.name}
                 href={category.href}
-                className={`${category.color} text-white px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105`}
+                className={`${category.color} text-white px-6 py-4 rounded-lg text-base font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105`}
               >
                 {category.name}
               </a>
