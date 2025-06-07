@@ -13,6 +13,7 @@ import { Loader2, Mail, Lock, User, Phone } from 'lucide-react';
 
 const AuthCard = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [signupData, setSignupData] = useState({
     email: '',
     password: '',
@@ -96,14 +97,14 @@ const AuthCard = () => {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="login" className="space-y-4">
+          <Tabs value={isLogin ? "login" : "register"} onValueChange={(value) => setIsLogin(value === "login")} className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login" className="space-y-4">
-              <LoginForm />
+              <LoginForm isLogin={isLogin} setIsLogin={setIsLogin} />
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-300" />
@@ -116,104 +117,7 @@ const AuthCard = () => {
             </TabsContent>
             
             <TabsContent value="register" className="space-y-4">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-electric-blue font-medium">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-electric-blue" />
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={signupData.fullName}
-                      onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
-                      className="pl-9 border-electric-blue/30 focus:border-electric-blue"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-electric-blue font-medium">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-electric-blue" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signupData.email}
-                      onChange={(e) => setSignupData({...signupData, email: e.target.value})}
-                      className="pl-9 border-electric-blue/30 focus:border-electric-blue"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-electric-blue font-medium">Phone (Optional)</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-electric-blue" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="Enter your phone number"
-                      value={signupData.phone}
-                      onChange={(e) => setSignupData({...signupData, phone: e.target.value})}
-                      className="pl-9 border-electric-blue/30 focus:border-electric-blue"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-electric-blue font-medium">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-electric-blue" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={signupData.password}
-                      onChange={(e) => setSignupData({...signupData, password: e.target.value})}
-                      className="pl-9 border-electric-blue/30 focus:border-electric-blue"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-electric-blue font-medium">Confirm Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-electric-blue" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={signupData.confirmPassword}
-                      onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
-                      className="pl-9 border-electric-blue/30 focus:border-electric-blue"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-blue text-white font-medium"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    'Create Account'
-                  )}
-                </Button>
-              </form>
-              
+              <LoginForm isLogin={isLogin} setIsLogin={setIsLogin} />
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-300" />
