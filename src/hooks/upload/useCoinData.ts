@@ -18,7 +18,7 @@ const getInitialCoinData = (): CoinData => ({
   composition: '',
   diameter: '',
   weight: '',
-  auctionDuration: 7
+  auctionDuration: '7'  // Changed to string to match CoinData type
 });
 
 export const useCoinData = () => {

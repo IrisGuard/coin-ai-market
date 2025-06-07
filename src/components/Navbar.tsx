@@ -4,15 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, User, Settings, Heart, Eye, Clock, FileText, HelpCircle, Bell } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { User, Upload } from 'lucide-react';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -26,7 +18,6 @@ const Navbar = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -40,7 +31,9 @@ const Navbar = () => {
   const navItems = [
     { label: 'Home', href: '/' },
     { label: 'Marketplace', href: '/marketplace' },
-    { label: 'Upload Coin', href: '/upload' },
+    { label: 'Auctions', href: '/auctions' },
+    { label: 'Services', href: '/services' },
+    { label: 'Support', href: '/support' },
   ];
 
   return (
@@ -89,93 +82,23 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                {/* Account Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-1">
-                      <User className="h-4 w-4" />
-                      <span>Account</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-white border shadow-lg">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/settings')}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/transactions')}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Transactions
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Trading Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-1">
-                      <span>Trading</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-white border shadow-lg">
-                    <DropdownMenuLabel>Trading</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/auctions')}>
-                      <Clock className="mr-2 h-4 w-4" />
-                      Auctions
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/watchlist')}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      Watchlist
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/favorites')}>
-                      <Heart className="mr-2 h-4 w-4" />
-                      Favorites
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/portfolio')}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Portfolio
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/sell-history')}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Sell History
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Support Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-1">
-                      <HelpCircle className="h-4 w-4" />
-                      <span>Support</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-white border shadow-lg">
-                    <DropdownMenuLabel>Support</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/support')}>
-                      <HelpCircle className="mr-2 h-4 w-4" />
-                      Help Center
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/notifications')}>
-                      <Bell className="mr-2 h-4 w-4" />
-                      Notifications
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/upload')}
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/profile')}
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
 
                 <Button
                   variant="outline"
