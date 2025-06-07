@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import MobileCoinUploadForm from '@/components/mobile/MobileCoinUploadForm';
 import BulkCoinUploadManager from '@/components/mobile/BulkCoinUploadManager';
 import OfflineStatusIndicator from '@/components/mobile/OfflineStatusIndicator';
-import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MobileStats {
@@ -24,7 +23,8 @@ interface MobileStats {
 
 const MobileUpload = () => {
   const { isAuthenticated, user } = useAuth();
-  const { isOnline, pendingItems } = useOfflineSync();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('single');
   const [mobileStats, setMobileStats] = useState<MobileStats>({
     avgAnalysisTime: 0,
@@ -34,6 +34,20 @@ const MobileUpload = () => {
     offlineQueue: 0,
     isLoading: true
   });
+
+  // Track online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Fetch real mobile statistics from database
   useEffect(() => {
@@ -151,7 +165,10 @@ const MobileUpload = () => {
           </p>
         </div>
         
-        <OfflineStatusIndicator />
+        <OfflineStatusIndicator 
+          isOnline={isOnline} 
+          pendingCount={pendingItems.length} 
+        />
       </div>
 
       {/* Real Mobile Stats Bar */}

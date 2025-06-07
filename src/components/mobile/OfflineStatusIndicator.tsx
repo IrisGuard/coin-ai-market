@@ -1,63 +1,63 @@
 
-import { Wifi, WifiOff, Loader2, Clock } from 'lucide-react';
-import { useOfflineSync } from '@/hooks/useOfflineSync';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Wifi, WifiOff, Clock, CheckCircle } from 'lucide-react';
 
-const OfflineStatusIndicator = () => {
-  const { isOnline, pendingItems, isSyncing, syncPendingItems } = useOfflineSync();
+interface OfflineStatusIndicatorProps {
+  isOnline?: boolean;
+  pendingCount?: number;
+  className?: string;
+}
 
-  if (isOnline && pendingItems.length === 0) {
-    return (
-      <div className="flex items-center gap-2 text-green-600 text-sm">
-        <Wifi className="w-4 h-4" />
-        <span>Online</span>
-      </div>
-    );
+const OfflineStatusIndicator = ({ 
+  isOnline = navigator.onLine, 
+  pendingCount = 0,
+  className = ""
+}: OfflineStatusIndicatorProps) => {
+  if (isOnline && pendingCount === 0) {
+    return null; // Don't show anything when everything is normal
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 border-b">
-      {!isOnline ? (
-        <div className="flex items-center gap-2 text-orange-600">
-          <WifiOff className="w-4 h-4" />
-          <span className="text-sm">Offline Mode</span>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2 text-green-600">
-          <Wifi className="w-4 h-4" />
-          <span className="text-sm">Online</span>
-        </div>
-      )}
-
-      {pendingItems.length > 0 && (
-        <>
-          <Badge variant="outline" className="text-xs">
-            <Clock className="w-3 h-3 mr-1" />
-            {pendingItems.length} pending
-          </Badge>
-          
-          {isOnline && (
-            <Button
-              onClick={syncPendingItems}
-              disabled={isSyncing}
-              size="sm"
-              variant="outline"
-              className="text-xs h-6"
-            >
-              {isSyncing ? (
-                <>
-                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  Syncing...
-                </>
-              ) : (
-                'Sync Now'
-              )}
-            </Button>
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`border-b bg-gradient-to-r ${className}`}
+    >
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex items-center justify-center gap-3">
+          {!isOnline ? (
+            <>
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <WifiOff className="w-3 h-3" />
+                Offline Mode
+              </Badge>
+              <span className="text-sm text-gray-600">
+                Data will sync when connection returns
+              </span>
+            </>
+          ) : pendingCount > 0 ? (
+            <>
+              <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-800">
+                <Clock className="w-3 h-3" />
+                Syncing {pendingCount} items
+              </Badge>
+              <span className="text-sm text-gray-600">
+                Upload in progress...
+              </span>
+            </>
+          ) : (
+            <>
+              <Badge variant="outline" className="flex items-center gap-1 text-green-700 border-green-200">
+                <CheckCircle className="w-3 h-3" />
+                All synced
+              </Badge>
+            </>
           )}
-        </>
-      )}
-    </div>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 

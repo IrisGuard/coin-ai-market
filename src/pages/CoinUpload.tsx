@@ -31,7 +31,8 @@ const CoinUpload = () => {
     handleDrop,
     removeImage,
     handleUploadAndAnalyze,
-    handleSubmitListing
+    handleSubmitListing,
+    handleFiles
   } = useCoinUpload();
 
   if (!isAuthenticated) {
@@ -40,20 +41,9 @@ const CoinUpload = () => {
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    // handleFiles is not directly exported, so we'll handle it here
-    const maxImages = 5;
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    
-    if (images.length + files.length > maxImages) {
-      return;
+    if (files.length > 0) {
+      handleFiles(files);
     }
-
-    const validFiles = files.filter(file => {
-      return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024;
-    });
-
-    // This would need to be handled by the hook
-    console.log('Files selected:', validFiles);
   };
 
   return (
