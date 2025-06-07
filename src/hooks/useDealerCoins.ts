@@ -1,1329 +1,267 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Coin, Rarity, CoinCondition } from '@/types/coin';
+import { mockAuctionCoins } from '@/data/mockAuctionCoins';
 
-// Mock coins data για κάθε κατάστημα με σωστά UUIDs
-const mockCoinsData: Record<string, Coin[]> = {
-  '1': [
-    {
-      id: '11111111-1111-1111-1111-111111111111',
-      name: '1921 Morgan Silver Dollar',
-      year: 1921,
-      grade: 'MS-63',
-      rarity: 'Uncommon' as Rarity,
-      price: 450,
-      image: '/placeholder.svg',
-      user_id: '1',
-      country: 'USA',
-      denomination: '$1',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Philadelphia',
-      description: 'Beautiful Morgan dollar with excellent luster',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1203,
-      created_at: new Date().toISOString(),
-      profiles: { id: '1', name: 'Professional Coin Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '11111111-1111-1111-1111-111111111112',
-      name: '1916-D Mercury Dime',
-      year: 1916,
-      grade: 'VF-20',
-      rarity: 'Rare' as Rarity,
-      price: 1250,
-      image: '/placeholder.svg',
-      user_id: '1',
-      country: 'USA',
-      denomination: '10¢',
-      condition: 'Good' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Denver',
-      description: 'Key date Mercury dime in very fine condition',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 892,
-      created_at: new Date().toISOString(),
-      profiles: { id: '1', name: 'Professional Coin Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '11111111-1111-1111-1111-111111111113',
-      name: '1943 Walking Liberty Half',
-      year: 1943,
-      grade: 'AU-55',
-      rarity: 'Common' as Rarity,
-      price: 85,
-      image: '/placeholder.svg',
-      user_id: '1',
-      country: 'USA',
-      denomination: '50¢',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Philadelphia',
-      description: 'Classic Walking Liberty design',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '1', name: 'Professional Coin Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '11111111-1111-1111-1111-111111111114',
-      name: '1936 Buffalo Nickel',
-      year: 1936,
-      grade: 'XF-40',
-      rarity: 'Uncommon' as Rarity,
-      price: 125,
-      image: '/placeholder.svg',
-      user_id: '1',
-      country: 'USA',
-      denomination: '5¢',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Nickel',
-      mint: 'Philadelphia',
-      description: 'Sharp details on buffalo and Indian',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 156,
-      created_at: new Date().toISOString(),
-      profiles: { id: '1', name: 'Professional Coin Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '11111111-1111-1111-1111-111111111115',
-      name: '1909-S VDB Lincoln Cent',
-      year: 1909,
-      grade: 'VF-25',
-      rarity: 'Rare' as Rarity,
-      price: 750,
-      image: '/placeholder.svg',
-      user_id: '1',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Good' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'San Francisco',
-      description: 'First year Lincoln cent with VDB initials',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 543,
-      created_at: new Date().toISOString(),
-      profiles: { id: '1', name: 'Professional Coin Gallery', reputation: 0, verified_dealer: true },
-      bids: []
+// Mock data for regular dealer coins
+const mockDealerCoins = [
+  {
+    id: '1',
+    name: '1921 Morgan Silver Dollar',
+    year: 1921,
+    grade: 'MS-65',
+    price: 450,
+    rarity: 'Common',
+    image: '/placeholder.svg',
+    user_id: 'dealer-1',
+    country: 'United States',
+    denomination: 'Dollar',
+    condition: 'Mint',
+    description: 'Beautiful 1921 Morgan Silver Dollar in exceptional condition.',
+    profiles: {
+      id: 'dealer-1',
+      name: 'Premium Coins USA',
+      reputation: 98,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '2': [
-    {
-      id: '22222222-2222-2222-2222-222222222221',
-      name: '1937 UK Crown George VI',
-      year: 1937,
-      grade: 'MS-62',
-      rarity: 'Uncommon' as Rarity,
-      price: 180,
-      image: '/placeholder.svg',
-      user_id: '2',
-      country: 'UK',
-      denomination: '5 Shillings',
-      condition: 'Near Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Royal Mint',
-      description: 'Coronation crown with beautiful details',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 432,
-      created_at: new Date().toISOString(),
-      profiles: { id: '2', name: 'European Coin Specialists', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '22222222-2222-2222-2222-222222222222',
-      name: '1960 French 10 Francs',
-      year: 1960,
-      grade: 'AU-58',
-      rarity: 'Common' as Rarity,
-      price: 45,
-      image: '/placeholder.svg',
-      user_id: '2',
-      country: 'France',
-      denomination: '10 Francs',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Paris',
-      description: 'Classic French Republic design',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 267,
-      created_at: new Date().toISOString(),
-      profiles: { id: '2', name: 'European Coin Specialists', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '22222222-2222-2222-2222-222222222223',
-      name: '1871 German Empire 5 Mark',
-      year: 1871,
-      grade: 'VF-30',
-      rarity: 'Rare' as Rarity,
-      price: 850,
-      image: '/placeholder.svg',
-      user_id: '2',
-      country: 'Germany',
-      denomination: '5 Mark',
-      condition: 'Good' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Berlin',
-      description: 'First year of German Empire coinage',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 721,
-      created_at: new Date().toISOString(),
-      profiles: { id: '2', name: 'European Coin Specialists', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '22222222-2222-2222-2222-222222222224',
-      name: '1928 Netherlands Gulden',
-      year: 1928,
-      grade: 'XF-45',
-      rarity: 'Uncommon' as Rarity,
-      price: 95,
-      image: '/placeholder.svg',
-      user_id: '2',
-      country: 'Netherlands',
-      denomination: '1 Gulden',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Utrecht',
-      description: 'Beautiful Queen Wilhelmina portrait',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 198,
-      created_at: new Date().toISOString(),
-      profiles: { id: '2', name: 'European Coin Specialists', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '22222222-2222-2222-2222-222222222225',
-      name: '1936 Austrian Schilling',
-      year: 1936,
-      grade: 'MS-60',
-      rarity: 'Uncommon' as Rarity,
-      price: 320,
-      image: '/placeholder.svg',
-      user_id: '2',
-      country: 'Austria',
-      denomination: '1 Schilling',
-      condition: 'Near Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Vienna',
-      description: 'Pre-war Austrian Republic coin',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 145,
-      created_at: new Date().toISOString(),
-      profiles: { id: '2', name: 'European Coin Specialists', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '22222222-2222-2222-2222-222222222226',
-      name: '1950 Swiss 5 Francs',
-      year: 1950,
-      grade: 'AU-55',
-      rarity: 'Common' as Rarity,
-      price: 75,
-      image: '/placeholder.svg',
-      user_id: '2',
-      country: 'Switzerland',
-      denomination: '5 Francs',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Bern',
-      description: 'Classic Swiss Confederation design',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 289,
-      created_at: new Date().toISOString(),
-      profiles: { id: '2', name: 'European Coin Specialists', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '2',
+    name: '1943 Walking Liberty Half Dollar',
+    year: 1943,
+    grade: 'AU-55',
+    price: 85,
+    rarity: 'Uncommon',
+    image: '/placeholder.svg',
+    user_id: 'dealer-2',
+    country: 'United States',
+    denomination: 'Half Dollar',
+    condition: 'Near Mint',
+    description: 'Classic Walking Liberty design in AU condition.',
+    profiles: {
+      id: 'dealer-2',
+      name: 'Heritage Numismatics',
+      reputation: 95,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '3': [
-    {
-      id: '33333333-3333-3333-3333-333333333331',
-      name: 'Roman Denarius Marcus Aurelius',
-      year: 161,
-      grade: 'VF-25',
-      rarity: 'Very Rare' as Rarity,
-      price: 2800,
-      image: '/placeholder.svg',
-      user_id: '3',
-      country: 'Roman Empire',
-      denomination: 'Denarius',
-      condition: 'Good' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Rome',
-      description: 'Emperor Marcus Aurelius denarius, exceptional preservation',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1156,
-      created_at: new Date().toISOString(),
-      profiles: { id: '3', name: 'Ancient Treasures Ltd.', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '33333333-3333-3333-3333-333333333332',
-      name: 'Greek Tetradrachm Alexander III',
-      year: -336,
-      grade: 'F-15',
-      rarity: 'Very Rare' as Rarity,
-      price: 3500,
-      image: '/placeholder.svg',
-      user_id: '3',
-      country: 'Macedonia',
-      denomination: 'Tetradrachm',
-      condition: 'Fair' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Amphipolis',
-      description: 'Alexander the Great silver tetradrachm',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 943,
-      created_at: new Date().toISOString(),
-      profiles: { id: '3', name: 'Ancient Treasures Ltd.', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '33333333-3333-3333-3333-333333333333',
-      name: 'Byzantine Solidus Justinian I',
-      year: 527,
-      grade: 'VF-20',
-      rarity: 'Very Rare' as Rarity,
-      price: 1850,
-      image: '/placeholder.svg',
-      user_id: '3',
-      country: 'Byzantine Empire',
-      denomination: 'Solidus',
-      condition: 'Good' as CoinCondition,
-      composition: 'Gold',
-      mint: 'Constantinople',
-      description: 'Gold solidus of Emperor Justinian I',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 672,
-      created_at: new Date().toISOString(),
-      profiles: { id: '3', name: 'Ancient Treasures Ltd.', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '33333333-3333-3333-3333-333333333334',
-      name: 'Roman As Trajan',
-      year: 98,
-      grade: 'G-6',
-      rarity: 'Rare' as Rarity,
-      price: 450,
-      image: '/placeholder.svg',
-      user_id: '3',
-      country: 'Roman Empire',
-      denomination: 'As',
-      condition: 'Poor' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'Rome',
-      description: 'Large bronze As of Emperor Trajan',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '3', name: 'Ancient Treasures Ltd.', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '3',
+    name: '1916-D Mercury Dime',
+    year: 1916,
+    grade: 'VF-30',
+    price: 1250,
+    rarity: 'Rare',
+    image: '/placeholder.svg',
+    user_id: 'dealer-1',
+    country: 'United States',
+    denomination: 'Dime',
+    condition: 'Good',
+    description: 'Key date Mercury Dime in circulated condition.',
+    profiles: {
+      id: 'dealer-1',
+      name: 'Premium Coins USA',
+      reputation: 98,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '4': [
-    {
-      id: '44444444-4444-4444-4444-444444444441',
-      name: '2020 American Eagle Silver',
-      year: 2020,
-      grade: 'MS-69',
-      rarity: 'Common' as Rarity,
-      price: 45,
-      image: '/placeholder.svg',
-      user_id: '4',
-      country: 'USA',
-      denomination: '$1',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'West Point',
-      description: 'Modern American Silver Eagle, near perfect',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 567,
-      created_at: new Date().toISOString(),
-      profiles: { id: '4', name: 'Modern Mint Collection', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '44444444-4444-4444-4444-444444444442',
-      name: '2019 Canadian Maple Leaf Gold',
-      year: 2019,
-      grade: 'MS-68',
-      rarity: 'Uncommon' as Rarity,
-      price: 2100,
-      image: '/placeholder.svg',
-      user_id: '4',
-      country: 'Canada',
-      denomination: '$50',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Gold',
-      mint: 'Royal Canadian Mint',
-      description: 'Pure gold maple leaf with security features',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 823,
-      created_at: new Date().toISOString(),
-      profiles: { id: '4', name: 'Modern Mint Collection', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '44444444-4444-4444-4444-444444444443',
-      name: '2021 Britannia Silver',
-      year: 2021,
-      grade: 'MS-70',
-      rarity: 'Common' as Rarity,
-      price: 55,
-      image: '/placeholder.svg',
-      user_id: '4',
-      country: 'UK',
-      denomination: '£2',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Royal Mint',
-      description: 'Perfect grade modern Britannia',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 345,
-      created_at: new Date().toISOString(),
-      profiles: { id: '4', name: 'Modern Mint Collection', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '44444444-4444-4444-4444-444444444444',
-      name: '2018 Krugerrand Gold',
-      year: 2018,
-      grade: 'MS-67',
-      rarity: 'Uncommon' as Rarity,
-      price: 1950,
-      image: '/placeholder.svg',
-      user_id: '4',
-      country: 'South Africa',
-      denomination: 'R1',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Gold',
-      mint: 'South African Mint',
-      description: 'Classic Krugerrand design',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 432,
-      created_at: new Date().toISOString(),
-      profiles: { id: '4', name: 'Modern Mint Collection', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '44444444-4444-4444-4444-444444444445',
-      name: '2022 Philharmonic Silver',
-      year: 2022,
-      grade: 'MS-69',
-      rarity: 'Common' as Rarity,
-      price: 48,
-      image: '/placeholder.svg',
-      user_id: '4',
-      country: 'Austria',
-      denomination: '€1.50',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Austrian Mint',
-      description: 'Vienna Philharmonic with musical instruments',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 198,
-      created_at: new Date().toISOString(),
-      profiles: { id: '4', name: 'Modern Mint Collection', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '4',
+    name: '1936 Buffalo Nickel',
+    year: 1936,
+    grade: 'MS-62',
+    price: 125,
+    rarity: 'Common',
+    image: '/placeholder.svg',
+    user_id: 'dealer-3',
+    country: 'United States',
+    denomination: 'Nickel',
+    condition: 'Mint',
+    description: 'Classic Buffalo Nickel design in mint state.',
+    profiles: {
+      id: 'dealer-3',
+      name: 'Rare Coin Experts',
+      reputation: 92,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '5': [
-    {
-      id: '55555555-5555-5555-5555-555555555551',
-      name: '1924 Saint-Gaudens Double Eagle',
-      year: 1924,
-      grade: 'MS-62',
-      rarity: 'Rare' as Rarity,
-      price: 2850,
-      image: '/placeholder.svg',
-      user_id: '5',
-      country: 'USA',
-      denomination: '$20',
-      condition: 'Near Mint' as CoinCondition,
-      composition: 'Gold',
-      mint: 'Philadelphia',
-      description: 'Beautiful Saint-Gaudens design in gold',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '5', name: 'Gold Standard Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '55555555-5555-5555-5555-555555555552',
-      name: '1908 Indian Head Eagle',
-      year: 1908,
-      grade: 'AU-55',
-      rarity: 'Rare' as Rarity,
-      price: 1650,
-      image: '/placeholder.svg',
-      user_id: '5',
-      country: 'USA',
-      denomination: '$10',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Gold',
-      mint: 'Philadelphia',
-      description: 'First year Indian Head Eagle design',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 687,
-      created_at: new Date().toISOString(),
-      profiles: { id: '5', name: 'Gold Standard Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '55555555-5555-5555-5555-555555555553',
-      name: '1986 American Gold Eagle',
-      year: 1986,
-      grade: 'MS-68',
-      rarity: 'Uncommon' as Rarity,
-      price: 2250,
-      image: '/placeholder.svg',
-      user_id: '5',
-      country: 'USA',
-      denomination: '$50',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Gold',
-      mint: 'West Point',
-      description: 'First year American Gold Eagle program',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 456,
-      created_at: new Date().toISOString(),
-      profiles: { id: '5', name: 'Gold Standard Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '55555555-5555-5555-5555-555555555554',
-      name: '1947 Mexican 50 Pesos',
-      year: 1947,
-      grade: 'AU-58',
-      rarity: 'Uncommon' as Rarity,
-      price: 2850,
-      image: '/placeholder.svg',
-      user_id: '5',
-      country: 'Mexico',
-      denomination: '50 Pesos',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Gold',
-      mint: 'Mexico City',
-      description: 'Large gold coin with Aztec calendar',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 534,
-      created_at: new Date().toISOString(),
-      profiles: { id: '5', name: 'Gold Standard Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '55555555-5555-5555-5555-555555555555',
-      name: '1933 British Sovereign',
-      year: 1933,
-      grade: 'VF-35',
-      rarity: 'Rare' as Rarity,
-      price: 890,
-      image: '/placeholder.svg',
-      user_id: '5',
-      country: 'UK',
-      denomination: '£1',
-      condition: 'Good' as CoinCondition,
-      composition: 'Gold',
-      mint: 'Royal Mint',
-      description: 'King George V sovereign',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 278,
-      created_at: new Date().toISOString(),
-      profiles: { id: '5', name: 'Gold Standard Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '55555555-5555-5555-5555-555555555556',
-      name: '1967 South African Krugerrand',
-      year: 1967,
-      grade: 'MS-65',
-      rarity: 'Uncommon' as Rarity,
-      price: 1950,
-      image: '/placeholder.svg',
-      user_id: '5',
-      country: 'South Africa',
-      denomination: 'R1',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Gold',
-      mint: 'South African Mint',
-      description: 'First year of Krugerrand production',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 367,
-      created_at: new Date().toISOString(),
-      profiles: { id: '5', name: 'Gold Standard Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '5',
+    name: '1909-S VDB Lincoln Cent',
+    year: 1909,
+    grade: 'AU-50',
+    price: 750,
+    rarity: 'Rare',
+    image: '/placeholder.svg',
+    user_id: 'dealer-4',
+    country: 'United States',
+    denomination: 'Cent',
+    condition: 'Excellent',
+    description: 'First year Lincoln cent with designer initials.',
+    profiles: {
+      id: 'dealer-4',
+      name: 'Error Coin Specialists',
+      reputation: 96,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '6': [
-    {
-      id: '66666666-6666-6666-6666-666666666661',
-      name: '1955 Doubled Die Lincoln Cent',
-      year: 1955,
-      grade: 'VF-20',
-      rarity: 'Very Rare' as Rarity,
-      price: 1800,
-      image: '/placeholder.svg',
-      user_id: '6',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Good' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'Philadelphia',
-      description: 'Famous doubled die error coin',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1456,
-      created_at: new Date().toISOString(),
-      profiles: { id: '6', name: 'The Coin Vault', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '66666666-6666-6666-6666-666666666662',
-      name: '1970-S Small Date Lincoln Cent',
-      year: 1970,
-      grade: 'MS-63',
-      rarity: 'Rare' as Rarity,
-      price: 3500,
-      image: '/placeholder.svg',
-      user_id: '6',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'San Francisco',
-      description: 'Rare small date variety',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 987,
-      created_at: new Date().toISOString(),
-      profiles: { id: '6', name: 'The Coin Vault', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '66666666-6666-6666-6666-666666666663',
-      name: '1916 Standing Liberty Quarter',
-      year: 1916,
-      grade: 'G-4',
-      rarity: 'Rare' as Rarity,
-      price: 8500,
-      image: '/placeholder.svg',
-      user_id: '6',
-      country: 'USA',
-      denomination: '25¢',
-      condition: 'Poor' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Philadelphia',
-      description: 'First year Standing Liberty design',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1876,
-      created_at: new Date().toISOString(),
-      profiles: { id: '6', name: 'The Coin Vault', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '66666666-6666-6666-6666-666666666664',
-      name: '1932-D Washington Quarter',
-      year: 1932,
-      grade: 'VF-25',
-      rarity: 'Rare' as Rarity,
-      price: 285,
-      image: '/placeholder.svg',
-      user_id: '6',
-      country: 'USA',
-      denomination: '25¢',
-      condition: 'Good' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Denver',
-      description: 'Key date Washington quarter',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 345,
-      created_at: new Date().toISOString(),
-      profiles: { id: '6', name: 'The Coin Vault', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '66666666-6666-6666-6666-666666666665',
-      name: '1893-S Morgan Dollar',
-      year: 1893,
-      grade: 'VG-8',
-      rarity: 'Very Rare' as Rarity,
-      price: 3500,
-      image: '/placeholder.svg',
-      user_id: '6',
-      country: 'USA',
-      denomination: '$1',
-      condition: 'Fair' as CoinCondition,
-      composition: 'Silver',
-      mint: 'San Francisco',
-      description: 'Key date Morgan dollar',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1654,
-      created_at: new Date().toISOString(),
-      profiles: { id: '6', name: 'The Coin Vault', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '6',
+    name: '1893-S Morgan Dollar',
+    year: 1893,
+    grade: 'XF-45',
+    price: 3500,
+    rarity: 'Ultra Rare',
+    image: '/placeholder.svg',
+    user_id: 'dealer-5',
+    country: 'United States',
+    denomination: 'Dollar',
+    condition: 'Fair',
+    description: 'Key date Morgan Dollar from San Francisco mint.',
+    profiles: {
+      id: 'dealer-5',
+      name: 'Elite Coin Gallery',
+      reputation: 99,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '7': [
-    {
-      id: '77777777-7777-7777-7777-777777777771',
-      name: '1936 Australian Florin',
-      year: 1936,
-      grade: 'XF-40',
-      rarity: 'Uncommon' as Rarity,
-      price: 125,
-      image: '/placeholder.svg',
-      user_id: '7',
-      country: 'Australia',
-      denomination: '2 Shillings',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Melbourne',
-      description: 'Centennial florin with coat of arms',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '7', name: 'World Coin Exchange', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '77777777-7777-7777-7777-777777777772',
-      name: '1964 Japanese 100 Yen Olympics',
-      year: 1964,
-      grade: 'MS-64',
-      rarity: 'Uncommon' as Rarity,
-      price: 85,
-      image: '/placeholder.svg',
-      user_id: '7',
-      country: 'Japan',
-      denomination: '100 Yen',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Tokyo',
-      description: 'Tokyo Olympics commemorative coin',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 456,
-      created_at: new Date().toISOString(),
-      profiles: { id: '7', name: 'World Coin Exchange', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '77777777-7777-7777-7777-777777777773',
-      name: '1947 Indian 1 Rupee',
-      year: 1947,
-      grade: 'AU-50',
-      rarity: 'Rare' as Rarity,
-      price: 450,
-      image: '/placeholder.svg',
-      user_id: '7',
-      country: 'India',
-      denomination: '1 Rupee',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Bombay',
-      description: 'First year of independence',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 678,
-      created_at: new Date().toISOString(),
-      profiles: { id: '7', name: 'World Coin Exchange', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '77777777-7777-7777-7777-777777777774',
-      name: '1960 South African 5 Shillings',
-      year: 1960,
-      grade: 'MS-62',
-      rarity: 'Uncommon' as Rarity,
-      price: 195,
-      image: '/placeholder.svg',
-      user_id: '7',
-      country: 'South Africa',
-      denomination: '5 Shillings',
-      condition: 'Near Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Pretoria',
-      description: 'Union of South Africa crown',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 145,
-      created_at: new Date().toISOString(),
-      profiles: { id: '7', name: 'World Coin Exchange', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '77777777-7777-7777-7777-777777777775',
-      name: '1968 Mexican Olympics 25 Pesos',
-      year: 1968,
-      grade: 'MS-65',
-      rarity: 'Common' as Rarity,
-      price: 65,
-      image: '/placeholder.svg',
-      user_id: '7',
-      country: 'Mexico',
-      denomination: '25 Pesos',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Mexico City',
-      description: 'Mexico City Olympics commemorative',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 289,
-      created_at: new Date().toISOString(),
-      profiles: { id: '7', name: 'World Coin Exchange', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '7',
+    name: '1937-D Buffalo Nickel',
+    year: 1937,
+    grade: 'MS-64',
+    price: 65,
+    rarity: 'Uncommon',
+    image: '/placeholder.svg',
+    user_id: 'dealer-2',
+    country: 'United States',
+    denomination: 'Nickel',
+    condition: 'Mint',
+    description: 'Classic Buffalo Nickel design from Denver mint.',
+    profiles: {
+      id: 'dealer-2',
+      name: 'Heritage Numismatics',
+      reputation: 95,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '8': [
-    {
-      id: '88888888-8888-8888-8888-888888888881',
-      name: '1909-S Indian Head Cent',
-      year: 1909,
-      grade: 'AU-55',
-      rarity: 'Rare' as Rarity,
-      price: 675,
-      image: '/placeholder.svg',
-      user_id: '8',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Excellent' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'San Francisco',
-      description: 'Last year Indian Head cent',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 432,
-      created_at: new Date().toISOString(),
-      profiles: { id: '8', name: 'Rare Finds Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '88888888-8888-8888-8888-888888888882',
-      name: '1914-D Lincoln Cent',
-      year: 1914,
-      grade: 'VG-10',
-      rarity: 'Rare' as Rarity,
-      price: 285,
-      image: '/placeholder.svg',
-      user_id: '8',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Fair' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'Denver',
-      description: 'Key date Lincoln cent',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 567,
-      created_at: new Date().toISOString(),
-      profiles: { id: '8', name: 'Rare Finds Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '88888888-8888-8888-8888-888888888883',
-      name: '1877 Indian Head Cent',
-      year: 1877,
-      grade: 'G-6',
-      rarity: 'Very Rare' as Rarity,
-      price: 950,
-      image: '/placeholder.svg',
-      user_id: '8',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Poor' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'Philadelphia',
-      description: 'Key date Indian Head cent',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 876,
-      created_at: new Date().toISOString(),
-      profiles: { id: '8', name: 'Rare Finds Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '88888888-8888-8888-8888-888888888884',
-      name: '1931-S Lincoln Cent',
-      year: 1931,
-      grade: 'MS-63',
-      rarity: 'Uncommon' as Rarity,
-      price: 185,
-      image: '/placeholder.svg',
-      user_id: '8',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'San Francisco',
-      description: 'Depression era key date',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '8', name: 'Rare Finds Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '88888888-8888-8888-8888-888888888885',
-      name: '1924-D Lincoln Cent',
-      year: 1924,
-      grade: 'VF-30',
-      rarity: 'Rare' as Rarity,
-      price: 45,
-      image: '/placeholder.svg',
-      user_id: '8',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Good' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'Denver',
-      description: 'Semi-key date Lincoln cent',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 198,
-      created_at: new Date().toISOString(),
-      profiles: { id: '8', name: 'Rare Finds Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '88888888-8888-8888-8888-888888888886',
-      name: '1922 No D Lincoln Cent',
-      year: 1922,
-      grade: 'VG-8',
-      rarity: 'Very Rare' as Rarity,
-      price: 1250,
-      image: '/placeholder.svg',
-      user_id: '8',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Fair' as CoinCondition,
-      composition: 'Bronze',
-      mint: 'Denver',
-      description: 'Famous missing mintmark variety',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1123,
-      created_at: new Date().toISOString(),
-      profiles: { id: '8', name: 'Rare Finds Numismatics', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '8',
+    name: '1955 Doubled Die Cent',
+    year: 1955,
+    grade: 'AU-58',
+    price: 1800,
+    rarity: 'Rare',
+    image: '/placeholder.svg',
+    user_id: 'dealer-4',
+    country: 'United States',
+    denomination: 'Cent',
+    condition: 'Excellent',
+    description: 'Famous doubled die error coin.',
+    profiles: {
+      id: 'dealer-4',
+      name: 'Error Coin Specialists',
+      reputation: 96,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '9': [
-    {
-      id: '99999999-9999-9999-9999-999999999991',
-      name: '1964 Kennedy Half Dollar',
-      year: 1964,
-      grade: 'MS-64',
-      rarity: 'Common' as Rarity,
-      price: 25,
-      image: '/placeholder.svg',
-      user_id: '9',
-      country: 'USA',
-      denomination: '50¢',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Philadelphia',
-      description: 'First year Kennedy half dollar',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 345,
-      created_at: new Date().toISOString(),
-      profiles: { id: '9', name: 'Coin Connect Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '99999999-9999-9999-9999-999999999992',
-      name: '1965 Churchill Crown',
-      year: 1965,
-      grade: 'MS-63',
-      rarity: 'Common' as Rarity,
-      price: 15,
-      image: '/placeholder.svg',
-      user_id: '9',
-      country: 'UK',
-      denomination: '5 Shillings',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Copper-Nickel',
-      mint: 'Royal Mint',
-      description: 'Winston Churchill commemorative',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 167,
-      created_at: new Date().toISOString(),
-      profiles: { id: '9', name: 'Coin Connect Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '99999999-9999-9999-9999-999999999993',
-      name: '1976 Bicentennial Quarter',
-      year: 1976,
-      grade: 'MS-65',
-      rarity: 'Common' as Rarity,
-      price: 8,
-      image: '/placeholder.svg',
-      user_id: '9',
-      country: 'USA',
-      denomination: '25¢',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Copper-Nickel',
-      mint: 'Philadelphia',
-      description: 'American Bicentennial design',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 123,
-      created_at: new Date().toISOString(),
-      profiles: { id: '9', name: 'Coin Connect Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '99999999-9999-9999-9999-999999999994',
-      name: '1982 Canadian Constitution Dollar',
-      year: 1982,
-      grade: 'MS-66',
-      rarity: 'Common' as Rarity,
-      price: 35,
-      image: '/placeholder.svg',
-      user_id: '9',
-      country: 'Canada',
-      denomination: '$1',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Nickel',
-      mint: 'Royal Canadian Mint',
-      description: 'Constitution repatriation commemorative',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '9', name: 'Coin Connect Gallery', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: '99999999-9999-9999-9999-999999999995',
-      name: '1977 Silver Jubilee Crown',
-      year: 1977,
-      grade: 'MS-64',
-      rarity: 'Common' as Rarity,
-      price: 18,
-      image: '/placeholder.svg',
-      user_id: '9',
-      country: 'UK',
-      denomination: '25 Pence',
-      condition: 'Mint' as CoinCondition,
-      composition: 'Copper-Nickel',
-      mint: 'Royal Mint',
-      description: 'Queen Elizabeth II Silver Jubilee',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 198,
-      created_at: new Date().toISOString(),
-      profiles: { id: '9', name: 'Coin Connect Gallery', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '9',
+    name: '1932-D Washington Quarter',
+    year: 1932,
+    grade: 'VF-20',
+    price: 120,
+    rarity: 'Rare',
+    image: '/placeholder.svg',
+    user_id: 'dealer-3',
+    country: 'United States',
+    denomination: 'Quarter',
+    condition: 'Good',
+    description: 'Key date Washington quarter from Denver mint.',
+    profiles: {
+      id: 'dealer-3',
+      name: 'Rare Coin Experts',
+      reputation: 92,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ],
-  '10': [
-    {
-      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      name: '1804 Draped Bust Dollar Class III',
-      year: 1804,
-      grade: 'VF-25',
-      rarity: 'Very Rare' as Rarity,
-      price: 750000,
-      image: '/placeholder.svg',
-      user_id: '10',
-      country: 'USA',
-      denomination: '$1',
-      condition: 'Good' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Philadelphia',
-      description: 'Legendary 1804 dollar reproduction',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 2543,
-      created_at: new Date().toISOString(),
-      profiles: { id: '10', name: 'Heritage Coin Company', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab',
-      name: '1793 Chain Cent AMERI',
-      year: 1793,
-      grade: 'AG-3',
-      rarity: 'Very Rare' as Rarity,
-      price: 450000,
-      image: '/placeholder.svg',
-      user_id: '10',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Poor' as CoinCondition,
-      composition: 'Copper',
-      mint: 'Philadelphia',
-      description: 'First US cent with AMERI spelling',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1876,
-      created_at: new Date().toISOString(),
-      profiles: { id: '10', name: 'Heritage Coin Company', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaac',
-      name: '1787 Fugio Cent',
-      year: 1787,
-      grade: 'VG-10',
-      rarity: 'Very Rare' as Rarity,
-      price: 8500,
-      image: '/placeholder.svg',
-      user_id: '10',
-      country: 'USA',
-      denomination: '1¢',
-      condition: 'Fair' as CoinCondition,
-      composition: 'Copper',
-      mint: 'New Haven',
-      description: 'First official US coin design',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1234,
-      created_at: new Date().toISOString(),
-      profiles: { id: '10', name: 'Heritage Coin Company', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaad',
-      name: '1652 Pine Tree Shilling',
-      year: 1652,
-      grade: 'G-4',
-      rarity: 'Very Rare' as Rarity,
-      price: 25000,
-      image: '/placeholder.svg',
-      user_id: '10',
-      country: 'Massachusetts',
-      denomination: '1 Shilling',
-      condition: 'Poor' as CoinCondition,
-      composition: 'Silver',
-      mint: 'Boston',
-      description: 'Colonial Massachusetts silver coin',
-      authentication_status: 'verified' as const,
-      featured: true,
-      views: 1567,
-      created_at: new Date().toISOString(),
-      profiles: { id: '10', name: 'Heritage Coin Company', reputation: 0, verified_dealer: true },
-      bids: []
-    },
-    {
-      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaae',
-      name: '1722 Rosa Americana Penny',
-      year: 1722,
-      grade: 'VF-20',
-      rarity: 'Very Rare' as Rarity,
-      price: 3500,
-      image: '/placeholder.svg',
-      user_id: '10',
-      country: 'American Colonies',
-      denomination: '1 Penny',
-      condition: 'Good' as CoinCondition,
-      composition: 'Copper',
-      mint: 'London',
-      description: 'Pre-independence colonial coinage',
-      authentication_status: 'verified' as const,
-      featured: false,
-      views: 654,
-      created_at: new Date().toISOString(),
-      profiles: { id: '10', name: 'Heritage Coin Company', reputation: 0, verified_dealer: true },
-      bids: []
+  },
+  {
+    id: '10',
+    name: '1921 Peace Silver Dollar',
+    year: 1921,
+    grade: 'MS-63',
+    price: 35,
+    rarity: 'Common',
+    image: '/placeholder.svg',
+    user_id: 'dealer-1',
+    country: 'United States',
+    denomination: 'Dollar',
+    condition: 'Mint',
+    description: 'First year Peace Silver Dollar in mint state.',
+    profiles: {
+      id: 'dealer-1',
+      name: 'Premium Coins USA',
+      reputation: 98,
+      verified_dealer: true,
+      avatar_url: '/placeholder.svg'
     }
-  ]
-};
+  }
+];
 
-// Type-safe transformation function (reusing from useCoinsQuery)
-const transformSupabaseCoinData = (rawCoin: any): Coin => {
-  return {
-    ...rawCoin,
-    rarity: rawCoin.rarity as Rarity,
-    condition: rawCoin.condition as CoinCondition | undefined,
-    authentication_status: rawCoin.authentication_status as 'pending' | 'verified' | 'rejected' | undefined,
-    profiles: rawCoin.profiles || {
-      id: '',
-      name: '',
-      reputation: 0,
-      verified_dealer: false
-    },
-    bids: rawCoin.bids?.map((bid: any) => ({
-      ...bid,
-      profiles: bid.profiles || { name: '' }
-    })) || []
-  };
-};
+// Combine regular coins and auction coins
+const allMockCoins = [...mockDealerCoins, ...mockAuctionCoins];
 
-export const useDealerCoins = (dealerId: string) => {
+export const useDealerCoins = (dealerId?: string) => {
   return useQuery({
     queryKey: ['dealer-coins', dealerId],
     queryFn: async () => {
-      try {
-        // First try to fetch from database
-        const { data: coins, error: coinsError } = await supabase
-          .from('coins')
-          .select(`
-            *,
-            profiles!coins_user_id_fkey(
-              id,
-              name,
-              reputation,
-              verified_dealer
-            )
-          `)
-          .eq('user_id', dealerId)
-          .eq('authentication_status', 'verified')
-          .order('created_at', { ascending: false });
-
-        if (coinsError) {
-          console.error('Error fetching dealer coins:', coinsError);
-        }
-
-        // If database returns coins, use those
-        if (coins && coins.length > 0) {
-          const coinsWithBids = await Promise.all(
-            coins.map(async (coin) => {
-              const { data: bids } = await supabase
-                .from('bids')
-                .select(`
-                  id,
-                  amount,
-                  user_id,
-                  created_at,
-                  profiles!bids_user_id_fkey(name)
-                `)
-                .eq('coin_id', coin.id)
-                .order('amount', { ascending: false });
-
-              return transformSupabaseCoinData({
-                ...coin,
-                bids: bids || []
-              });
-            })
-          );
-
-          return coinsWithBids;
-        }
-
-        // Otherwise, return mock data for the specific dealer
-        return mockCoinsData[dealerId] || [];
-      } catch (error) {
-        console.error('Error in useDealerCoins:', error);
-        // Fallback to mock data
-        return mockCoinsData[dealerId] || [];
+      // If dealerId provided, filter by dealer
+      if (dealerId) {
+        const dealerCoins = allMockCoins.filter(coin => coin.user_id === dealerId);
+        return dealerCoins;
       }
+      
+      // Try to get from database first
+      const { data, error } = await supabase
+        .from('coins')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey (
+            id,
+            username,
+            avatar_url,
+            verified_dealer,
+            full_name,
+            created_at,
+            rating,
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Database error:', error);
+      }
+
+      // If database has data, return it; otherwise return mock data
+      if (data && data.length > 0) {
+        return data;
+      }
+
+      return allMockCoins;
     },
-    enabled: !!dealerId,
-    refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
 export const useAllDealerCoins = () => {
-  return useQuery({
-    queryKey: ['all-dealer-coins'],
-    queryFn: async () => {
-      try {
-        // First try to fetch from database
-        const { data: coins, error: coinsError } = await supabase
-          .from('coins')
-          .select(`
-            *,
-            profiles!coins_user_id_fkey(
-              id,
-              name,
-              reputation,
-              verified_dealer
-            )
-          `)
-          .eq('authentication_status', 'verified')
-          .order('created_at', { ascending: false });
-
-        if (coinsError) {
-          console.error('Error fetching all dealer coins:', coinsError);
-        }
-
-        // If database returns coins, use those
-        if (coins && coins.length > 0) {
-          const coinsWithBids = await Promise.all(
-            coins.map(async (coin) => {
-              const { data: bids } = await supabase
-                .from('bids')
-                .select(`
-                  id,
-                  amount,
-                  user_id,
-                  created_at,
-                  profiles!bids_user_id_fkey(name)
-                `)
-                .eq('coin_id', coin.id)
-                .order('amount', { ascending: false });
-
-              return transformSupabaseCoinData({
-                ...coin,
-                bids: bids || []
-              });
-            })
-          );
-
-          return coinsWithBids;
-        }
-
-        // Otherwise, return all mock data
-        const allMockCoins: Coin[] = [];
-        Object.values(mockCoinsData).forEach(dealerCoins => {
-          allMockCoins.push(...dealerCoins);
-        });
-        
-        return allMockCoins;
-      } catch (error) {
-        console.error('Error in useAllDealerCoins:', error);
-        // Fallback to all mock data
-        const allMockCoins: Coin[] = [];
-        Object.values(mockCoinsData).forEach(dealerCoins => {
-          allMockCoins.push(...dealerCoins);
-        });
-        
-        return allMockCoins;
-      }
-    },
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  return useDealerCoins();
 };

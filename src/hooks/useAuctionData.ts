@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { mockAuctionCoins } from '@/data/mockAuctionCoins';
 
 interface AuctionCoin {
   id: string;
@@ -49,7 +50,7 @@ export const useAuctionData = (userId?: string) => {
     const fetchAuctionsData = async () => {
       setIsLoading(true);
       try {
-        // Fetch active auctions
+        // Try to get from database first
         const { data: auctionsData, error: auctionsError } = await supabase
           .from('coins')
           .select(`
@@ -76,54 +77,51 @@ export const useAuctionData = (userId?: string) => {
           .gt('auction_end', new Date().toISOString())
           .order('auction_end', { ascending: true });
 
-        if (auctionsError) throw auctionsError;
+        let auctionsWithBids;
 
-        // Filter out auctions without valid profile data
-        const validAuctions = (auctionsData || []).filter((auction: any) => 
-          auction.profiles && 
-          typeof auction.profiles === 'object' && 
-          !Array.isArray(auction.profiles) &&
-          'name' in auction.profiles
-        );
+        // If database has auction data, use it
+        if (auctionsData && auctionsData.length > 0) {
+          auctionsWithBids = await Promise.all(
+            auctionsData.map(async (auction: any) => {
+              const { data: bids } = await supabase
+                .from('auction_bids')
+                .select('amount, bidder_id')
+                .eq('auction_id', auction.id)
+                .order('amount', { ascending: false });
 
-        // Fetch bid counts and current bids for each auction
-        const auctionsWithBids = await Promise.all(
-          validAuctions.map(async (auction: any) => {
-            const { data: bids } = await supabase
-              .from('auction_bids')
-              .select('amount, bidder_id')
-              .eq('auction_id', auction.id)
-              .order('amount', { ascending: false });
+              const { count: bidCount } = await supabase
+                .from('auction_bids')
+                .select('*', { count: 'exact', head: true })
+                .eq('auction_id', auction.id);
 
-            const { count: bidCount } = await supabase
-              .from('auction_bids')
-              .select('*', { count: 'exact', head: true })
-              .eq('auction_id', auction.id);
+              const { count: watcherCount } = await supabase
+                .from('watchlist')
+                .select('*', { count: 'exact', head: true })
+                .eq('listing_id', auction.id);
 
-            const { count: watcherCount } = await supabase
-              .from('watchlist')
-              .select('*', { count: 'exact', head: true })
-              .eq('listing_id', auction.id);
+              const currentBid = bids?.[0]?.amount || auction.price;
+              const highestBidderId = bids?.[0]?.bidder_id || null;
 
-            const currentBid = bids?.[0]?.amount || auction.price;
-            const highestBidderId = bids?.[0]?.bidder_id || null;
-
-            return {
-              ...auction,
-              starting_price: auction.price,
-              current_bid: currentBid,
-              bid_count: bidCount || 0,
-              highest_bidder_id: highestBidderId,
-              seller_id: auction.user_id,
-              watchers: watcherCount || 0,
-              profiles: {
-                name: auction.profiles.name,
-                reputation: auction.profiles.reputation,
-                verified_dealer: auction.profiles.verified_dealer
-              }
-            };
-          })
-        );
+              return {
+                ...auction,
+                starting_price: auction.price,
+                current_bid: currentBid,
+                bid_count: bidCount || 0,
+                highest_bidder_id: highestBidderId,
+                seller_id: auction.user_id,
+                watchers: watcherCount || 0,
+                views: auction.views || 0
+              };
+            })
+          );
+        } else {
+          // Use mock data if no database data
+          console.log('Using mock auction data');
+          auctionsWithBids = mockAuctionCoins.filter(auction => {
+            const auctionEnd = new Date(auction.auction_end);
+            return auctionEnd > new Date(); // Only show active auctions
+          });
+        }
 
         setAuctions(auctionsWithBids);
 
@@ -142,7 +140,6 @@ export const useAuctionData = (userId?: string) => {
             console.error('Error fetching user bids:', bidsError);
             setMyBids([]);
           } else {
-            // Filter out any invalid bids and ensure proper typing
             const validBids: Bid[] = (userBids || []).filter((bid: any) => 
               bid && 
               bid.profiles && 
@@ -161,10 +158,16 @@ export const useAuctionData = (userId?: string) => {
 
       } catch (error) {
         console.error('Error fetching auctions:', error);
+        // Fallback to mock data on error
+        const activeAuctions = mockAuctionCoins.filter(auction => {
+          const auctionEnd = new Date(auction.auction_end);
+          return auctionEnd > new Date();
+        });
+        setAuctions(activeAuctions);
+        
         toast({
-          title: "Error",
-          description: "Failed to load auctions data",
-          variant: "destructive"
+          title: "Using Demo Data",
+          description: "Showing demo auctions while connecting to database",
         });
       } finally {
         setIsLoading(false);
@@ -179,7 +182,6 @@ export const useAuctionData = (userId?: string) => {
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'auction_bids' },
         (payload) => {
-          // Update auction with new bid
           setAuctions(prev => prev.map(auction => {
             if (auction.id === payload.new.auction_id) {
               return {
