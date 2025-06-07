@@ -15,19 +15,22 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Gavel, Clock } from 'lucide-react';
 
+type FilterStatus = 'all' | 'ending_soon' | 'just_started' | 'hot';
+type SortBy = 'ending_soon' | 'highest_bid' | 'most_bids' | 'newest';
+
 const Auctions = () => {
   const { user } = useAuth();
   const { auctions, myBids, isLoading } = useAuctionData(user?.id);
   const { bidAmounts, setBidAmounts, placeBid, addToWatchlist } = useAuctionActions(user?.id);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'ending_soon' | 'just_started' | 'hot'>('all');
-  const [sortBy, setSortBy] = useState<'ending_soon' | 'highest_bid' | 'most_bids' | 'newest'>('ending_soon');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('ending_soon');
 
   // Filter auctions to show only auction-type listings
   const auctionListings = React.useMemo(() => {
     return auctions.filter((auction: AuctionCoin) => 
-      auction.is_auction || auction.listing_type === 'auction'
+      auction.is_auction === true || auction.listing_type === 'auction'
     );
   }, [auctions]);
 
@@ -91,17 +94,14 @@ const Auctions = () => {
             </div>
           ) : filteredAuctions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {filteredAuctions.map((auction: AuctionCoin) => {
-                const timeRemaining: TimeRemaining = getTimeRemaining(auction.auction_end);
-                const isEndingSoon = (timeRemaining.days * 24 + timeRemaining.hours) <= 24;
+              {filteredAuctions.map((auction: AuctionCoin, index: number) => {
                 const isMyBid = myBids.some(bid => bid.auction_id === auction.id);
 
                 return (
                   <AuctionCard
                     key={auction.id}
                     auction={auction}
-                    timeRemaining={timeRemaining}
-                    isEndingSoon={isEndingSoon}
+                    index={index}
                     isMyBid={isMyBid}
                     bidAmount={bidAmounts[auction.id] || ''}
                     setBidAmount={(amount: string) => setBidAmounts(prev => ({ ...prev, [auction.id]: amount }))}

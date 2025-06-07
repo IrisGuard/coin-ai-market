@@ -40,7 +40,7 @@ export interface AuctionCoin {
   reserve_price?: number;
   starting_bid?: number;
   starting_price?: number;
-  current_bid?: number;
+  current_bid: number;
   bid_count?: number;
   seller_id?: string;
   highest_bidder_id?: string | null;

@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuctionTimer } from '@/hooks/useAuctionTimer';
+import { TimeRemaining } from '@/types/auction';
 import AuctionCardImage from './AuctionCardImage';
 import AuctionCardTimer from './AuctionCardTimer';
 import AuctionCardInfo from './AuctionCardInfo';
@@ -29,7 +30,7 @@ interface AuctionCoin {
 
 interface AuctionCardProps {
   auction: AuctionCoin;
-  index: number;
+  index?: number;
   isMyBid: boolean;
   bidAmount: string;
   setBidAmount: (amount: string) => void;
@@ -40,7 +41,7 @@ interface AuctionCardProps {
 
 const AuctionCard = ({
   auction,
-  index,
+  index = 0,
   isMyBid,
   bidAmount,
   setBidAmount,

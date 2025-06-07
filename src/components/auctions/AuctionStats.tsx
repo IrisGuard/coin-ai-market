@@ -4,14 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Users, TrendingUp } from 'lucide-react';
 
 interface AuctionStatsProps {
-  stats: {
-    total: number;
-    ending_soon: number;
-    my_bids: number;
-  };
+  total: number;
+  ending_soon: number;
+  my_bids: number;
 }
 
-const AuctionStats: React.FC<AuctionStatsProps> = ({ stats }) => {
+const AuctionStats: React.FC<{ stats: AuctionStatsProps }> = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <Card>

@@ -3,11 +3,14 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+type FilterStatus = 'all' | 'ending_soon' | 'just_started' | 'hot';
+type SortBy = 'ending_soon' | 'highest_bid' | 'most_bids' | 'newest';
+
 interface AuctionFiltersProps {
-  filterStatus: 'all' | 'ending_soon' | 'just_started' | 'hot';
-  setFilterStatus: (status: 'all' | 'ending_soon' | 'just_started' | 'hot') => void;
-  sortBy: 'ending_soon' | 'highest_bid' | 'most_bids' | 'newest';
-  setSortBy: (sort: 'ending_soon' | 'highest_bid' | 'most_bids' | 'newest') => void;
+  filterStatus: FilterStatus;
+  setFilterStatus: (status: FilterStatus) => void;
+  sortBy: SortBy;
+  setSortBy: (sort: SortBy) => void;
 }
 
 const AuctionFilters = ({
@@ -18,7 +21,7 @@ const AuctionFilters = ({
 }: AuctionFiltersProps) => {
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
+      <Select value={filterStatus} onValueChange={(value: FilterStatus) => setFilterStatus(value)}>
         <SelectTrigger className="w-[150px]">
           <SelectValue />
         </SelectTrigger>
@@ -30,7 +33,7 @@ const AuctionFilters = ({
         </SelectContent>
       </Select>
 
-      <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+      <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
         <SelectTrigger className="w-[150px]">
           <SelectValue />
         </SelectTrigger>
