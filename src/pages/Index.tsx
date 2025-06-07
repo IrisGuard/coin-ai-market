@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
-import { Search, Settings, Users } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const Index = () => {
   usePageView();
@@ -55,25 +55,13 @@ const Index = () => {
 
       <Footer />
 
-      {/* Fixed Buttons - Bottom Right */}
-      <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-50">
-        <Link to="/admin">
-          <Button 
-            className="bg-electric-blue hover:bg-electric-blue/90 text-white px-4 py-2 text-sm shadow-lg"
-            size="sm"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Admin Panel
-          </Button>
+      {/* Fixed Admin Buttons - Bottom Right */}
+      <div style={{position: 'fixed', bottom: '20px', right: '20px', display: 'flex', gap: '10px', zIndex: 9999}}>
+        <Link to="/admin" style={{fontSize: '12px', padding: '6px 10px', background: '#007bff', color: '#fff', borderRadius: '4px', textDecoration: 'none'}}>
+          Admin Panel
         </Link>
-        <Link to="/marketplace/panel">
-          <Button 
-            className="bg-electric-green hover:bg-electric-green/90 text-white px-4 py-2 text-sm shadow-lg"
-            size="sm"
-          >
-            <Users className="w-4 h-4 mr-2" />
-            User Marketplace Panel
-          </Button>
+        <Link to="/marketplace/panel" style={{fontSize: '12px', padding: '6px 10px', background: '#28a745', color: '#fff', borderRadius: '4px', textDecoration: 'none'}}>
+          User Panel
         </Link>
       </div>
     </div>
