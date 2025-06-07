@@ -49,10 +49,10 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
       whileHover={{ y: -5 }}
       className="group"
     >
-      <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 bg-white">
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 bg-bg-primary">
         <div className="relative">
           <Link to={`/coin/${coin.id}`}>
-            <div className="aspect-square overflow-hidden bg-gray-50">
+            <div className="aspect-square overflow-hidden bg-bg-secondary">
               <img
                 src={coin.image}
                 alt={coin.name}
@@ -71,8 +71,8 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
             onClick={handleFavoriteClick}
             className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 ${
               isUserFavorite 
-                ? 'bg-red-500 text-white hover:bg-red-600' 
-                : 'bg-white/80 text-gray-600 hover:bg-white hover:text-red-500'
+                ? 'bg-brand-danger text-bg-primary hover:bg-brand-danger/90' 
+                : 'bg-bg-primary/80 text-text-secondary hover:bg-bg-primary hover:text-brand-danger'
             }`}
           >
             <Heart className={`w-4 h-4 ${isUserFavorite ? 'fill-current' : ''}`} />
@@ -81,14 +81,14 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
           {/* Status Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
-              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-0">
+              <Badge className="bg-gradient-to-r from-brand-yellow to-electric-yellow text-text-primary border-0">
                 <Star className="w-3 h-3 mr-1" />
                 Featured
               </Badge>
             )}
             
             {coin.is_auction && (
-              <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
+              <Badge className="bg-gradient-to-r from-brand-primary to-brand-secondary text-bg-primary border-0">
                 <Clock className="w-3 h-3 mr-1" />
                 Auction
               </Badge>
@@ -97,7 +97,7 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
 
           {/* Auction Timer */}
           {coin.is_auction && coin.auction_end && (
-            <div className="absolute bottom-2 left-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-medium">
+            <div className="absolute bottom-2 left-2 bg-text-primary/80 text-bg-primary px-2 py-1 rounded text-xs font-medium">
               {formatTimeRemaining(coin.auction_end)}
             </div>
           )}
@@ -108,11 +108,11 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
             {/* Title and Info */}
             <div>
               <Link to={`/coin/${coin.id}`}>
-                <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-brand-primary transition-colors">
+                <h3 className="font-semibold text-text-primary line-clamp-2 hover:text-brand-primary transition-colors">
                   {coin.name}
                 </h3>
               </Link>
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+              <div className="flex items-center gap-2 mt-1 text-sm text-text-secondary">
                 <span>{coin.year}</span>
                 {coin.country && (
                   <>
@@ -124,34 +124,34 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
             </div>
 
             {/* Condition and Rarity */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {coin.condition && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs border-border-secondary text-text-secondary">
                   {coin.condition}
                 </Badge>
               )}
               {coin.rarity && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs border-border-secondary text-text-secondary">
                   {coin.rarity}
                 </Badge>
               )}
             </div>
 
-            {/* Price - CHANGED TO EURO */}
+            {/* Price - EURO */}
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-text-primary">
                   €{coin.price?.toLocaleString()}
                 </div>
                 {coin.is_auction && (
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-text-secondary">
                     Starting at €{coin.price?.toLocaleString()}
                   </div>
                 )}
               </div>
               
               {!coin.is_auction && (
-                <Badge className="bg-green-100 text-green-800 border-green-200">
+                <Badge className="bg-brand-success/10 text-brand-success border-brand-success/20">
                   <DollarSign className="w-3 h-3 mr-1" />
                   Buy Now
                 </Badge>
@@ -159,7 +159,7 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
             </div>
 
             {/* Views and Stats */}
-            <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between text-sm text-text-muted pt-2 border-t border-border-primary">
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 <span>{coin.views || 0} views</span>
@@ -167,13 +167,13 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
               
               {coin.profiles && (
                 <div className="flex items-center gap-1">
-                  <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium">
+                  <div className="w-5 h-5 bg-bg-secondary rounded-full flex items-center justify-center text-xs font-medium text-text-secondary">
                     {coin.profiles.name?.[0]?.toUpperCase()}
                   </div>
                   <span className="text-xs">{coin.profiles.name}</span>
                   {coin.profiles.verified_dealer && (
-                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    <div className="w-4 h-4 bg-brand-primary rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-bg-primary rounded-full"></div>
                     </div>
                   )}
                 </div>
@@ -182,7 +182,7 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
 
             {/* Action Button - CORRECTED LINK */}
             <Link to={`/coin/${coin.id}`} className="block">
-              <Button className="w-full mt-3 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 transition-all duration-200">
+              <Button className="w-full mt-3 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 transition-all duration-200 text-bg-primary">
                 {coin.is_auction ? 'View Auction' : 'View Details'}
               </Button>
             </Link>
