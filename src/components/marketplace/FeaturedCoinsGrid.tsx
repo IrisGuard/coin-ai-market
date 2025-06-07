@@ -8,12 +8,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 const FeaturedCoinsGrid = () => {
   const { coins, isLoading, error } = useCachedMarketplaceData();
 
-  // Always calculate displayCoins, never conditionally call useMemo
+  // Filter out auction coins - Marketplace shows ONLY direct sale coins
   const displayCoins = React.useMemo(() => {
     if (!coins || coins.length === 0) return [];
     
     return coins
-      .filter(coin => coin.authentication_status === 'verified')
+      .filter(coin => 
+        coin.authentication_status === 'verified' && 
+        !coin.is_auction // EXCLUDE auction coins from marketplace
+      )
       .sort((a, b) => {
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
@@ -22,7 +25,6 @@ const FeaturedCoinsGrid = () => {
       .slice(0, 20);
   }, [coins]);
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-16">
@@ -34,7 +36,6 @@ const FeaturedCoinsGrid = () => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <Alert className="max-w-md mx-auto">
@@ -46,12 +47,11 @@ const FeaturedCoinsGrid = () => {
     );
   }
 
-  // Show empty state
   if (!displayCoins.length) {
     return (
       <div className="text-center py-16 bg-gray-50 rounded-lg">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">No coins available</h3>
-        <p className="text-gray-600">Be the first to list a coin!</p>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">No coins available for sale</h3>
+        <p className="text-gray-600">Check back later for new listings!</p>
       </div>
     );
   }

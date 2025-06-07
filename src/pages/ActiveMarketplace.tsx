@@ -32,7 +32,7 @@ const ActiveMarketplace = () => {
         {/* Trending Section */}
         <TrendingCoins />
         
-        {/* Dealer Stores Section - ΚΥΡΙΑ ΛΕΙΤΟΥΡΓΙΑ MARKETPLACE */}
+        {/* Dealer Stores Section - ΚΑΤΑΣΤΗΜΑΤΑ ΧΡΗΣΤΩΝ */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
             <Store className="w-6 h-6 text-electric-orange" />
@@ -127,11 +127,14 @@ const ActiveMarketplace = () => {
           )}
         </div>
 
-        {/* Featured Coins Grid - ΝΟΜΙΣΜΑΤΑ ΑΠΟ ΧΡΗΣΤΕΣ */}
+        {/* Featured Coins Grid - ΝΟΜΙΣΜΑΤΑ ΠΡΟΣ ΑΜΕΣΗ ΠΩΛΗΣΗ (ΟΧΙ ΔΗΜΟΠΡΑΣΙΕΣ) */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6 text-center">
-            Προτεινόμενα Νομίσματα
+            Νομίσματα προς Πώληση
           </h2>
+          <p className="text-center text-gray-600 mb-6">
+            Νομίσματα προς άμεση πώληση από τα καταστήματα μας (οι δημοπρασίες βρίσκονται στη σελίδα Δημοπρασιών)
+          </p>
           <FeaturedCoinsGrid />
         </div>
       </div>

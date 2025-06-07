@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import { usePageView } from '@/hooks/usePageView';
-import { useAuctionData } from '@/hooks/useAuctionData';
+import { useAuctionDataMock } from '@/hooks/useAuctionDataMock';
 import { useAuctionActions } from '@/hooks/useAuctionActions';
 import { filterAndSortAuctions, getTimeRemaining } from '@/utils/auctionUtils';
 import AuctionStats from '@/components/auctions/AuctionStats';
@@ -14,7 +14,7 @@ import AuctionCard from '@/components/auctions/AuctionCard';
 const Auctions = () => {
   usePageView();
   const { user } = useAuth();
-  const { auctions, myBids, isLoading } = useAuctionData(user?.id);
+  const { auctions, myBids, isLoading } = useAuctionDataMock(user?.id);
   const { bidAmounts, setBidAmounts, placeBid, addToWatchlist } = useAuctionActions(user?.id);
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,8 +67,8 @@ const Auctions = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Δημοπρασίες Χρηστών</h1>
-          <p className="text-gray-600">Δημοπρασίες νομισμάτων από χρήστες της πλατφόρμας</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Δημοπρασίες Νομισμάτων</h1>
+          <p className="text-gray-600">Ενεργές δημοπρασίες από καταστήματα της πλατφόρμας</p>
         </motion.div>
 
         {/* Auction Stats */}
