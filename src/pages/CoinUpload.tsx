@@ -1,158 +1,118 @@
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUserStore } from '@/hooks/useStores';
+import React, { useRef } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Package, Gavel, ArrowLeft } from 'lucide-react';
-import CoinUploadForm from '@/components/upload/CoinUploadForm';
+import { Loader2, DollarSign } from 'lucide-react';
+import CoinUploadHeader from '@/components/upload/CoinUploadHeader';
+import CoinUploadFeatures from '@/components/upload/CoinUploadFeatures';
+import ImageUploadCard from '@/components/upload/ImageUploadCard';
+import AnalysisResultsCard from '@/components/upload/AnalysisResultsCard';
+import CoinListingDetailsForm from '@/components/upload/CoinListingDetailsForm';
+import CoinUploadTips from '@/components/upload/CoinUploadTips';
+import { useCoinUpload } from '@/hooks/useCoinUpload';
 
 const CoinUpload = () => {
-  const { user } = useAuth();
-  const { data: store } = useUserStore();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState<'direct' | 'auction' | null>(null);
+  const { isAuthenticated } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const {
+    images,
+    uploadProgress,
+    isAnalyzing,
+    analysisResults,
+    isSubmitting,
+    dragActive,
+    coinData,
+    handleDrag,
+    handleDrop,
+    removeImage,
+    handleUploadAndAnalyze,
+    handleSubmitListing,
+    handleFiles,
+    handleCoinDataChange
+  } = useCoinUpload();
 
-  useEffect(() => {
-    const type = searchParams.get('type');
-    if (type === 'direct' || type === 'auction') {
-      setSelectedType(type);
-    }
-  }, [searchParams]);
-
-  if (!selectedType) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="pt-20 pb-8">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Create New Listing
-              </h1>
-              <p className="text-gray-600">
-                Choose how you want to sell your coin
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-orange-300"
-                onClick={() => setSelectedType('direct')}
-              >
-                <CardHeader className="text-center">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mb-4">
-                    <Package className="w-8 h-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl">Direct Sale</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="space-y-3">
-                    <Badge className="bg-green-100 text-green-700">Fixed Price</Badge>
-                    <p className="text-gray-600">
-                      Set a fixed price for immediate purchase. Buyers can purchase instantly without waiting.
-                    </p>
-                    <ul className="text-sm text-gray-500 space-y-1">
-                      <li>• Immediate payment</li>
-                      <li>• No bidding period</li>
-                      <li>• Best for quick sales</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-red-300"
-                onClick={() => setSelectedType('auction')}
-              >
-                <CardHeader className="text-center">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mb-4">
-                    <Gavel className="w-8 h-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl">Auction</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="space-y-3">
-                    <Badge className="bg-orange-100 text-orange-700">Competitive Bidding</Badge>
-                    <p className="text-gray-600">
-                      Let buyers compete with bids to potentially get a higher price than expected.
-                    </p>
-                    <ul className="text-sm text-gray-500 space-y-1">
-                      <li>• Set auction duration</li>
-                      <li>• Competitive bidding</li>
-                      <li>• Potentially higher returns</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="text-center mt-8">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/dashboard')}
-                className="mr-4"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="pt-20 pb-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedType(null)}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Change Listing Type
-            </Button>
-            
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                {selectedType === 'direct' ? (
-                  <Package className="w-6 h-6 text-green-600" />
-                ) : (
-                  <Gavel className="w-6 h-6 text-orange-600" />
-                )}
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Create {selectedType === 'direct' ? 'Direct Sale' : 'Auction'} Listing
-                </h1>
-              </div>
-              <Badge 
-                className={selectedType === 'direct' 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-orange-100 text-orange-700'
-                }
-              >
-                {selectedType === 'direct' ? 'Fixed Price Sale' : 'Competitive Auction'}
-              </Badge>
-            </div>
-          </div>
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      handleFiles(files);
+    }
+  };
 
-          <CoinUploadForm 
-            listingType={selectedType} 
-            storeId={store?.id}
-          />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <Navbar />
+      
+      <div className="relative overflow-hidden pt-20">
+        <div className="mesh-bg"></div>
+        
+        <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
+          <CoinUploadHeader />
+          <CoinUploadFeatures />
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="max-w-4xl mx-auto space-y-8"
+          >
+            <ImageUploadCard
+              images={images}
+              dragActive={dragActive}
+              uploadProgress={uploadProgress}
+              isAnalyzing={isAnalyzing}
+              onDrag={handleDrag}
+              onDrop={handleDrop}
+              onImageSelect={handleImageSelect}
+              onRemoveImage={removeImage}
+              onUploadAndAnalyze={handleUploadAndAnalyze}
+              fileInputRef={fileInputRef}
+            />
+
+            <AnalysisResultsCard analysisResults={analysisResults} />
+
+            <CoinListingDetailsForm
+              coinData={coinData}
+              onCoinDataChange={handleCoinDataChange}
+            />
+
+            <Button
+              onClick={handleSubmitListing}
+              disabled={
+                !coinData.title || 
+                (!coinData.price && !coinData.isAuction) || 
+                (!coinData.startingBid && coinData.isAuction) ||
+                images.length === 0 || 
+                !images.every(img => img.uploaded) ||
+                isSubmitting
+              }
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+              size="lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Creating Listing...
+                </>
+              ) : (
+                <>
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  {coinData.isAuction ? 'Start Auction' : 'Create Listing'}
+                </>
+              )}
+            </Button>
+
+            <CoinUploadTips />
+          </motion.div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

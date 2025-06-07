@@ -1,416 +1,434 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Upload, AlertCircle, Calendar, DollarSign, Tag } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import ImageUploader from '@/components/upload/ImageUploader';
-import { Rarity, CoinCondition } from '@/types/coin';
-import { COIN_CATEGORIES, CoinCategory } from '@/types/category';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Upload, Camera, Loader2, Smartphone, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import MobileCameraUploader from '@/components/MobileCameraUploader';
 
-interface CoinUploadFormProps {
-  listingType: 'direct' | 'auction';
-  storeId?: string;
-}
-
-const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId }) => {
-  const { user } = useAuth();
+const CoinUploadForm = () => {
+  const createCoin = useCreateCoin();
+  const aiRecognition = useRealAICoinRecognition();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const createCoinMutation = useCreateCoin();
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [isMobileMode, setIsMobileMode] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    year: '',
+    grade: '',
+    price: '',
+    rarity: '',
+    image: '',
+    country: '',
+    denomination: '',
+    description: '',
+    condition: '',
+    composition: '',
+    diameter: '',
+    weight: '',
+    mint: ''
+  });
 
-  const [name, setName] = useState('');
-  const [year, setYear] = useState<number | ''>('');
-  const [country, setCountry] = useState('');
-  const [denomination, setDenomination] = useState('');
-  const [grade, setGrade] = useState('');
-  const [price, setPrice] = useState<number | ''>('');
-  const [rarity, setRarity] = useState<Rarity>('Common');
-  const [condition, setCondition] = useState<CoinCondition>('Good');
-  const [category, setCategory] = useState<CoinCategory>('unclassified');
-  const [description, setDescription] = useState('');
-  const [images, setImages] = useState<string[]>([]);
-  const [featured, setFeatured] = useState(false);
-  
-  // Auction specific fields
-  const [auctionEndDate, setAuctionEndDate] = useState('');
-  const [reservePrice, setReservePrice] = useState<number | ''>('');
-  const [startingBid, setStartingBid] = useState<number | ''>('');
+  // Check if device is mobile
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) {
-      toast({
-        title: "Authentication Error",
-        description: "You must be logged in to create a listing",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!name || !year || !price || images.length === 0) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields and upload at least one image",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const coinData = {
-      name,
-      year: Number(year),
-      country,
-      denomination,
-      grade,
-      price: Number(price),
-      rarity,
-      condition,
-      category,
-      description,
-      image: images[0], // Primary image
-      additional_images: images.slice(1), // Additional images
-      user_id: user.id,
-      store_id: storeId,
-      featured,
-      is_auction: listingType === 'auction',
-      listing_type: listingType,
-      // Auction specific fields
-      ...(listingType === 'auction' && {
-        auction_end: auctionEndDate ? new Date(auctionEndDate).toISOString() : undefined,
-        reserve_price: reservePrice ? Number(reservePrice) : undefined,
-        starting_bid: startingBid ? Number(startingBid) : undefined,
-      }),
-    };
-
-    createCoinMutation.mutate(coinData, {
-      onSuccess: () => {
-        toast({
-          title: "Listing Created",
-          description: `Your ${listingType === 'direct' ? 'direct sale' : 'auction'} listing has been created successfully!`,
-        });
-        navigate('/dashboard');
-      },
-      onError: (err: any) => {
-        toast({
-          title: "Error Creating Listing",
-          description: err.message || "An unexpected error occurred",
-          variant: "destructive",
-        });
-      }
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data:image/...;base64, prefix to get just the base64 string
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   };
 
-  // Calculate minimum end date for auctions (at least 1 day from now)
-  const minEndDate = new Date();
-  minEndDate.setDate(minEndDate.getDate() + 1);
-  const minEndDateString = minEndDate.toISOString().split('T')[0];
+  const handleAIAnalysis = async (imageFile: File) => {
+    try {
+      const base64Image = await convertToBase64(imageFile);
+      
+      const result = await aiRecognition.mutateAsync({
+        image: base64Image
+      });
+
+      if (result.success) {
+        // Update form with AI results
+        setFormData(prev => ({
+          ...prev,
+          name: result.identification.name || '',
+          year: result.identification.year?.toString() || '',
+          grade: result.grading.grade || '',
+          rarity: result.rarity || '',
+          country: result.identification.country || '',
+          denomination: result.identification.denomination || '',
+          condition: result.grading.condition || '',
+          composition: result.specifications.composition || '',
+          diameter: result.specifications.diameter?.toString() || '',
+          weight: result.specifications.weight?.toString() || '',
+          mint: result.identification.mint || '',
+          price: result.valuation.current_value?.toString() || '',
+          description: `${result.identification.name} from ${result.identification.year}. ${result.grading.details || ''}`.trim()
+        }));
+
+        toast({
+          title: "AI Analysis Complete!",
+          description: `${result.identification.name} identified with ${Math.round(result.confidence * 100)}% confidence`,
+        });
+      }
+    } catch (error) {
+      console.error('AI analysis failed:', error);
+      toast({
+        title: "AI Analysis Failed",
+        description: "Unable to analyze the coin image. Please fill in the details manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMobileImagesSelected = async (images: { file: File; preview: string }[]) => {
+    if (images.length === 0) return;
+
+    const primaryImage = images[0];
+    setImagePreview(primaryImage.preview);
+    setFormData(prev => ({ ...prev, image: primaryImage.preview }));
+
+    // Run AI analysis on the image
+    await handleAIAnalysis(primaryImage.file);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setImagePreview(result);
+      setFormData(prev => ({ ...prev, image: result }));
+    };
+    reader.readAsDataURL(file);
+
+    // Run AI analysis on the image
+    await handleAIAnalysis(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const coinData = {
+      name: formData.name,
+      year: parseInt(formData.year) || new Date().getFullYear(),
+      grade: formData.grade,
+      price: parseFloat(formData.price) || 0,
+      rarity: formData.rarity,
+      image: formData.image,
+      country: formData.country,
+      denomination: formData.denomination,
+      description: formData.description,
+    };
+    
+    createCoin.mutate(coinData);
+  };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="space-y-8">
-        {createCoinMutation.isError && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {createCoinMutation.error instanceof Error ? createCoinMutation.error.message : 'An unexpected error occurred'}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Basic Information */}
+    <div className="max-w-4xl mx-auto p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4">Basic Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Coin Name <span className="text-red-500">*</span></Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. 1921 Morgan Silver Dollar"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="year">Year <span className="text-red-500">*</span></Label>
-                <Input
-                  id="year"
-                  type="number"
-                  placeholder="e.g. 1921"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value ? Number(e.target.value) : '')}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
-                <Select 
-                  value={category} 
-                  onValueChange={(value) => setCategory(value as CoinCategory)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COIN_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.icon} {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="country">Country of Origin</Label>
-                <Input
-                  id="country"
-                  placeholder="e.g. United States"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="denomination">Denomination</Label>
-                <Input
-                  id="denomination"
-                  placeholder="e.g. Dollar, Euro, Pound"
-                  value={denomination}
-                  onChange={(e) => setDenomination(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="grade">Grade</Label>
-                <Input
-                  id="grade"
-                  placeholder="e.g. MS-65, AU-58"
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="condition">Condition</Label>
-                <Select 
-                  value={condition} 
-                  onValueChange={(value) => setCondition(value as CoinCondition)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Mint">Mint</SelectItem>
-                    <SelectItem value="Near Mint">Near Mint</SelectItem>
-                    <SelectItem value="Excellent">Excellent</SelectItem>
-                    <SelectItem value="Good">Good</SelectItem>
-                    <SelectItem value="Fair">Fair</SelectItem>
-                    <SelectItem value="Poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="rarity">Rarity</Label>
-                <Select 
-                  value={rarity} 
-                  onValueChange={(value) => setRarity(value as Rarity)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select rarity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Common">Common</SelectItem>
-                    <SelectItem value="Uncommon">Uncommon</SelectItem>
-                    <SelectItem value="Rare">Rare</SelectItem>
-                    <SelectItem value="Ultra Rare">Ultra Rare</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          <CardHeader>
+            <CardTitle className="text-2xl font-serif flex items-center gap-2">
+              <Upload className="w-6 h-6" />
+              Upload Your Coin
+            </CardTitle>
             
-            <div className="mt-4 space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Provide details about the coin's history, condition, and any unique features..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Images */}
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4">Images <span className="text-red-500">*</span></h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Upload clear images of both sides of your coin. The first image will be used as the main display image.
-            </p>
-            <ImageUploader 
-              images={images}
-              setImages={setImages}
-              maxImages={5}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Pricing */}
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4">
-              {listingType === 'direct' ? 'Pricing' : 'Auction Settings'}
-            </h3>
-            
-            {listingType === 'direct' ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price ($) <span className="text-red-500">*</span></Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : '')}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
+            {/* Mobile Mode Toggle */}
+            {isMobileDevice && (
+              <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">
+                    Enhanced Mobile Experience Available
+                  </span>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="featured"
-                    checked={featured}
-                    onCheckedChange={setFeatured}
-                  />
-                  <Label htmlFor="featured">Feature this listing (increases visibility)</Label>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startingBid">Starting Bid ($) <span className="text-red-500">*</span></Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-                    <Input
-                      id="startingBid"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={startingBid}
-                      onChange={(e) => setStartingBid(e.target.value ? Number(e.target.value) : '')}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="reservePrice">Reserve Price ($) <span className="text-gray-500 text-sm">(Optional)</span></Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-                    <Input
-                      id="reservePrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={reservePrice}
-                      onChange={(e) => setReservePrice(e.target.value ? Number(e.target.value) : '')}
-                      className="pl-10"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500">Minimum price for the auction to complete. If not met, you're not obligated to sell.</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="auctionEndDate">Auction End Date <span className="text-red-500">*</span></Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-                    <Input
-                      id="auctionEndDate"
-                      type="date"
-                      min={minEndDateString}
-                      value={auctionEndDate}
-                      onChange={(e) => setAuctionEndDate(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="featured"
-                    checked={featured}
-                    onCheckedChange={setFeatured}
-                  />
-                  <Label htmlFor="featured">Feature this auction (increases visibility)</Label>
-                </div>
+                <Button
+                  onClick={() => navigate('/mobile-upload')}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Try Mobile Mode
+                </Button>
               </div>
             )}
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Image Upload */}
+              <div className="space-y-4">
+                <Label>Coin Image</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  {imagePreview ? (
+                    <div className="space-y-4">
+                      <img
+                        src={imagePreview}
+                        alt="Coin preview"
+                        className="max-w-xs mx-auto rounded-lg shadow-md"
+                      />
+                      {aiRecognition.isPending && (
+                        <div className="flex items-center justify-center gap-2 text-blue-600">
+                          <Zap className="w-4 h-4 animate-pulse" />
+                          <span>AI analyzing your coin...</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Camera className="w-16 h-16 text-gray-400 mx-auto" />
+                      <div>
+                        <p className="text-lg font-medium">Upload a coin image</p>
+                        <p className="text-gray-500">AI will automatically identify your coin</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Image Upload Options */}
+                  <div className="mt-4 space-y-3">
+                    {!isMobileMode ? (
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                    ) : null}
+                    
+                    <div className="flex flex-col space-y-2">
+                      {!isMobileMode && (
+                        <label htmlFor="file-upload">
+                          <Button type="button" variant="outline" className="cursor-pointer">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose File
+                          </Button>
+                        </label>
+                      )}
+                      
+                      {isMobileDevice && (
+                        <div className="space-y-3">
+                          <Button
+                            type="button"
+                            onClick={() => setIsMobileMode(!isMobileMode)}
+                            variant={isMobileMode ? "default" : "outline"}
+                            className="w-full"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            {isMobileMode ? "Using Mobile Camera" : "Use Mobile Camera"}
+                          </Button>
+                          
+                          {isMobileMode && (
+                            <div className="border rounded-lg p-4">
+                              <MobileCameraUploader
+                                onImagesSelected={handleMobileImagesSelected}
+                                maxImages={5}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Coin Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Coin Name*</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Morgan Silver Dollar"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="year">Year*</Label>
+                  <Input
+                    id="year"
+                    type="number"
+                    value={formData.year}
+                    onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
+                    placeholder="e.g., 1921"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                    placeholder="e.g., United States"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="denomination">Denomination</Label>
+                  <Input
+                    id="denomination"
+                    value={formData.denomination}
+                    onChange={(e) => setFormData(prev => ({ ...prev, denomination: e.target.value }))}
+                    placeholder="e.g., Dollar, Cent, Dime"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="grade">Grade*</Label>
+                  <Input
+                    id="grade"
+                    value={formData.grade}
+                    onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
+                    placeholder="e.g., MS-65, AU-50, VF-20"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (USD)*</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="e.g., 85.00"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rarity">Rarity*</Label>
+                  <Select value={formData.rarity} onValueChange={(value) => setFormData(prev => ({ ...prev, rarity: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select rarity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Common">Common</SelectItem>
+                      <SelectItem value="Uncommon">Uncommon</SelectItem>
+                      <SelectItem value="Rare">Rare</SelectItem>
+                      <SelectItem value="Ultra Rare">Ultra Rare</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="condition">Condition</Label>
+                  <Select value={formData.condition} onValueChange={(value) => setFormData(prev => ({ ...prev, condition: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Mint">Mint</SelectItem>
+                      <SelectItem value="Near Mint">Near Mint</SelectItem>
+                      <SelectItem value="Excellent">Excellent</SelectItem>
+                      <SelectItem value="Good">Good</SelectItem>
+                      <SelectItem value="Fair">Fair</SelectItem>
+                      <SelectItem value="Poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="composition">Composition</Label>
+                  <Input
+                    id="composition"
+                    value={formData.composition}
+                    onChange={(e) => setFormData(prev => ({ ...prev, composition: e.target.value }))}
+                    placeholder="e.g., 90% Silver, 10% Copper"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="diameter">Diameter (mm)</Label>
+                  <Input
+                    id="diameter"
+                    type="number"
+                    step="0.1"
+                    value={formData.diameter}
+                    onChange={(e) => setFormData(prev => ({ ...prev, diameter: e.target.value }))}
+                    placeholder="e.g., 38.1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Weight (g)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    step="0.01"
+                    value={formData.weight}
+                    onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                    placeholder="e.g., 26.73"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mint">Mint</Label>
+                  <Input
+                    id="mint"
+                    value={formData.mint}
+                    onChange={(e) => setFormData(prev => ({ ...prev, mint: e.target.value }))}
+                    placeholder="e.g., Philadelphia, Denver"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the coin's condition, history, or any notable features..."
+                  rows={4}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full coin-button"
+                disabled={createCoin.isPending || aiRecognition.isPending}
+              >
+                {createCoin.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading Coin...
+                  </>
+                ) : (
+                  'List Coin for Sale'
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
-
-        {/* Submit */}
-        <div className="flex justify-end space-x-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => navigate('/dashboard')}
-            disabled={createCoinMutation.isPending}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={createCoinMutation.isPending}
-          >
-            {createCoinMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Create {listingType === 'direct' ? 'Listing' : 'Auction'}
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-    </form>
+      </motion.div>
+    </div>
   );
 };
 

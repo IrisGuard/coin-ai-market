@@ -1,50 +1,39 @@
-
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  adminOnly?: boolean;
+  children: ReactNode;
+  requireAuth?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) => {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
-  const { data: isAdmin, isLoading: adminLoading } = useQuery({
-    queryKey: ['admin-status', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      
-      const { data, error } = await supabase
-        .from('admin_roles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      return !error && !!data;
-    },
-    enabled: !!user?.id && adminOnly,
-  });
-
-  if (loading || (adminOnly && adminLoading)) {
+  // Show loading state if auth is still being determined
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin h-8 w-8 border-4 border-coin-gold border-t-transparent rounded-full"></div>
+        <span className="ml-2">Loading...</span>
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
+  // If the route requires authentication and the user isn't authenticated,
+  // redirect to the login page
+  if (requireAuth && !isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (adminOnly && !isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+  // If the route is login/signup and the user is already authenticated,
+  // redirect to the homepage
+  if (!requireAuth && isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
+  // Otherwise, render the children
   return <>{children}</>;
 };
 

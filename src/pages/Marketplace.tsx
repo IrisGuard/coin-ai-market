@@ -1,11 +1,15 @@
 
 import { usePageView } from '@/hooks/usePageView';
 import { useMarketplaceStats } from '@/hooks/useMarketplaceStats';
+import { useMarketplaceState } from '@/hooks/useMarketplaceState';
+import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import { usePerformanceMonitoring, useMemoryMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import EnhancedMarketplaceRegistrationForm from "@/components/marketplace/EnhancedMarketplaceRegistrationForm";
+import EnhancedMarketplaceHeader from "@/components/marketplace/EnhancedMarketplaceHeader";
+import ThemeAwareMarketplaceFilters from "@/components/marketplace/ThemeAwareMarketplaceFilters";
+import OptimizedMarketplaceGrid from "@/components/marketplace/OptimizedMarketplaceGrid";
 
 const Marketplace = () => {
   usePageView();
@@ -13,13 +17,72 @@ const Marketplace = () => {
   useMemoryMonitoring();
   
   const { stats, loading: statsLoading } = useMarketplaceStats();
+  const { cacheInfo } = useCachedMarketplaceData();
+  
+  const {
+    enhancedCoins,
+    coinsLoading,
+    coinsError,
+    viewMode,
+    setViewMode,
+    filters,
+    updateFilter,
+    clearFilters,
+    filterOptions,
+    totalResults,
+    hasActiveFilters,
+    enhancedStats
+  } = useMarketplaceState();
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen bg-bg-secondary dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300">
         <Navbar />
-        <div className="pt-20 pb-12">
-          <EnhancedMarketplaceRegistrationForm />
+        <div className="container mx-auto px-4 py-8">
+          <EnhancedMarketplaceHeader 
+            searchTerm={filters.searchTerm}
+            setSearchTerm={(term) => updateFilter('searchTerm', term)}
+            stats={enhancedStats}
+          />
+          
+          <ThemeAwareMarketplaceFilters
+            filters={filters}
+            updateFilter={updateFilter}
+            clearFilters={clearFilters}
+            filterOptions={filterOptions}
+            totalResults={totalResults}
+            hasActiveFilters={hasActiveFilters}
+            isLoading={coinsLoading}
+            auctionsCount={enhancedStats.auctions}
+            featuredCount={enhancedStats.featured}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            stats={enhancedStats}
+          />
+          
+          <OptimizedMarketplaceGrid
+            filteredCoins={enhancedCoins}
+            searchTerm={filters.searchTerm}
+            isAuctionOnly={filters.showAuctionsOnly}
+            selectedRarity={filters.selectedRarity}
+            clearFilters={clearFilters}
+            isLoading={coinsLoading}
+            error={coinsError}
+          />
+          
+          {/* Performance Debug Info (Development Only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="fixed bottom-4 right-4 bg-bg-primary border border-border-primary rounded-lg p-3 text-xs">
+              <div>Cache Size: {cacheInfo.size} entries</div>
+              <div>Coins Loaded: {enhancedCoins.length}</div>
+              <button 
+                onClick={cacheInfo.invalidateCache}
+                className="text-brand-primary hover:underline mt-1"
+              >
+                Clear Cache
+              </button>
+            </div>
+          )}
         </div>
         <Footer />
       </div>

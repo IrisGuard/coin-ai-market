@@ -571,7 +571,6 @@ export type Database = {
           ai_provider: string | null
           auction_end: string | null
           authentication_status: string | null
-          category: Database["public"]["Enums"]["coin_category"] | null
           composition: string | null
           condition: string | null
           country: string | null
@@ -585,7 +584,6 @@ export type Database = {
           id: string
           image: string
           is_auction: boolean | null
-          listing_type: string | null
           mint: string | null
           mintage: number | null
           model_3d_url: string | null
@@ -604,7 +602,6 @@ export type Database = {
           sold: boolean | null
           sold_at: string | null
           starting_bid: number | null
-          store_id: string | null
           tags: string[] | null
           updated_at: string | null
           uploaded_by: string | null
@@ -618,7 +615,6 @@ export type Database = {
           ai_provider?: string | null
           auction_end?: string | null
           authentication_status?: string | null
-          category?: Database["public"]["Enums"]["coin_category"] | null
           composition?: string | null
           condition?: string | null
           country?: string | null
@@ -632,7 +628,6 @@ export type Database = {
           id?: string
           image: string
           is_auction?: boolean | null
-          listing_type?: string | null
           mint?: string | null
           mintage?: number | null
           model_3d_url?: string | null
@@ -651,7 +646,6 @@ export type Database = {
           sold?: boolean | null
           sold_at?: string | null
           starting_bid?: number | null
-          store_id?: string | null
           tags?: string[] | null
           updated_at?: string | null
           uploaded_by?: string | null
@@ -665,7 +659,6 @@ export type Database = {
           ai_provider?: string | null
           auction_end?: string | null
           authentication_status?: string | null
-          category?: Database["public"]["Enums"]["coin_category"] | null
           composition?: string | null
           condition?: string | null
           country?: string | null
@@ -679,7 +672,6 @@ export type Database = {
           id?: string
           image?: string
           is_auction?: boolean | null
-          listing_type?: string | null
           mint?: string | null
           mintage?: number | null
           model_3d_url?: string | null
@@ -698,7 +690,6 @@ export type Database = {
           sold?: boolean | null
           sold_at?: string | null
           starting_bid?: number | null
-          store_id?: string | null
           tags?: string[] | null
           updated_at?: string | null
           uploaded_by?: string | null
@@ -713,13 +704,6 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coins_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
@@ -1867,92 +1851,6 @@ export type Database = {
         }
         Relationships: []
       }
-      store_ratings: {
-        Row: {
-          comment: string | null
-          created_at: string
-          id: string
-          rating: number | null
-          store_id: string
-          user_id: string
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string
-          id?: string
-          rating?: number | null
-          store_id: string
-          user_id: string
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string
-          id?: string
-          rating?: number | null
-          store_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "store_ratings_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      stores: {
-        Row: {
-          address: Json | null
-          created_at: string
-          description: string | null
-          email: string | null
-          id: string
-          is_active: boolean | null
-          logo_url: string | null
-          name: string
-          phone: string | null
-          shipping_options: Json | null
-          updated_at: string
-          user_id: string
-          verified: boolean | null
-          website: string | null
-        }
-        Insert: {
-          address?: Json | null
-          created_at?: string
-          description?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
-          name: string
-          phone?: string | null
-          shipping_options?: Json | null
-          updated_at?: string
-          user_id: string
-          verified?: boolean | null
-          website?: string | null
-        }
-        Update: {
-          address?: Json | null
-          created_at?: string
-          description?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
-          name?: string
-          phone?: string | null
-          shipping_options?: Json | null
-          updated_at?: string
-          user_id?: string
-          verified?: boolean | null
-          website?: string | null
-        }
-        Relationships: []
-      }
       system_config: {
         Row: {
           config_key: string
@@ -2152,57 +2050,6 @@ export type Database = {
           },
         ]
       }
-      user_purchases: {
-        Row: {
-          amount: number
-          buyer_id: string
-          coin_id: string
-          created_at: string
-          id: string
-          payment_method: string | null
-          seller_id: string
-          status: string | null
-          store_id: string | null
-        }
-        Insert: {
-          amount: number
-          buyer_id: string
-          coin_id: string
-          created_at?: string
-          id?: string
-          payment_method?: string | null
-          seller_id: string
-          status?: string | null
-          store_id?: string | null
-        }
-        Update: {
-          amount?: number
-          buyer_id?: string
-          coin_id?: string
-          created_at?: string
-          id?: string
-          payment_method?: string | null
-          seller_id?: string
-          status?: string | null
-          store_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_purchases_coin_id_fkey"
-            columns: ["coin_id"]
-            isOneToOne: false
-            referencedRelation: "coins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_purchases_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_settings: {
         Row: {
           app_settings: Json | null
@@ -2329,10 +2176,6 @@ export type Database = {
         Args: { plain_key: string }
         Returns: string
       }
-      get_store_average_rating: {
-        Args: { store_uuid: string }
-        Returns: number
-      }
       get_tenant_from_domain: {
         Args: { domain_name: string }
         Returns: string
@@ -2359,19 +2202,7 @@ export type Database = {
       }
     }
     Enums: {
-      coin_category:
-        | "error_coin"
-        | "greek"
-        | "american"
-        | "british"
-        | "asian"
-        | "european"
-        | "ancient"
-        | "modern"
-        | "silver"
-        | "gold"
-        | "commemorative"
-        | "unclassified"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2486,21 +2317,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      coin_category: [
-        "error_coin",
-        "greek",
-        "american",
-        "british",
-        "asian",
-        "european",
-        "ancient",
-        "modern",
-        "silver",
-        "gold",
-        "commemorative",
-        "unclassified",
-      ],
-    },
+    Enums: {},
   },
 } as const

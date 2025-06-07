@@ -13,15 +13,8 @@ const TrendingCoins = () => {
     if (!coins || coins.length === 0) return [];
     
     return coins
-      .filter(coin => {
-        // Type guard to check if coin has authentication_status
-        return 'authentication_status' in coin ? coin.authentication_status === 'verified' : true;
-      })
-      .sort((a, b) => {
-        const aViews = 'views' in a ? a.views || 0 : 0;
-        const bViews = 'views' in b ? b.views || 0 : 0;
-        return bViews - aViews;
-      })
+      .filter(coin => coin.authentication_status === 'verified')
+      .sort((a, b) => (b.views || 0) - (a.views || 0))
       .slice(0, 6); // Fewer coins for trending section
   }, [coins]);
 
