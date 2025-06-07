@@ -27,26 +27,30 @@ const Index = () => {
     .slice(0, 12);
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Etsy-style marketplace layout */}
+      {/* Hero Section - Etsy style with search */}
       <MarketplaceHero />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Categories */}
+        {/* Categories Section */}
         <CategoriesGrid />
         
         {/* Trending Section */}
         <TrendingCoins />
         
-        {/* Main Coins Grid - No title, just the grid like Etsy */}
+        {/* Featured Coins Grid */}
         <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            Featured Coins
+          </h2>
+          
           {isLoading ? (
             <div className="flex justify-center items-center py-16">
               <div className="flex items-center gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-                <span className="text-text-secondary">Loading marketplace...</span>
+                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+                <span className="text-gray-600">Loading coins...</span>
               </div>
             </div>
           ) : (
@@ -64,9 +68,9 @@ const Index = () => {
         <div className="text-center mb-12">
           <a 
             href="/marketplace" 
-            className="inline-block px-6 py-3 bg-brand-primary text-bg-primary font-medium rounded-lg hover:bg-brand-primary/90 transition-colors"
+            className="inline-block px-8 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
           >
-            View all coins
+            View all coins in marketplace
           </a>
         </div>
       </div>
