@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -125,7 +124,6 @@ const Auctions = () => {
                     key={auction.id}
                     auction={auction}
                     index={index}
-                    timeRemaining={timeRemaining}
                     isEndingSoon={isEndingSoon}
                     isMyBid={isMyBid}
                     bidAmount={bidAmounts[auction.id] || ''}
