@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -16,8 +17,11 @@ const Index = () => {
   const [sortBy, setSortBy] = useState<'price_low' | 'price_high' | 'newest' | 'popular'>('newest');
   const [selectedRarity, setSelectedRarity] = useState<string>('all');
 
+  // Use the mock data directly to ensure it displays
+  const coins = allDirectSaleCoins;
+
   // Filter and sort coins
-  const filteredCoins = allDirectSaleCoins
+  const filteredCoins = coins
     .filter(coin => 
       coin.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       (selectedRarity === 'all' || coin.rarity === selectedRarity)
@@ -109,7 +113,7 @@ const Index = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Featured Coins</h2>
-              <Badge className="bg-gold text-black">Premium Selection</Badge>
+              <Badge className="bg-yellow-500 text-black">Premium Selection</Badge>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -124,7 +128,7 @@ const Index = () => {
                     <CardContent className="p-4">
                       <div className="relative mb-4">
                         <Link to={`/coin/${coin.id}`}>
-                          <div className="aspect-square overflow-hidden rounded-lg">
+                          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                             <img 
                               src={coin.image} 
                               alt={coin.name}
@@ -227,7 +231,7 @@ const Index = () => {
                   <CardContent className="p-4">
                     <div className="relative mb-4">
                       <Link to={`/coin/${coin.id}`}>
-                        <div className="aspect-square overflow-hidden rounded-lg">
+                        <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                           <img 
                             src={coin.image} 
                             alt={coin.name}
