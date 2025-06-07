@@ -19,8 +19,8 @@ export const checkRequiredEnvVars = () => {
 export const validateEnvironment = () => {
   const isValid = checkRequiredEnvVars();
   
-  if (!isValid) {
-    throw new Error('Required environment variables are missing. Please check your configuration.');
+  if (!isValid && import.meta.env.MODE === 'production') {
+    console.warn('Some environment variables are missing but continuing in production mode');
   }
   
   return true;

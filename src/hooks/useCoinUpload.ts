@@ -5,15 +5,16 @@ import { uploadImage } from '@/utils/imageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface ImageFile {
+export interface UploadedImage {
   file: File;
   preview: string;
   uploaded: boolean;
+  uploading?: boolean;
   url?: string;
   uploadProgress?: number;
 }
 
-interface CoinData {
+export interface CoinData {
   title: string;
   description: string;
   price: number;
@@ -25,11 +26,16 @@ interface CoinData {
   denomination: string;
   grade: string;
   rarity: string;
+  mint: string;
+  composition: string;
+  diameter: string;
+  weight: string;
+  auctionDuration: number;
 }
 
 export const useCoinUpload = () => {
   const { user } = useAuth();
-  const [images, setImages] = useState<ImageFile[]>([]);
+  const [images, setImages] = useState<UploadedImage[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
@@ -46,14 +52,20 @@ export const useCoinUpload = () => {
     country: '',
     denomination: '',
     grade: '',
-    rarity: ''
+    rarity: '',
+    mint: '',
+    composition: '',
+    diameter: '',
+    weight: '',
+    auctionDuration: 7
   });
 
   const handleFiles = useCallback((files: File[]) => {
     const newImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
-      uploaded: false
+      uploaded: false,
+      uploading: false
     }));
     setImages(prev => [...prev, ...newImages]);
   }, []);
@@ -137,6 +149,10 @@ export const useCoinUpload = () => {
     }
   }, [images]);
 
+  const handleCoinDataChange = useCallback((data: CoinData) => {
+    setCoinData(data);
+  }, []);
+
   const handleSubmitListing = useCallback(async () => {
     if (!user) {
       toast.error('Please log in to create a listing');
@@ -193,7 +209,12 @@ export const useCoinUpload = () => {
         country: '',
         denomination: '',
         grade: '',
-        rarity: ''
+        rarity: '',
+        mint: '',
+        composition: '',
+        diameter: '',
+        weight: '',
+        auctionDuration: 7
       });
       setImages([]);
       setAnalysisResults(null);
@@ -220,6 +241,7 @@ export const useCoinUpload = () => {
     removeImage,
     handleUploadAndAnalyze,
     handleSubmitListing,
-    handleFiles
+    handleFiles,
+    handleCoinDataChange
   };
 };

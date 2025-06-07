@@ -26,13 +26,13 @@ const CoinUpload = () => {
     isSubmitting,
     dragActive,
     coinData,
-    setCoinData,
     handleDrag,
     handleDrop,
     removeImage,
     handleUploadAndAnalyze,
     handleSubmitListing,
-    handleFiles
+    handleFiles,
+    handleCoinDataChange
   } = useCoinUpload();
 
   if (!isAuthenticated) {
@@ -80,7 +80,7 @@ const CoinUpload = () => {
 
             <CoinListingDetailsForm
               coinData={coinData}
-              onCoinDataChange={setCoinData}
+              onCoinDataChange={handleCoinDataChange}
             />
 
             <Button
