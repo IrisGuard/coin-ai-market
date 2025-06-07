@@ -70,10 +70,6 @@ const App = () => (
                     {/* Admin route */}
                     <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                     
-                    {/* Services and Support - placeholder pages */}
-                    <Route path="/services" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl">Services - Coming Soon</h1></div>} />
-                    <Route path="/support" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl">Support - Coming Soon</h1></div>} />
-                    
                     {/* Catch-all route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

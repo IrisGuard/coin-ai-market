@@ -31,9 +31,7 @@ const Navbar = () => {
   const navItems = [
     { label: 'Home', href: '/' },
     { label: 'Marketplace', href: '/marketplace' },
-    { label: 'Auctions', href: '/auctions' },
-    { label: 'Services', href: '/services' },
-    { label: 'Support', href: '/support' },
+    { label: 'Auctions', href: '/auctions' }
   ];
 
   return (

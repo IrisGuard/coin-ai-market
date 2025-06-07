@@ -12,8 +12,8 @@ export interface UploadedImage {
 export interface CoinData {
   title: string;
   description: string;
-  price: string;  // Changed from number to string to match form expectations
-  startingBid: string;  // Changed from number to string to match form expectations
+  price: string;
+  startingBid: string;
   isAuction: boolean;
   condition: string;
   year: string;
@@ -25,5 +25,5 @@ export interface CoinData {
   composition: string;
   diameter: string;
   weight: string;
-  auctionDuration: number;  // Keep as number for consistency
+  auctionDuration: string;  // Changed to string to fix type conflict
 }
