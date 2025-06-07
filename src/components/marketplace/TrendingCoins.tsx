@@ -28,8 +28,8 @@ const TrendingCoins = () => {
     return (
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-orange-600" />
-          <h2 className="text-xl font-medium text-gray-900">
+          <TrendingUp className="w-5 h-5 text-electric-orange" />
+          <h2 className="text-xl font-medium bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent">
             Trending right now
           </h2>
         </div>
@@ -51,8 +51,8 @@ const TrendingCoins = () => {
   return (
     <div className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-5 h-5 text-orange-600" />
-        <h2 className="text-xl font-medium text-gray-900">
+        <TrendingUp className="w-5 h-5 text-electric-orange" />
+        <h2 className="text-xl font-medium bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent">
           Trending right now
         </h2>
       </div>

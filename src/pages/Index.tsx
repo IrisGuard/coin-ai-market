@@ -43,15 +43,15 @@ const Index = () => {
         
         {/* Featured Coins Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Προτεινόμενα Νομίσματα
+          <h2 className="text-2xl font-semibold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6">
+            Featured Coins
           </h2>
           
           {isLoading ? (
             <div className="flex justify-center items-center py-16">
               <div className="flex items-center gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-                <span className="text-gray-600">Φόρτωση νομισμάτων...</span>
+                <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
+                <span className="text-electric-blue">Loading coins...</span>
               </div>
             </div>
           ) : (
@@ -63,16 +63,6 @@ const Index = () => {
               ))}
             </div>
           )}
-        </div>
-        
-        {/* View All Link */}
-        <div className="text-center mb-12">
-          <a 
-            href="/marketplace" 
-            className="inline-block px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            Δείτε όλα τα νομίσματα στην αγορά
-          </a>
         </div>
       </div>
 

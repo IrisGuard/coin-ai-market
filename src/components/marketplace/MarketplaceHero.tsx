@@ -37,10 +37,10 @@ const MarketplaceHero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Main Header Section */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
             Find the perfect coin for you
           </h1>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-electric-blue mb-8">
             Discover authentic coins from collectors worldwide
           </p>
 
@@ -52,9 +52,9 @@ const MarketplaceHero = () => {
                 <input
                   type="text"
                   placeholder="Search for coins, years, countries..."
-                  className="flex-1 px-6 py-4 text-lg border-2 border-gray-300 rounded-l-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                  className="flex-1 px-6 py-4 text-lg border-2 border-gray-300 rounded-l-lg focus:outline-none focus:border-electric-orange focus:ring-2 focus:ring-electric-orange/20"
                 />
-                <button className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-r-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                <button className="px-8 py-4 bg-gradient-to-r from-electric-orange to-electric-red hover:from-electric-orange/90 hover:to-electric-red/90 text-white font-medium rounded-r-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
                   <Search className="w-5 h-5" />
                   Search
                 </button>
@@ -65,14 +65,14 @@ const MarketplaceHero = () => {
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="px-6 py-4 h-auto text-lg border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="px-6 py-4 h-auto text-lg border-2 border-gray-300 hover:border-electric-orange hover:bg-electric-orange/10 transition-all duration-200 shadow-md hover:shadow-lg text-electric-purple"
                   >
                     <Menu className="w-5 h-5 mr-2" />
                     Browse Categories
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-lg z-50" align="end">
-                  <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-gray-700">
+                  <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-electric-blue">
                     Main Categories
                   </DropdownMenuLabel>
                   {mainCategories.map((category) => {
@@ -81,7 +81,7 @@ const MarketplaceHero = () => {
                       <DropdownMenuItem key={category.name} asChild>
                         <a 
                           href={category.href}
-                          className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors cursor-pointer"
+                          className="flex items-center gap-3 px-4 py-2 text-electric-purple hover:bg-electric-orange/10 hover:text-electric-orange transition-colors cursor-pointer"
                         >
                           <IconComponent className="w-4 h-4" />
                           <span>{category.name}</span>
@@ -92,7 +92,7 @@ const MarketplaceHero = () => {
                   
                   <DropdownMenuSeparator className="my-1" />
                   
-                  <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-gray-700">
+                  <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-electric-green">
                     Specialty Categories
                   </DropdownMenuLabel>
                   {specialtyCategories.map((category) => {
@@ -101,7 +101,7 @@ const MarketplaceHero = () => {
                       <DropdownMenuItem key={category.name} asChild>
                         <a 
                           href={category.href}
-                          className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors cursor-pointer"
+                          className="flex items-center gap-3 px-4 py-2 text-electric-purple hover:bg-electric-green/10 hover:text-electric-green transition-colors cursor-pointer"
                         >
                           <IconComponent className="w-4 h-4" />
                           <span>{category.name}</span>
