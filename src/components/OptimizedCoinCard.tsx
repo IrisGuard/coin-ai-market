@@ -1,13 +1,16 @@
+
 import React, { memo, useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Eye, Clock, Star, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Coin } from '@/types/coin';
 import { useEnhancedFavorites } from '@/hooks/useEnhancedFavorites';
 import { createImageObserver, preloadImage } from '@/utils/performanceOptimizations';
+import CoinCardImage from '@/components/coin-card/CoinCardImage';
+import CoinCardInfo from '@/components/coin-card/CoinCardInfo';
+import CoinCardPricing from '@/components/coin-card/CoinCardPricing';
+import CoinCardFooter from '@/components/coin-card/CoinCardFooter';
 
 interface OptimizedCoinCardProps {
   coin: Coin;
@@ -92,141 +95,20 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
       className="group"
     >
       <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 bg-white">
-        <div className="relative">
-          <Link to={`/coin/${coin.id}`}>
-            <div className="aspect-square overflow-hidden bg-gray-100">
-              {imageLoaded || priority ? (
-                <img
-                  ref={imgRef}
-                  src={coin.image}
-                  alt={coin.name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  loading={priority ? 'eager' : 'lazy'}
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse" />
-              )}
-            </div>
-          </Link>
-
-          {/* Favorite Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleFavoriteClick}
-            className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 ${
-              isUserFavorite 
-                ? 'bg-red-500 text-white hover:bg-red-600' 
-                : 'bg-white/80 text-gray-600 hover:bg-white hover:text-red-500'
-            }`}
-          >
-            <Heart className={`w-4 h-4 ${isUserFavorite ? 'fill-current' : ''}`} />
-          </Button>
-
-          {/* Status Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {coin.featured && (
-              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 border-0">
-                <Star className="w-3 h-3 mr-1" />
-                Featured
-              </Badge>
-            )}
-            
-            {coin.is_auction && (
-              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
-                <Clock className="w-3 h-3 mr-1" />
-                Auction
-              </Badge>
-            )}
-          </div>
-
-          {/* Auction Timer */}
-          {coin.is_auction && coin.auction_end && (
-            <div className="absolute bottom-2 left-2 bg-gray-900/80 text-white px-2 py-1 rounded text-xs font-medium">
-              {formatTimeRemaining(coin.auction_end)}
-            </div>
-          )}
-        </div>
+        <CoinCardImage
+          coin={coin}
+          imageLoaded={imageLoaded}
+          isUserFavorite={isUserFavorite}
+          onFavoriteClick={handleFavoriteClick}
+          formatTimeRemaining={formatTimeRemaining}
+          priority={priority}
+        />
 
         <CardContent className="p-4">
           <div className="space-y-3">
-            {/* Title and Info */}
-            <div>
-              <Link to={`/coin/${coin.id}`}>
-                <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors">
-                  {coin.name}
-                </h3>
-              </Link>
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                <span>{coin.year}</span>
-                {coin.country && (
-                  <>
-                    <span>•</span>
-                    <span>{coin.country}</span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Condition and Rarity */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {coin.condition && (
-                <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
-                  {coin.condition}
-                </Badge>
-              )}
-              {coin.rarity && (
-                <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
-                  {coin.rarity}
-                </Badge>
-              )}
-            </div>
-
-            {/* Price */}
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  €{coin.price?.toLocaleString()}
-                </div>
-                {coin.is_auction && (
-                  <div className="text-sm text-gray-600">
-                    Starting at €{coin.price?.toLocaleString()}
-                  </div>
-                )}
-              </div>
-              
-              {!coin.is_auction && (
-                <Badge className="bg-green-100 text-green-700 border-green-200">
-                  <DollarSign className="w-3 h-3 mr-1" />
-                  Buy Now
-                </Badge>
-              )}
-            </div>
-
-            {/* Views and Stats */}
-            <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-200">
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                <span>{coin.views || 0} views</span>
-              </div>
-              
-              {coin.profiles && (
-                <div className="flex items-center gap-1">
-                  <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
-                    {coin.profiles.name?.[0]?.toUpperCase()}
-                  </div>
-                  <span className="text-xs">{coin.profiles.name}</span>
-                  {coin.profiles.verified_dealer && (
-                    <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <CoinCardInfo coin={coin} />
+            <CoinCardPricing coin={coin} />
+            <CoinCardFooter coin={coin} />
 
             {/* Action Button */}
             <Link to={`/coin/${coin.id}`} className="block">
