@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useDataSources, useExternalPriceSources, useScrapingJobs } from '@/hooks/useEnhancedDataSources';
+import { useDataSources, useScrapingJobs } from '@/hooks/useDataSources';
+import { useExternalPriceSources } from '@/hooks/useEnhancedDataSources';
 import { Database, Activity, Settings, RefreshCw } from 'lucide-react';
 
 const AdminDataSourcesSection = () => {
