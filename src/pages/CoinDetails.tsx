@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -317,7 +318,7 @@ const CoinDetails = () => {
               {profile && (
                 <CoinSellerInfo 
                   seller={profile} 
-                  coinCreatedAt={coin.created_at} 
+                  coinCreatedAt={coin.created_at || new Date().toISOString()} 
                 />
               )}
             </div>
@@ -347,7 +348,10 @@ const CoinDetails = () => {
                 </TabsContent>
                 
                 <TabsContent value="history" className="mt-6">
-                  <CoinHistoryTab coin={coin} />
+                  <CoinHistoryTab coin={{
+                    created_at: coin.created_at || new Date().toISOString(),
+                    ai_confidence: coin.ai_confidence
+                  }} />
                 </TabsContent>
               </Tabs>
             </CardContent>
