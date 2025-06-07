@@ -5,7 +5,6 @@ import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import Navbar from "@/components/Navbar";
 import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
-import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import TrendingCoins from "@/components/marketplace/TrendingCoins";
 import Footer from "@/components/Footer";
 import OptimizedCoinCard from "@/components/OptimizedCoinCard";
@@ -35,27 +34,24 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Hero Section - Etsy style with search */}
+      {/* Hero Section with colorful categories */}
       <MarketplaceHero />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Categories Section */}
-        <CategoriesGrid />
-        
         {/* Trending Section */}
         <TrendingCoins />
         
         {/* Featured Coins Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Featured Coins
+            Προτεινόμενα Νομίσματα
           </h2>
           
           {isLoading ? (
             <div className="flex justify-center items-center py-16">
               <div className="flex items-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-                <span className="text-gray-600">Loading coins...</span>
+                <span className="text-gray-600">Φόρτωση νομισμάτων...</span>
               </div>
             </div>
           ) : (
@@ -73,9 +69,9 @@ const Index = () => {
         <div className="text-center mb-12">
           <a 
             href="/marketplace" 
-            className="inline-block px-8 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
+            className="inline-block px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
           >
-            View all coins in marketplace
+            Δείτε όλα τα νομίσματα στην αγορά
           </a>
         </div>
       </div>
