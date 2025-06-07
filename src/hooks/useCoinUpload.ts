@@ -1,36 +1,10 @@
+
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { uploadImage } from '@/utils/imageUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-export interface UploadedImage {
-  file: File;
-  preview: string;
-  uploaded: boolean;
-  uploading?: boolean;
-  url?: string;
-  uploadProgress?: number;
-}
-
-export interface CoinData {
-  title: string;
-  description: string;
-  price: number;
-  startingBid: number;
-  isAuction: boolean;
-  condition: string;
-  year: string;
-  country: string;
-  denomination: string;
-  grade: string;
-  rarity: string;
-  mint: string;
-  composition: string;
-  diameter: string;
-  weight: string;
-  auctionDuration: number;
-}
+import type { UploadedImage, CoinData } from '@/types/upload';
 
 export const useCoinUpload = () => {
   const { user } = useAuth();

@@ -4,15 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Camera, Plus, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-
-interface UploadedImage {
-  file: File;
-  preview: string;
-  uploading: boolean;
-  uploaded: boolean;
-  url?: string;
-  error?: string;
-}
+import type { UploadedImage } from '@/types/upload';
 
 interface ImageUploadCardProps {
   images: UploadedImage[];

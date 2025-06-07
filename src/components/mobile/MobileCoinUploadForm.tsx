@@ -18,11 +18,11 @@ const MobileCoinUploadForm = () => {
     analysisResults,
     isSubmitting,
     coinData,
-    setCoinData,
     handleFiles,
     handleUploadAndAnalyze,
     handleSubmitListing,
-    removeImage
+    removeImage,
+    handleCoinDataChange
   } = useCoinUpload();
 
   const [cameraMode, setCameraMode] = useState(false);
@@ -37,6 +37,10 @@ const MobileCoinUploadForm = () => {
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileInput(e);
     setCameraMode(false);
+  };
+
+  const updateCoinData = (updates: Partial<typeof coinData>) => {
+    handleCoinDataChange({ ...coinData, ...updates });
   };
 
   return (
@@ -198,7 +202,7 @@ const MobileCoinUploadForm = () => {
               <Input
                 id="title"
                 value={coinData.title}
-                onChange={(e) => setCoinData(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => updateCoinData({ title: e.target.value })}
                 placeholder="Enter coin title"
               />
             </div>
@@ -208,7 +212,7 @@ const MobileCoinUploadForm = () => {
               <Textarea
                 id="description"
                 value={coinData.description}
-                onChange={(e) => setCoinData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => updateCoinData({ description: e.target.value })}
                 placeholder="Describe your coin"
                 className="h-24"
               />
@@ -219,7 +223,7 @@ const MobileCoinUploadForm = () => {
               <Switch
                 id="auction-mode"
                 checked={coinData.isAuction}
-                onCheckedChange={(checked) => setCoinData(prev => ({ ...prev, isAuction: checked }))}
+                onCheckedChange={(checked) => updateCoinData({ isAuction: checked })}
               />
             </div>
 
@@ -234,9 +238,9 @@ const MobileCoinUploadForm = () => {
                 onChange={(e) => {
                   const value = parseFloat(e.target.value) || 0;
                   if (coinData.isAuction) {
-                    setCoinData(prev => ({ ...prev, startingBid: value }));
+                    updateCoinData({ startingBid: value });
                   } else {
-                    setCoinData(prev => ({ ...prev, price: value }));
+                    updateCoinData({ price: value });
                   }
                 }}
                 placeholder="Enter amount in USD"
@@ -249,7 +253,7 @@ const MobileCoinUploadForm = () => {
                 <Input
                   id="year"
                   value={coinData.year}
-                  onChange={(e) => setCoinData(prev => ({ ...prev, year: e.target.value }))}
+                  onChange={(e) => updateCoinData({ year: e.target.value })}
                   placeholder="e.g. 1921"
                 />
               </div>
@@ -258,7 +262,7 @@ const MobileCoinUploadForm = () => {
                 <Input
                   id="grade"
                   value={coinData.grade}
-                  onChange={(e) => setCoinData(prev => ({ ...prev, grade: e.target.value }))}
+                  onChange={(e) => updateCoinData({ grade: e.target.value })}
                   placeholder="e.g. MS-63"
                 />
               </div>
