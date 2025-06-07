@@ -4,14 +4,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Gavel } from 'lucide-react';
-import { TimeRemaining } from '@/types/auction';
+import { TimeRemaining, AuctionCoin } from '@/types/auction';
 
 interface AuctionCardBiddingProps {
-  auction: {
-    id: string;
-    current_bid: number;
-    seller_id: string;
-  };
+  auction: AuctionCoin;
   timeRemaining: TimeRemaining;
   bidAmount: string;
   setBidAmount: (amount: string) => void;

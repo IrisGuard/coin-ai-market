@@ -3,22 +3,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
+import { AuctionCoin } from '@/types/auction';
 
 interface AuctionCardInfoProps {
-  auction: {
-    id: string;
-    name: string;
-    year: number;
-    current_bid: number;
-    reserve_price: number;
-    bid_count: number;
-    watchers: number;
-    profiles?: {
-      name: string;
-      reputation: number;
-      verified_dealer: boolean;
-    };
-  };
+  auction: AuctionCoin;
 }
 
 const AuctionCardInfo = ({ auction }: AuctionCardInfoProps) => {
@@ -41,11 +29,11 @@ const AuctionCardInfo = ({ auction }: AuctionCardInfoProps) => {
         </div>
         
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Προσφορές: {auction.bid_count}</span>
-          <span className="text-gray-600">Παρακολουθούν: {auction.watchers}</span>
+          <span className="text-gray-600">Προσφορές: {auction.bid_count || 0}</span>
+          <span className="text-gray-600">Παρακολουθούν: {auction.watchers || 0}</span>
         </div>
 
-        {auction.reserve_price > auction.current_bid && (
+        {auction.reserve_price && auction.reserve_price > auction.current_bid && (
           <div className="text-sm text-orange-600">
             Δεν έχει φτάσει το όριο (€{auction.reserve_price})
           </div>

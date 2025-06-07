@@ -45,9 +45,9 @@ const CoinDetails = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Images */}
               <div className="lg:col-span-2">
-                <CoinImage coin={coin} />
+                <CoinImage coin={coin as any} />
                 <CoinDetailsContent 
-                  coin={coin} 
+                  coin={coin as any} 
                   bidsData={bidsData} 
                   relatedCoins={relatedCoins}
                   isFavorited={isFavorited}
@@ -65,8 +65,8 @@ const CoinDetails = () => {
               {/* Right Column - Actions */}
               <div className="lg:col-span-1">
                 <div className="sticky top-24 space-y-6">
-                  <CoinHeader coin={coin} />
-                  <EnhancedCoinActionButtons coin={coin} />
+                  <CoinHeader coin={coin as any} />
+                  <EnhancedCoinActionButtons coin={coin as any} />
                 </div>
               </div>
             </div>
