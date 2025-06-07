@@ -9,6 +9,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { usePageView, usePagePerformance } from "@/hooks/usePageView";
+import { usePerformanceMonitoring, useMemoryMonitoring, useWebVitals } from "@/hooks/usePerformanceMonitoring";
 import Index from "./pages/Index";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
 import DealerStorePage from "./pages/DealerStorePage";
@@ -38,6 +40,57 @@ const queryClient = new QueryClient({
   },
 });
 
+// Enhanced App component with Vercel monitoring
+const AppWithMonitoring = () => {
+  usePageView();
+  usePagePerformance();
+  usePerformanceMonitoring('App');
+  useMemoryMonitoring();
+  useWebVitals();
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/marketplace" element={<ActiveMarketplace />} />
+      <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
+      <Route path="/search" element={<EnhancedSearch />} />
+      <Route path="/upload" element={
+        <ProtectedRoute requireAuth={true}>
+          <CoinUpload />
+        </ProtectedRoute>
+      } />
+      <Route path="/dashboard" element={
+        <ProtectedRoute requireAuth={true}>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/profile" element={
+        <ProtectedRoute requireAuth={true}>
+          <Profile />
+        </ProtectedRoute>
+      } />
+      <Route path="/auth" element={
+        <ProtectedRoute requireAuth={false}>
+          <Auth />
+        </ProtectedRoute>
+      } />
+      <Route path="/coin/:id" element={<CoinDetails />} />
+      <Route path="/auctions" element={<Auctions />} />
+      <Route path="/sell/:id" element={
+        <ProtectedRoute requireAuth={true}>
+          <CoinSale />
+        </ProtectedRoute>
+      } />
+      <Route path="/mobile-ai" element={<MobileAIFeatures />} />
+      <Route path="/ai-features" element={<AIFeatures />} />
+      <Route path="/category/:category" element={<CategoryPage />} />
+      <Route path="/admin" element={<AdminPanelPage />} />
+      <Route path="/marketplace/panel" element={<MarketplacePanelPage />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -47,45 +100,7 @@ function App() {
             <AuthProvider>
               <AdminProvider>
                 <ErrorBoundary>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/marketplace" element={<ActiveMarketplace />} />
-                    <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
-                    <Route path="/search" element={<EnhancedSearch />} />
-                    <Route path="/upload" element={
-                      <ProtectedRoute requireAuth={true}>
-                        <CoinUpload />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard" element={
-                      <ProtectedRoute requireAuth={true}>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/profile" element={
-                      <ProtectedRoute requireAuth={true}>
-                        <Profile />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/auth" element={
-                      <ProtectedRoute requireAuth={false}>
-                        <Auth />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/coin/:id" element={<CoinDetails />} />
-                    <Route path="/auctions" element={<Auctions />} />
-                    <Route path="/sell/:id" element={
-                      <ProtectedRoute requireAuth={true}>
-                        <CoinSale />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/mobile-ai" element={<MobileAIFeatures />} />
-                    <Route path="/ai-features" element={<AIFeatures />} />
-                    <Route path="/category/:category" element={<CategoryPage />} />
-                    <Route path="/admin" element={<AdminPanelPage />} />
-                    <Route path="/marketplace/panel" element={<MarketplacePanelPage />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <AppWithMonitoring />
                   <AdminKeyboardHandler />
                 </ErrorBoundary>
               </AdminProvider>
