@@ -1,221 +1,64 @@
 
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import { uploadImage } from '@/utils/imageUpload';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import type { UploadedImage, CoinData } from '@/types/upload';
+import { useCallback } from 'react';
+import { useImageUpload } from './upload/useImageUpload';
+import { useAIAnalysis } from './upload/useAIAnalysis';
+import { useCoinData } from './upload/useCoinData';
+import { useCoinSubmission } from './upload/useCoinSubmission';
 
 export const useCoinUpload = () => {
-  const { user } = useAuth();
-  const [images, setImages] = useState<UploadedImage[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const [coinData, setCoinData] = useState<CoinData>({
-    title: '',
-    description: '',
-    price: '',  // Now string
-    startingBid: '',  // Now string
-    isAuction: false,
-    condition: '',
-    year: '',
-    country: '',
-    denomination: '',
-    grade: '',
-    rarity: '',
-    mint: '',
-    composition: '',
-    diameter: '',
-    weight: '',
-    auctionDuration: 7
-  });
-
-  const handleFiles = useCallback((files: File[]) => {
-    const newImages = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      uploaded: false,
-      uploading: false
-    }));
-    setImages(prev => [...prev, ...newImages]);
-  }, []);
-
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFiles(files);
-    }
-  }, [handleFiles]);
-
-  const removeImage = useCallback((index: number) => {
-    setImages(prev => {
-      const newImages = [...prev];
-      if (newImages[index]?.preview) {
-        URL.revokeObjectURL(newImages[index].preview);
-      }
-      newImages.splice(index, 1);
-      return newImages;
-    });
-  }, []);
+  const imageUpload = useImageUpload();
+  const aiAnalysis = useAIAnalysis();
+  const coinDataHook = useCoinData();
+  const submission = useCoinSubmission();
 
   const handleUploadAndAnalyze = useCallback(async () => {
-    if (images.length === 0) {
-      toast.error('Please select at least one image');
-      return;
+    const uploadedImages = await imageUpload.uploadImages();
+    if (uploadedImages.length > 0) {
+      await aiAnalysis.analyzeImages();
     }
-
-    setIsAnalyzing(true);
-    try {
-      const uploadedImages = [];
-      
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        if (!image.uploaded) {
-          setUploadProgress((i / images.length) * 100);
-          
-          const url = await uploadImage(image.file, 'coin-images');
-          
-          setImages(prev => prev.map((img, idx) => 
-            idx === i ? { ...img, uploaded: true, url } : img
-          ));
-          
-          uploadedImages.push(url);
-        }
-      }
-      
-      setUploadProgress(100);
-      
-      // Simulate AI analysis
-      setTimeout(() => {
-        setAnalysisResults({
-          confidence: 0.92,
-          coinName: 'Morgan Silver Dollar',
-          year: '1921',
-          grade: 'MS-63',
-          estimatedValue: '$45-65'
-        });
-        setIsAnalyzing(false);
-        toast.success('Analysis completed successfully!');
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload images');
-      setIsAnalyzing(false);
-    }
-  }, [images]);
-
-  const handleCoinDataChange = useCallback((data: CoinData) => {
-    setCoinData(data);
-  }, []);
+  }, [imageUpload.uploadImages, aiAnalysis.analyzeImages]);
 
   const handleSubmitListing = useCallback(async () => {
-    if (!user) {
-      toast.error('Please log in to create a listing');
-      return;
-    }
+    await submission.submitListing(
+      coinDataHook.coinData, 
+      imageUpload.images,
+      () => {
+        // Reset form on success
+        coinDataHook.resetCoinData();
+        imageUpload.resetImages();
+        aiAnalysis.resetAnalysis();
+      }
+    );
+  }, [submission.submitListing, coinDataHook.coinData, imageUpload.images, coinDataHook.resetCoinData, imageUpload.resetImages, aiAnalysis.resetAnalysis]);
 
-    if (!coinData.title || images.length === 0) {
-      toast.error('Please fill in all required fields and upload images');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const uploadedImageUrls = images
-        .filter(img => img.uploaded && img.url)
-        .map(img => img.url);
-
-      const coinDataToInsert = {
-        name: coinData.title,
-        description: coinData.description,
-        // Convert string prices to numbers for database
-        price: coinData.isAuction ? parseFloat(coinData.startingBid) || 0 : parseFloat(coinData.price) || 0,
-        starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) || null : null,
-        is_auction: coinData.isAuction,
-        condition: coinData.condition,
-        year: parseInt(coinData.year) || 2024,
-        country: coinData.country,
-        denomination: coinData.denomination,
-        grade: coinData.grade,
-        rarity: coinData.rarity,
-        image: uploadedImageUrls[0] || '',
-        user_id: user.id,
-        seller_id: user.id
-      };
-
-      const { data, error } = await supabase
-        .from('coins')
-        .insert([coinDataToInsert])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success('Coin listing created successfully!');
-      
-      // Reset form
-      setCoinData({
-        title: '',
-        description: '',
-        price: '',
-        startingBid: '',
-        isAuction: false,
-        condition: '',
-        year: '',
-        country: '',
-        denomination: '',
-        grade: '',
-        rarity: '',
-        mint: '',
-        composition: '',
-        diameter: '',
-        weight: '',
-        auctionDuration: 7
-      });
-      setImages([]);
-      setAnalysisResults(null);
-      
-    } catch (error) {
-      console.error('Submission error:', error);
-      toast.error('Failed to create listing');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [user, coinData, images]);
+  const handleCoinDataChange = useCallback((data: typeof coinDataHook.coinData) => {
+    coinDataHook.setCoinData(data);
+  }, [coinDataHook.setCoinData]);
 
   return {
-    images,
-    uploadProgress,
-    isAnalyzing,
-    analysisResults,
-    isSubmitting,
-    dragActive,
-    coinData,
-    setCoinData,
-    handleDrag,
-    handleDrop,
-    removeImage,
+    // Image upload
+    images: imageUpload.images,
+    uploadProgress: imageUpload.uploadProgress,
+    dragActive: imageUpload.dragActive,
+    handleDrag: imageUpload.handleDrag,
+    handleDrop: imageUpload.handleDrop,
+    removeImage: imageUpload.removeImage,
+    handleFiles: imageUpload.handleFiles,
+
+    // AI Analysis
+    isAnalyzing: aiAnalysis.isAnalyzing,
+    analysisResults: aiAnalysis.analysisResults,
+
+    // Coin Data
+    coinData: coinDataHook.coinData,
+    setCoinData: coinDataHook.setCoinData,
+    handleCoinDataChange,
+
+    // Submission
+    isSubmitting: submission.isSubmitting,
+
+    // Combined actions
     handleUploadAndAnalyze,
-    handleSubmitListing,
-    handleFiles,
-    handleCoinDataChange
+    handleSubmitListing
   };
 };
