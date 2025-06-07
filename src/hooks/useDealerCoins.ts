@@ -229,33 +229,34 @@ export const useDealerCoins = (dealerId?: string) => {
         return dealerCoins;
       }
       
-      // Try to get from database first
-      const { data, error } = await supabase
-        .from('coins')
-        .select(`
-          *,
-          profiles!coins_user_id_fkey (
-            id,
-            username,
-            avatar_url,
-            verified_dealer,
-            full_name,
-            created_at,
-            rating,
-            name
-          )
-        `)
-        .order('created_at', { ascending: false });
+      try {
+        // Try to get from database first
+        const { data, error } = await supabase
+          .from('coins')
+          .select(`
+            *,
+            profiles!coins_user_id_fkey (
+              id,
+              username,
+              avatar_url,
+              verified_dealer,
+              full_name,
+              created_at,
+              rating,
+              name
+            )
+          `)
+          .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Database error:', error);
+        // If database has data AND no error, return it
+        if (data && data.length > 0 && !error) {
+          return data;
+        }
+      } catch (dbError) {
+        console.log('Database not available, using mock data');
       }
 
-      // If database has data, return it; otherwise return mock data
-      if (data && data.length > 0) {
-        return data;
-      }
-
+      // Always return mock data if database is empty or unavailable
       return allMockCoins;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

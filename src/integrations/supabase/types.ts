@@ -584,6 +584,7 @@ export type Database = {
           id: string
           image: string
           is_auction: boolean | null
+          listing_type: string | null
           mint: string | null
           mintage: number | null
           model_3d_url: string | null
@@ -628,6 +629,7 @@ export type Database = {
           id?: string
           image: string
           is_auction?: boolean | null
+          listing_type?: string | null
           mint?: string | null
           mintage?: number | null
           model_3d_url?: string | null
@@ -672,6 +674,7 @@ export type Database = {
           id?: string
           image?: string
           is_auction?: boolean | null
+          listing_type?: string | null
           mint?: string | null
           mintage?: number | null
           model_3d_url?: string | null
