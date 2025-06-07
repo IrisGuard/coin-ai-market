@@ -1,66 +1,55 @@
 
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Search, TrendingUp, Star } from 'lucide-react';
 
 const MarketplaceHero = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/marketplace?search=${encodeURIComponent(searchTerm)}`);
-    } else {
-      navigate('/marketplace');
-    }
-  };
-
-  const quickCategories = [
-    'Ancient Coins', 'Modern Coins', 'Error Coins', 'Graded Coins', 'Auctions'
-  ];
-
   return (
-    <div className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Search Section */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-normal text-gray-900 mb-2">
-            Find the perfect coin for you
+    <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Discover Rare Coins
           </h1>
+          <p className="text-xl md:text-2xl mb-8 text-blue-100">
+            From ancient treasures to modern collectibles
+          </p>
           
-          <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search for coins, years, countries..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-base border-2 border-gray-300 focus:border-orange-400 rounded-full"
-              />
-              <Button
-                type="submit"
-                className="absolute right-2 top-2 h-8 px-4 bg-orange-600 hover:bg-orange-700 text-white rounded-full"
-              >
-                Search
-              </Button>
-            </div>
-          </form>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Button 
+              size="lg" 
+              className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8"
+            >
+              <Search className="w-5 h-5 mr-2" />
+              Browse Collection
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-white text-white hover:bg-white hover:text-purple-600 font-semibold px-8"
+            >
+              <TrendingUp className="w-5 h-5 mr-2" />
+              View Trending
+            </Button>
+          </div>
 
-          {/* Category Chips */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {quickCategories.map((category) => (
-              <button
-                key={category}
-                onClick={() => navigate(`/marketplace?category=${category.toLowerCase().replace(' ', '-')}`)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-              >
-                {category}
-              </button>
-            ))}
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-2">10,000+</div>
+              <div className="text-blue-200">Verified Coins</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-2">5,000+</div>
+              <div className="text-blue-200">Happy Collectors</div>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Star className="w-6 h-6 text-yellow-400 mr-1" />
+                <span className="text-3xl font-bold">4.9</span>
+              </div>
+              <div className="text-blue-200">Average Rating</div>
+            </div>
           </div>
         </div>
       </div>
