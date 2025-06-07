@@ -571,6 +571,7 @@ export type Database = {
           ai_provider: string | null
           auction_end: string | null
           authentication_status: string | null
+          category: Database["public"]["Enums"]["coin_category"] | null
           composition: string | null
           condition: string | null
           country: string | null
@@ -617,6 +618,7 @@ export type Database = {
           ai_provider?: string | null
           auction_end?: string | null
           authentication_status?: string | null
+          category?: Database["public"]["Enums"]["coin_category"] | null
           composition?: string | null
           condition?: string | null
           country?: string | null
@@ -663,6 +665,7 @@ export type Database = {
           ai_provider?: string | null
           auction_end?: string | null
           authentication_status?: string | null
+          category?: Database["public"]["Enums"]["coin_category"] | null
           composition?: string | null
           condition?: string | null
           country?: string | null
@@ -1910,6 +1913,7 @@ export type Database = {
           logo_url: string | null
           name: string
           phone: string | null
+          shipping_options: Json | null
           updated_at: string
           user_id: string
           verified: boolean | null
@@ -1925,6 +1929,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           phone?: string | null
+          shipping_options?: Json | null
           updated_at?: string
           user_id: string
           verified?: boolean | null
@@ -1940,6 +1945,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           phone?: string | null
+          shipping_options?: Json | null
           updated_at?: string
           user_id?: string
           verified?: boolean | null
@@ -2353,7 +2359,19 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      coin_category:
+        | "error_coin"
+        | "greek"
+        | "american"
+        | "british"
+        | "asian"
+        | "european"
+        | "ancient"
+        | "modern"
+        | "silver"
+        | "gold"
+        | "commemorative"
+        | "unclassified"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2468,6 +2486,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      coin_category: [
+        "error_coin",
+        "greek",
+        "american",
+        "british",
+        "asian",
+        "european",
+        "ancient",
+        "modern",
+        "silver",
+        "gold",
+        "commemorative",
+        "unclassified",
+      ],
+    },
   },
 } as const

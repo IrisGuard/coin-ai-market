@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import ImageUploader from '@/components/upload/ImageUploader';
 import { Rarity, CoinCondition } from '@/types/coin';
+import { COIN_CATEGORIES, CoinCategory } from '@/types/category';
 
 interface CoinUploadFormProps {
   listingType: 'direct' | 'auction';
@@ -41,6 +42,7 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
   const [price, setPrice] = useState<number | ''>('');
   const [rarity, setRarity] = useState<Rarity>('Common');
   const [condition, setCondition] = useState<CoinCondition>('Good');
+  const [category, setCategory] = useState<CoinCategory>('unclassified');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [featured, setFeatured] = useState(false);
@@ -80,6 +82,7 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
       price: Number(price),
       rarity,
       condition,
+      category,
       description,
       image: images[0], // Primary image
       additional_images: images.slice(1), // Additional images
@@ -158,6 +161,25 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
                   onChange={(e) => setYear(e.target.value ? Number(e.target.value) : '')}
                   required
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+                <Select 
+                  value={category} 
+                  onValueChange={(value) => setCategory(value as CoinCategory)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COIN_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.icon} {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">

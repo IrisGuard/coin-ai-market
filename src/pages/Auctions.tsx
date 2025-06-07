@@ -27,7 +27,7 @@ const Auctions = () => {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [sortBy, setSortBy] = useState<SortBy>('ending_soon');
 
-  // Filter auctions to show only auction-type listings
+  // Filter auctions to show only user-to-user auction listings (no external auction houses)
   const auctionListings = React.useMemo(() => {
     return auctions.filter((auction: AuctionCoin) => 
       auction.is_auction === true || auction.listing_type === 'auction'
@@ -56,10 +56,10 @@ const Auctions = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
               <Gavel className="w-8 h-8 text-orange-500" />
-              Live Auctions
+              User Auctions
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Bid on rare and collectible coins from verified dealers worldwide
+              Bid on coins directly from fellow collectors and dealers on our platform
             </p>
           </div>
 
@@ -124,7 +124,7 @@ const Auctions = () => {
                 <p className="text-gray-600 mb-6">
                   {searchTerm || filterStatus !== 'all' 
                     ? 'No auctions match your current filters' 
-                    : 'There are no active auctions at the moment'}
+                    : 'No users have started auctions at the moment'}
                 </p>
                 <div className="flex justify-center gap-4">
                   {(searchTerm || filterStatus !== 'all') && (

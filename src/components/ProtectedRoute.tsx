@@ -1,37 +1,47 @@
 
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
+  adminOnly?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAuth = true 
-}) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
-  if (loading) {
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ['admin-status', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      
+      const { data, error } = await supabase
+        .from('admin_roles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      return !error && !!data;
+    },
+    enabled: !!user?.id && adminOnly,
+  });
+
+  if (loading || (adminOnly && adminLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
-          <span className="text-electric-blue">Loading...</span>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
-  if (requireAuth && !user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
-  if (!requireAuth && user) {
+  if (adminOnly && !isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
