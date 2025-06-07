@@ -6,6 +6,7 @@ import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import Navbar from "@/components/Navbar";
 import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
 import TrendingCoins from "@/components/marketplace/TrendingCoins";
+import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import OptimizedCoinCard from "@/components/OptimizedCoinCard";
 import { Loader2 } from 'lucide-react';
@@ -38,6 +39,9 @@ const Index = () => {
       <MarketplaceHero />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Categories Grid */}
+        <CategoriesGrid />
+        
         {/* Trending Section */}
         <TrendingCoins />
         

@@ -1,50 +1,92 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Coins, Clock, Star, Globe, TrendingUp, Shield } from 'lucide-react';
+import { Coins, Clock, Star, Globe, TrendingUp, Shield, Crown, DollarSign, MapPin } from 'lucide-react';
 
 const categories = [
   {
     name: 'Ancient Coins',
-    icon: <Globe className="w-6 h-6" />,
+    icon: <Crown className="w-6 h-6" />,
     count: '245+',
-    href: '/marketplace?category=ancient',
+    href: '/category/ancient',
     color: 'from-amber-400 to-orange-500'
   },
   {
     name: 'Modern Coins',
     icon: <Coins className="w-6 h-6" />,
     count: '1.2k+',
-    href: '/marketplace?category=modern',
+    href: '/category/modern',
     color: 'from-blue-400 to-indigo-500'
   },
   {
     name: 'Error Coins',
     icon: <Star className="w-6 h-6" />,
     count: '89+',
-    href: '/marketplace?category=error',
+    href: '/category/error',
     color: 'from-purple-400 to-pink-500'
   },
   {
     name: 'Live Auctions',
     icon: <Clock className="w-6 h-6" />,
     count: '126+',
-    href: '/marketplace?auctions=true',
+    href: '/auctions',
     color: 'from-red-400 to-rose-500'
   },
   {
     name: 'Graded Coins',
     icon: <Shield className="w-6 h-6" />,
     count: '567+',
-    href: '/marketplace?graded=true',
+    href: '/category/graded',
     color: 'from-green-400 to-emerald-500'
   },
   {
     name: 'Trending',
     icon: <TrendingUp className="w-6 h-6" />,
     count: '89+',
-    href: '/marketplace?trending=true',
+    href: '/category/trending',
     color: 'from-orange-400 to-red-500'
+  },
+  {
+    name: 'European',
+    icon: <Globe className="w-6 h-6" />,
+    count: '432+',
+    href: '/category/european',
+    color: 'from-cyan-400 to-blue-500'
+  },
+  {
+    name: 'American',
+    icon: <MapPin className="w-6 h-6" />,
+    count: '678+',
+    href: '/category/american',
+    color: 'from-red-500 to-pink-500'
+  },
+  {
+    name: 'Asian',
+    icon: <Globe className="w-6 h-6" />,
+    count: '234+',
+    href: '/category/asian',
+    color: 'from-yellow-400 to-orange-500'
+  },
+  {
+    name: 'Gold Coins',
+    icon: <DollarSign className="w-6 h-6" />,
+    count: '345+',
+    href: '/category/gold',
+    color: 'from-yellow-500 to-amber-500'
+  },
+  {
+    name: 'Silver Coins',
+    icon: <Coins className="w-6 h-6" />,
+    count: '789+',
+    href: '/category/silver',
+    color: 'from-gray-400 to-slate-500'
+  },
+  {
+    name: 'Rare',
+    icon: <Crown className="w-6 h-6" />,
+    count: '156+',
+    href: '/category/rare',
+    color: 'from-purple-500 to-indigo-600'
   }
 ];
 

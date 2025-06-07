@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,19 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import MobileCameraUploader from '@/components/MobileCameraUploader';
+
+const coinCategories = [
+  'Ancient',
+  'Modern', 
+  'Error',
+  'Graded',
+  'European',
+  'American',
+  'Asian',
+  'Gold',
+  'Silver',
+  'Rare'
+];
 
 const CoinUploadForm = () => {
   const createCoin = useCreateCoin();
@@ -33,7 +47,10 @@ const CoinUploadForm = () => {
     composition: '',
     diameter: '',
     weight: '',
-    mint: ''
+    mint: '',
+    category: '',
+    isAuction: false,
+    auctionDuration: '7'
   });
 
   // Check if device is mobile
@@ -44,7 +61,6 @@ const CoinUploadForm = () => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        // Remove data:image/...;base64, prefix to get just the base64 string
         const base64 = result.split(',')[1];
         resolve(base64);
       };
@@ -62,7 +78,6 @@ const CoinUploadForm = () => {
       });
 
       if (result.success) {
-        // Update form with AI results
         setFormData(prev => ({
           ...prev,
           name: result.identification.name || '',
@@ -102,7 +117,6 @@ const CoinUploadForm = () => {
     setImagePreview(primaryImage.preview);
     setFormData(prev => ({ ...prev, image: primaryImage.preview }));
 
-    // Run AI analysis on the image
     await handleAIAnalysis(primaryImage.file);
   };
 
@@ -110,7 +124,6 @@ const CoinUploadForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -119,7 +132,6 @@ const CoinUploadForm = () => {
     };
     reader.readAsDataURL(file);
 
-    // Run AI analysis on the image
     await handleAIAnalysis(file);
   };
 
@@ -136,6 +148,10 @@ const CoinUploadForm = () => {
       country: formData.country,
       denomination: formData.denomination,
       description: formData.description,
+      category: formData.category,
+      is_auction: formData.isAuction,
+      auction_end: formData.isAuction ? new Date(Date.now() + parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000).toISOString() : null,
+      starting_bid: formData.isAuction ? parseFloat(formData.price) || 0 : null,
     };
     
     createCoin.mutate(coinData);
@@ -155,7 +171,6 @@ const CoinUploadForm = () => {
               Upload Your Coin
             </CardTitle>
             
-            {/* Mobile Mode Toggle */}
             {isMobileDevice && (
               <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2">
@@ -204,7 +219,6 @@ const CoinUploadForm = () => {
                     </div>
                   )}
                   
-                  {/* Image Upload Options */}
                   <div className="mt-4 space-y-3">
                     {!isMobileMode ? (
                       <Input
@@ -253,6 +267,27 @@ const CoinUploadForm = () => {
                 </div>
               </div>
 
+              {/* Listing Type Selection */}
+              <div className="space-y-4">
+                <Label>Listing Type</Label>
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    variant={!formData.isAuction ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, isAuction: false }))}
+                  >
+                    Direct Sale
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.isAuction ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, isAuction: true }))}
+                  >
+                    Auction
+                  </Button>
+                </div>
+              </div>
+
               {/* Coin Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -264,6 +299,22 @@ const CoinUploadForm = () => {
                     placeholder="e.g., Morgan Silver Dollar"
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {coinCategories.map((category) => (
+                        <SelectItem key={category} value={category.toLowerCase()}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -310,7 +361,9 @@ const CoinUploadForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price (USD)*</Label>
+                  <Label htmlFor="price">
+                    {formData.isAuction ? 'Starting Bid (USD)*' : 'Price (USD)*'}
+                  </Label>
                   <Input
                     id="price"
                     type="number"
@@ -321,6 +374,24 @@ const CoinUploadForm = () => {
                     required
                   />
                 </div>
+
+                {formData.isAuction && (
+                  <div className="space-y-2">
+                    <Label htmlFor="auctionDuration">Auction Duration (days)</Label>
+                    <Select value={formData.auctionDuration} onValueChange={(value) => setFormData(prev => ({ ...prev, auctionDuration: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Day</SelectItem>
+                        <SelectItem value="3">3 Days</SelectItem>
+                        <SelectItem value="7">7 Days</SelectItem>
+                        <SelectItem value="14">14 Days</SelectItem>
+                        <SelectItem value="30">30 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="rarity">Rarity*</Label>
@@ -418,10 +489,12 @@ const CoinUploadForm = () => {
                 {createCoin.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Uploading Coin...
+                    Creating Listing...
                   </>
                 ) : (
-                  'List Coin for Sale'
+                  <>
+                    {formData.isAuction ? 'Start Auction' : 'List Coin for Sale'}
+                  </>
                 )}
               </Button>
             </form>
