@@ -12,8 +12,8 @@ export interface UploadedImage {
 export interface CoinData {
   title: string;
   description: string;
-  price: number;
-  startingBid: number;
+  price: string;  // Changed from number to string to match form expectations
+  startingBid: string;  // Changed from number to string to match form expectations
   isAuction: boolean;
   condition: string;
   year: string;

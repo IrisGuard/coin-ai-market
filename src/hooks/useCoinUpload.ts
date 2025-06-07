@@ -17,8 +17,8 @@ export const useCoinUpload = () => {
   const [coinData, setCoinData] = useState<CoinData>({
     title: '',
     description: '',
-    price: 0,
-    startingBid: 0,
+    price: '',  // Now string
+    startingBid: '',  // Now string
     isAuction: false,
     condition: '',
     year: '',
@@ -146,8 +146,9 @@ export const useCoinUpload = () => {
       const coinDataToInsert = {
         name: coinData.title,
         description: coinData.description,
-        price: coinData.isAuction ? coinData.startingBid : coinData.price,
-        starting_bid: coinData.isAuction ? coinData.startingBid : null,
+        // Convert string prices to numbers for database
+        price: coinData.isAuction ? parseFloat(coinData.startingBid) || 0 : parseFloat(coinData.price) || 0,
+        starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) || null : null,
         is_auction: coinData.isAuction,
         condition: coinData.condition,
         year: parseInt(coinData.year) || 2024,
@@ -174,8 +175,8 @@ export const useCoinUpload = () => {
       setCoinData({
         title: '',
         description: '',
-        price: 0,
-        startingBid: 0,
+        price: '',
+        startingBid: '',
         isAuction: false,
         condition: '',
         year: '',

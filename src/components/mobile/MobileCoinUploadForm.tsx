@@ -236,7 +236,7 @@ const MobileCoinUploadForm = () => {
                 type="number"
                 value={coinData.isAuction ? coinData.startingBid : coinData.price}
                 onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
+                  const value = e.target.value;
                   if (coinData.isAuction) {
                     updateCoinData({ startingBid: value });
                   } else {
