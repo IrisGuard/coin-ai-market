@@ -1,10 +1,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Moon, Sun, Globe } from 'lucide-react';
+import { Sparkles, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useI18n } from '@/hooks/useI18n';
 import MarketplaceStatsRow from './MarketplaceStatsRow';
 
 interface EnhancedMarketplaceHeaderProps {
@@ -23,22 +22,12 @@ const EnhancedMarketplaceHeader: React.FC<EnhancedMarketplaceHeaderProps> = ({
   setSearchTerm,
   stats
 }) => {
-  const { theme, language, toggleTheme, setLanguage } = useTheme();
-  const { t } = useI18n();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="mb-8">
-      {/* Theme and Language Controls */}
+      {/* Theme Controls */}
       <div className="flex justify-end gap-2 mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setLanguage(language === 'en' ? 'el' : 'en')}
-          className="flex items-center gap-2"
-        >
-          <Globe className="w-4 h-4" />
-          {language === 'en' ? 'ΕΛ' : 'EN'}
-        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -62,10 +51,10 @@ const EnhancedMarketplaceHeader: React.FC<EnhancedMarketplaceHeaderProps> = ({
         </div>
         
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-          {t('marketplace.title')}
+          Global Coin Marketplace
         </h1>
         <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-          {t('marketplace.subtitle')}
+          Discover, buy and sell authenticated coins from collectors worldwide
         </p>
       </motion.div>
 
