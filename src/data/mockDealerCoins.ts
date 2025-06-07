@@ -1,4 +1,5 @@
-import { Rarity } from '@/types/coin';
+
+import { Rarity, CoinCondition } from '@/types/coin';
 
 // Mock data for regular dealer coins
 export const mockDealerCoins = [
@@ -13,7 +14,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-1',
     country: 'United States',
     denomination: 'Dollar',
-    condition: 'Mint',
+    condition: 'Mint' as CoinCondition,
     description: 'Beautiful 1921 Morgan Silver Dollar in exceptional condition.',
     profiles: {
       id: 'dealer-1',
@@ -34,7 +35,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-2',
     country: 'United States',
     denomination: 'Half Dollar',
-    condition: 'Near Mint',
+    condition: 'Near Mint' as CoinCondition,
     description: 'Classic Walking Liberty design in AU condition.',
     profiles: {
       id: 'dealer-2',
@@ -55,7 +56,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-1',
     country: 'United States',
     denomination: 'Dime',
-    condition: 'Good',
+    condition: 'Good' as CoinCondition,
     description: 'Key date Mercury Dime in circulated condition.',
     profiles: {
       id: 'dealer-1',
@@ -76,7 +77,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-3',
     country: 'United States',
     denomination: 'Nickel',
-    condition: 'Mint',
+    condition: 'Mint' as CoinCondition,
     description: 'Classic Buffalo Nickel design in mint state.',
     profiles: {
       id: 'dealer-3',
@@ -97,7 +98,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-4',
     country: 'United States',
     denomination: 'Cent',
-    condition: 'Excellent',
+    condition: 'Excellent' as CoinCondition,
     description: 'First year Lincoln cent with designer initials.',
     profiles: {
       id: 'dealer-4',
@@ -118,7 +119,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-5',
     country: 'United States',
     denomination: 'Dollar',
-    condition: 'Fair',
+    condition: 'Fair' as CoinCondition,
     description: 'Key date Morgan Dollar from San Francisco mint.',
     profiles: {
       id: 'dealer-5',
@@ -139,7 +140,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-2',
     country: 'United States',
     denomination: 'Nickel',
-    condition: 'Mint',
+    condition: 'Mint' as CoinCondition,
     description: 'Classic Buffalo Nickel design from Denver mint.',
     profiles: {
       id: 'dealer-2',
@@ -160,7 +161,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-4',
     country: 'United States',
     denomination: 'Cent',
-    condition: 'Excellent',
+    condition: 'Excellent' as CoinCondition,
     description: 'Famous doubled die error coin.',
     profiles: {
       id: 'dealer-4',
@@ -181,7 +182,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-3',
     country: 'United States',
     denomination: 'Quarter',
-    condition: 'Good',
+    condition: 'Good' as CoinCondition,
     description: 'Key date Washington quarter from Denver mint.',
     profiles: {
       id: 'dealer-3',
@@ -202,7 +203,7 @@ export const mockDealerCoins = [
     user_id: 'dealer-1',
     country: 'United States',
     denomination: 'Dollar',
-    condition: 'Mint',
+    condition: 'Mint' as CoinCondition,
     description: 'First year Peace Silver Dollar in mint state.',
     profiles: {
       id: 'dealer-1',

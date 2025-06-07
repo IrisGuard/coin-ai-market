@@ -36,16 +36,16 @@ export interface AuctionCoin {
   description?: string;
   is_auction?: boolean;
   listing_type?: 'auction' | 'direct_sale';
-  auction_end?: string;
+  auction_end: string;
   reserve_price?: number;
   starting_bid?: number;
-  current_bid?: number;
-  starting_price?: number;
-  bid_count?: number;
-  seller_id?: string;
-  highest_bidder_id?: string | null;
-  watchers?: number;
-  views?: number;
+  starting_price: number;
+  current_bid: number;
+  bid_count: number;
+  seller_id: string;
+  highest_bidder_id: string | null;
+  watchers: number;
+  views: number;
   authentication_status?: 'pending' | 'verified' | 'rejected';
   featured?: boolean;
   profiles?: {

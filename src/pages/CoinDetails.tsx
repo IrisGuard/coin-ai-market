@@ -23,7 +23,7 @@ const CoinDetails = () => {
     setBidAmount,
     isPurchasing,
     isBidding,
-    toggleFavorite,
+    onToggleFavorite,
     handlePurchase,
     handleBid,
     user
@@ -55,9 +55,10 @@ const CoinDetails = () => {
                   setBidAmount={setBidAmount}
                   isPurchasing={isPurchasing}
                   isBidding={isBidding}
-                  toggleFavorite={toggleFavorite}
-                  handlePurchase={handlePurchase}
-                  handleBid={handleBid}
+                  onToggleFavorite={onToggleFavorite}
+                  onPurchase={handlePurchase}
+                  onBid={handleBid}
+                  isOwner={user?.id === coin.user_id}
                 />
               </div>
 

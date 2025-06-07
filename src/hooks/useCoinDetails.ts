@@ -32,7 +32,7 @@ export const useCoinDetails = (id: string) => {
     setBidAmount,
     isPurchasing,
     isBidding,
-    toggleFavorite,
+    onToggleFavorite: toggleFavorite, // Renamed for consistency
     handlePurchase,
     handleBid,
     user
