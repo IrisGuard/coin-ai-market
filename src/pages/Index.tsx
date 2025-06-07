@@ -12,7 +12,6 @@ import TrendingCoins from "@/components/marketplace/TrendingCoins";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import OptimizedCoinCard from "@/components/OptimizedCoinCard";
-import AdminFloatingButtons from "@/components/AdminFloatingButtons";
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -84,9 +83,6 @@ const Index = () => {
       </div>
 
       <Footer />
-      
-      {/* Admin Floating Buttons */}
-      <AdminFloatingButtons />
     </div>
   );
 };
