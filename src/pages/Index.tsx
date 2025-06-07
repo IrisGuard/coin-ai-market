@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import Navbar from "@/components/Navbar";
@@ -15,6 +15,14 @@ const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      navigate(`/marketplace?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -35,20 +43,18 @@ const Index = () => {
               Join thousands of collectors in the digital numismatic revolution.
             </p>
             
-            {/* Enhanced Search Bar */}
-            <div className="max-w-5xl mx-auto mb-12">
-              <div className="flex flex-col sm:flex-row gap-4 items-stretch">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Search for ancient coins, modern currencies, or rare collectibles..."
-                    className="w-full px-8 py-4 text-lg lg:text-xl border-2 border-gray-200 rounded-2xl bg-white shadow-xl focus:ring-4 focus:ring-yellow-400/30 focus:border-yellow-400 focus:outline-none placeholder-gray-500 transition-all duration-300 hover:shadow-2xl"
-                  />
-                  <Search className="absolute right-6 top-1/2 transform -translate-y-1/2 h-6 w-6 lg:h-7 lg:w-7 text-gray-400" />
-                </div>
-                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-4 text-lg lg:text-xl font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 sm:min-w-[240px] w-full sm:w-auto">
-                  Explore Now
-                </Button>
+            {/* Enhanced Search Bar - Full Width */}
+            <div className="max-w-4xl mx-auto mb-12">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for ancient coins, modern currencies, or rare collectibles... Press Enter to search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchSubmit}
+                  className="w-full px-8 py-4 text-lg lg:text-xl border-2 border-gray-200 rounded-2xl bg-white shadow-xl focus:ring-4 focus:ring-yellow-400/30 focus:border-yellow-400 focus:outline-none placeholder-gray-500 transition-all duration-300 hover:shadow-2xl pr-16"
+                />
+                <Search className="absolute right-6 top-1/2 transform -translate-y-1/2 h-6 w-6 lg:h-7 lg:w-7 text-gray-400" />
               </div>
             </div>
 
