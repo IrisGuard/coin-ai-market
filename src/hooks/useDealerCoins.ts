@@ -11,6 +11,8 @@ interface Coin {
   country?: string;
   denomination?: string;
   seller_id?: string;
+  rarity: string;
+  user_id: string;
 }
 
 // Mock coins data distributed across dealer stores
@@ -25,7 +27,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-63',
       country: 'USA',
       denomination: '1 Dollar',
-      seller_id: '1'
+      seller_id: '1',
+      rarity: 'Common',
+      user_id: '1'
     },
     {
       id: '11',
@@ -36,7 +40,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'VF-25',
       country: 'USA',
       denomination: '10 Cents',
-      seller_id: '1'
+      seller_id: '1',
+      rarity: 'Rare',
+      user_id: '1'
     },
     {
       id: '21',
@@ -47,7 +53,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-63',
       country: 'USA',
       denomination: '1 Dollar',
-      seller_id: '1'
+      seller_id: '1',
+      rarity: 'Ultra Rare',
+      user_id: '1'
     }
   ],
   '2': [
@@ -60,7 +68,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'AU-55',
       country: 'USA',
       denomination: '50 Cents',
-      seller_id: '2'
+      seller_id: '2',
+      rarity: 'Common',
+      user_id: '2'
     },
     {
       id: '12',
@@ -71,7 +81,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'G-6',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '2'
+      seller_id: '2',
+      rarity: 'Rare',
+      user_id: '2'
     },
     {
       id: '22',
@@ -82,7 +94,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'XF-40',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '2'
+      seller_id: '2',
+      rarity: 'Uncommon',
+      user_id: '2'
     }
   ],
   '3': [
@@ -95,7 +109,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'XF-40',
       country: 'USA',
       denomination: '5 Cents',
-      seller_id: '3'
+      seller_id: '3',
+      rarity: 'Common',
+      user_id: '3'
     },
     {
       id: '13',
@@ -106,7 +122,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-60',
       country: 'USA',
       denomination: '50 Cents',
-      seller_id: '3'
+      seller_id: '3',
+      rarity: 'Common',
+      user_id: '3'
     },
     {
       id: '23',
@@ -117,7 +135,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-65',
       country: 'USA',
       denomination: '5 Cents',
-      seller_id: '3'
+      seller_id: '3',
+      rarity: 'Uncommon',
+      user_id: '3'
     }
   ],
   '4': [
@@ -130,7 +150,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-64',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '4'
+      seller_id: '4',
+      rarity: 'Ultra Rare',
+      user_id: '4'
     },
     {
       id: '14',
@@ -141,7 +163,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-63',
       country: 'USA',
       denomination: '5 Cents',
-      seller_id: '4'
+      seller_id: '4',
+      rarity: 'Common',
+      user_id: '4'
     },
     {
       id: '24',
@@ -152,7 +176,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'AU-50',
       country: 'USA',
       denomination: '1 Dollar',
-      seller_id: '4'
+      seller_id: '4',
+      rarity: 'Uncommon',
+      user_id: '4'
     }
   ],
   '5': [
@@ -165,7 +191,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'VF-30',
       country: 'USA',
       denomination: '10 Cents',
-      seller_id: '5'
+      seller_id: '5',
+      rarity: 'Rare',
+      user_id: '5'
     },
     {
       id: '15',
@@ -176,7 +204,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'AU-58',
       country: 'USA',
       denomination: '1 Dollar',
-      seller_id: '5'
+      seller_id: '5',
+      rarity: 'Uncommon',
+      user_id: '5'
     },
     {
       id: '25',
@@ -187,7 +217,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-64',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '5'
+      seller_id: '5',
+      rarity: 'Common',
+      user_id: '5'
     }
   ],
   '6': [
@@ -200,7 +232,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'F-15',
       country: 'USA',
       denomination: '1 Dollar',
-      seller_id: '6'
+      seller_id: '6',
+      rarity: 'Ultra Rare',
+      user_id: '6'
     },
     {
       id: '16',
@@ -211,7 +245,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'F-12',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '6'
+      seller_id: '6',
+      rarity: 'Rare',
+      user_id: '6'
     },
     {
       id: '26',
@@ -222,7 +258,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'F-15',
       country: 'USA',
       denomination: '5 Cents',
-      seller_id: '6'
+      seller_id: '6',
+      rarity: 'Ultra Rare',
+      user_id: '6'
     }
   ],
   '7': [
@@ -235,7 +273,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-62',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '7'
+      seller_id: '7',
+      rarity: 'Rare',
+      user_id: '7'
     },
     {
       id: '17',
@@ -246,7 +286,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'VF-20',
       country: 'USA',
       denomination: '5 Cents',
-      seller_id: '7'
+      seller_id: '7',
+      rarity: 'Ultra Rare',
+      user_id: '7'
     },
     {
       id: '27',
@@ -257,7 +299,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-60',
       country: 'USA',
       denomination: '25 Cents',
-      seller_id: '7'
+      seller_id: '7',
+      rarity: 'Rare',
+      user_id: '7'
     }
   ],
   '8': [
@@ -270,7 +314,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-65',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '8'
+      seller_id: '8',
+      rarity: 'Ultra Rare',
+      user_id: '8'
     },
     {
       id: '18',
@@ -281,7 +327,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-64',
       country: 'USA',
       denomination: '10 Cents',
-      seller_id: '8'
+      seller_id: '8',
+      rarity: 'Common',
+      user_id: '8'
     },
     {
       id: '28',
@@ -292,7 +340,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'VF-35',
       country: 'USA',
       denomination: '10 Cents',
-      seller_id: '8'
+      seller_id: '8',
+      rarity: 'Rare',
+      user_id: '8'
     }
   ],
   '9': [
@@ -305,7 +355,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'VG-8',
       country: 'USA',
       denomination: '25 Cents',
-      seller_id: '9'
+      seller_id: '9',
+      rarity: 'Ultra Rare',
+      user_id: '9'
     },
     {
       id: '19',
@@ -316,7 +368,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-62',
       country: 'USA',
       denomination: '1 Dollar',
-      seller_id: '9'
+      seller_id: '9',
+      rarity: 'Common',
+      user_id: '9'
     },
     {
       id: '29',
@@ -327,7 +381,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-63',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '9'
+      seller_id: '9',
+      rarity: 'Rare',
+      user_id: '9'
     }
   ],
   '10': [
@@ -340,7 +396,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'XF-45',
       country: 'USA',
       denomination: '25 Cents',
-      seller_id: '10'
+      seller_id: '10',
+      rarity: 'Uncommon',
+      user_id: '10'
     },
     {
       id: '20',
@@ -351,7 +409,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'VF-30',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '10'
+      seller_id: '10',
+      rarity: 'Rare',
+      user_id: '10'
     },
     {
       id: '30',
@@ -362,7 +422,9 @@ const mockCoinsData: Record<string, Coin[]> = {
       grade: 'MS-65',
       country: 'USA',
       denomination: '1 Cent',
-      seller_id: '10'
+      seller_id: '10',
+      rarity: 'Common',
+      user_id: '10'
     }
   ]
 };
@@ -374,6 +436,21 @@ export const useDealerCoins = (dealerId: string) => {
       // Simulate loading time
       await new Promise(resolve => setTimeout(resolve, 500));
       return mockCoinsData[dealerId] || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useAllDealerCoins = () => {
+  return useQuery({
+    queryKey: ['all-dealer-coins'],
+    queryFn: async () => {
+      // Simulate loading time
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Flatten all coins from all dealers
+      const allCoins = Object.values(mockCoinsData).flat();
+      return allCoins;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
