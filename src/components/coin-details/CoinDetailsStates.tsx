@@ -2,12 +2,11 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import { Coin } from '@/types/coin';
 
 interface CoinDetailsStatesProps {
   isLoading: boolean;
   error: any;
-  coin: Coin | null;
+  coin: any; // Changed from Coin | null to any to handle union types
 }
 
 const CoinDetailsStates: React.FC<CoinDetailsStatesProps> = ({ isLoading, error, coin }) => {
