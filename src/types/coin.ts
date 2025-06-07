@@ -36,6 +36,7 @@ export interface Coin {
   is_auction?: boolean;
   auction_end?: string;
   reserve_price?: number;
+  sold?: boolean;
   created_at?: string;
   updated_at?: string;
   profiles?: {
