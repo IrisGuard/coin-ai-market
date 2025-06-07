@@ -2,14 +2,39 @@
 import React from 'react';
 import { useCoins } from '@/hooks/useCoins';
 import EnhancedCoinCard from '@/components/EnhancedCoinCard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const FeaturedCoinsGrid = () => {
-  const { data: coins, isLoading } = useCoins();
+  const { data: coins, isLoading, error } = useCoins();
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-16">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+          <span className="text-text-secondary">Loading coins...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <Alert className="max-w-md mx-auto">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Unable to load coins. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   // Get all verified coins, featured first
   const displayCoins = React.useMemo(() => {
-    if (!coins) return [];
+    if (!coins || coins.length === 0) return [];
     
     return coins
       .filter(coin => coin.authentication_status === 'verified')
@@ -21,19 +46,12 @@ const FeaturedCoinsGrid = () => {
       .slice(0, 20); // Show more coins like Etsy
   }, [coins]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-16">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-      </div>
-    );
-  }
-
+  // Show empty state
   if (!displayCoins.length) {
     return (
-      <div className="text-center py-16 bg-gray-50 rounded-lg">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">No coins available</h3>
-        <p className="text-gray-600">Be the first to list a coin!</p>
+      <div className="text-center py-16 bg-bg-secondary rounded-lg">
+        <h3 className="text-xl font-semibold text-text-primary mb-2">No coins available</h3>
+        <p className="text-text-secondary">Be the first to list a coin!</p>
       </div>
     );
   }

@@ -16,6 +16,7 @@ const Marketplace = () => {
   const {
     enhancedCoins,
     coinsLoading,
+    coinsError,
     viewMode,
     setViewMode,
     filters,
@@ -29,7 +30,7 @@ const Marketplace = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300">
+      <div className="min-h-screen bg-bg-secondary dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <EnhancedMarketplaceHeader 
@@ -59,6 +60,8 @@ const Marketplace = () => {
             isAuctionOnly={filters.showAuctionsOnly}
             selectedRarity={filters.selectedRarity}
             clearFilters={clearFilters}
+            isLoading={coinsLoading}
+            error={coinsError}
           />
         </div>
         <Footer />

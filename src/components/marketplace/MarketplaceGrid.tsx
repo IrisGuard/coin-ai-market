@@ -2,6 +2,8 @@
 import { motion } from 'framer-motion';
 import EnhancedCoinCard from '@/components/EnhancedCoinCard';
 import { Coin } from '@/types/coin';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface MarketplaceGridProps {
   filteredCoins: Coin[];
@@ -9,6 +11,8 @@ interface MarketplaceGridProps {
   isAuctionOnly: boolean;
   selectedRarity: string | null;
   clearFilters: () => void;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 const MarketplaceGrid = ({
@@ -17,6 +21,8 @@ const MarketplaceGrid = ({
   isAuctionOnly,
   selectedRarity,
   clearFilters,
+  isLoading = false,
+  error = null,
 }: MarketplaceGridProps) => {
   // Animation variants
   const containerVariants = {
@@ -28,25 +34,44 @@ const MarketplaceGrid = ({
       }
     }
   };
-  
-  if (filteredCoins.length === 0) {
+
+  // Show error state
+  if (error) {
     return (
       <motion.div 
-        className="text-center py-16 bg-white rounded-2xl shadow-lg"
+        className="text-center py-16"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Alert className="max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Unable to load coins. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </motion.div>
+    );
+  }
+  
+  if (!isLoading && filteredCoins.length === 0) {
+    return (
+      <motion.div 
+        className="text-center py-16 bg-bg-primary rounded-2xl shadow-lg"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <div className="max-w-md mx-auto">
-          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-24 h-24 bg-bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
             <div className="text-4xl">🔍</div>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">No coins found</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-semibold text-text-primary mb-2">No coins found</h2>
+          <p className="text-text-secondary mb-6">
             We couldn't find any coins matching your search criteria.
           </p>
           <button 
-            className="px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
+            className="px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-secondary text-bg-primary rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
             onClick={clearFilters}
           >
             Clear all filters
@@ -60,8 +85,8 @@ const MarketplaceGrid = ({
     <>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-gray-600">
-            Showing <span className="font-semibold text-gray-900">{filteredCoins.length}</span> coins
+          <p className="text-text-secondary">
+            Showing <span className="font-semibold text-text-primary">{filteredCoins.length}</span> coins
           </p>
           {(searchTerm || isAuctionOnly || selectedRarity) && (
             <button 
