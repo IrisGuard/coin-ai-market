@@ -44,7 +44,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/auth');
   };
 
   return (
@@ -74,12 +74,12 @@ const Navbar = () => {
               Search
             </Link>
             <Link
-              to="/discovery"
-              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/discovery' ? 'font-semibold' : ''
+              to="/marketplace"
+              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/marketplace' ? 'font-semibold' : ''
                 }`}
             >
               <Sparkles className="w-4 h-4 mr-1" />
-              Discovery
+              Marketplace
             </Link>
             <Link 
               to="/mobile-ai" 
@@ -124,9 +124,9 @@ const Navbar = () => {
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    <span>Dashboard</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
@@ -137,11 +137,11 @@ const Navbar = () => {
               </DropdownMenu>
             ) : (
               <div className="hidden md:flex items-center space-x-4">
-                <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
                   <LogIn className="w-4 h-4 mr-2" />
                   Log In
                 </Button>
-                <Button size="sm" onClick={() => navigate('/register')}>
+                <Button size="sm" onClick={() => navigate('/auth')}>
                   Register
                 </Button>
               </div>
@@ -170,13 +170,13 @@ const Navbar = () => {
                 Search
               </Link>
               <Link
-                to="/discovery"
-                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/discovery' ? 'font-semibold' : ''
+                to="/marketplace"
+                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/marketplace' ? 'font-semibold' : ''
                   }`}
                 onClick={closeMobileMenu}
               >
                 <Sparkles className="w-4 h-4 mr-1" />
-                Discovery
+                Marketplace
               </Link>
               <Link 
                 to="/mobile-ai" 
@@ -198,11 +198,11 @@ const Navbar = () => {
               )}
               {!user && (
                 <>
-                  <Button variant="outline" size="sm" onClick={() => { navigate('/login'); closeMobileMenu(); }}>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/auth'); closeMobileMenu(); }}>
                     <LogIn className="w-4 h-4 mr-2" />
                     Log In
                   </Button>
-                  <Button size="sm" onClick={() => { navigate('/register'); closeMobileMenu(); }}>
+                  <Button size="sm" onClick={() => { navigate('/auth'); closeMobileMenu(); }}>
                     Register
                   </Button>
                 </>

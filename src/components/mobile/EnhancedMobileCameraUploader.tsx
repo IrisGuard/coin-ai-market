@@ -1,272 +1,251 @@
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Camera, RotateCcw, Check, X, Wifi, WifiOff, Upload } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { 
+  Camera, 
+  Upload, 
+  CheckCircle, 
+  AlertTriangle, 
+  X,
+  RotateCcw,
+  FlipHorizontal,
+  Zap
+} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface EnhancedMobileCameraUploaderProps {
   onImagesSelected: (images: { file: File; preview: string }[]) => void;
   maxImages?: number;
-  onComplete?: () => void;
+  onComplete: () => void;
 }
 
 const EnhancedMobileCameraUploader = ({ 
   onImagesSelected, 
-  maxImages = 10,
+  maxImages = 5,
   onComplete 
 }: EnhancedMobileCameraUploaderProps) => {
-  const [isActive, setIsActive] = useState(false);
-  const [capturedImages, setCapturedImages] = useState<{ file: File; preview: string }[]>([]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const steps = [
-    "Position coin in center",
-    "Ensure good lighting", 
-    "Capture obverse (front)",
-    "Capture reverse (back)",
-    "Add detail shots (optional)"
-  ];
-
-  useEffect(() => {
-    const handleOnlineStatus = () => setIsOnline(navigator.onLine);
-    window.addEventListener('online', handleOnlineStatus);
-    window.addEventListener('offline', handleOnlineStatus);
-
-    return () => {
-      window.removeEventListener('online', handleOnlineStatus);
-      window.removeEventListener('offline', handleOnlineStatus);
-    };
-  }, []);
-
-  const startCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: cameraFacing },
-        audio: false,
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setIsActive(true);
-      }
-    } catch (error: any) {
-      console.error("Error starting camera:", error);
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    
+    if (files.length + selectedImages.length > maxImages) {
       toast({
-        title: "Camera Error",
-        description: error.message || "Failed to start camera. Please check permissions.",
+        title: "Too many images",
+        description: `Maximum ${maxImages} images allowed`,
         variant: "destructive",
       });
+      return;
     }
-  }, [cameraFacing]);
 
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsActive(false);
-  }, []);
+    const newImages: { file: File; preview: string }[] = [];
 
-  const captureImage = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        toast({
-          title: "Capture Error",
-          description: "Failed to capture image.",
-          variant: "destructive",
+    for (const file of files) {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        const preview = await new Promise<string>((resolve) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(file);
         });
-        return;
+        
+        newImages.push({ file, preview });
       }
+    }
 
-      const file = new File([blob], `coin_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      const preview = URL.createObjectURL(file);
+    const updatedImages = [...selectedImages, ...newImages];
+    setSelectedImages(updatedImages);
+    onImagesSelected(updatedImages);
+  };
 
-      setCapturedImages(prevImages => [...prevImages, { file, preview }]);
-      setCurrentStep(prevStep => Math.min(prevStep + 1, steps.length - 1));
+  const handleCameraCapture = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
+  const removeImage = (index: number) => {
+    const updatedImages = selectedImages.filter((_, i) => i !== index);
+    setSelectedImages(updatedImages);
+    onImagesSelected(updatedImages);
+  };
+
+  const handleComplete = () => {
+    if (selectedImages.length === 0) {
       toast({
-        title: "Image Captured",
-        description: "Image added to the queue.",
+        title: "No images selected",
+        description: "Please capture at least one image",
+        variant: "destructive",
       });
-    }, 'image/jpeg');
-  }, [steps.length]);
+      return;
+    }
 
-  const removeImage = useCallback((index: number) => {
-    setCapturedImages(prevImages => {
-      const newImages = [...prevImages];
-      newImages.splice(index, 1);
-      return newImages;
-    });
-    setCurrentStep(prevStep => Math.max(prevStep - 1, 0));
-  }, []);
+    // Simulate upload progress
+    setUploadProgress(0);
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          onComplete();
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 100);
+  };
 
-  const clearAllImages = useCallback(() => {
-    setCapturedImages([]);
-    setCurrentStep(0);
-  }, []);
-
-  const handleImagesConfirmed = useCallback(() => {
-    onImagesSelected(capturedImages);
-    onComplete?.();
-  }, [capturedImages, onImagesSelected, onComplete]);
+  const getQualityBadge = (file: File) => {
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > 2) return { label: "High Quality", color: "bg-green-50 text-green-700 border-green-300" };
+    if (sizeMB > 0.5) return { label: "Good Quality", color: "bg-blue-50 text-blue-700 border-blue-300" };
+    return { label: "Basic Quality", color: "bg-yellow-50 text-yellow-700 border-yellow-300" };
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
-        {isOnline ? (
-          <Wifi className="w-4 h-4 text-green-600" />
-        ) : (
-          <WifiOff className="w-4 h-4 text-red-600" />
-        )}
-        <span className="text-sm">
-          {isOnline ? 'Online' : 'Offline'}
-        </span>
-      </div>
+    <Card className="border-2 border-blue-200">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Camera className="w-5 h-5 text-blue-600" />
+          Enhanced Mobile Camera
+        </CardTitle>
+      </CardHeader>
       
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Camera className="w-5 h-5" />
-              Enhanced Coin Camera
-            </CardTitle>
-            <Badge variant="outline">
-              {capturedImages.length}/{maxImages} Images
-            </Badge>
+      <CardContent className="space-y-4">
+        {/* Camera Interface */}
+        <div className="text-center space-y-4">
+          <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+            <Camera className="w-10 h-10 text-blue-600" />
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Progress: Step {currentStep + 1} of {steps.length}</div>
-            <div className="text-sm text-gray-600">{steps[currentStep]}</div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-              />
-            </div>
+          
+          <div>
+            <h3 className="font-semibold mb-2">Capture Coin Images</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Take clear photos from multiple angles for best AI analysis
+            </p>
           </div>
 
-          {!isActive ? (
-            <div className="text-center space-y-4">
-              <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                <Camera className="w-16 h-16 text-gray-400" />
-              </div>
-              <Button 
-                onClick={startCamera} 
-                className="w-full"
-                size="lg"
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                Start Camera
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="relative w-full aspect-square bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-64 h-64 border-2 border-white rounded-lg opacity-50" />
-                </div>
-                <canvas ref={canvasRef} className="hidden" />
-              </div>
-
-              <div className="flex justify-center gap-4">
-                <Button onClick={captureImage} size="lg" className="flex-1">
-                  <Camera className="w-5 h-5 mr-2" />
-                  Capture
-                </Button>
-                <Button 
-                  onClick={() => setCameraFacing(prev => prev === 'user' ? 'environment' : 'user')}
-                  variant="outline"
-                  size="lg"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </Button>
-                <Button onClick={stopCamera} variant="outline" size="lg">
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-            <strong>Tip:</strong> {steps[currentStep]}
+          <div className="grid grid-cols-2 gap-3">
+            <Button 
+              onClick={handleCameraCapture}
+              disabled={selectedImages.length >= maxImages}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Camera
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={selectedImages.length >= maxImages}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Gallery
+            </Button>
           </div>
 
-          {capturedImages.length > 0 && (
-            <>
-              <Separator />
-              <div className="grid grid-cols-3 gap-2">
-                {capturedImages.map((image, index) => (
-                  <div key={index} className="relative">
-                    <img 
-                      src={image.preview} 
-                      alt={`Captured ${index + 1}`}
-                      className="w-full aspect-square object-cover rounded border"
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
+
+        {/* Image Preview Grid */}
+        {selectedImages.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Captured Images ({selectedImages.length}/{maxImages})</h4>
+              <Badge variant="outline" className="text-xs">
+                Ready for Analysis
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {selectedImages.map((image, index) => {
+                const quality = getQualityBadge(image.file);
+                return (
+                  <div key={index} className="relative group">
+                    <img
+                      src={image.preview}
+                      alt={`Coin ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
                     />
-                    <Button
+                    <button
                       onClick={() => removeImage(index)}
-                      size="sm"
-                      variant="destructive"
-                      className="absolute top-1 right-1 w-6 h-6 p-0"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
                     >
                       <X className="w-3 h-3" />
-                    </Button>
+                    </button>
+                    <Badge 
+                      variant="outline" 
+                      className={`absolute bottom-1 left-1 text-xs ${quality.color}`}
+                    >
+                      {quality.label}
+                    </Badge>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {capturedImages.length > 0 && (
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleImagesConfirmed}
-                className="flex-1"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Use Images ({capturedImages.length})
-              </Button>
-              
-              <Button 
-                onClick={clearAllImages}
-                variant="outline"
-                className="flex-1"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
+                );
+              })}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        )}
+
+        {/* Upload Progress */}
+        {uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>Uploading images...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <Progress value={uploadProgress} className="h-2" />
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        {selectedImages.length > 0 && (
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleComplete}
+              disabled={uploadProgress > 0 && uploadProgress < 100}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Start Analysis
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setSelectedImages([]);
+                onImagesSelected([]);
+              }}
+              className="flex-1"
+            >
+              Clear All
+            </Button>
+          </div>
+        )}
+
+        {/* Guidelines */}
+        <div className="bg-gray-50 rounded-lg p-3">
+          <h4 className="text-sm font-medium mb-2">Photography Tips</h4>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>• Use good lighting - natural light is best</li>
+            <li>• Keep the coin flat and centered</li>
+            <li>• Capture both obverse and reverse sides</li>
+            <li>• Avoid shadows and reflections</li>
+            <li>• Higher resolution images give better results</li>
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

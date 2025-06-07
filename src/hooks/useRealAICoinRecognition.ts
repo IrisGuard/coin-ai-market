@@ -49,14 +49,13 @@ export const useRealAICoinRecognition = () => {
     mutationFn: async (imageData: { 
       image: string; 
       additionalImages?: string[]; 
-      aiProvider?: string 
     }): Promise<AIRecognitionResult> => {
-      console.log('Starting real AI coin recognition...');
+      console.log('Starting AI coin recognition with Anthropic Claude...');
       
-      const { data, error } = await supabase.functions.invoke('custom-ai-recognition', {
+      const { data, error } = await supabase.functions.invoke('anthropic-coin-recognition', {
         body: {
           ...imageData,
-          aiProvider: imageData.aiProvider || 'custom'
+          provider: 'anthropic'
         }
       });
 
