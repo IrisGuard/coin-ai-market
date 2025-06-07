@@ -10,6 +10,7 @@ import { filterAndSortAuctions, getTimeRemaining } from '@/utils/auctionUtils';
 import AuctionStats from '@/components/auctions/AuctionStats';
 import AuctionFilters from '@/components/auctions/AuctionFilters';
 import AuctionCard from '@/components/auctions/AuctionCard';
+import { AuctionCoin } from '@/types/auction';
 
 const Auctions = () => {
   usePageView();
@@ -22,7 +23,7 @@ const Auctions = () => {
   const [sortBy, setSortBy] = useState<'ending_soon' | 'highest_bid' | 'most_bids' | 'newest'>('ending_soon');
 
   // Filter auctions to only show actual auctions (not direct sales)
-  const auctionOnlyItems = auctions.filter(item => 
+  const auctionOnlyItems = auctions.filter((item: AuctionCoin) => 
     (item.listing_type && item.listing_type === 'auction') || 
     (item.is_auction === true)
   );
