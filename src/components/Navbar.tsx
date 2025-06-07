@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { Search, ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/hooks/useI18n';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -40,21 +42,21 @@ const Navbar = () => {
               className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               <Store className="w-4 h-4" />
-              Marketplace
+              {t('nav.marketplace')}
             </Link>
             <Link
               to="/auctions"
               className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               <Gavel className="w-4 h-4" />
-              Δημοπρασίες
+              {t('nav.auctions')}
             </Link>
             <Link
               to="/search"
               className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               <Search className="w-4 h-4" />
-              Αναζήτηση
+              {t('nav.search')}
             </Link>
             {user && (
               <Link
@@ -62,7 +64,7 @@ const Navbar = () => {
                 className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
               >
                 <Upload className="w-4 h-4" />
-                Ανέβασμα
+                {t('nav.upload')}
               </Link>
             )}
           </div>
@@ -74,7 +76,7 @@ const Navbar = () => {
                 <Link to="/dashboard">
                   <Button variant="ghost" size="sm" className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span className="hidden sm:inline">Dashboard</span>
+                    <span className="hidden sm:inline">{t('nav.dashboard')}</span>
                   </Button>
                 </Link>
                 <Button
@@ -84,13 +86,13 @@ const Navbar = () => {
                   className="flex items-center gap-2 text-red-600 hover:text-red-700"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden sm:inline">Έξοδος</span>
+                  <span className="hidden sm:inline">{t('nav.logout')}</span>
                 </Button>
               </>
             ) : (
               <Link to="/auth">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Σύνδεση
+                  {t('nav.login')}
                 </Button>
               </Link>
             )}

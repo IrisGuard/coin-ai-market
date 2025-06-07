@@ -23,7 +23,7 @@ export const useTheme = () => {
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('light');
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('en'); // Default to English
 
   useEffect(() => {
     // Load theme from localStorage
@@ -32,6 +32,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     if (savedTheme) setTheme(savedTheme);
     if (savedLanguage) setLanguage(savedLanguage);
+    else setLanguage('en'); // Ensure English is default
   }, []);
 
   useEffect(() => {
@@ -42,6 +43,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme]);
 
   useEffect(() => {
+    // Set HTML lang attribute and save to localStorage
+    document.documentElement.lang = language;
     localStorage.setItem('language', language);
   }, [language]);
 

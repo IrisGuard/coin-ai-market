@@ -1,3 +1,4 @@
+
 // Force GitHub sync - Updated at 2025-01-09 to ensure proper deployment
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
@@ -35,33 +37,35 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <AdminProvider>
-              <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/marketplace" element={<ActiveMarketplace />} />
-                  <Route path="/marketplace-old" element={<Marketplace />} />
-                  <Route path="/search" element={<EnhancedSearch />} />
-                  <Route path="/upload" element={<CoinUpload />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/coin/:id" element={<CoinDetails />} />
-                  <Route path="/auctions" element={<Auctions />} />
-                  <Route path="/sell/:id" element={<CoinSale />} />
-                  <Route path="/mobile-ai" element={<MobileAIFeatures />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <AdminKeyboardHandler />
-              </ErrorBoundary>
-            </AdminProvider>
-          </AuthProvider>
-        </BrowserRouter>
-        <Toaster />
-        <Sonner />
+        <ThemeProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <AdminProvider>
+                <ErrorBoundary>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/marketplace" element={<ActiveMarketplace />} />
+                    <Route path="/marketplace-old" element={<Marketplace />} />
+                    <Route path="/search" element={<EnhancedSearch />} />
+                    <Route path="/upload" element={<CoinUpload />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/coin/:id" element={<CoinDetails />} />
+                    <Route path="/auctions" element={<Auctions />} />
+                    <Route path="/sell/:id" element={<CoinSale />} />
+                    <Route path="/mobile-ai" element={<MobileAIFeatures />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <AdminKeyboardHandler />
+                </ErrorBoundary>
+              </AdminProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeProvider>
       </TooltipProvider>
+      <Toaster />
+      <Sonner />
     </QueryClientProvider>
   );
 }

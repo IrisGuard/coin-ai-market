@@ -3,6 +3,15 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 const translations = {
   en: {
+    // Navigation
+    'nav.marketplace': 'Marketplace',
+    'nav.auctions': 'Auctions',
+    'nav.search': 'Search',
+    'nav.upload': 'Upload',
+    'nav.dashboard': 'Dashboard',
+    'nav.logout': 'Logout',
+    'nav.login': 'Login',
+    
     // Marketplace
     'marketplace.title': 'Global Coin Marketplace',
     'marketplace.subtitle': 'Discover, buy and sell authenticated coins from collectors worldwide',
@@ -27,6 +36,7 @@ const translations = {
     'marketplace.coin.endingIn': 'Ending in',
     'marketplace.coin.views': 'views',
     'marketplace.coin.favorites': 'favorites',
+    
     // Sort options
     'sort.newest': 'Newest First',
     'sort.popularity': 'Most Popular',
@@ -35,12 +45,22 @@ const translations = {
     'sort.yearOld': 'Year: Oldest First',
     'sort.yearNew': 'Year: Newest First',
     'sort.name': 'Name: A to Z',
+    
     // Toast messages
     'toast.addedToFavorites': 'Added to favorites',
     'toast.errorAdding': 'Error adding to favorites',
     'toast.errorLoading': 'Error loading coins'
   },
   el: {
+    // Navigation
+    'nav.marketplace': 'Αγορά',
+    'nav.auctions': 'Δημοπρασίες',
+    'nav.search': 'Αναζήτηση',
+    'nav.upload': 'Ανέβασμα',
+    'nav.dashboard': 'Dashboard',
+    'nav.logout': 'Έξοδος',
+    'nav.login': 'Σύνδεση',
+    
     // Marketplace
     'marketplace.title': 'Παγκόσμια Αγορά Νομισμάτων',
     'marketplace.subtitle': 'Ανακαλύψτε, αγοράστε και πουλήστε πιστοποιημένα νομίσματα από συλλέκτες παγκοσμίως',
@@ -65,6 +85,7 @@ const translations = {
     'marketplace.coin.endingIn': 'Τελειώνει σε',
     'marketplace.coin.views': 'προβολές',
     'marketplace.coin.favorites': 'αγαπημένα',
+    
     // Sort options
     'sort.newest': 'Νεότερα Πρώτα',
     'sort.popularity': 'Πιο Δημοφιλή',
@@ -73,6 +94,7 @@ const translations = {
     'sort.yearOld': 'Έτος: Παλαιότερα Πρώτα',
     'sort.yearNew': 'Έτος: Νεότερα Πρώτα',
     'sort.name': 'Όνομα: Α προς Ω',
+    
     // Toast messages
     'toast.addedToFavorites': 'Προστέθηκε στα αγαπημένα',
     'toast.errorAdding': 'Σφάλμα κατά την προσθήκη',
