@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -125,11 +124,13 @@ const Index = () => {
                     <CardContent className="p-4">
                       <div className="relative mb-4">
                         <Link to={`/coin/${coin.id}`}>
-                          <img 
-                            src={coin.image} 
-                            alt={coin.name}
-                            className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform"
-                          />
+                          <div className="aspect-square overflow-hidden rounded-lg">
+                            <img 
+                              src={coin.image} 
+                              alt={coin.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
                         </Link>
                         <Badge className="absolute top-2 left-2 bg-yellow-500 text-black">
                           Featured
@@ -226,11 +227,13 @@ const Index = () => {
                   <CardContent className="p-4">
                     <div className="relative mb-4">
                       <Link to={`/coin/${coin.id}`}>
-                        <img 
-                          src={coin.image} 
-                          alt={coin.name}
-                          className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform"
-                        />
+                        <div className="aspect-square overflow-hidden rounded-lg">
+                          <img 
+                            src={coin.image} 
+                            alt={coin.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
                       </Link>
                       <Button
                         size="sm"
