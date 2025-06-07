@@ -11,6 +11,18 @@ interface RealTimeUpdate {
   bid_count?: number;
 }
 
+interface BidPayload {
+  new?: {
+    coin_id: string;
+    amount: number;
+    [key: string]: any;
+  };
+  old?: {
+    coin_id: string;
+    [key: string]: any;
+  };
+}
+
 export const useRealTimeMarketplace = (coins: Coin[]) => {
   const [realTimeUpdates, setRealTimeUpdates] = useState<Record<string, RealTimeUpdate>>({});
 
@@ -29,14 +41,16 @@ export const useRealTimeMarketplace = (coins: Coin[]) => {
         },
         (payload) => {
           const { new: newCoin } = payload;
-          setRealTimeUpdates(prev => ({
-            ...prev,
-            [newCoin.id]: {
-              views: newCoin.views,
-              price: newCoin.price,
-              auction_end: newCoin.auction_end
-            }
-          }));
+          if (newCoin && typeof newCoin === 'object' && 'id' in newCoin) {
+            setRealTimeUpdates(prev => ({
+              ...prev,
+              [newCoin.id]: {
+                views: newCoin.views,
+                price: newCoin.price,
+                auction_end: newCoin.auction_end
+              }
+            }));
+          }
         }
       )
       .subscribe();
@@ -51,9 +65,9 @@ export const useRealTimeMarketplace = (coins: Coin[]) => {
           schema: 'public',
           table: 'bids'
         },
-        async (payload) => {
-          const { new: newBid, old: oldBid } = payload;
-          const coinId = newBid?.coin_id || oldBid?.coin_id;
+        async (payload: { new?: any; old?: any }) => {
+          const bidPayload = payload as BidPayload;
+          const coinId = bidPayload.new?.coin_id || bidPayload.old?.coin_id;
           
           if (coinId) {
             // Fetch updated bid count and highest bid

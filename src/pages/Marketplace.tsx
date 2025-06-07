@@ -2,17 +2,23 @@
 import { usePageView } from '@/hooks/usePageView';
 import { useMarketplaceStats } from '@/hooks/useMarketplaceStats';
 import { useMarketplaceState } from '@/hooks/useMarketplaceState';
+import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
+import { usePerformanceMonitoring, useMemoryMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnhancedMarketplaceHeader from "@/components/marketplace/EnhancedMarketplaceHeader";
 import ThemeAwareMarketplaceFilters from "@/components/marketplace/ThemeAwareMarketplaceFilters";
-import MarketplaceGrid from "@/components/marketplace/MarketplaceGrid";
+import OptimizedMarketplaceGrid from "@/components/marketplace/OptimizedMarketplaceGrid";
 
 const Marketplace = () => {
   usePageView();
+  usePerformanceMonitoring('Marketplace');
+  useMemoryMonitoring();
   
   const { stats, loading: statsLoading } = useMarketplaceStats();
+  const { cacheInfo } = useCachedMarketplaceData();
+  
   const {
     enhancedCoins,
     coinsLoading,
@@ -54,7 +60,7 @@ const Marketplace = () => {
             stats={enhancedStats}
           />
           
-          <MarketplaceGrid
+          <OptimizedMarketplaceGrid
             filteredCoins={enhancedCoins}
             searchTerm={filters.searchTerm}
             isAuctionOnly={filters.showAuctionsOnly}
@@ -63,6 +69,20 @@ const Marketplace = () => {
             isLoading={coinsLoading}
             error={coinsError}
           />
+          
+          {/* Performance Debug Info (Development Only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="fixed bottom-4 right-4 bg-bg-primary border border-border-primary rounded-lg p-3 text-xs">
+              <div>Cache Size: {cacheInfo.size} entries</div>
+              <div>Coins Loaded: {enhancedCoins.length}</div>
+              <button 
+                onClick={cacheInfo.invalidateCache}
+                className="text-brand-primary hover:underline mt-1"
+              >
+                Clear Cache
+              </button>
+            </div>
+          )}
         </div>
         <Footer />
       </div>
