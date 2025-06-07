@@ -3,11 +3,12 @@
 declare global {
   interface Window {
     CoinAI: {
-      showErrors(): void;
-      showWarnings(): void;
-      exportErrorReport(): void;
-      clearLogs(): void;
+      showMonitoringStatus(): void;
+      testConsoleMonitoring(): void;
+      exportMonitoringReport(): void;
+      clearConsole(): void;
       testSecurity(): Promise<void>;
+      help(): void;
     };
     MonitoringUtils: {
       getPerformanceMetrics(): any;
