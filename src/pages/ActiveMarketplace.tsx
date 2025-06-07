@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
 import Navbar from "@/components/Navbar";
-import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,8 +18,19 @@ const ActiveMarketplace = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Hero Section */}
-      <MarketplaceHero />
+      {/* Simple Marketplace Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
+              Ανακαλύψτε τα καλύτερα καταστήματα νομισμάτων
+            </h1>
+            <p className="text-lg text-gray-600">
+              Εξερευνήστε αυθεντικά νομίσματα από επαληθευμένους dealers παγκοσμίως
+            </p>
+          </div>
+        </div>
+      </div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
