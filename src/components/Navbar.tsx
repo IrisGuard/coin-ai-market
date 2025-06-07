@@ -1,134 +1,214 @@
-
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { User, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Menu as MenuIcon,
+  X as CloseIcon,
+  Plus,
+  LogOut,
+  LogIn,
+  User,
+  Settings,
+  Coins,
+  Sparkles,
+  Smartphone
+} from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 50);
-    };
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigate('/login');
   };
 
-  const navItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Marketplace', href: '/marketplace' },
-    { label: 'Auctions', href: '/auctions' },
-    { label: 'Coin Sale', href: '/coin-sale' }
-  ];
-
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-purple-100' 
-          : 'bg-white/95 backdrop-blur-md'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => navigate('/')}
-          >
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CV</span>
-            </div>
-            <span className="text-xl font-bold text-purple-600">CoinVision</span>
-          </motion.div>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo Section */}
+          <Link to="/" className="flex items-center font-semibold text-xl text-coin-primary">
+            <Coins className="w-6 h-6 mr-2 text-yellow-500" />
+            CoinVision
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <motion.a
-                key={item.label}
-                href={item.href}
-                className="font-medium transition-colors duration-300 hover:text-purple-600 text-gray-700"
-                whileHover={{ y: -2 }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(item.href);
-                }}
+            <Link
+              to="/"
+              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/' ? 'font-semibold' : ''
+                }`}
+            >
+              Home
+            </Link>
+            <Link
+              to="/search"
+              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/search' ? 'font-semibold' : ''
+                }`}
+            >
+              Search
+            </Link>
+            <Link
+              to="/discovery"
+              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/discovery' ? 'font-semibold' : ''
+                }`}
+            >
+              <Sparkles className="w-4 h-4 mr-1" />
+              Discovery
+            </Link>
+            <Link 
+              to="/mobile-ai" 
+              className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
+            >
+              <Smartphone className="w-4 h-4 mr-1" />
+              Mobile AI
+            </Link>
+            {user && (
+              <Link
+                to="/upload"
+                className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
               >
-                {item.label}
-              </motion.a>
-            ))}
+                <Plus className="w-4 h-4 mr-1" />
+                Upload
+              </Link>
+            )}
           </div>
 
-          {/* Auth Section */}
+          {/* Mobile Menu and Auth Section */}
           <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
+            {/* Mobile Menu Button */}
+            {isMobile && (
+              <button onClick={toggleMobileMenu} className="text-gray-500 hover:text-gray-700 focus:outline-none">
+                {isMobileMenuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+              </button>
+            )}
+
+            {/* Auth Buttons */}
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    {user?.user_metadata?.full_name || 'Profile'}
-                    <ChevronDown className="h-4 w-4 ml-2" />
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatar_url} />
+                      <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-40">
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/auth')}
-                  className="text-purple-700 hover:bg-purple-50"
-                >
-                  Login
+              <div className="hidden md:flex items-center space-x-4">
+                <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Log In
                 </Button>
-                <Button
-                  onClick={() => navigate('/auth')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
-                >
-                  Sign Up
+                <Button size="sm" onClick={() => navigate('/register')}>
+                  Register
                 </Button>
               </div>
             )}
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="flex flex-col space-y-4">
+              <Link
+                to="/"
+                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/' ? 'font-semibold' : ''
+                  }`}
+                onClick={closeMobileMenu}
+              >
+                Home
+              </Link>
+              <Link
+                to="/search"
+                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/search' ? 'font-semibold' : ''
+                  }`}
+                onClick={closeMobileMenu}
+              >
+                Search
+              </Link>
+              <Link
+                to="/discovery"
+                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/discovery' ? 'font-semibold' : ''
+                  }`}
+                onClick={closeMobileMenu}
+              >
+                <Sparkles className="w-4 h-4 mr-1" />
+                Discovery
+              </Link>
+              <Link 
+                to="/mobile-ai" 
+                className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                Mobile AI
+              </Link>
+              {user && (
+                <Link
+                  to="/upload"
+                  className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
+                  onClick={closeMobileMenu}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Upload
+                </Link>
+              )}
+              {!user && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/login'); closeMobileMenu(); }}>
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Log In
+                  </Button>
+                  <Button size="sm" onClick={() => { navigate('/register'); closeMobileMenu(); }}>
+                    Register
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-    </motion.nav>
+    </nav>
   );
 };
 

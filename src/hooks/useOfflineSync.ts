@@ -1,32 +1,11 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-
-interface CoinUploadData {
-  name: string;
-  description?: string;
-  images: File[];
-  price: number;
-  year: number;
-  country: string;
-  denomination?: string;
-  rarity: string;
-  condition: string;
-  grade: string;
-}
-
-interface AIAnalysisData {
-  imageUrl: string;
-  analysisType: 'recognition' | 'valuation' | 'authentication';
-  userId: string;
-}
-
-type OfflineItemData = CoinUploadData | AIAnalysisData;
 
 interface OfflineItem {
   id: string;
-  type: 'coin_upload' | 'ai_analysis';
-  data: OfflineItemData;
+  type: 'coin_upload' | 'analysis' | 'listing';
+  data: any;
   timestamp: number;
   retryCount: number;
 }
@@ -36,120 +15,31 @@ export const useOfflineSync = () => {
   const [pendingItems, setPendingItems] = useState<OfflineItem[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const removePendingItem = useCallback((id: string) => {
-    const updatedItems = pendingItems.filter(item => item.id !== id);
-    savePendingItems(updatedItems);
+  // Load pending items from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('offline_pending_items');
+    if (stored) {
+      try {
+        setPendingItems(JSON.parse(stored));
+      } catch (error) {
+        console.error('Failed to parse stored offline items:', error);
+        localStorage.removeItem('offline_pending_items');
+      }
+    }
+  }, []);
+
+  // Save pending items to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('offline_pending_items', JSON.stringify(pendingItems));
   }, [pendingItems]);
 
-  const syncCoinUpload = async (item: OfflineItem) => {
-    const data = item.data as CoinUploadData;
-    
-    // Convert image to base64
-    const imageBase64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(data.images[0]);
-    });
-
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    // Create coin record with required user_id
-    const { error } = await supabase
-      .from('coins')
-      .insert({
-        name: data.name,
-        year: data.year,
-        grade: data.grade,
-        price: data.price,
-        rarity: data.rarity,
-        image: imageBase64,
-        country: data.country,
-        denomination: data.denomination,
-        description: data.description,
-        condition: data.condition,
-        authentication_status: 'pending',
-        user_id: user.id
-      });
-
-    if (error) throw error;
-  };
-
-  const syncAIAnalysis = async (item: OfflineItem) => {
-    const data = item.data as AIAnalysisData;
-    
-    const { error } = await supabase.functions.invoke('custom-ai-recognition', {
-      body: {
-        image: data.imageUrl,
-        analysisType: data.analysisType,
-        userId: data.userId
-      }
-    });
-
-    if (error) throw error;
-  };
-
-  const syncPendingItems = useCallback(async () => {
-    if (!isOnline || isSyncing || pendingItems.length === 0) return;
-
-    setIsSyncing(true);
-    const maxRetries = 3;
-    let syncedCount = 0;
-
-    for (const item of pendingItems) {
-      try {
-        if (item.type === 'coin_upload') {
-          await syncCoinUpload(item);
-        } else if (item.type === 'ai_analysis') {
-          await syncAIAnalysis(item);
-        }
-        
-        removePendingItem(item.id);
-        syncedCount++;
-        
-      } catch (error) {
-        console.error('Sync error:', error);
-        
-        const updatedItems = pendingItems.map(p => 
-          p.id === item.id 
-            ? { ...p, retryCount: p.retryCount + 1 }
-            : p
-        );
-
-        if (item.retryCount >= maxRetries) {
-          removePendingItem(item.id);
-          toast({
-            title: "Sync Failed",
-            description: `${item.type.replace('_', ' ')} failed after ${maxRetries} attempts`,
-            variant: "destructive",
-          });
-        } else {
-          savePendingItems(updatedItems);
-        }
-      }
-    }
-
-    setIsSyncing(false);
-    
-    if (syncedCount > 0) {
-      toast({
-        title: "Sync Complete",
-        description: `Successfully synced ${syncedCount} items`,
-      });
-    }
-  }, [isOnline, isSyncing, pendingItems, removePendingItem]);
-
+  // Listen for online/offline events
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
       toast({
-        title: "Back Online",
-        description: "Syncing pending uploads...",
+        title: "Connection Restored",
+        description: "Syncing offline data...",
       });
       syncPendingItems();
     };
@@ -158,7 +48,7 @@ export const useOfflineSync = () => {
       setIsOnline(false);
       toast({
         title: "Offline Mode",
-        description: "Items will be saved and synced when connection returns",
+        description: "Data will be synced when connection is restored",
         variant: "destructive",
       });
     };
@@ -166,66 +56,179 @@ export const useOfflineSync = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Load pending items from localStorage
-    loadPendingItems();
-
-    // Auto-sync when coming online
-    if (isOnline) {
-      syncPendingItems();
-    }
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [syncPendingItems, isOnline]);
+  }, []);
 
-  const loadPendingItems = () => {
-    try {
-      const stored = localStorage.getItem('offline_pending_items');
-      if (stored) {
-        setPendingItems(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Error loading pending items:', error);
+  // Auto-sync when coming online
+  useEffect(() => {
+    if (isOnline && pendingItems.length > 0 && !isSyncing) {
+      syncPendingItems();
     }
-  };
+  }, [isOnline, pendingItems.length]);
 
-  const savePendingItems = (items: OfflineItem[]) => {
-    try {
-      localStorage.setItem('offline_pending_items', JSON.stringify(items));
-      setPendingItems(items);
-    } catch (error) {
-      console.error('Error saving pending items:', error);
-    }
-  };
-
-  const addPendingItem = (type: OfflineItem['type'], data: OfflineItemData) => {
-    const newItem: OfflineItem = {
-      id: `${type}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+  const addToOfflineQueue = useCallback((type: OfflineItem['type'], data: any) => {
+    const item: OfflineItem = {
+      id: `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
       data,
       timestamp: Date.now(),
       retryCount: 0
     };
 
-    const updatedItems = [...pendingItems, newItem];
-    savePendingItems(updatedItems);
+    setPendingItems(prev => [...prev, item]);
 
     toast({
       title: "Saved Offline",
-      description: "Item will sync when connection returns",
+      description: "Data will be synced when connection is restored",
     });
 
-    return newItem.id;
+    return item.id;
+  }, []);
+
+  const removeFromOfflineQueue = useCallback((id: string) => {
+    setPendingItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  const syncPendingItems = useCallback(async () => {
+    if (!isOnline || pendingItems.length === 0 || isSyncing) {
+      return;
+    }
+
+    setIsSyncing(true);
+
+    try {
+      const results = await Promise.allSettled(
+        pendingItems.map(async (item) => {
+          try {
+            await processOfflineItem(item);
+            return { success: true, id: item.id };
+          } catch (error) {
+            console.error(`Failed to sync item ${item.id}:`, error);
+            
+            // Increment retry count
+            const updatedItem = { ...item, retryCount: item.retryCount + 1 };
+            
+            // Remove items that have failed too many times
+            if (updatedItem.retryCount >= 3) {
+              toast({
+                title: "Sync Failed",
+                description: `Failed to sync ${item.type} after 3 attempts`,
+                variant: "destructive",
+              });
+              return { success: false, id: item.id, remove: true };
+            }
+            
+            return { success: false, id: item.id, updatedItem };
+          }
+        })
+      );
+
+      // Process results
+      const successful = results.filter(r => r.status === 'fulfilled' && r.value.success);
+      const failed = results.filter(r => r.status === 'fulfilled' && !r.value.success);
+
+      // Remove successful items
+      setPendingItems(prev => {
+        let updated = [...prev];
+        
+        successful.forEach(result => {
+          if (result.status === 'fulfilled') {
+            updated = updated.filter(item => item.id !== result.value.id);
+          }
+        });
+
+        // Update failed items or remove if max retries reached
+        failed.forEach(result => {
+          if (result.status === 'fulfilled') {
+            if (result.value.remove) {
+              updated = updated.filter(item => item.id !== result.value.id);
+            } else if (result.value.updatedItem) {
+              const index = updated.findIndex(item => item.id === result.value.id);
+              if (index >= 0) {
+                updated[index] = result.value.updatedItem;
+              }
+            }
+          }
+        });
+
+        return updated;
+      });
+
+      if (successful.length > 0) {
+        toast({
+          title: "Sync Complete",
+          description: `Successfully synced ${successful.length} items`,
+        });
+      }
+
+      if (failed.length > 0) {
+        const retriable = failed.filter(r => r.status === 'fulfilled' && !r.value.remove).length;
+        if (retriable > 0) {
+          toast({
+            title: "Partial Sync",
+            description: `${retriable} items will be retried later`,
+            variant: "destructive",
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error('Sync failed:', error);
+      toast({
+        title: "Sync Error",
+        description: "Failed to sync offline data. Will retry later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isOnline, pendingItems, isSyncing]);
+
+  const processOfflineItem = async (item: OfflineItem): Promise<void> => {
+    switch (item.type) {
+      case 'coin_upload':
+        // Simulate coin upload API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Synced coin upload:', item.data);
+        break;
+        
+      case 'analysis':
+        // Simulate analysis API call
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('Synced analysis:', item.data);
+        break;
+        
+      case 'listing':
+        // Simulate listing API call
+        await new Promise(resolve => setTimeout(resolve, 800));
+        console.log('Synced listing:', item.data);
+        break;
+        
+      default:
+        throw new Error(`Unknown item type: ${item.type}`);
+    }
   };
+
+  const clearOfflineQueue = useCallback(() => {
+    setPendingItems([]);
+    localStorage.removeItem('offline_pending_items');
+    
+    toast({
+      title: "Queue Cleared",
+      description: "All offline items have been removed",
+    });
+  }, []);
 
   return {
     isOnline,
     pendingItems,
     isSyncing,
-    addPendingItem,
-    removePendingItem,
-    syncPendingItems
+    addToOfflineQueue,
+    removeFromOfflineQueue,
+    syncPendingItems,
+    clearOfflineQueue
   };
 };

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import Auctions from "./pages/Auctions";
 import CoinSale from "./pages/CoinSale";
 import NotFound from "./pages/NotFound";
 import EnhancedSearch from "./pages/EnhancedSearch";
+import MobileAIFeatures from '@/pages/MobileAIFeatures';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +45,7 @@ function App() {
                 <Route path="/coin/:id" element={<CoinDetails />} />
                 <Route path="/auctions" element={<Auctions />} />
                 <Route path="/sell/:id" element={<CoinSale />} />
+                <Route path="/mobile-ai" element={<MobileAIFeatures />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ErrorBoundary>
