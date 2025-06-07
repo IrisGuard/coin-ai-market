@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 
 export const useUserProfile = () => {
@@ -30,13 +30,26 @@ export const useUserProfile = () => {
     enabled: !!user,
   });
 
-  const [profile, setProfile] = useState(profileQuery.data || {
+  const [profile, setProfile] = useState({
     full_name: '',
     phone: '',
     location: '',
     bio: '',
     avatar_url: ''
   });
+
+  // Update local state when query data changes
+  useEffect(() => {
+    if (profileQuery.data) {
+      setProfile({
+        full_name: profileQuery.data.full_name || '',
+        phone: profileQuery.data.phone || '',
+        location: profileQuery.data.location || '',
+        bio: profileQuery.data.bio || '',
+        avatar_url: profileQuery.data.avatar_url || ''
+      });
+    }
+  }, [profileQuery.data]);
 
   const updateProfile = async () => {
     if (!user) return;
@@ -109,7 +122,8 @@ export const useUserProfile = () => {
 
   return {
     ...profileQuery,
-    profile: profileQuery.data || profile,
+    data: profileQuery.data,
+    profile,
     setProfile,
     updateProfile,
     uploadAvatar,

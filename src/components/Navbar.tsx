@@ -1,212 +1,165 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { 
+  Menu, 
+  X, 
+  Coins, 
+  Search, 
+  Upload, 
+  User, 
+  Settings,
+  Bell,
+  ShoppingCart,
+  Gavel
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Menu as MenuIcon,
-  X as CloseIcon,
-  Plus,
-  LogOut,
-  LogIn,
-  User,
-  Settings,
-  Coins,
-  Sparkles,
-  Smartphone
-} from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const Navbar = () => {
-  const { user, logout } = useAuth();
-  const { profile } = useUserProfile();
-  const navigate = useNavigate();
+export const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { data: profileData } = useUserProfile();
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const navigation = [
+    { name: 'Home', href: '/', icon: Coins },
+    { name: 'Marketplace', href: '/marketplace', icon: ShoppingCart },
+    { name: 'Auctions', href: '/auctions', icon: Gavel },
+    { name: 'Search', href: '/search', icon: Search },
+  ];
 
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/auth');
-  };
+  const userNavigation = user ? [
+    { name: 'Dashboard', href: '/dashboard', icon: User },
+    { name: 'Upload', href: '/upload', icon: Upload },
+    { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ] : [];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo Section */}
-          <Link to="/" className="flex items-center font-semibold text-xl text-coin-primary">
-            <Coins className="w-6 h-6 mr-2 text-yellow-500" />
-            CoinVision
-          </Link>
+    <nav className="bg-background border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <Coins className="h-8 w-8 text-primary" />
+              <span className="font-bold text-xl">CoinCollector</span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/' ? 'font-semibold' : ''
-                }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/search"
-              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/search' ? 'font-semibold' : ''
-                }`}
-            >
-              Search
-            </Link>
-            <Link
-              to="/marketplace"
-              className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/marketplace' ? 'font-semibold' : ''
-                }`}
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              Marketplace
-            </Link>
-            <Link 
-              to="/mobile-ai" 
-              className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
-            >
-              <Smartphone className="w-4 h-4 mr-1" />
-              Mobile AI
-            </Link>
-            {user && (
-              <Link
-                to="/upload"
-                className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Upload
-              </Link>
-            )}
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-primary bg-primary/10'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  }`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Mobile Menu and Auth Section */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile Menu Button */}
-            {isMobile && (
-              <button onClick={toggleMobileMenu} className="text-gray-500 hover:text-gray-700 focus:outline-none">
-                {isMobileMenuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
-              </button>
-            )}
-
-            {/* Auth Buttons */}
+          {/* User Section */}
+          <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url} />
-                      <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="hidden md:flex items-center space-x-4">
-                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Log In
+              <>
+                {/* Notifications */}
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs">
+                    3
+                  </Badge>
                 </Button>
-                <Button size="sm" onClick={() => navigate('/auth')}>
-                  Register
+
+                {/* User Menu */}
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profileData?.avatar_url} />
+                    <AvatarFallback>
+                      {profileData?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex items-center space-x-2">
+                    {userNavigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className="text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={() => signOut()}>
+                      Sign Out
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth">Get Started</Link>
                 </Button>
               </div>
             )}
           </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="flex flex-col space-y-4">
-              <Link
-                to="/"
-                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/' ? 'font-semibold' : ''
-                  }`}
-                onClick={closeMobileMenu}
-              >
-                Home
-              </Link>
-              <Link
-                to="/search"
-                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/search' ? 'font-semibold' : ''
-                  }`}
-                onClick={closeMobileMenu}
-              >
-                Search
-              </Link>
-              <Link
-                to="/marketplace"
-                className={`text-gray-700 hover:text-coin-blue transition-colors ${location.pathname === '/marketplace' ? 'font-semibold' : ''
-                  }`}
-                onClick={closeMobileMenu}
-              >
-                <Sparkles className="w-4 h-4 mr-1" />
-                Marketplace
-              </Link>
-              <Link 
-                to="/mobile-ai" 
-                className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Smartphone className="w-4 h-4 mr-2" />
-                Mobile AI
-              </Link>
-              {user && (
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {navigation.map((item) => (
                 <Link
-                  to="/upload"
-                  className="flex items-center text-gray-700 hover:text-coin-blue transition-colors"
-                  onClick={closeMobileMenu}
+                  key={item.name}
+                  to={item.href}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
+                  onClick={() => setIsOpen(false)}
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Upload
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
                 </Link>
-              )}
-              {!user && (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => { navigate('/auth'); closeMobileMenu(); }}>
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Log In
-                  </Button>
-                  <Button size="sm" onClick={() => { navigate('/auth'); closeMobileMenu(); }}>
-                    Register
-                  </Button>
-                </>
-              )}
+              ))}
+              
+              {user && userNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              ))}
             </div>
           </div>
         )}
@@ -214,5 +167,3 @@ const Navbar = () => {
     </nav>
   );
 };
-
-export default Navbar;
