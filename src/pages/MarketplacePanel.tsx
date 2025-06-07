@@ -14,7 +14,7 @@ const MarketplacePanel = () => {
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
   const { coins, isLoading: coinsLoading } = useCachedMarketplaceData();
-  const { data: auctions, isLoading: auctionsLoading } = useAuctionData();
+  const { auctions, isLoading: auctionsLoading } = useAuctionData();
 
   const stats = {
     totalStores: dealers?.length || 0,
@@ -159,10 +159,10 @@ const MarketplacePanel = () => {
                   {coins?.slice(0, 5).map((coin) => (
                     <div key={coin.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden">
-                        {coin.front_image ? (
+                        {coin.image ? (
                           <img 
-                            src={coin.front_image} 
-                            alt={coin.title}
+                            src={coin.image} 
+                            alt={coin.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -173,7 +173,7 @@ const MarketplacePanel = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-800 truncate">
-                          {coin.title || 'Untitled Coin'}
+                          {coin.name || 'Untitled Coin'}
                         </p>
                         <div className="flex items-center gap-2">
                           <Badge 
