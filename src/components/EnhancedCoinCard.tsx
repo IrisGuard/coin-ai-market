@@ -51,7 +51,7 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
     >
       <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 bg-white">
         <div className="relative">
-          <Link to={`/coins/${coin.id}`}>
+          <Link to={`/coin/${coin.id}`}>
             <div className="aspect-square overflow-hidden bg-gray-50">
               <img
                 src={coin.image}
@@ -107,7 +107,7 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
           <div className="space-y-3">
             {/* Title and Info */}
             <div>
-              <Link to={`/coins/${coin.id}`}>
+              <Link to={`/coin/${coin.id}`}>
                 <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-brand-primary transition-colors">
                   {coin.name}
                 </h3>
@@ -137,15 +137,15 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
               )}
             </div>
 
-            {/* Price */}
+            {/* Price - CHANGED TO EURO */}
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-2xl font-bold text-gray-900">
-                  ${coin.price?.toLocaleString()}
+                  €{coin.price?.toLocaleString()}
                 </div>
                 {coin.is_auction && (
                   <div className="text-sm text-gray-600">
-                    Starting at ${coin.price?.toLocaleString()}
+                    Starting at €{coin.price?.toLocaleString()}
                   </div>
                 )}
               </div>
@@ -180,8 +180,8 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
               )}
             </div>
 
-            {/* Action Button */}
-            <Link to={`/coins/${coin.id}`} className="block">
+            {/* Action Button - CORRECTED LINK */}
+            <Link to={`/coin/${coin.id}`} className="block">
               <Button className="w-full mt-3 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 transition-all duration-200">
                 {coin.is_auction ? 'View Auction' : 'View Details'}
               </Button>
