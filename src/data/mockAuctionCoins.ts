@@ -149,7 +149,8 @@ for (let i = 5; i <= 50; i++) {
   const randomType = coinTypes[Math.floor(Math.random() * coinTypes.length)];
   const randomYear = 1900 + Math.floor(Math.random() * 120);
   const randomGrade = ['MS-60', 'MS-63', 'MS-65', 'AU-55', 'VF-30', 'EF-40'][Math.floor(Math.random() * 6)];
-  const randomRarity = ['Common', 'Uncommon', 'Rare', 'Ultra Rare'][Math.floor(Math.random() * 4)] as const;
+  const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Ultra Rare'] as const;
+  const randomRarity = rarityOptions[Math.floor(Math.random() * 4)];
   const multiplier = randomRarity === 'Ultra Rare' ? 10 : randomRarity === 'Rare' ? 5 : randomRarity === 'Uncommon' ? 2 : 1;
   const startingPrice = randomType.basePrice * multiplier;
   const currentBid = startingPrice + Math.floor(Math.random() * startingPrice * 0.5);
