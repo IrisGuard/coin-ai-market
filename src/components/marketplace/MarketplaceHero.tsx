@@ -40,8 +40,8 @@ const MarketplaceHero = () => {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
             Find the perfect coin for you
           </h1>
-          <p className="text-lg text-electric-blue mb-8">
-            Discover authentic coins from collectors worldwide
+          <p className="text-lg text-gray-600 mb-8">
+            Discover authentic coins from verified dealers worldwide
           </p>
 
           {/* Search Bar with Dropdown */}
@@ -52,7 +52,7 @@ const MarketplaceHero = () => {
                 <input
                   type="text"
                   placeholder="Search for coins, years, countries..."
-                  className="flex-1 px-6 py-4 text-lg border-2 border-gray-300 rounded-l-lg focus:outline-none focus:border-electric-orange focus:ring-2 focus:ring-electric-orange/20"
+                  className="flex-1 px-6 py-4 text-lg border-2 border-gray-300 rounded-l-lg focus:outline-none focus:border-electric-orange focus:ring-2 focus:ring-electric-orange/20 text-gray-700"
                 />
                 <button className="px-8 py-4 bg-gradient-to-r from-electric-orange to-electric-red hover:from-electric-orange/90 hover:to-electric-red/90 text-white font-medium rounded-r-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
                   <Search className="w-5 h-5" />

@@ -43,7 +43,7 @@ const Index = () => {
         
         {/* Featured Coins Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6 text-center">
             Featured Coins
           </h2>
           

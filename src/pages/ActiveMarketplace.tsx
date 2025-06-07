@@ -1,39 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
-import { useMarketplaceFiltering } from '@/hooks/useMarketplaceFiltering';
+import { useDealerStores } from '@/hooks/useDealerStores';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MarketplaceSearch from "@/components/marketplace/MarketplaceSearch";
-import ActiveMarketplaceFilters from "@/components/marketplace/ActiveMarketplaceFilters";
-import ActiveMarketplaceStats from "@/components/marketplace/ActiveMarketplaceStats";
-import ActiveMarketplaceResults from "@/components/marketplace/ActiveMarketplaceResults";
+import DealerStoresGrid from "@/components/marketplace/DealerStoresGrid";
+import { Store, Users, Shield, TrendingUp } from 'lucide-react';
 
 const ActiveMarketplace = () => {
   usePageView();
   usePerformanceMonitoring('ActiveMarketplace');
   
-  const { coins, isLoading } = useCachedMarketplaceData();
-  const {
-    searchTerm,
-    setSearchTerm,
-    selectedCondition,
-    setSelectedCondition,
-    selectedRarity,
-    setSelectedRarity,
-    sortBy,
-    setSortBy,
-    showAuctionsOnly,
-    setShowAuctionsOnly,
-    showFeaturedOnly,
-    setShowFeaturedOnly,
-    viewMode,
-    setViewMode,
-    filteredCoins,
-    clearFilters
-  } = useMarketplaceFiltering(coins);
+  const { data: stores = [], isLoading } = useDealerStores();
+  const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,53 +22,99 @@ const ActiveMarketplace = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-4">
-            Marketplace
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-4">
+            Dealer Marketplace
           </h1>
-          <p className="text-electric-green">
-            Discover authentic coins from collectors worldwide
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover authenticated coins from verified dealers worldwide. Browse professional stores and find the perfect addition to your collection.
           </p>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-electric-blue to-electric-purple rounded-lg flex items-center justify-center mr-4">
+                <Store className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Verified Stores</h3>
+                <p className="text-2xl font-bold text-electric-blue">{stores.length}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-electric-green to-electric-emerald rounded-lg flex items-center justify-center mr-4">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Active Dealers</h3>
+                <p className="text-2xl font-bold text-electric-green">{stores.filter(s => s.verified_dealer).length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-electric-orange to-electric-red rounded-lg flex items-center justify-center mr-4">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Avg Rating</h3>
+                <p className="text-2xl font-bold text-electric-orange">
+                  {stores.length > 0 ? (stores.reduce((acc, store) => acc + (store.rating || 5), 0) / stores.length).toFixed(1) : '5.0'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-electric-purple to-electric-pink rounded-lg flex items-center justify-center mr-4">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Global Reach</h3>
+                <p className="text-2xl font-bold text-electric-purple">25+</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Search */}
-        <div className="mb-6">
+        <div className="mb-8">
           <MarketplaceSearch
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
           />
         </div>
 
-        {/* Filters */}
-        <ActiveMarketplaceFilters
-          selectedCondition={selectedCondition}
-          setSelectedCondition={setSelectedCondition}
-          selectedRarity={selectedRarity}
-          setSelectedRarity={setSelectedRarity}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          showAuctionsOnly={showAuctionsOnly}
-          setShowAuctionsOnly={setShowAuctionsOnly}
-          showFeaturedOnly={showFeaturedOnly}
-          setShowFeaturedOnly={setShowFeaturedOnly}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          searchTerm={searchTerm}
-          clearFilters={clearFilters}
-        />
-
         {/* Results Stats */}
-        <ActiveMarketplaceStats
-          filteredCount={filteredCoins.length}
-          totalCount={coins.length}
-        />
+        <div className="mb-6">
+          <p className="text-gray-600">
+            Showing <span className="font-semibold text-electric-blue">
+              {stores.filter(store => {
+                if (!searchTerm) return true;
+                const searchLower = searchTerm.toLowerCase();
+                return (
+                  store.username?.toLowerCase().includes(searchLower) ||
+                  store.full_name?.toLowerCase().includes(searchLower) ||
+                  store.bio?.toLowerCase().includes(searchLower) ||
+                  store.location?.toLowerCase().includes(searchLower)
+                );
+              }).length}
+            </span> of <span className="font-semibold text-electric-purple">{stores.length}</span> dealer stores
+          </p>
+        </div>
 
-        {/* Results */}
-        <ActiveMarketplaceResults
+        {/* Dealer Stores Grid */}
+        <DealerStoresGrid 
+          stores={stores}
           isLoading={isLoading}
-          filteredCoins={filteredCoins}
-          viewMode={viewMode}
-          clearFilters={clearFilters}
+          searchTerm={searchTerm}
         />
       </div>
 

@@ -17,7 +17,7 @@ const HeroSection = () => {
           rotate: [0, 5, 0]
         }}
         transition={{ duration: 6, repeat: Infinity }}
-        className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-5 blur-xl"
+        className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-electric-blue to-electric-purple rounded-full opacity-5 blur-xl"
       />
       <motion.div 
         animate={{ 
@@ -25,7 +25,7 @@ const HeroSection = () => {
           rotate: [0, -5, 0]
         }}
         transition={{ duration: 8, repeat: Infinity }}
-        className="absolute bottom-32 right-32 w-40 h-40 bg-gradient-to-br from-green-400 to-blue-500 rounded-full opacity-5 blur-xl"
+        className="absolute bottom-32 right-32 w-40 h-40 bg-gradient-to-br from-electric-green to-electric-blue rounded-full opacity-5 blur-xl"
       />
       <motion.div 
         animate={{ 
@@ -33,28 +33,28 @@ const HeroSection = () => {
           x: [-5, 5, -5]
         }}
         transition={{ duration: 10, repeat: Infinity }}
-        className="absolute top-1/2 left-10 w-24 h-24 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-5 blur-lg"
+        className="absolute top-1/2 left-10 w-24 h-24 bg-gradient-to-br from-electric-orange to-electric-red rounded-full opacity-5 blur-lg"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center">
-          {/* Main heading with solid colorful text */}
+          {/* Main heading with logo-based blue/purple colors */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-5xl md:text-7xl font-bold mb-8 leading-tight"
           >
-            <span className="text-blue-600">
+            <span className="text-electric-blue">
               AI-Powered
             </span>
             <br />
-            <span className="text-orange-500">
+            <span className="text-electric-purple">
               Coin Recognition
             </span>
           </motion.h1>
 
-          {/* Subtitle with colorful text */}
+          {/* Subtitle with dark gray instead of black */}
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -62,15 +62,15 @@ const HeroSection = () => {
             className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
           >
             Upload photos of your coins and get instant{' '}
-            <span className="font-semibold text-blue-600">
+            <span className="font-semibold text-electric-blue">
               AI identification
             </span>
             , accurate{' '}
-            <span className="font-semibold text-green-500">
+            <span className="font-semibold text-electric-green">
               valuations
             </span>
             , and access to a global{' '}
-            <span className="font-semibold text-purple-500">
+            <span className="font-semibold text-electric-purple">
               marketplace
             </span>
           </motion.p>
@@ -84,7 +84,7 @@ const HeroSection = () => {
           >
             <Link 
               to="/upload" 
-              className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-3"
+              className="group relative px-8 py-4 bg-gradient-to-r from-electric-blue to-electric-purple text-white rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-3"
             >
               <Camera className="w-6 h-6" />
               Start Identifying Coins
@@ -99,7 +99,7 @@ const HeroSection = () => {
             
             <Link 
               to="/marketplace" 
-              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold text-lg hover:border-purple-500 hover:text-purple-600 transition-all duration-300 hover:shadow-lg flex items-center gap-3"
+              className="px-8 py-4 border-2 border-electric-purple text-electric-purple rounded-xl font-semibold text-lg hover:border-electric-blue hover:text-electric-blue transition-all duration-300 hover:shadow-lg flex items-center gap-3"
             >
               <TrendingUp className="w-6 h-6" />
               Explore Marketplace
@@ -118,22 +118,22 @@ const HeroSection = () => {
                 icon: <Zap className="w-8 h-8" />,
                 title: 'Instant Recognition',
                 description: '99% accuracy in seconds',
-                color: 'from-yellow-500 to-orange-500',
-                textColor: 'text-orange-600'
+                color: 'from-electric-orange to-electric-red',
+                textColor: 'text-electric-orange'
               },
               {
                 icon: <TrendingUp className="w-8 h-8" />,
                 title: 'Real-time Pricing',
                 description: 'Live market valuations',
-                color: 'from-green-500 to-emerald-500',
-                textColor: 'text-green-600'
+                color: 'from-electric-green to-electric-emerald',
+                textColor: 'text-electric-green'
               },
               {
                 icon: <Shield className="w-8 h-8" />,
                 title: 'Secure Trading',
                 description: 'Protected transactions',
-                color: 'from-blue-500 to-cyan-500',
-                textColor: 'text-blue-600'
+                color: 'from-electric-blue to-electric-cyan',
+                textColor: 'text-electric-blue'
               }
             ].map((feature, index) => (
               <motion.div
