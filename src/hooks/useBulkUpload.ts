@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { CoinBatch } from '@/types/batch';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
@@ -56,8 +55,7 @@ export const useBulkUpload = () => {
 
       // Real AI analysis
       const aiResult = await aiRecognition.mutateAsync({
-        image: base64Image,
-        aiProvider: 'custom'
+        image: base64Image
       });
 
       setBatches(prev => prev.map(b => 

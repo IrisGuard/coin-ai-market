@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,8 +58,7 @@ const CoinUploadForm = () => {
       const base64Image = await convertToBase64(imageFile);
       
       const result = await aiRecognition.mutateAsync({
-        image: base64Image,
-        aiProvider: 'custom'
+        image: base64Image
       });
 
       if (result.success) {

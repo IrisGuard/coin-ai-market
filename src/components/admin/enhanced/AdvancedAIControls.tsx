@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,13 @@ import {
 import { useAdvancedAIBrain } from '@/hooks/useAdvancedAIBrain';
 import { toast } from '@/hooks/use-toast';
 
+interface AIProvider {
+  name: string;
+  isActive: boolean;
+  reliability: number;
+  averageResponseTime: number;
+}
+
 const AdvancedAIControls = () => {
   const { providers, isProcessing } = useAdvancedAIBrain();
   const [confidenceThreshold, setConfidenceThreshold] = useState([85]);
@@ -31,12 +37,21 @@ const AdvancedAIControls = () => {
   const [realTimeLearning, setRealTimeLearning] = useState(true);
 
   const [brainStats, setBrainStats] = useState({
-    activeProviders: 3,
+    activeProviders: 1,
     totalLearningCycles: 1847,
     accuracyImprovement: 12.5,
     processingOptimization: 23.8,
     userFeedbackProcessed: 342
   });
+
+  const [enhancedProviders] = useState<AIProvider[]>([
+    {
+      name: 'anthropic',
+      isActive: true,
+      reliability: 0.95,
+      averageResponseTime: 1200
+    }
+  ]);
 
   useEffect(() => {
     // Simulate real-time brain stats updates
@@ -167,7 +182,7 @@ const AdvancedAIControls = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {providers.map((provider) => (
+            {enhancedProviders.map((provider) => (
               <div key={provider.name} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
                   <Badge className={getProviderStatusColor(provider.reliability)}>
