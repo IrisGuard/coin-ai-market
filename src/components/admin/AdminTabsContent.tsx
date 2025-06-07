@@ -3,9 +3,9 @@ import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import AdminUsersTab from './tabs/AdminUsersTab';
 import AdminCoinsTab from './tabs/AdminCoinsTab';
-import AIBrainTab from './tabs/AIBrainTab';
-import ExternalSourcesTab from './tabs/ExternalSourcesTab';
-import SystemTab from './tabs/SystemTab';
+import AdminAIBrainTab from './tabs/AdminAIBrainTab';
+import AdminExternalSourcesTab from './tabs/AdminExternalSourcesTab';
+import AdminSystemTab from './tabs/AdminSystemTab';
 import DemoContentManager from './DemoContentManager';
 
 const AdminTabsContent = () => {
@@ -16,7 +16,7 @@ const AdminTabsContent = () => {
       </TabsContent>
 
       <TabsContent value="ai-brain" className="space-y-6">
-        <AIBrainTab />
+        <AdminAIBrainTab />
       </TabsContent>
       
       <TabsContent value="users" className="space-y-6">
@@ -28,11 +28,11 @@ const AdminTabsContent = () => {
       </TabsContent>
       
       <TabsContent value="external-sources" className="space-y-6">
-        <ExternalSourcesTab />
+        <AdminExternalSourcesTab />
       </TabsContent>
       
       <TabsContent value="system" className="space-y-6">
-        <SystemTab />
+        <AdminSystemTab />
       </TabsContent>
     </>
   );
