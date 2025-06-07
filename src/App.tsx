@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
@@ -51,13 +52,33 @@ function App() {
                     <Route path="/marketplace-old" element={<Marketplace />} />
                     <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
                     <Route path="/search" element={<EnhancedSearch />} />
-                    <Route path="/upload" element={<CoinUpload />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/upload" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <CoinUpload />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/profile" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <Profile />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <Auth />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/coin/:id" element={<CoinDetails />} />
                     <Route path="/auctions" element={<Auctions />} />
-                    <Route path="/sell/:id" element={<CoinSale />} />
+                    <Route path="/sell/:id" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <CoinSale />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/mobile-ai" element={<MobileAIFeatures />} />
                     <Route path="/ai-features" element={<AIFeatures />} />
                     <Route path="/category/:category" element={<CategoryPage />} />

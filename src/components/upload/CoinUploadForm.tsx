@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +48,7 @@ const CoinUploadForm = () => {
     weight: '',
     mint: '',
     category: '',
-    isAuction: false,
+    listingType: 'direct_sale',
     auctionDuration: '7'
   });
 
@@ -138,6 +137,8 @@ const CoinUploadForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const isAuction = formData.listingType === 'auction';
+    
     const coinData = {
       name: formData.name,
       year: parseInt(formData.year) || new Date().getFullYear(),
@@ -149,12 +150,22 @@ const CoinUploadForm = () => {
       denomination: formData.denomination,
       description: formData.description,
       category: formData.category,
-      is_auction: formData.isAuction,
-      auction_end: formData.isAuction ? new Date(Date.now() + parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000).toISOString() : null,
-      starting_bid: formData.isAuction ? parseFloat(formData.price) || 0 : null,
+      is_auction: isAuction,
+      listing_type: formData.listingType,
+      auction_end: isAuction ? new Date(Date.now() + parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000).toISOString() : null,
+      starting_bid: isAuction ? parseFloat(formData.price) || 0 : null,
     };
     
-    createCoin.mutate(coinData);
+    createCoin.mutate(coinData, {
+      onSuccess: () => {
+        // Redirect based on listing type
+        if (isAuction) {
+          navigate('/auctions');
+        } else {
+          navigate('/');
+        }
+      }
+    });
   };
 
   return (
@@ -191,7 +202,7 @@ const CoinUploadForm = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Image Upload */}
+              {/* Image Upload Section */}
               <div className="space-y-4">
                 <Label>Coin Image</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -270,20 +281,24 @@ const CoinUploadForm = () => {
               {/* Listing Type Selection */}
               <div className="space-y-4">
                 <Label>Listing Type</Label>
-                <div className="flex gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <Button
                     type="button"
-                    variant={!formData.isAuction ? "default" : "outline"}
-                    onClick={() => setFormData(prev => ({ ...prev, isAuction: false }))}
+                    variant={formData.listingType === 'direct_sale' ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, listingType: 'direct_sale' }))}
+                    className="h-16 flex flex-col gap-1"
                   >
-                    Direct Sale
+                    <span className="font-medium">Direct Sale</span>
+                    <span className="text-xs opacity-75">Sell immediately at fixed price</span>
                   </Button>
                   <Button
                     type="button"
-                    variant={formData.isAuction ? "default" : "outline"}
-                    onClick={() => setFormData(prev => ({ ...prev, isAuction: true }))}
+                    variant={formData.listingType === 'auction' ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, listingType: 'auction' }))}
+                    className="h-16 flex flex-col gap-1"
                   >
-                    Auction
+                    <span className="font-medium">Auction</span>
+                    <span className="text-xs opacity-75">Let buyers bid for best price</span>
                   </Button>
                 </div>
               </div>
@@ -302,7 +317,7 @@ const CoinUploadForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">Category*</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -361,9 +376,7 @@ const CoinUploadForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">
-                    {formData.isAuction ? 'Starting Bid (USD)*' : 'Price (USD)*'}
-                  </Label>
+                  <Label htmlFor="price">Price (USD)*</Label>
                   <Input
                     id="price"
                     type="number"
@@ -374,24 +387,6 @@ const CoinUploadForm = () => {
                     required
                   />
                 </div>
-
-                {formData.isAuction && (
-                  <div className="space-y-2">
-                    <Label htmlFor="auctionDuration">Auction Duration (days)</Label>
-                    <Select value={formData.auctionDuration} onValueChange={(value) => setFormData(prev => ({ ...prev, auctionDuration: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 Day</SelectItem>
-                        <SelectItem value="3">3 Days</SelectItem>
-                        <SelectItem value="7">7 Days</SelectItem>
-                        <SelectItem value="14">14 Days</SelectItem>
-                        <SelectItem value="30">30 Days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="rarity">Rarity*</Label>
@@ -468,6 +463,24 @@ const CoinUploadForm = () => {
                     placeholder="e.g., Philadelphia, Denver"
                   />
                 </div>
+
+                {formData.listingType === 'auction' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="auctionDuration">Auction Duration</Label>
+                    <Select value={formData.auctionDuration} onValueChange={(value) => setFormData(prev => ({ ...prev, auctionDuration: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Day</SelectItem>
+                        <SelectItem value="3">3 Days</SelectItem>
+                        <SelectItem value="7">7 Days</SelectItem>
+                        <SelectItem value="14">14 Days</SelectItem>
+                        <SelectItem value="30">30 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -484,7 +497,15 @@ const CoinUploadForm = () => {
               <Button
                 type="submit"
                 className="w-full coin-button"
-                disabled={createCoin.isPending || aiRecognition.isPending}
+                disabled={
+                  !formData.name || 
+                  !formData.category ||
+                  !formData.price || 
+                  !formData.image ||
+                  createCoin.isPending || 
+                  aiRecognition.isPending
+                }
+                size="lg"
               >
                 {createCoin.isPending ? (
                   <>
@@ -493,7 +514,7 @@ const CoinUploadForm = () => {
                   </>
                 ) : (
                   <>
-                    {formData.isAuction ? 'Start Auction' : 'List Coin for Sale'}
+                    {formData.listingType === 'auction' ? 'Start Auction' : 'List for Sale'}
                   </>
                 )}
               </Button>
