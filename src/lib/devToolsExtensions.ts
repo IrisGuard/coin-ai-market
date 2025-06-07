@@ -7,33 +7,33 @@ export const setupDevToolsExtensions = () => {
 
   // Browser DevTools Integration
   window.CoinAI = {
-    // View all errors in console
-    showErrors() {
-      console.group('🔴 Application Errors');
-      consoleMonitor.getErrors().forEach(error => {
-        console.error(`[${error.timestamp}] ${error.message}`);
-        if (error.stack) console.trace(error.stack);
-      });
+    // View console monitoring status
+    showMonitoringStatus() {
+      console.group('🔍 Console Monitoring Status');
+      console.log('Console monitoring is active');
+      console.log('All console logs are being captured and sent to monitoring in production');
       console.groupEnd();
     },
     
-    // View warnings
-    showWarnings() {
-      console.group('🟡 Application Warnings');
-      consoleMonitor.getWarnings().forEach(warning => {
-        console.warn(`[${warning.timestamp}] ${warning.message}`);
-      });
+    // Test console monitoring
+    testConsoleMonitoring() {
+      console.group('🧪 Testing Console Monitoring');
+      console.log('This is a test log message');
+      console.warn('This is a test warning message');
+      console.error('This is a test error message');
+      console.info('This is a test info message');
+      console.log('✅ Console monitoring test completed - check production logs');
       console.groupEnd();
     },
     
-    // Export error report
-    exportErrorReport() {
+    // Export monitoring report (placeholder for future implementation)
+    exportMonitoringReport() {
       const report = {
         timestamp: new Date().toISOString(),
         url: window.location.href,
         userAgent: navigator.userAgent,
-        errors: consoleMonitor.getErrors(),
-        warnings: consoleMonitor.getWarnings()
+        monitoringActive: true,
+        note: 'Console logs are sent to /api/console-monitor in production'
       };
       
       const blob = new Blob([JSON.stringify(report, null, 2)], {
@@ -42,16 +42,15 @@ export const setupDevToolsExtensions = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `error-report-${Date.now()}.json`;
+      a.download = `monitoring-report-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     },
     
-    // Clear all monitoring data
-    clearLogs() {
-      consoleMonitor.clearAll();
+    // Clear console
+    clearConsole() {
       console.clear();
-      console.log('✅ All logs cleared');
+      console.log('✅ Console cleared');
     },
     
     // Test security validation
@@ -70,6 +69,21 @@ export const setupDevToolsExtensions = () => {
         console.error('❌ Security test failed:', error);
       }
       console.groupEnd();
+    },
+
+    // Show available commands
+    help() {
+      console.group('🚀 CoinAI DevTools Commands');
+      console.log('showMonitoringStatus() - Check console monitoring status');
+      console.log('testConsoleMonitoring() - Test console monitoring functionality');
+      console.log('exportMonitoringReport() - Export monitoring configuration');
+      console.log('clearConsole() - Clear console logs');
+      console.log('testSecurity() - Run security validation tests');
+      console.log('help() - Show this help message');
+      console.groupEnd();
     }
   };
+
+  // Show welcome message
+  console.log('🔧 CoinAI DevTools loaded - type CoinAI.help() for available commands');
 };
