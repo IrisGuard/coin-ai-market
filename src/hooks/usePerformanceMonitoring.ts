@@ -181,7 +181,7 @@ export const useWebVitals = () => {
       // Dynamic import for web-vitals to avoid build issues
       const loadWebVitals = async () => {
         try {
-          const { onCLS, onFID, onFCP, onLCP, onTTFB } = await import('web-vitals');
+          const { onCLS, onINP, onFCP, onLCP, onTTFB } = await import('web-vitals');
           
           function sendToVercel(metric: any) {
             if (window.va) {
@@ -203,7 +203,7 @@ export const useWebVitals = () => {
           }
 
           onCLS(sendToVercel);
-          onFID(sendToVercel);
+          onINP(sendToVercel); // Updated from onFID to onINP
           onFCP(sendToVercel);
           onLCP(sendToVercel);
           onTTFB(sendToVercel);
