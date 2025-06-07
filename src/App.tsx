@@ -20,7 +20,6 @@ import Profile from "./pages/Profile";
 import Auctions from "./pages/Auctions";
 import CoinSale from "./pages/CoinSale";
 import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 // Validate environment variables on app start
