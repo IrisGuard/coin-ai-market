@@ -2,9 +2,9 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { DashboardStatsGrid } from '@/components/dashboard/DashboardStatsGrid';
-import { DashboardTabsContent } from '@/components/dashboard/DashboardTabsContent';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
+import DashboardTabsContent from '@/components/dashboard/DashboardTabsContent';
 import { DataSyncStatus } from '@/components/dashboard/DataSyncStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 

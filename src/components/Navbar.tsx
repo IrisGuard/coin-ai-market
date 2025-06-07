@@ -19,10 +19,10 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-export const Navbar = () => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const { data: profileData } = useUserProfile();
 
   const navigation = [
@@ -103,7 +103,7 @@ export const Navbar = () => {
                         {item.name}
                       </Link>
                     ))}
-                    <Button variant="outline" size="sm" onClick={() => signOut()}>
+                    <Button variant="outline" size="sm" onClick={() => logout()}>
                       Sign Out
                     </Button>
                   </div>
@@ -167,3 +167,5 @@ export const Navbar = () => {
     </nav>
   );
 };
+
+export default Navbar;
