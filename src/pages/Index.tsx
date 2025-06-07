@@ -5,6 +5,7 @@ import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
+import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
@@ -51,6 +52,9 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Categories Grid */}
         <CategoriesGrid />
+        
+        {/* Featured Coins Section */}
+        <FeaturedCoinsSection />
       </div>
 
       <Footer />
