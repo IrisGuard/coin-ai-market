@@ -25,6 +25,7 @@ export const featuredAuctions: AuctionCoin[] = [
     watchers: 24,
     views: 156,
     is_auction: true,
+    listing_type: 'auction',
     authentication_status: 'verified',
     featured: true,
     profiles: {
@@ -58,6 +59,7 @@ export const featuredAuctions: AuctionCoin[] = [
     watchers: 31,
     views: 203,
     is_auction: true,
+    listing_type: 'auction',
     authentication_status: 'verified',
     featured: true,
     profiles: {
@@ -91,6 +93,7 @@ export const featuredAuctions: AuctionCoin[] = [
     watchers: 19,
     views: 89,
     is_auction: true,
+    listing_type: 'auction',
     authentication_status: 'verified',
     featured: false,
     profiles: {
@@ -124,6 +127,7 @@ export const featuredAuctions: AuctionCoin[] = [
     watchers: 7,
     views: 34,
     is_auction: true,
+    listing_type: 'auction',
     authentication_status: 'verified',
     featured: false,
     profiles: {

@@ -49,6 +49,7 @@ export const generateAuctionCoin = (id: number): AuctionCoin => {
     watchers: watchers,
     views: views,
     is_auction: true,
+    listing_type: 'auction',
     authentication_status: 'verified',
     featured: Math.random() > 0.8,
     profiles: {
