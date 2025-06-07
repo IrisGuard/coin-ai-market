@@ -1,57 +1,44 @@
 
-import { useState } from 'react';
-import { Search, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React from 'react';
+import { Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface MarketplaceSearchProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  onAdvancedFilters?: () => void;
 }
 
-const MarketplaceSearch = ({ searchTerm, setSearchTerm }: MarketplaceSearchProps) => {
-  const [isFocused, setIsFocused] = useState(false);
-
+const MarketplaceSearch: React.FC<MarketplaceSearchProps> = ({
+  searchTerm,
+  setSearchTerm,
+  onAdvancedFilters
+}) => {
   return (
-    <motion.div 
-      className={`relative ${isFocused ? 'scale-105' : 'scale-100'}`}
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ scale: 1.02 }}
-    >
-      <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-all ${isFocused ? 'text-coin-purple' : 'text-gray-400'}`}>
-        <Search size={18} />
+    <div className="flex gap-3 max-w-2xl mx-auto">
+      <div className="relative flex-1">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <Input
+          type="text"
+          placeholder="Αναζήτηση νομισμάτων, χρονολογιών, χωρών..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-12 h-12 text-lg bg-white/90 border-2 border-gray-200 focus:border-blue-400 rounded-xl shadow-lg"
+        />
       </div>
-      <input
-        type="text"
-        placeholder="Search coins, years, grades..."
-        className={`pl-10 pr-8 py-2.5 rounded-full border-2 transition-all duration-300 outline-none w-full md:w-64 ${
-          isFocused 
-            ? 'border-coin-purple shadow-md shadow-coin-purple/20' 
-            : 'border-gray-200'
-        }`}
-        style={{
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(4px)'
-        }}
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
-      {searchTerm && (
-        <button
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-coin-purple transition-colors"
-          onClick={() => setSearchTerm('')}
-        >
-          <X size={16} />
-        </button>
-      )}
       
-      <div className="hidden md:block absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-1 bg-gradient-to-r from-coin-purple to-coin-skyblue rounded-full opacity-0 transition-opacity duration-300"
-        style={{ opacity: isFocused ? 1 : 0 }}
-      ></div>
-    </motion.div>
+      {onAdvancedFilters && (
+        <Button
+          variant="outline"
+          onClick={onAdvancedFilters}
+          className="h-12 px-6 bg-white/90 border-2 border-gray-200 hover:border-blue-400 rounded-xl shadow-lg"
+        >
+          <Filter className="w-5 h-5 mr-2" />
+          Φίλτρα
+        </Button>
+      )}
+    </div>
   );
 };
 

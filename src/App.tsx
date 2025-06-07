@@ -9,6 +9,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
+import ActiveMarketplace from "./pages/ActiveMarketplace";
 import CoinUpload from "./pages/CoinUpload";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -38,7 +39,8 @@ function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/marketplace" element={<ActiveMarketplace />} />
+                <Route path="/marketplace-old" element={<Marketplace />} />
                 <Route path="/search" element={<EnhancedSearch />} />
                 <Route path="/upload" element={<CoinUpload />} />
                 <Route path="/dashboard" element={<Dashboard />} />

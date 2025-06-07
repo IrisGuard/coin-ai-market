@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Target, Clock, Star, DollarSign } from 'lucide-react';
-import { useI18n } from '@/hooks/useI18n';
+import { TrendingUp, Users, Coins, DollarSign } from 'lucide-react';
 
 interface MarketplaceStatsRowProps {
   stats: {
@@ -14,57 +13,61 @@ interface MarketplaceStatsRowProps {
 }
 
 const MarketplaceStatsRow: React.FC<MarketplaceStatsRowProps> = ({ stats }) => {
-  const { t } = useI18n();
-
   const statItems = [
-    { 
-      icon: <Target className="w-8 h-8" />, 
-      value: stats.total, 
-      label: t('marketplace.stats.total'), 
-      color: "text-brand-primary"
+    {
+      icon: Coins,
+      value: stats.total.toLocaleString(),
+      label: 'Ενεργά Νομίσματα',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
     },
-    { 
-      icon: <Clock className="w-8 h-8" />, 
-      value: stats.auctions, 
-      label: t('marketplace.stats.auctions'), 
-      color: "text-brand-secondary"
+    {
+      icon: TrendingUp,
+      value: stats.auctions.toLocaleString(),
+      label: 'Ζωντανές Δημοπρασίες',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
     },
-    { 
-      icon: <Star className="w-8 h-8" />, 
-      value: stats.featured, 
-      label: t('marketplace.stats.featured'), 
-      color: "text-coin-gold"
+    {
+      icon: Users,
+      value: stats.featured.toLocaleString(),
+      label: 'Προτεινόμενα',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
     },
-    { 
-      icon: <DollarSign className="w-8 h-8" />, 
-      value: `€${Math.round(stats.totalValue / 1000)}K`, 
-      label: t('marketplace.stats.totalValue'), 
-      color: "text-electric-orange"
+    {
+      icon: DollarSign,
+      value: `€${(stats.totalValue / 1000).toFixed(0)}K`,
+      label: 'Συνολική Αξία',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
     }
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.2 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+      transition={{ duration: 0.8, delay: 0.6 }}
+      className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12"
     >
       {statItems.map((stat, index) => (
         <motion.div
           key={stat.label}
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 + (index * 0.1) }}
-          className="glass-card p-6 rounded-3xl border border-white/20 text-center group hover:shadow-2xl transition-all duration-300"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+          className={`${stat.bgColor} rounded-2xl p-6 text-center border border-white/50 shadow-lg`}
         >
-          <div className={`w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 ${stat.color}`}>
-            {stat.icon}
+          <div className={`inline-flex items-center justify-center w-12 h-12 ${stat.bgColor} rounded-full mb-4`}>
+            <stat.icon className={`w-6 h-6 ${stat.color}`} />
           </div>
-          <div className={`text-3xl font-bold mb-2 ${stat.color}`}>
-            {typeof stat.value === 'string' ? stat.value : stat.value.toLocaleString()}
+          <div className={`text-3xl font-bold ${stat.color} mb-2`}>
+            {stat.value}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">{stat.label}</div>
+          <div className="text-gray-600 text-sm font-medium">
+            {stat.label}
+          </div>
         </motion.div>
       ))}
     </motion.div>
