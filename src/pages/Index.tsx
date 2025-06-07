@@ -1,12 +1,13 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, Settings, Users } from 'lucide-react';
 
 const Index = () => {
   usePageView();
@@ -53,6 +54,28 @@ const Index = () => {
       </div>
 
       <Footer />
+
+      {/* Fixed Buttons - Bottom Right */}
+      <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-50">
+        <Link to="/admin">
+          <Button 
+            className="bg-electric-blue hover:bg-electric-blue/90 text-white px-4 py-2 text-sm shadow-lg"
+            size="sm"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Admin Panel
+          </Button>
+        </Link>
+        <Link to="/marketplace/panel">
+          <Button 
+            className="bg-electric-green hover:bg-electric-green/90 text-white px-4 py-2 text-sm shadow-lg"
+            size="sm"
+          >
+            <Users className="w-4 h-4 mr-2" />
+            User Marketplace Panel
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };

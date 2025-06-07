@@ -24,6 +24,8 @@ import EnhancedSearch from "./pages/EnhancedSearch";
 import MobileAIFeatures from '@/pages/MobileAIFeatures';
 import AIFeatures from './pages/AIFeatures';
 import CategoryPage from './pages/CategoryPage';
+import AdminPanelPage from './pages/AdminPanelPage';
+import MarketplacePanelPage from './pages/MarketplacePanelPage';
 import { AdminProvider } from "@/contexts/AdminContext";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 
@@ -80,6 +82,8 @@ function App() {
                     <Route path="/mobile-ai" element={<MobileAIFeatures />} />
                     <Route path="/ai-features" element={<AIFeatures />} />
                     <Route path="/category/:category" element={<CategoryPage />} />
+                    <Route path="/admin" element={<AdminPanelPage />} />
+                    <Route path="/marketplace/panel" element={<MarketplacePanelPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <AdminKeyboardHandler />
