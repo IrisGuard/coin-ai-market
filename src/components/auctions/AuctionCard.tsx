@@ -31,6 +31,7 @@ interface AuctionCoin {
 interface AuctionCardProps {
   auction: AuctionCoin;
   index: number;
+  isMyBid: boolean;
   bidAmount: string;
   setBidAmount: (amount: string) => void;
   placeBid: (auctionId: string) => void;
@@ -41,6 +42,7 @@ interface AuctionCardProps {
 const AuctionCard = ({
   auction,
   index,
+  isMyBid,
   bidAmount,
   setBidAmount,
   placeBid,
@@ -49,7 +51,6 @@ const AuctionCard = ({
 }: AuctionCardProps) => {
   const timeRemaining = useAuctionTimer(auction.auction_end);
   const isEndingSoon = timeRemaining.days === 0 && timeRemaining.hours <= 24;
-  const isMyBid = auction.highest_bidder_id === userId;
 
   return (
     <motion.div
