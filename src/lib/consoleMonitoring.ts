@@ -1,80 +1,69 @@
 
-import { logSecurityEvent } from '../utils/securityConfig';
-
-interface ErrorEntry {
-  message: string;
-  timestamp: string;
-  stack?: string;
-  url: string;
-}
-
-interface WarningEntry {
-  message: string;
-  timestamp: string;
-  url: string;
-}
-
 export class ConsoleMonitor {
   private static instance: ConsoleMonitor;
-  private errors: ErrorEntry[] = [];
-  private warnings: WarningEntry[] = [];
-  
+  private originalConsole: any = {};
+  private isInitialized = false;
+
   static getInstance(): ConsoleMonitor {
     if (!ConsoleMonitor.instance) {
       ConsoleMonitor.instance = new ConsoleMonitor();
     }
     return ConsoleMonitor.instance;
   }
-  
+
   init() {
-    // Capture console errors and warnings
-    const originalError = console.error;
-    const originalWarn = console.warn;
-    
-    console.error = (...args) => {
-      this.errors.push({
-        message: args.join(' '),
-        timestamp: new Date().toISOString(),
-        stack: new Error().stack,
-        url: window.location.href
-      });
-      originalError.apply(console, args);
-      this.sendToMonitoring('error', args);
+    if (this.isInitialized) return;
+
+    // Store original console methods
+    this.originalConsole = {
+      log: console.log,
+      warn: console.warn,
+      error: console.error,
+      info: console.info
     };
-    
-    console.warn = (...args) => {
-      this.warnings.push({
-        message: args.join(' '),
-        timestamp: new Date().toISOString(),
-        url: window.location.href
-      });
-      originalWarn.apply(console, args);
-      this.sendToMonitoring('warning', args);
-    };
+
+    // Intercept console methods
+    console.log = this.interceptLog.bind(this, 'log');
+    console.warn = this.interceptLog.bind(this, 'warn');
+    console.error = this.interceptLog.bind(this, 'error');
+    console.info = this.interceptLog.bind(this, 'info');
+
+    this.isInitialized = true;
+    console.log('🔍 Console monitoring initialized');
   }
-  
-  private sendToMonitoring(level: string, args: any[]) {
-    // Send to monitoring in production only
-    if (process.env.NODE_ENV === 'production') {
-      fetch('/api/console-monitor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          level,
-          message: args.join(' '),
-          timestamp: new Date().toISOString(),
-          url: window.location.href,
-          userAgent: navigator.userAgent
-        })
-      }).catch(() => {}); // Silent fail
+
+  private async interceptLog(level: string, ...args: any[]) {
+    // Call original console method
+    this.originalConsole[level]?.apply(console, args);
+
+    // Send to monitoring in production
+    if (import.meta.env.PROD) {
+      try {
+        await fetch('/api/console-monitor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            level,
+            message: args.map(arg => 
+              typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            ).join(' '),
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            stack: level === 'error' && args[0]?.stack ? args[0].stack : undefined
+          })
+        });
+      } catch (error) {
+        // Fail silently to avoid infinite loops
+      }
     }
   }
-  
-  getErrors() { return this.errors; }
-  getWarnings() { return this.warnings; }
-  
-  clearAll() {
-    this.errors = [];
-    this.warnings = [];
+
+  destroy() {
+    if (!this.isInitialized) return;
+
+    // Restore original console methods
+    Object.assign(console, this.originalConsole);
+    this.isInitialized = false;
   }
 }
