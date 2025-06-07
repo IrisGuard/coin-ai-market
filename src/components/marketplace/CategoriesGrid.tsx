@@ -1,59 +1,72 @@
 
 import React from 'react';
-import { Coins, Crown, Globe, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Coins, Clock, Star, Globe, TrendingUp, Shield } from 'lucide-react';
 
 const categories = [
   {
-    icon: Crown,
-    title: "Ancient Coins",
-    description: "Greek, Roman & Byzantine treasures",
-    count: "2,500+ items",
-    color: "bg-amber-100 text-amber-600"
+    name: 'Ancient Coins',
+    icon: <Globe className="w-6 h-6" />,
+    count: '245+',
+    href: '/marketplace?category=ancient'
   },
   {
-    icon: Coins,
-    title: "World Coins",
-    description: "Modern coins from around the globe",
-    count: "5,000+ items",
-    color: "bg-blue-100 text-blue-600"
+    name: 'Modern Coins',
+    icon: <Coins className="w-6 h-6" />,
+    count: '1.2k+',
+    href: '/marketplace?category=modern'
   },
   {
-    icon: Globe,
-    title: "European Coins",
-    description: "Historic European currency",
-    count: "1,800+ items",
-    color: "bg-green-100 text-green-600"
+    name: 'Error Coins',
+    icon: <Star className="w-6 h-6" />,
+    count: '89+',
+    href: '/marketplace?category=error'
   },
   {
-    icon: Zap,
-    title: "Rare & Collectible",
-    description: "Limited edition & error coins",
-    count: "700+ items",
-    color: "bg-purple-100 text-purple-600"
+    name: 'Live Auctions',
+    icon: <Clock className="w-6 h-6" />,
+    count: '126+',
+    href: '/marketplace?auctions=true'
+  },
+  {
+    name: 'Graded Coins',
+    icon: <Shield className="w-6 h-6" />,
+    count: '567+',
+    href: '/marketplace?graded=true'
+  },
+  {
+    name: 'Trending',
+    icon: <TrendingUp className="w-6 h-6" />,
+    count: '89+',
+    href: '/marketplace?trending=true'
   }
 ];
 
 const CategoriesGrid = () => {
   return (
-    <div className="mb-12">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Shop by Category</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {categories.map((category, index) => {
-          const IconComponent = category.icon;
-          return (
-            <div
-              key={index}
-              className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group"
-            >
-              <div className={`w-12 h-12 rounded-lg ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <IconComponent className="w-6 h-6" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">{category.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{category.description}</p>
-              <p className="text-xs text-gray-500">{category.count}</p>
+    <div className="mb-8">
+      <h2 className="text-xl font-medium text-gray-900 mb-4">
+        Shop by category
+      </h2>
+      
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+        {categories.map((category) => (
+          <Link
+            key={category.name}
+            to={category.href}
+            className="group text-center p-4 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <div className="w-12 h-12 mx-auto mb-2 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 group-hover:bg-orange-200 transition-colors">
+              {category.icon}
             </div>
-          );
-        })}
+            <h3 className="text-sm font-medium text-gray-900 mb-1">
+              {category.name}
+            </h3>
+            <p className="text-xs text-gray-600">
+              {category.count}
+            </p>
+          </Link>
+        ))}
       </div>
     </div>
   );

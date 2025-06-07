@@ -9,7 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
 
 export const PreferencesTab = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, language, setLanguage } = useTheme();
   const { appSettings, setAppSettings, updateSettings, saving } = useUserSettings();
 
   return (
@@ -34,6 +34,22 @@ export const PreferencesTab = () => {
             checked={theme === 'dark'}
             onCheckedChange={toggleTheme}
           />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">Language</p>
+            <p className="text-sm text-gray-600">Choose your preferred language</p>
+          </div>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="el">Ελληνικά</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-center justify-between">
