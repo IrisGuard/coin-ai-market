@@ -21,6 +21,12 @@
   --electric-orange: #ff6600;
   --electric-green: #00ff88;
   --electric-red: #ff1744;
+  --electric-cyan: #00e5ff;
+  --electric-emerald: #10dc60;
+  --electric-lime: #32d74b;
+  --electric-yellow: #ffcc00;
+  --electric-indigo: #5856d6;
+  --electric-teal: #5ac8fa;
   
   /* Brand colors */
   --brand-primary: #6366f1;
@@ -52,6 +58,7 @@
   --coin-silver: #c0c0c0;
   --coin-bronze: #cd7f32;
   --coin-copper: #b87333;
+  --coin-platinum: #e5e4e2;
 }
 
 * {
@@ -127,4 +134,24 @@ body {
 @media (min-width: 1024px) {
   .container-padding { padding: 0 2rem; }
   .section-spacing { padding: 8rem 0; }
+}
+
+/* Glow effects */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.6); }
+}
+
+.glow-electric-blue {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Pulse effects */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
 }

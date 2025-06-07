@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Star, Eye, Heart } from 'lucide-react';
 
 interface MockCoin {
   id: string;
@@ -13,6 +13,7 @@ interface MockCoin {
   store: string;
   condition: string;
   year: number;
+  featured?: boolean;
 }
 
 const mockCoins: MockCoin[] = [
@@ -24,7 +25,8 @@ const mockCoins: MockCoin[] = [
     seller: 'CoinMaster Pro',
     store: '1',
     condition: 'MS-63',
-    year: 1921
+    year: 1921,
+    featured: true
   },
   {
     id: '2',
@@ -54,7 +56,8 @@ const mockCoins: MockCoin[] = [
     seller: 'Modern Mints',
     store: '4',
     condition: 'MS-64',
-    year: 1955
+    year: 1955,
+    featured: true
   },
   {
     id: '5',
@@ -74,7 +77,8 @@ const mockCoins: MockCoin[] = [
     seller: 'The Coin Vault',
     store: '6',
     condition: 'F-15',
-    year: 1893
+    year: 1893,
+    featured: true
   },
   {
     id: '7',
@@ -319,45 +323,86 @@ const mockCoins: MockCoin[] = [
 ];
 
 const FeaturedCoinsSection = () => {
+  const displayCoins = mockCoins.slice(0, 8);
+
   return (
-    <div className="mb-12">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-        Featured Coins
-      </h2>
+    <div className="mb-16">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            Featured Coins
+          </h2>
+          <p className="text-lg text-gray-600">
+            Hand-picked treasures from verified dealers worldwide
+          </p>
+        </div>
+        <Link to="/marketplace">
+          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-pink-600 text-white">
+            View All
+          </Button>
+        </Link>
+      </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {mockCoins.map((coin) => (
-          <Card key={coin.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200 hover:border-orange-300">
-            <CardContent className="p-3">
-              <div className="aspect-square mb-3 overflow-hidden rounded-lg">
-                <img 
-                  src={coin.image}
-                  alt={coin.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {displayCoins.map((coin) => (
+          <Card key={coin.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-white rounded-2xl overflow-hidden">
+            <CardContent className="p-0">
+              <div className="relative">
+                <div className="aspect-square overflow-hidden">
+                  <img 
+                    src={coin.image}
+                    alt={coin.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                
+                {coin.featured && (
+                  <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                    <Star className="w-3 h-3" fill="currentColor" />
+                    Featured
+                  </div>
+                )}
+                
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-red-500 hover:text-red-600 transition-colors">
+                    <Heart className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-tight">
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
                   {coin.title}
                 </h3>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-electric-orange">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                     ${coin.price.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-medium bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                    {coin.condition}
                   </span>
                 </div>
                 
-                <p className="text-xs text-gray-600 truncate">
+                <p className="text-sm text-gray-600 mb-3 truncate">
                   {coin.seller}
                 </p>
                 
-                <Button 
-                  size="sm" 
-                  className="w-full bg-electric-blue hover:bg-electric-blue/90 text-white text-xs"
-                >
-                  View Details
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-pink-600 text-white text-sm"
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="px-3 border-gray-200 hover:border-gray-300"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
