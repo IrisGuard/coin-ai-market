@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
@@ -7,12 +7,14 @@ import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection";
 import Footer from "@/components/Footer";
+import AdminPanel from "@/components/admin/AdminPanel";
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 
 const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,13 +63,22 @@ const Index = () => {
 
       {/* Fixed Admin Buttons - Bottom Right */}
       <div style={{position: 'fixed', bottom: '20px', right: '20px', display: 'flex', gap: '10px', zIndex: 9999}}>
-        <Link to="/admin" style={{fontSize: '12px', padding: '6px 10px', background: '#007bff', color: '#fff', borderRadius: '4px', textDecoration: 'none'}}>
+        <button 
+          onClick={() => setShowAdminPanel(true)}
+          style={{fontSize: '12px', padding: '6px 10px', background: '#007bff', color: '#fff', borderRadius: '4px', textDecoration: 'none', border: 'none', cursor: 'pointer'}}
+        >
           Admin Panel
-        </Link>
+        </button>
         <Link to="/marketplace/panel" style={{fontSize: '12px', padding: '6px 10px', background: '#28a745', color: '#fff', borderRadius: '4px', textDecoration: 'none'}}>
           User Panel
         </Link>
       </div>
+
+      {/* Admin Panel Dialog */}
+      <AdminPanel 
+        isOpen={showAdminPanel} 
+        onClose={() => setShowAdminPanel(false)} 
+      />
     </div>
   );
 };
