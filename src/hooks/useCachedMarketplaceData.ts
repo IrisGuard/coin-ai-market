@@ -107,9 +107,9 @@ export const useCachedMarketplaceData = () => {
         ? processedCoins.reduce((sum, coin) => sum + (coin.price || 0), 0) / processedCoins.length 
         : 0,
       categories: {
-        rare: processedCoins.filter(c => c.rarity === 'rare').length,
-        common: processedCoins.filter(c => c.rarity === 'common').length,
-        uncommon: processedCoins.filter(c => c.rarity === 'uncommon').length,
+        rare: processedCoins.filter(c => c.rarity === 'Rare').length,
+        common: processedCoins.filter(c => c.rarity === 'Common').length,
+        uncommon: processedCoins.filter(c => c.rarity === 'Uncommon').length,
       }
     };
     

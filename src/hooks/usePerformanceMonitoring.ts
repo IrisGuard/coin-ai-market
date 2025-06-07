@@ -7,6 +7,17 @@ interface PerformanceMetrics {
   mountTime: number;
 }
 
+// Extend Window interface to include gtag
+declare global {
+  interface Window {
+    gtag?: (
+      command: 'config' | 'event',
+      targetId: string,
+      config?: Record<string, any>
+    ) => void;
+  }
+}
+
 export const usePerformanceMonitoring = (componentName: string) => {
   const startTime = useRef<number>(performance.now());
   const mounted = useRef<boolean>(false);
@@ -32,11 +43,13 @@ export const usePerformanceMonitoring = (componentName: string) => {
         };
         
         // Send to analytics service
-        window.gtag?.('event', 'performance_metric', {
-          custom_map: { metric_name: 'component_mount_time' },
-          component_name: componentName,
-          mount_time: mountTime
-        });
+        if (typeof window !== 'undefined' && window.gtag) {
+          window.gtag('event', 'performance_metric', {
+            custom_map: { metric_name: 'component_mount_time' },
+            component_name: componentName,
+            mount_time: mountTime
+          });
+        }
       }
     }
   }, [componentName]);
