@@ -31,7 +31,7 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { mutate: createCoin, isLoading, isError, error } = useCreateCoin();
+  const createCoinMutation = useCreateCoin();
 
   const [name, setName] = useState('');
   const [year, setYear] = useState<number | ''>('');
@@ -96,7 +96,7 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
       }),
     };
 
-    createCoin(coinData, {
+    createCoinMutation.mutate(coinData, {
       onSuccess: () => {
         toast({
           title: "Listing Created",
@@ -122,12 +122,12 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
   return (
     <form onSubmit={handleSubmit}>
       <div className="space-y-8">
-        {isError && (
+        {createCoinMutation.isError && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
-              {error instanceof Error ? error.message : 'An unexpected error occurred'}
+              {createCoinMutation.error instanceof Error ? createCoinMutation.error.message : 'An unexpected error occurred'}
             </AlertDescription>
           </Alert>
         )}
@@ -366,15 +366,15 @@ const CoinUploadForm: React.FC<CoinUploadFormProps> = ({ listingType, storeId })
             type="button" 
             variant="outline" 
             onClick={() => navigate('/dashboard')}
-            disabled={isLoading}
+            disabled={createCoinMutation.isPending}
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
-            disabled={isLoading}
+            disabled={createCoinMutation.isPending}
           >
-            {isLoading ? (
+            {createCoinMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Creating...

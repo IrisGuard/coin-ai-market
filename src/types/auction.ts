@@ -7,13 +7,27 @@ export interface TimeRemaining {
   expired: boolean;
 }
 
+export type AuctionRarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare';
+
+export interface CoinType {
+  name: string;
+  denom: string;
+  basePrice: number;
+}
+
+export interface Dealer {
+  id: string;
+  name: string;
+  rep: number;
+}
+
 export interface AuctionCoin {
   id: string;
   name: string;
   year: number;
   grade: string;
   price: number;
-  rarity: string;
+  rarity: AuctionRarity;
   image: string;
   user_id: string;
   country?: string;
@@ -26,6 +40,14 @@ export interface AuctionCoin {
   reserve_price?: number;
   starting_bid?: number;
   current_bid?: number;
+  starting_price?: number;
+  bid_count?: number;
+  seller_id?: string;
+  highest_bidder_id?: string | null;
+  watchers?: number;
+  views?: number;
+  authentication_status?: 'pending' | 'verified' | 'rejected';
+  featured?: boolean;
   profiles?: {
     id: string;
     name: string;

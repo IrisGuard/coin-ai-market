@@ -34,6 +34,7 @@ export interface Coin {
   featured?: boolean;
   authentication_status?: 'pending' | 'verified' | 'rejected';
   is_auction?: boolean;
+  listing_type?: 'auction' | 'direct_sale';
   auction_end?: string;
   reserve_price?: number;
   sold?: boolean;

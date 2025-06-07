@@ -1,4 +1,3 @@
-
 import { AuctionCoin } from '@/types/auction';
 
 export const featuredAuctions: AuctionCoin[] = [
@@ -15,7 +14,7 @@ export const featuredAuctions: AuctionCoin[] = [
     description: 'Extremely rare 1916-D Mercury Dime in exceptional condition.',
     price: 1200,
     user_id: 'dealer-1',
-    starting_price: 1200,
+    starting_bid: 1200,
     current_bid: 1850,
     reserve_price: 2000,
     auction_end: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -48,7 +47,7 @@ export const featuredAuctions: AuctionCoin[] = [
     description: 'Key date Morgan Dollar from San Francisco mint.',
     price: 3200,
     user_id: 'dealer-2',
-    starting_price: 3200,
+    starting_bid: 3200,
     current_bid: 4750,
     reserve_price: 5000,
     auction_end: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
@@ -81,7 +80,7 @@ export const featuredAuctions: AuctionCoin[] = [
     description: 'First year Lincoln cent with designer initials.',
     price: 650,
     user_id: 'dealer-3',
-    starting_price: 650,
+    starting_bid: 650,
     current_bid: 925,
     reserve_price: 1000,
     auction_end: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -114,7 +113,7 @@ export const featuredAuctions: AuctionCoin[] = [
     description: 'Wartime steel penny in brilliant uncirculated condition.',
     price: 25,
     user_id: 'dealer-1',
-    starting_price: 25,
+    starting_bid: 25,
     current_bid: 45,
     reserve_price: 50,
     auction_end: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
