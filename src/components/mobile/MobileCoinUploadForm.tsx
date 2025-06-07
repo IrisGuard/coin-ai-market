@@ -1,163 +1,287 @@
 
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Camera, Upload, Zap, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCreateCoin } from '@/hooks/useCoinMutations';
-import { Upload, Camera } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useCoinUpload } from '@/hooks/useCoinUpload';
 
 const MobileCoinUploadForm = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    year: new Date().getFullYear(),
-    grade: '',
-    price: 0,
-    rarity: '',
-    image: '',
-    country: '',
-    denomination: '',
-    description: '',
-    condition: ''
-  });
+  const {
+    images,
+    isAnalyzing,
+    analysisResults,
+    isSubmitting,
+    coinData,
+    setCoinData,
+    handleFiles,
+    handleUploadAndAnalyze,
+    handleSubmitListing,
+    removeImage
+  } = useCoinUpload();
 
-  const createCoin = useCreateCoin();
+  const [cameraMode, setCameraMode] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const coinData = {
-      name: formData.name,
-      year: formData.year,
-      grade: formData.grade,
-      price: formData.price,
-      rarity: formData.rarity,
-      image: formData.image,
-      country: formData.country,
-      denomination: formData.denomination,
-      description: formData.description,
-    };
-    
-    createCoin.mutate(coinData);
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      handleFiles(files);
+    }
   };
 
-  const handleImageUpload = () => {
-    // Handle image upload logic
-    console.log('Image upload triggered');
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileInput(e);
+    setCameraMode(false);
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
-          Upload Coin
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Coin Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
+    <div className="container mx-auto px-4 space-y-6">
+      {/* Image Capture Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="w-5 h-5 text-blue-600" />
+              Capture Coin Images
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Camera Input */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  multiple
+                  onChange={handleCameraCapture}
+                  className="hidden"
+                  id="camera-input"
+                />
+                <Label htmlFor="camera-input">
+                  <Button asChild className="w-full">
+                    <span>
+                      <Camera className="w-4 h-4 mr-2" />
+                      Take Photo
+                    </span>
+                  </Button>
+                </Label>
+              </div>
+              
+              <div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileInput}
+                  className="hidden"
+                  id="gallery-input"
+                />
+                <Label htmlFor="gallery-input">
+                  <Button variant="outline" asChild className="w-full">
+                    <span>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Gallery
+                    </span>
+                  </Button>
+                </Label>
+              </div>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
+            {/* Image Preview */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {images.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image.preview}
+                      alt={`Coin ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    {image.uploaded && (
+                      <Badge className="absolute top-2 right-2 bg-green-500">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Uploaded
+                      </Badge>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute bottom-2 right-2 h-6 w-6 p-0"
+                      onClick={() => removeImage(index)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* AI Analysis Button */}
+            {images.length > 0 && (
+              <Button
+                onClick={handleUploadAndAnalyze}
+                disabled={isAnalyzing || images.every(img => img.uploaded)}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Zap className="w-4 h-4 mr-2 animate-pulse" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Analyze with AI
+                  </>
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Analysis Results */}
+        {analysisResults && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-green-600">AI Analysis Complete</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">Coin:</span>
+                  <p>{analysisResults.coinName}</p>
+                </div>
+                <div>
+                  <span className="font-medium">Year:</span>
+                  <p>{analysisResults.year}</p>
+                </div>
+                <div>
+                  <span className="font-medium">Grade:</span>
+                  <p>{analysisResults.grade}</p>
+                </div>
+                <div>
+                  <span className="font-medium">Value:</span>
+                  <p>{analysisResults.estimatedValue}</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="w-full justify-center">
+                Confidence: {Math.round(analysisResults.confidence * 100)}%
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
+      </motion.div>
+
+      {/* Listing Details Form */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Listing Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="year">Year</Label>
+              <Label htmlFor="title">Title *</Label>
               <Input
-                id="year"
-                type="number"
-                value={formData.year}
-                onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                required
+                id="title"
+                value={coinData.title}
+                onChange={(e) => setCoinData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter coin title"
               />
             </div>
+
             <div>
-              <Label htmlFor="price">Price</Label>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={coinData.description}
+                onChange={(e) => setCoinData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe your coin"
+                className="h-24"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="auction-mode">Auction Mode</Label>
+              <Switch
+                id="auction-mode"
+                checked={coinData.isAuction}
+                onCheckedChange={(checked) => setCoinData(prev => ({ ...prev, isAuction: checked }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="price">
+                {coinData.isAuction ? 'Starting Bid *' : 'Price *'}
+              </Label>
               <Input
                 id="price"
                 type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                required
+                value={coinData.isAuction ? coinData.startingBid : coinData.price}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  if (coinData.isAuction) {
+                    setCoinData(prev => ({ ...prev, startingBid: value }));
+                  } else {
+                    setCoinData(prev => ({ ...prev, price: value }));
+                  }
+                }}
+                placeholder="Enter amount in USD"
               />
             </div>
-          </div>
 
-          <div>
-            <Label htmlFor="grade">Grade</Label>
-            <Select value={formData.grade} onValueChange={(value) => setFormData({ ...formData, grade: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select grade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Poor">Poor</SelectItem>
-                <SelectItem value="Fair">Fair</SelectItem>
-                <SelectItem value="Good">Good</SelectItem>
-                <SelectItem value="Very Good">Very Good</SelectItem>
-                <SelectItem value="Fine">Fine</SelectItem>
-                <SelectItem value="Very Fine">Very Fine</SelectItem>
-                <SelectItem value="Extremely Fine">Extremely Fine</SelectItem>
-                <SelectItem value="About Uncirculated">About Uncirculated</SelectItem>
-                <SelectItem value="Uncirculated">Uncirculated</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="year">Year</Label>
+                <Input
+                  id="year"
+                  value={coinData.year}
+                  onChange={(e) => setCoinData(prev => ({ ...prev, year: e.target.value }))}
+                  placeholder="e.g. 1921"
+                />
+              </div>
+              <div>
+                <Label htmlFor="grade">Grade</Label>
+                <Input
+                  id="grade"
+                  value={coinData.grade}
+                  onChange={(e) => setCoinData(prev => ({ ...prev, grade: e.target.value }))}
+                  placeholder="e.g. MS-63"
+                />
+              </div>
+            </div>
 
-          <div>
-            <Label htmlFor="rarity">Rarity</Label>
-            <Select value={formData.rarity} onValueChange={(value) => setFormData({ ...formData, rarity: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select rarity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="common">Common</SelectItem>
-                <SelectItem value="uncommon">Uncommon</SelectItem>
-                <SelectItem value="rare">Rare</SelectItem>
-                <SelectItem value="very_rare">Very Rare</SelectItem>
-                <SelectItem value="extremely_rare">Extremely Rare</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe your coin..."
-            />
-          </div>
-
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full"
-            onClick={handleImageUpload}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Take Photo
-          </Button>
-
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={createCoin.isPending}
-          >
-            {createCoin.isPending ? 'Uploading...' : 'Upload Coin'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            <Button
+              onClick={handleSubmitListing}
+              disabled={
+                !coinData.title || 
+                (!coinData.price && !coinData.isAuction) || 
+                (!coinData.startingBid && coinData.isAuction) ||
+                images.length === 0 || 
+                !images.every(img => img.uploaded) ||
+                isSubmitting
+              }
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Listing'}
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
   );
 };
 
