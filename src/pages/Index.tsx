@@ -35,41 +35,41 @@ const Index = () => {
               Join thousands of collectors in the digital numismatic revolution.
             </p>
             
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="flex gap-4">
+            {/* Enhanced Search Bar */}
+            <div className="max-w-4xl mx-auto mb-12">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
                   <input
                     type="text"
                     placeholder="Search for ancient coins, modern currencies, or rare collectibles..."
-                    className="w-full px-6 py-4 text-lg border border-gray-300 rounded-2xl bg-white shadow-lg focus:ring-4 focus:ring-yellow-400/50 focus:outline-none placeholder-gray-500"
+                    className="w-full px-8 py-6 text-lg lg:text-xl border-2 border-gray-200 rounded-2xl bg-white shadow-xl focus:ring-4 focus:ring-yellow-400/30 focus:border-yellow-400 focus:outline-none placeholder-gray-500 transition-all duration-300 hover:shadow-2xl"
                   />
-                  <Search className="absolute right-4 top-4 h-6 w-6 text-gray-400" />
+                  <Search className="absolute right-6 top-1/2 transform -translate-y-1/2 h-6 w-6 lg:h-7 lg:w-7 text-gray-400" />
                 </div>
-                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-4 text-lg rounded-2xl shadow-lg">
+                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-6 text-lg lg:text-xl font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 sm:min-w-[180px]">
                   Explore Now
                 </Button>
               </div>
             </div>
 
             {/* Stats - Full Width Responsive */}
-            <div className="w-full px-4 sm:px-8 lg:px-16">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 xl:gap-12">
-                <div className="text-center p-4">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">1,245+</div>
-                  <div className="text-sm sm:text-base text-gray-600">Active Listings</div>
+            <div className="w-full">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 xl:gap-12">
+                <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">1,245+</div>
+                  <div className="text-sm sm:text-base lg:text-lg text-gray-600 font-medium">Active Listings</div>
                 </div>
-                <div className="text-center p-4">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">126</div>
-                  <div className="text-sm sm:text-base text-gray-600">Live Auctions</div>
+                <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">126</div>
+                  <div className="text-sm sm:text-base lg:text-lg text-gray-600 font-medium">Live Auctions</div>
                 </div>
-                <div className="text-center p-4">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">45K+</div>
-                  <div className="text-sm sm:text-base text-gray-600">Collectors</div>
+                <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">45K+</div>
+                  <div className="text-sm sm:text-base lg:text-lg text-gray-600 font-medium">Collectors</div>
                 </div>
-                <div className="text-center p-4">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">$1.2M+</div>
-                  <div className="text-sm sm:text-base text-gray-600">Trading Volume</div>
+                <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">$1.2M+</div>
+                  <div className="text-sm sm:text-base lg:text-lg text-gray-600 font-medium">Trading Volume</div>
                 </div>
               </div>
             </div>
