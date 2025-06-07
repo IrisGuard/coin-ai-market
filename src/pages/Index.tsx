@@ -52,23 +52,25 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900">1,245+</div>
-                <div className="text-gray-600">Active Listings</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900">126</div>
-                <div className="text-gray-600">Live Auctions</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900">45K+</div>
-                <div className="text-gray-600">Collectors</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900">$1.2M+</div>
-                <div className="text-gray-600">Trading Volume</div>
+            {/* Stats - Full Width Responsive */}
+            <div className="w-full px-4 sm:px-8 lg:px-16">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 xl:gap-12">
+                <div className="text-center p-4">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">1,245+</div>
+                  <div className="text-sm sm:text-base text-gray-600">Active Listings</div>
+                </div>
+                <div className="text-center p-4">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">126</div>
+                  <div className="text-sm sm:text-base text-gray-600">Live Auctions</div>
+                </div>
+                <div className="text-center p-4">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">45K+</div>
+                  <div className="text-sm sm:text-base text-gray-600">Collectors</div>
+                </div>
+                <div className="text-center p-4">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">$1.2M+</div>
+                  <div className="text-sm sm:text-base text-gray-600">Trading Volume</div>
+                </div>
               </div>
             </div>
           </div>

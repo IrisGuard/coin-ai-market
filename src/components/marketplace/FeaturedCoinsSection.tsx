@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -323,7 +324,8 @@ const mockCoins: MockCoin[] = [
 ];
 
 const FeaturedCoinsSection = () => {
-  const displayCoins = mockCoins.slice(0, 8);
+  // Show more coins for larger screens
+  const displayCoins = mockCoins.slice(0, 12);
 
   return (
     <div className="mb-16">
@@ -343,7 +345,8 @@ const FeaturedCoinsSection = () => {
         </Link>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {/* Responsive grid that adapts to screen size */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 lg:gap-6">
         {displayCoins.map((coin) => (
           <Card key={coin.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-white rounded-2xl overflow-hidden">
             <CardContent className="p-0">
@@ -357,50 +360,50 @@ const FeaturedCoinsSection = () => {
                 </div>
                 
                 {coin.featured && (
-                  <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                  <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                     <Star className="w-3 h-3" fill="currentColor" />
                     Featured
                   </div>
                 )}
                 
-                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <button className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-red-500 hover:text-red-600 transition-colors">
                     <Heart className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
+              <div className="p-3 lg:p-4">
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight text-sm lg:text-base">
                   {coin.title}
                 </h3>
                 
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                     ${coin.price.toLocaleString()}
                   </span>
-                  <span className="text-sm font-medium bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                  <span className="text-xs font-medium bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
                     {coin.condition}
                   </span>
                 </div>
                 
-                <p className="text-sm text-gray-600 mb-3 truncate">
+                <p className="text-xs lg:text-sm text-gray-600 mb-3 truncate">
                   {coin.seller}
                 </p>
                 
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-pink-600 text-white text-sm"
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-600 hover:to-pink-600 text-white text-xs lg:text-sm"
                   >
                     View Details
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="px-3 border-gray-200 hover:border-gray-300"
+                    className="px-2 lg:px-3 border-gray-200 hover:border-gray-300"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-3 h-3 lg:w-4 lg:h-4" />
                   </Button>
                 </div>
               </div>
