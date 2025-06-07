@@ -77,8 +77,8 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
 
   if (!isVisible && !priority) {
     return (
-      <div ref={cardRef} className="aspect-square bg-bg-secondary animate-pulse rounded-lg">
-        <div className="h-full bg-gradient-to-r from-bg-secondary via-border-primary to-bg-secondary rounded-lg"></div>
+      <div ref={cardRef} className="aspect-square bg-gray-100 animate-pulse rounded-lg">
+        <div className="h-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 rounded-lg"></div>
       </div>
     );
   }
@@ -92,10 +92,10 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
       whileHover={{ y: -5 }}
       className="group"
     >
-      <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 bg-bg-primary">
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 bg-white">
         <div className="relative">
           <Link to={`/coin/${coin.id}`}>
-            <div className="aspect-square overflow-hidden bg-bg-secondary">
+            <div className="aspect-square overflow-hidden bg-gray-100">
               {imageLoaded || priority ? (
                 <img
                   ref={imgRef}
@@ -108,7 +108,7 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
                   }}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-bg-secondary via-border-primary to-bg-secondary animate-pulse" />
+                <div className="w-full h-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse" />
               )}
             </div>
           </Link>
@@ -120,8 +120,8 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
             onClick={handleFavoriteClick}
             className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 ${
               isUserFavorite 
-                ? 'bg-brand-danger text-bg-primary hover:bg-brand-danger/90' 
-                : 'bg-bg-primary/80 text-text-secondary hover:bg-bg-primary hover:text-brand-danger'
+                ? 'bg-red-500 text-white hover:bg-red-600' 
+                : 'bg-white/80 text-gray-600 hover:bg-white hover:text-red-500'
             }`}
           >
             <Heart className={`w-4 h-4 ${isUserFavorite ? 'fill-current' : ''}`} />
@@ -130,14 +130,14 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
           {/* Status Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
-              <Badge className="bg-gradient-to-r from-brand-yellow to-electric-yellow text-text-primary border-0">
+              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 border-0">
                 <Star className="w-3 h-3 mr-1" />
                 Featured
               </Badge>
             )}
             
             {coin.is_auction && (
-              <Badge className="bg-gradient-to-r from-brand-primary to-brand-secondary text-bg-primary border-0">
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
                 <Clock className="w-3 h-3 mr-1" />
                 Auction
               </Badge>
@@ -146,7 +146,7 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
 
           {/* Auction Timer */}
           {coin.is_auction && coin.auction_end && (
-            <div className="absolute bottom-2 left-2 bg-text-primary/80 text-bg-primary px-2 py-1 rounded text-xs font-medium">
+            <div className="absolute bottom-2 left-2 bg-gray-900/80 text-white px-2 py-1 rounded text-xs font-medium">
               {formatTimeRemaining(coin.auction_end)}
             </div>
           )}
@@ -157,11 +157,11 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
             {/* Title and Info */}
             <div>
               <Link to={`/coin/${coin.id}`}>
-                <h3 className="font-semibold text-text-primary line-clamp-2 hover:text-brand-primary transition-colors">
+                <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors">
                   {coin.name}
                 </h3>
               </Link>
-              <div className="flex items-center gap-2 mt-1 text-sm text-text-secondary">
+              <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
                 <span>{coin.year}</span>
                 {coin.country && (
                   <>
@@ -175,12 +175,12 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
             {/* Condition and Rarity */}
             <div className="flex items-center gap-2 flex-wrap">
               {coin.condition && (
-                <Badge variant="outline" className="text-xs border-border-secondary text-text-secondary">
+                <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                   {coin.condition}
                 </Badge>
               )}
               {coin.rarity && (
-                <Badge variant="outline" className="text-xs border-border-secondary text-text-secondary">
+                <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                   {coin.rarity}
                 </Badge>
               )}
@@ -189,18 +189,18 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
             {/* Price */}
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-text-primary">
+                <div className="text-2xl font-bold text-gray-900">
                   €{coin.price?.toLocaleString()}
                 </div>
                 {coin.is_auction && (
-                  <div className="text-sm text-text-secondary">
+                  <div className="text-sm text-gray-600">
                     Starting at €{coin.price?.toLocaleString()}
                   </div>
                 )}
               </div>
               
               {!coin.is_auction && (
-                <Badge className="bg-brand-success/10 text-brand-success border-brand-success/20">
+                <Badge className="bg-green-100 text-green-700 border-green-200">
                   <DollarSign className="w-3 h-3 mr-1" />
                   Buy Now
                 </Badge>
@@ -208,7 +208,7 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
             </div>
 
             {/* Views and Stats */}
-            <div className="flex items-center justify-between text-sm text-text-muted pt-2 border-t border-border-primary">
+            <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-200">
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 <span>{coin.views || 0} views</span>
@@ -216,13 +216,13 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
               
               {coin.profiles && (
                 <div className="flex items-center gap-1">
-                  <div className="w-5 h-5 bg-bg-secondary rounded-full flex items-center justify-center text-xs font-medium text-text-secondary">
+                  <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
                     {coin.profiles.name?.[0]?.toUpperCase()}
                   </div>
                   <span className="text-xs">{coin.profiles.name}</span>
                   {coin.profiles.verified_dealer && (
-                    <div className="w-4 h-4 bg-brand-primary rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-bg-primary rounded-full"></div>
+                    <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                   )}
                 </div>
@@ -231,7 +231,7 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = memo(({ coin, index 
 
             {/* Action Button */}
             <Link to={`/coin/${coin.id}`} className="block">
-              <Button className="w-full mt-3 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 transition-all duration-200 text-bg-primary">
+              <Button className="w-full mt-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-all duration-200 text-white">
                 {coin.is_auction ? 'View Auction' : 'View Details'}
               </Button>
             </Link>
