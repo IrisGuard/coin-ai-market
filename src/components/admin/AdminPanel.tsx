@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs } from '@/components/ui/tabs';
 import AdminPanelHeader from './AdminPanelHeader';
-import AdminStatsOverview from './AdminStatsOverview';
+import RealAdminStatsOverview from './RealAdminStatsOverview';
 import AdminTabsList from './AdminTabsList';
 import AdminTabsContent from './AdminTabsContent';
 import AdminDataValidator from './AdminDataValidator';
@@ -22,7 +22,7 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
         <AdminDataValidator />
 
         <div className="space-y-6">
-          <AdminStatsOverview />
+          <RealAdminStatsOverview />
 
           <Tabs defaultValue="ai-brain" className="space-y-4">
             <AdminTabsList />
