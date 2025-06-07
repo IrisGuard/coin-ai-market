@@ -9,6 +9,7 @@ import { Heart, Clock, DollarSign, Settings, Star, Eye, TrendingUp, Package } fr
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import SmartPortfolioAI from '@/components/dashboard/SmartPortfolioAI';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
 
 const Dashboard = () => {
   usePageView();
