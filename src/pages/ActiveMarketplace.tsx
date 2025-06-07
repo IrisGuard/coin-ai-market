@@ -3,12 +3,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
-import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import Navbar from "@/components/Navbar";
 import MarketplaceHero from "@/components/marketplace/MarketplaceHero";
-import TrendingCoins from "@/components/marketplace/TrendingCoins";
-import FeaturedCoinsGrid from "@/components/marketplace/FeaturedCoinsGrid";
-import Footer from "@/components/Footer";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,7 +14,6 @@ const ActiveMarketplace = () => {
   usePageView();
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
-  const { stats } = useCachedMarketplaceData();
 
   return (
     <div className="min-h-screen bg-white">
@@ -28,9 +23,6 @@ const ActiveMarketplace = () => {
       <MarketplaceHero />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Trending Section */}
-        <TrendingCoins />
         
         {/* Dealer Stores Section - ΚΑΤΑΣΤΗΜΑΤΑ ΧΡΗΣΤΩΝ */}
         <div className="mb-12">
@@ -126,20 +118,7 @@ const ActiveMarketplace = () => {
             </div>
           )}
         </div>
-
-        {/* Featured Coins Grid - ΝΟΜΙΣΜΑΤΑ ΠΡΟΣ ΑΜΕΣΗ ΠΩΛΗΣΗ (ΟΧΙ ΔΗΜΟΠΡΑΣΙΕΣ) */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-6 text-center">
-            Νομίσματα προς Πώληση
-          </h2>
-          <p className="text-center text-gray-600 mb-6">
-            Νομίσματα προς άμεση πώληση από τα καταστήματα μας (οι δημοπρασίες βρίσκονται στη σελίδα Δημοπρασιών)
-          </p>
-          <FeaturedCoinsGrid />
-        </div>
       </div>
-
-      <Footer />
     </div>
   );
 };
