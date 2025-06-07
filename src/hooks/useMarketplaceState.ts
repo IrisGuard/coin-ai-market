@@ -5,7 +5,7 @@ import { useAdvancedMarketplaceFilters } from './useAdvancedMarketplaceFilters';
 import { useRealTimeMarketplace } from './useRealTimeMarketplace';
 
 export const useMarketplaceState = () => {
-  const { data: coins = [], isLoading: coinsLoading } = useCoins();
+  const { data: coins = [], isLoading: coinsLoading, error: coinsError } = useCoins();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const {
@@ -38,6 +38,7 @@ export const useMarketplaceState = () => {
     coins,
     enhancedCoins,
     coinsLoading,
+    coinsError,
     viewMode,
     setViewMode,
     filters,
