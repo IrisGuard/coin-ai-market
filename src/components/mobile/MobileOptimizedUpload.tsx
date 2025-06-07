@@ -27,19 +27,16 @@ const MobileOptimizedUpload = () => {
     condition: ''
   });
 
-  const { uploadImage, compressImage } = useImageHandling();
+  const { uploadImage } = useImageHandling();
 
   const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
     for (const file of files) {
       try {
-        // Compress image for mobile
-        const compressedFile = await compressImage(file, { quality: 0.8, maxWidth: 1024 });
-        
         const newImage: CapturedImage = {
-          file: compressedFile,
-          preview: URL.createObjectURL(compressedFile),
+          file: file,
+          preview: URL.createObjectURL(file),
           uploaded: false,
           uploading: false
         };
