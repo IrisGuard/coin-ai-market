@@ -24,6 +24,7 @@ import EnhancedSearch from "./pages/EnhancedSearch";
 import MobileAIFeatures from '@/pages/MobileAIFeatures';
 import AIFeatures from './pages/AIFeatures';
 import CategoryPage from './pages/CategoryPage';
+import MarketplacePanel from './pages/MarketplacePanel';
 import { AdminProvider } from "@/contexts/AdminContext";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 
@@ -48,6 +49,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/marketplace" element={<ActiveMarketplace />} />
+                    <Route path="/marketplace/panel" element={<MarketplacePanel />} />
                     <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
                     <Route path="/search" element={<EnhancedSearch />} />
                     <Route path="/upload" element={
