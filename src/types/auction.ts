@@ -8,6 +8,7 @@ export interface TimeRemaining {
 }
 
 export type AuctionRarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare';
+export type AuctionCondition = 'Mint' | 'Near Mint' | 'Excellent' | 'Good' | 'Fair' | 'Poor';
 
 export interface CoinType {
   name: string;
@@ -32,7 +33,7 @@ export interface AuctionCoin {
   user_id: string;
   country?: string;
   denomination?: string;
-  condition?: string;
+  condition?: AuctionCondition;
   description?: string;
   is_auction?: boolean;
   listing_type?: 'auction' | 'direct_sale';

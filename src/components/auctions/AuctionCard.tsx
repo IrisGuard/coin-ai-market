@@ -3,30 +3,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuctionTimer } from '@/hooks/useAuctionTimer';
-import { TimeRemaining } from '@/types/auction';
+import { AuctionCoin } from '@/types/auction';
 import AuctionCardImage from './AuctionCardImage';
 import AuctionCardTimer from './AuctionCardTimer';
 import AuctionCardInfo from './AuctionCardInfo';
 import AuctionCardBidding from './AuctionCardBidding';
-
-interface AuctionCoin {
-  id: string;
-  name: string;
-  year: number;
-  image: string;
-  current_bid: number;
-  reserve_price: number;
-  auction_end: string;
-  bid_count: number;
-  seller_id: string;
-  highest_bidder_id: string | null;
-  watchers: number;
-  profiles?: {
-    name: string;
-    reputation: number;
-    verified_dealer: boolean;
-  };
-}
 
 interface AuctionCardProps {
   auction: AuctionCoin;

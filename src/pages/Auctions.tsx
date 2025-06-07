@@ -64,7 +64,11 @@ const Auctions = () => {
           </div>
 
           {/* Stats */}
-          <AuctionStats stats={auctionStats} />
+          <AuctionStats 
+            total={auctionStats.total}
+            ending_soon={auctionStats.ending_soon}
+            my_bids={auctionStats.my_bids}
+          />
 
           {/* Search and Filters */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
