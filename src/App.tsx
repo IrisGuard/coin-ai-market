@@ -21,6 +21,7 @@ import CoinSale from "./pages/CoinSale";
 import NotFound from "./pages/NotFound";
 import EnhancedSearch from "./pages/EnhancedSearch";
 import MobileAIFeatures from '@/pages/MobileAIFeatures';
+import AIFeatures from './pages/AIFeatures';
 import { AdminProvider } from "@/contexts/AdminContext";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 
@@ -55,6 +56,7 @@ function App() {
                     <Route path="/auctions" element={<Auctions />} />
                     <Route path="/sell/:id" element={<CoinSale />} />
                     <Route path="/mobile-ai" element={<MobileAIFeatures />} />
+                    <Route path="/ai-features" element={<AIFeatures />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <AdminKeyboardHandler />

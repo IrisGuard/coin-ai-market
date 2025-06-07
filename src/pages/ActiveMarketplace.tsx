@@ -13,6 +13,10 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import TransakPayment from '@/components/payment/TransakPayment';
+import QuickActionsSection from '@/components/QuickActionsSection';
+import ServicesSection from '@/components/ServicesSection';
+import FeatureSection from '@/components/FeatureSection';
+import TrustIndicators from '@/components/showcase/TrustIndicators';
 
 const ActiveMarketplace = () => {
   const { user } = useAuth();
@@ -384,6 +388,16 @@ const ActiveMarketplace = () => {
         )}
       </div>
 
+      {/* Additional Marketplace Features */}
+      <div className="bg-gray-50 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
+          <QuickActionsSection />
+          <ServicesSection />
+          <FeatureSection />
+        </div>
+      </div>
+
+      <TrustIndicators />
       <Footer />
     </div>
   );
