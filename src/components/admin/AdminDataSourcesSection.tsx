@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,69 +65,87 @@ const AdminDataSourcesSection = () => {
             </TabsList>
 
             <TabsContent value="sources" className="space-y-4">
-              {dataSources.map((source) => (
-                <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{source.name}</h4>
-                    <p className="text-sm text-gray-600">{source.url}</p>
-                    <p className="text-xs text-gray-500">
-                      Priority: {source.priority} • Success Rate: {(source.success_rate * 100).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getStatusColor(source.is_active)}>
-                      {source.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </div>
+              {dataSources.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No data sources found
                 </div>
-              ))}
+              ) : (
+                dataSources.map((source) => (
+                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{source.name}</h4>
+                      <p className="text-sm text-gray-600">{source.url}</p>
+                      <p className="text-xs text-gray-500">
+                        Priority: {source.priority} • Success Rate: {(source.success_rate * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className={getStatusColor(source.is_active)}>
+                        {source.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Button size="sm" variant="outline">
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </TabsContent>
 
             <TabsContent value="external" className="space-y-4">
-              {externalSources.map((source) => (
-                <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{source.source_name}</h4>
-                    <p className="text-sm text-gray-600">{source.base_url}</p>
-                    <p className="text-xs text-gray-500">
-                      Type: {source.source_type} • Priority: {source.priority_score}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getStatusColor(source.is_active)}>
-                      {source.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                    <Badge variant="outline">
-                      {source.rate_limit_per_hour}/hr
-                    </Badge>
-                  </div>
+              {externalSources.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No external sources found
                 </div>
-              ))}
+              ) : (
+                externalSources.map((source) => (
+                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{source.source_name}</h4>
+                      <p className="text-sm text-gray-600">{source.base_url}</p>
+                      <p className="text-xs text-gray-500">
+                        Type: {source.source_type} • Priority: {source.priority_score}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className={getStatusColor(source.is_active)}>
+                        {source.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Badge variant="outline">
+                        {source.rate_limit_per_hour}/hr
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              )}
             </TabsContent>
 
             <TabsContent value="jobs" className="space-y-4">
-              {scrapingJobs.slice(0, 10).map((job) => (
-                <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{job.job_type}</h4>
-                    <p className="text-sm text-gray-600">{job.target_url}</p>
-                    <p className="text-xs text-gray-500">
-                      Created: {new Date(job.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getJobStatusColor(job.status)}>
-                      {job.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      <Activity className="w-4 h-4" />
-                    </Button>
-                  </div>
+              {scrapingJobs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No scraping jobs found
                 </div>
-              ))}
+              ) : (
+                scrapingJobs.slice(0, 10).map((job) => (
+                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{job.job_type}</h4>
+                      <p className="text-sm text-gray-600">{job.target_url}</p>
+                      <p className="text-xs text-gray-500">
+                        Created: {new Date(job.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className={getJobStatusColor(job.status)}>
+                        {job.status}
+                      </Badge>
+                      <Button size="sm" variant="outline">
+                        <Activity className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
