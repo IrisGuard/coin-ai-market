@@ -69,7 +69,7 @@ const App = () => {
                       </ProtectedRoute>
                     } 
                   />
-                  <Route path="/marketplace/:category" element={<CategoryPage />} />
+                  <Route path="/category/:category" element={<CategoryPage />} />
                 </Routes>
               </div>
               <Toaster />

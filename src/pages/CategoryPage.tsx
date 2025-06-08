@@ -1,61 +1,29 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
+import CategoryHeader from '@/components/categories/CategoryHeader';
+import CategoryStats from '@/components/categories/CategoryStats';
+import CategoryFilters from '@/components/categories/CategoryFilters';
 import OptimizedCoinCard from '@/components/OptimizedCoinCard';
-import { Loader2 } from 'lucide-react';
+import { useCategoryData } from '@/hooks/useCategoryData';
+import { Loader2, Coins } from 'lucide-react';
 
 const CategoryPage = () => {
   const { category } = useParams<{ category: string }>();
-  const { coins, isLoading } = useCachedMarketplaceData();
-
-  // Enhanced filtering for all categories using correct database field types
-  const filteredCoins = React.useMemo(() => {
-    if (!coins || !category) return [];
-    
-    return coins.filter(coin => {
-      switch (category) {
-        case 'ancient':
-          return coin.year < 1000;
-        case 'modern':
-          return coin.year >= 1900;
-        case 'error':
-          return coin.rarity?.toLowerCase().includes('rare') || 
-                 coin.description?.toLowerCase().includes('error') ||
-                 coin.description?.toLowerCase().includes('doubled') ||
-                 coin.name?.toLowerCase().includes('error') ||
-                 coin.name?.toLowerCase().includes('doubled');
-        case 'graded':
-          return coin.pcgs_grade || coin.ngc_grade;
-        case 'trending':
-          return (coin.views && coin.views > 50) || coin.featured;
-        case 'european':
-          return ['Germany', 'France', 'Italy', 'Spain', 'Greece', 'United Kingdom', 
-                  'Netherlands', 'Austria', 'Switzerland', 'Belgium', 'Portugal',
-                  'Roman Empire', 'Ancient Greece'].includes(coin.country || '');
-        case 'american':
-          return ['United States', 'Canada', 'Mexico'].includes(coin.country || '');
-        case 'asian':
-          return ['China', 'Japan', 'India', 'Korea', 'Thailand', 'Singapore', 
-                  'Vietnam', 'Philippines', 'Malaysia', 'Indonesia'].includes(coin.country || '');
-        case 'gold':
-          return coin.composition?.toLowerCase().includes('gold') ||
-                 coin.name?.toLowerCase().includes('gold') ||
-                 coin.description?.toLowerCase().includes('gold');
-        case 'silver':
-          return coin.composition?.toLowerCase().includes('silver') ||
-                 coin.name?.toLowerCase().includes('silver') ||
-                 coin.description?.toLowerCase().includes('silver');
-        case 'rare':
-          return coin.rarity?.toLowerCase().includes('rare') || coin.price > 1000;
-        case 'auctions':
-          return coin.is_auction;
-        default:
-          return true;
-      }
-    });
-  }, [coins, category]);
+  
+  const {
+    coins,
+    categoryStats,
+    filters,
+    updateFilter,
+    clearAllFilters,
+    activeFiltersCount,
+    viewMode,
+    setViewMode,
+    isLoading
+  } = useCategoryData(category || '');
 
   const getCategoryTitle = (cat: string) => {
     const titles: { [key: string]: string } = {
@@ -77,72 +45,143 @@ const CategoryPage = () => {
 
   const getCategoryDescription = (cat: string) => {
     const descriptions: { [key: string]: string } = {
-      'ancient': 'Discover coins from ancient civilizations and historical empires.',
-      'modern': 'Explore coins from the modern era (1900 onwards).',
-      'error': 'Find rare error coins and minting mistakes that are highly valuable.',
-      'graded': 'Browse professionally graded coins by PCGS, NGC and other services.',
-      'trending': 'Popular coins that are currently trending with collectors.',
-      'european': 'European coins from various countries and time periods.',
-      'american': 'Coins from the United States, Canada, and Mexico.',
-      'asian': 'Asian coins from China, Japan, India, Korea and other countries.',
-      'gold': 'Precious metal coins containing gold.',
-      'silver': 'Silver coins and precious metal collectibles.',
-      'rare': 'Exceptionally rare and valuable coins for serious collectors.',
-      'auctions': 'Live auction coins with bidding ending soon.'
+      'ancient': 'Discover magnificent coins from ancient civilizations, empires, and historical periods. Each piece tells a story of bygone eras and ancient craftsmanship.',
+      'modern': 'Explore contemporary coins from the modern era (1900 onwards), featuring updated designs, advanced minting techniques, and contemporary themes.',
+      'error': 'Find rare error coins and minting mistakes that are highly valued by collectors. These unique pieces represent fascinating production anomalies.',
+      'graded': 'Browse professionally graded coins authenticated by PCGS, NGC, and other leading grading services with certified quality and condition.',
+      'trending': 'Popular coins that are currently trending with collectors worldwide. Stay ahead of market movements and collector preferences.',
+      'european': 'European coins from various countries and time periods, showcasing the rich numismatic heritage of the European continent.',
+      'american': 'Coins from the United States, Canada, and Mexico, representing the diverse numismatic traditions of North America.',
+      'asian': 'Asian coins from China, Japan, India, Korea, and other countries, featuring unique designs and cultural significance.',
+      'gold': 'Precious metal coins containing gold in various purities. These pieces combine numismatic value with precious metal content.',
+      'silver': 'Silver coins and precious metal collectibles with intrinsic value and numismatic appeal from various mints worldwide.',
+      'rare': 'Exceptionally rare and valuable coins for serious collectors, featuring low mintages, historical significance, or unique characteristics.',
+      'auctions': 'Live auction coins with bidding ending soon. Participate in exciting auctions and compete for exceptional numismatic treasures.'
     };
-    return descriptions[cat] || 'Browse this category of coins.';
+    return descriptions[cat] || 'Browse this specialized category of coins.';
   };
 
-  const categoryTitle = getCategoryTitle(category || '');
-  const categoryDescription = getCategoryDescription(category || '');
+  if (!category) {
+    return <div>Category not found</div>;
+  }
+
+  const categoryTitle = getCategoryTitle(category);
+  const categoryDescription = getCategoryDescription(category);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent mb-4">
-              {categoryTitle}
-            </h1>
-            <p className="text-gray-600 mb-2">
-              {categoryDescription}
-            </p>
-            <p className="text-sm text-gray-500">
-              {isLoading ? 'Loading...' : `${filteredCoins.length} coins found`}
-            </p>
-          </div>
+      <div className="pt-16">
+        <CategoryHeader
+          category={category}
+          title={categoryTitle}
+          description={categoryDescription}
+          coinCount={categoryStats.totalCoins}
+          isLoading={isLoading}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <CategoryStats
+            category={category}
+            totalCoins={categoryStats.totalCoins}
+            averagePrice={categoryStats.averagePrice}
+            priceRange={categoryStats.priceRange}
+            mostExpensive={categoryStats.mostExpensive}
+            oldestCoin={categoryStats.oldestCoin}
+            newestCoin={categoryStats.newestCoin}
+            totalAuctions={categoryStats.totalAuctions}
+            featuredCount={categoryStats.featuredCount}
+          />
+
+          <CategoryFilters
+            category={category}
+            searchTerm={filters.searchTerm}
+            setSearchTerm={(value) => updateFilter('searchTerm', value)}
+            sortBy={filters.sortBy}
+            setSortBy={(value) => updateFilter('sortBy', value)}
+            priceRange={filters.priceRange}
+            setPriceRange={(value) => updateFilter('priceRange', value)}
+            yearRange={filters.yearRange}
+            setYearRange={(value) => updateFilter('yearRange', value)}
+            selectedCountry={filters.selectedCountry}
+            setSelectedCountry={(value) => updateFilter('selectedCountry', value)}
+            selectedCondition={filters.selectedCondition}
+            setSelectedCondition={(value) => updateFilter('selectedCondition', value)}
+            selectedRarity={filters.selectedRarity}
+            setSelectedRarity={(value) => updateFilter('selectedRarity', value)}
+            showAuctionsOnly={filters.showAuctionsOnly}
+            setShowAuctionsOnly={(value) => updateFilter('showAuctionsOnly', value)}
+            showFeaturedOnly={filters.showFeaturedOnly}
+            setShowFeaturedOnly={(value) => updateFilter('showFeaturedOnly', value)}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            clearAllFilters={clearAllFilters}
+            activeFiltersCount={activeFiltersCount}
+          />
 
           {isLoading ? (
             <div className="flex justify-center items-center py-16">
               <div className="flex items-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
-                <span className="text-electric-blue">Loading coins...</span>
+                <span className="text-electric-blue">Loading {categoryTitle.toLowerCase()}...</span>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredCoins.map((coin, index) => (
-                <div key={coin.id} className="w-full">
-                  <OptimizedCoinCard coin={coin} index={index} priority={index < 12} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!isLoading && filteredCoins.length === 0 && (
-            <div className="text-center py-16">
-              <div className="bg-gray-50 rounded-lg p-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No coins found in this category</h3>
-                <p className="text-gray-500 text-sm mb-4">
-                  This category is available but doesn't have any coins yet.
-                </p>
-                <p className="text-gray-400 text-xs">
-                  Tip: Try the Admin Panel to add sample data for all categories.
-                </p>
-              </div>
-            </div>
+            <>
+              {coins.length > 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className={viewMode === 'grid' 
+                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                    : "space-y-4"
+                  }
+                >
+                  {coins.map((coin, index) => (
+                    <motion.div
+                      key={coin.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.05 }}
+                      className="w-full"
+                    >
+                      <OptimizedCoinCard 
+                        coin={coin} 
+                        index={index} 
+                        priority={index < 12}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-center py-16"
+                >
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-md mx-auto">
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Coins className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No coins found</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      No coins match your current filter criteria in this category.
+                    </p>
+                    {activeFiltersCount > 0 && (
+                      <button
+                        onClick={clearAllFilters}
+                        className="text-electric-blue hover:text-electric-purple font-medium text-sm"
+                      >
+                        Clear all filters to see more results
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </>
           )}
         </div>
       </div>
