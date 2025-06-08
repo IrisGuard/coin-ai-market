@@ -8,6 +8,8 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeatureSection from "@/components/FeatureSection";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
+import ServicesSection from "@/components/ServicesSection";
+import QuickActionsSection from "@/components/QuickActionsSection";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
 import { Settings, Users } from 'lucide-react';
@@ -28,6 +30,10 @@ const Index = () => {
       </div>
 
       <FeatureSection />
+
+      <ServicesSection />
+
+      <QuickActionsSection />
 
       <Footer />
 
