@@ -13,7 +13,6 @@ import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import EnhancedNavigationButtons from "@/components/navigation/EnhancedNavigationButtons";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
-import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
 const Index = () => {
@@ -56,22 +55,10 @@ const Index = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="max-w-2xl mx-auto"
               >
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <EnhancedSearchBar
-                      placeholder="Search coins with AI suggestions..."
-                      onSearch={handleSearch}
-                    />
-                  </div>
-                  <Link to="/marketplace">
-                    <Button 
-                      size="sm"
-                      className="bg-electric-orange hover:bg-electric-orange/90 text-white px-3 py-1 text-xs h-12"
-                    >
-                      Browse Categories
-                    </Button>
-                  </Link>
-                </div>
+                <EnhancedSearchBar
+                  placeholder="Search coins with AI suggestions..."
+                  onSearch={handleSearch}
+                />
               </motion.div>
             </motion.div>
           </div>
