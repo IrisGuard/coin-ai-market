@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { initializeSecurity } from "@/lib/securityInitializer";
 import { useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -31,52 +32,54 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <AdminProvider>
-              <div className="min-h-screen bg-background font-sans antialiased">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route 
-                    path="/auth" 
-                    element={
-                      <ProtectedRoute requireAuth={false}>
-                        <Auth />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dashboard" 
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/profile" 
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/upload" 
-                    element={
-                      <ProtectedRoute>
-                        <CoinUpload />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route path="/category/:category" element={<CategoryPage />} />
-                </Routes>
-              </div>
-              <Toaster />
-              <Sonner />
-            </AdminProvider>
-          </AuthProvider>
-        </BrowserRouter>
+        <ThemeProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <AdminProvider>
+                <div className="min-h-screen bg-background font-sans antialiased">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route 
+                      path="/auth" 
+                      element={
+                        <ProtectedRoute requireAuth={false}>
+                          <Auth />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/profile" 
+                      element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/upload" 
+                      element={
+                        <ProtectedRoute>
+                          <CoinUpload />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route path="/category/:category" element={<CategoryPage />} />
+                  </Routes>
+                </div>
+                <Toaster />
+                <Sonner />
+              </AdminProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
