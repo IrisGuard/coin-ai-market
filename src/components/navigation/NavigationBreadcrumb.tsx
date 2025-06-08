@@ -31,6 +31,16 @@ const NavigationBreadcrumb = () => {
         return 'Upload';
       case 'auth':
         return 'Authentication';
+      case 'admin':
+        return 'Admin Panel';
+      case 'panel':
+        return 'User Panel';
+      case 'coin':
+        return 'Coin Details';
+      case 'auctions':
+        return 'Auctions';
+      case 'ai-features':
+        return 'AI Features';
       default:
         return pathname.charAt(0).toUpperCase() + pathname.slice(1);
     }
