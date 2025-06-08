@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
+import VoiceInterface from "@/components/VoiceInterface";
 import { Button } from '@/components/ui/button';
 import { Search, Settings, Users } from 'lucide-react';
 
@@ -83,6 +84,9 @@ const Index = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Voice Interface */}
+      <VoiceInterface />
     </div>
   );
 };
