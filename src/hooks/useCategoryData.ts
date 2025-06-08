@@ -5,8 +5,8 @@ import { useCategoryLogic } from './categories/useCategoryLogic';
 import { useCategoryStats } from './categories/useCategoryStats';
 import { useCategoryFiltering } from './categories/useCategoryFiltering';
 
-export { CategoryFilters } from './categories/useCategoryFilters';
-export { CategoryStats } from './categories/useCategoryStats';
+export type { CategoryFilters } from './categories/useCategoryFilters';
+export type { CategoryStats } from './categories/useCategoryStats';
 
 export const useCategoryData = (category: string) => {
   const { coins: allCoins, isLoading } = useCachedMarketplaceData();

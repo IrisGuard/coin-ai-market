@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Coin } from '@/types/coin';
 
 export const useAllDealerCoins = () => {
   return useQuery({
@@ -11,7 +10,18 @@ export const useAllDealerCoins = () => {
       
       const { data, error } = await supabase
         .from('coins')
-        .select('*')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey(
+            id,
+            name,
+            full_name,
+            username,
+            reputation,
+            verified_dealer,
+            avatar_url
+          )
+        `)
         .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false });
 
@@ -35,7 +45,18 @@ export const useDealerCoins = (dealerId: string) => {
       
       const { data, error } = await supabase
         .from('coins')
-        .select('*')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey(
+            id,
+            name,
+            full_name,
+            username,
+            reputation,
+            verified_dealer,
+            avatar_url
+          )
+        `)
         .eq('user_id', dealerId)
         .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false });

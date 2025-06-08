@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useDealerStores } from '@/hooks/useDealerStores';
@@ -9,6 +8,7 @@ import { Loader2, Store, Shield, Star, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { mapSupabaseCoinToCoin } from '@/types/coin';
 
 const DealerStorePage = () => {
   const { dealerId } = useParams<{ dealerId: string }>();
@@ -115,11 +115,14 @@ const DealerStorePage = () => {
               </div>
             ) : coins && coins.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {coins.map((coin, index) => (
-                  <div key={coin.id} className="w-full">
-                    <OptimizedCoinCard coin={coin} index={index} />
-                  </div>
-                ))}
+                {coins.map((rawCoin, index) => {
+                  const coin = mapSupabaseCoinToCoin(rawCoin);
+                  return (
+                    <div key={coin.id} className="w-full">
+                      <OptimizedCoinCard coin={coin} index={index} />
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-16 bg-white rounded-xl shadow-sm">

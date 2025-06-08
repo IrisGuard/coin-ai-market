@@ -1,6 +1,8 @@
 
 export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Legendary';
 
+export type CoinCondition = 'Poor' | 'Fair' | 'Good' | 'Very Good' | 'Fine' | 'Very Fine' | 'Extremely Fine' | 'About Uncirculated' | 'Uncirculated' | 'Proof';
+
 export type CoinCategory = 
   | 'ancient'
   | 'modern' 
@@ -14,6 +16,16 @@ export type CoinCategory =
   | 'gold'
   | 'silver'
   | 'unclassified';
+
+export interface CoinProfile {
+  id: string;
+  name?: string;
+  full_name?: string;
+  username?: string;
+  reputation?: number;
+  verified_dealer?: boolean;
+  avatar_url?: string;
+}
 
 export interface Coin {
   id: string;
@@ -29,7 +41,7 @@ export interface Coin {
   mintage?: number;
   rarity: Rarity;
   grade: string;
-  condition?: string;
+  condition?: CoinCondition;
   image: string;
   obverse_image?: string;
   reverse_image?: string;
@@ -61,6 +73,7 @@ export interface Coin {
   ai_provider?: string;
   created_at?: string;
   updated_at?: string;
+  profiles?: CoinProfile; // Add profiles property
 }
 
 // Supabase raw data type (more flexible)
@@ -110,6 +123,7 @@ export interface SupabaseCoin {
   ai_provider?: string;
   created_at?: string;
   updated_at?: string;
+  profiles?: any; // Add profiles for Supabase data
 }
 
 // Utility function to convert Supabase data to Coin interface
@@ -126,9 +140,37 @@ export const mapSupabaseCoinToCoin = (supabaseCoin: SupabaseCoin): Coin => {
     }
   };
 
+  // Map string condition to proper CoinCondition type
+  const mapCondition = (condition: string): CoinCondition | undefined => {
+    if (!condition) return undefined;
+    switch (condition?.toLowerCase()) {
+      case 'poor': return 'Poor';
+      case 'fair': return 'Fair';
+      case 'good': return 'Good';
+      case 'very good': return 'Very Good';
+      case 'fine': return 'Fine';
+      case 'very fine': return 'Very Fine';
+      case 'extremely fine': return 'Extremely Fine';
+      case 'about uncirculated': return 'About Uncirculated';
+      case 'uncirculated': return 'Uncirculated';
+      case 'proof': return 'Proof';
+      default: return undefined;
+    }
+  };
+
   return {
     ...supabaseCoin,
     rarity: mapRarity(supabaseCoin.rarity),
-    category: supabaseCoin.category as CoinCategory
+    condition: mapCondition(supabaseCoin.condition || ''),
+    category: supabaseCoin.category as CoinCategory,
+    profiles: supabaseCoin.profiles ? {
+      id: supabaseCoin.profiles.id || '',
+      name: supabaseCoin.profiles.name,
+      full_name: supabaseCoin.profiles.full_name,
+      username: supabaseCoin.profiles.username,
+      reputation: supabaseCoin.profiles.reputation,
+      verified_dealer: supabaseCoin.profiles.verified_dealer,
+      avatar_url: supabaseCoin.profiles.avatar_url
+    } : undefined
   };
 };
