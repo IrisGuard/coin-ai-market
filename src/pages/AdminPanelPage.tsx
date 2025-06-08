@@ -4,13 +4,16 @@ import { usePageView } from '@/hooks/usePageView';
 import Navbar from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Brain, Database, Users, BarChart3, Settings } from 'lucide-react';
+import { Shield, Brain, Database, Users, BarChart3, Settings, Store, Coins } from 'lucide-react';
 import AIBrainCapabilities from '@/components/admin/enhanced/AIBrainCapabilities';
 import EnhancedAIAnalytics from '@/components/admin/enhanced/EnhancedAIAnalytics';
 import RealTimeMonitoring from '@/components/admin/enhanced/RealTimeMonitoring';
 import AdminExternalSourcesTab from '@/components/admin/tabs/AdminExternalSourcesTab';
 import AdminDataSourcesTab from '@/components/admin/tabs/AdminDataSourcesTab';
 import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
+import AdminUsersManagement from '@/components/admin/AdminUsersManagement';
+import AdminCoinsManagement from '@/components/admin/AdminCoinsManagement';
+import AdminStoresManagement from '@/components/admin/AdminStoresManagement';
 import { useRealAdminData } from '@/hooks/useRealAdminData';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 
@@ -35,7 +38,7 @@ const AdminPanelPage = () => {
           </p>
         </div>
 
-        {/* Quick Stats Overview */}
+        {/* Admin Quick Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -51,7 +54,7 @@ const AdminPanelPage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
-              <Database className="h-4 w-4 text-electric-green" />
+              <Coins className="h-4 w-4 text-electric-green" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalCoins || 0}</div>
@@ -65,7 +68,7 @@ const AdminPanelPage = () => {
               <Brain className="h-4 w-4 text-electric-purple" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{performance?.successRate || 94}%</div>
+              <div className="text-2xl font-bold">{performance?.successRate || stats?.averageAccuracy || 94}%</div>
               <p className="text-xs text-gray-600">Recognition rate</p>
             </CardContent>
           </Card>
@@ -76,7 +79,10 @@ const AdminPanelPage = () => {
               <Shield className="h-4 w-4 text-electric-orange" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Healthy</div>
+              <div className="text-2xl font-bold text-green-600">
+                {stats?.systemHealth === 'healthy' ? 'Healthy' : 
+                 stats?.systemHealth === 'warning' ? 'Warning' : 'Critical'}
+              </div>
               <p className="text-xs text-gray-600">All systems operational</p>
             </CardContent>
           </Card>
@@ -84,12 +90,13 @@ const AdminPanelPage = () => {
 
         {/* Main Admin Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="coins">Coins</TabsTrigger>
+            <TabsTrigger value="stores">Stores</TabsTrigger>
             <TabsTrigger value="ai-brain">AI Brain</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="data-sources">Data Sources</TabsTrigger>
-            <TabsTrigger value="external-sources">External Sources</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
 
@@ -120,6 +127,14 @@ const AdminPanelPage = () => {
                       <span className="text-sm">Error Rate</span>
                       <span className="font-medium">{performance?.errorRate || 0}%</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">External Sources</span>
+                      <span className="font-medium">{stats?.externalSources || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Recent Transactions</span>
+                      <span className="font-medium">{stats?.recentTransactions || 0}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -133,16 +148,28 @@ const AdminPanelPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <button className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors"
+                      onClick={() => setActiveTab('monitoring')}
+                    >
                       View System Logs
                     </button>
-                    <button className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors"
+                      onClick={() => setActiveTab('ai-brain')}
+                    >
                       Refresh Data Sources
                     </button>
-                    <button className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors"
+                      onClick={() => setActiveTab('ai-brain')}
+                    >
                       Run AI Diagnostics
                     </button>
-                    <button className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="w-full text-left p-2 rounded hover:bg-gray-100 transition-colors"
+                      onClick={() => setActiveTab('analytics')}
+                    >
                       Export Analytics
                     </button>
                   </div>
@@ -151,20 +178,24 @@ const AdminPanelPage = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="users">
+            <AdminUsersManagement />
+          </TabsContent>
+
+          <TabsContent value="coins">
+            <AdminCoinsManagement />
+          </TabsContent>
+
+          <TabsContent value="stores">
+            <AdminStoresManagement />
+          </TabsContent>
+
           <TabsContent value="ai-brain">
             <AIBrainCapabilities />
           </TabsContent>
 
           <TabsContent value="analytics">
             <AdminAnalyticsTab />
-          </TabsContent>
-
-          <TabsContent value="data-sources">
-            <AdminDataSourcesTab />
-          </TabsContent>
-
-          <TabsContent value="external-sources">
-            <AdminExternalSourcesTab />
           </TabsContent>
 
           <TabsContent value="monitoring">
