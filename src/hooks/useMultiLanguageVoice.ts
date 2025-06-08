@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useVoiceRecognition } from './useVoiceRecognition';
 import { useGoogleTranslate } from './useGoogleTranslate';
-import { useVoiceCommands } from './useVoiceCommands';
+import { useEnhancedVoiceCommands } from './useEnhancedVoiceCommands';
 import { useAIVoiceAssistant } from './useAIVoiceAssistant';
 import { toast } from './use-toast';
+import { detectBrowserLanguage, getSpeechLanguageCode } from '@/utils/languageDetector';
 
 interface VoiceSearchResult {
   originalText: string;
@@ -12,119 +13,25 @@ interface VoiceSearchResult {
   searchQuery: string;
 }
 
-const detectBrowserLanguage = (): string => {
-  const browserLang = navigator.language || navigator.languages?.[0] || 'en-US';
-  
-  // Map browser language codes to speech recognition codes
-  const languageMap: Record<string, string> = {
-    'el': 'el-GR',
-    'el-GR': 'el-GR',
-    'el-CY': 'el-GR',
-    'en': 'en-US',
-    'en-US': 'en-US',
-    'en-GB': 'en-GB',
-    'en-AU': 'en-AU',
-    'es': 'es-ES',
-    'es-ES': 'es-ES',
-    'es-MX': 'es-MX',
-    'fr': 'fr-FR',
-    'fr-FR': 'fr-FR',
-    'fr-CA': 'fr-CA',
-    'de': 'de-DE',
-    'de-DE': 'de-DE',
-    'it': 'it-IT',
-    'it-IT': 'it-IT',
-    'pt': 'pt-PT',
-    'pt-PT': 'pt-PT',
-    'pt-BR': 'pt-BR',
-    'ru': 'ru-RU',
-    'ru-RU': 'ru-RU',
-    'zh': 'zh-CN',
-    'zh-CN': 'zh-CN',
-    'zh-TW': 'zh-TW',
-    'ja': 'ja-JP',
-    'ja-JP': 'ja-JP',
-    'ko': 'ko-KR',
-    'ko-KR': 'ko-KR',
-    'ar': 'ar-SA',
-    'ar-SA': 'ar-SA',
-    'hi': 'hi-IN',
-    'hi-IN': 'hi-IN',
-    'tr': 'tr-TR',
-    'tr-TR': 'tr-TR',
-    'nl': 'nl-NL',
-    'nl-NL': 'nl-NL',
-    'pl': 'pl-PL',
-    'pl-PL': 'pl-PL',
-    'cs': 'cs-CZ',
-    'cs-CZ': 'cs-CZ',
-    'sv': 'sv-SE',
-    'sv-SE': 'sv-SE',
-    'no': 'no-NO',
-    'no-NO': 'no-NO',
-    'da': 'da-DK',
-    'da-DK': 'da-DK',
-    'fi': 'fi-FI',
-    'fi-FI': 'fi-FI',
-    'he': 'he-IL',
-    'he-IL': 'he-IL',
-    'th': 'th-TH',
-    'th-TH': 'th-TH',
-    'vi': 'vi-VN',
-    'vi-VN': 'vi-VN',
-    'uk': 'uk-UA',
-    'uk-UA': 'uk-UA',
-    'ro': 'ro-RO',
-    'ro-RO': 'ro-RO',
-    'hu': 'hu-HU',
-    'hu-HU': 'hu-HU',
-    'bg': 'bg-BG',
-    'bg-BG': 'bg-BG',
-    'hr': 'hr-HR',
-    'hr-HR': 'hr-HR',
-    'sr': 'sr-RS',
-    'sr-RS': 'sr-RS',
-    'sl': 'sl-SI',
-    'sl-SI': 'sl-SI',
-    'sk': 'sk-SK',
-    'sk-SK': 'sk-SK',
-    'lt': 'lt-LT',
-    'lt-LT': 'lt-LT',
-    'lv': 'lv-LV',
-    'lv-LV': 'lv-LV',
-    'et': 'et-EE',
-    'et-EE': 'et-EE'
-  };
-
-  // First try exact match
-  if (languageMap[browserLang]) {
-    return languageMap[browserLang];
-  }
-
-  // Try language code without region
-  const langCode = browserLang.split('-')[0];
-  if (languageMap[langCode]) {
-    return languageMap[langCode];
-  }
-
-  // Fallback to English
-  return 'en-US';
-};
-
 export const useMultiLanguageVoice = () => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState(() => detectBrowserLanguage());
+  const [currentLanguage, setCurrentLanguage] = useState(() => {
+    const detection = detectBrowserLanguage();
+    return detection.speechCode;
+  });
   const [lastResult, setLastResult] = useState<VoiceSearchResult | null>(null);
   
-  const { detectLanguage, translateText, getLanguageCode } = useGoogleTranslate();
-  const { processCommand } = useVoiceCommands();
+  const { detectLanguage, translateText } = useGoogleTranslate();
+  const { processCommand } = useEnhancedVoiceCommands();
   const { processVoiceInput } = useAIVoiceAssistant();
 
   // Log detected language for debugging
   useEffect(() => {
+    const detection = detectBrowserLanguage();
     console.log('Browser language detected:', navigator.language);
-    console.log('Speech recognition language set to:', currentLanguage);
-  }, [currentLanguage]);
+    console.log('Speech recognition language set to:', detection.speechCode);
+    console.log('Language confidence:', detection.confidence);
+  }, []);
 
   const processVoiceSearch = useCallback(async (transcript: string) => {
     setIsProcessing(true);
@@ -136,11 +43,11 @@ export const useMultiLanguageVoice = () => {
       console.log('Detected language:', detectedLang);
 
       // Step 2: Get proper language code for speech recognition
-      const speechLangCode = getLanguageCode(detectedLang);
+      const speechLangCode = getSpeechLanguageCode(detectedLang);
       setCurrentLanguage(speechLangCode);
 
-      // Step 3: Check if it's a navigation command first
-      const wasCommandHandled = processCommand(transcript);
+      // Step 3: Check if it's a navigation command first (now multilingual)
+      const wasCommandHandled = processCommand(transcript, speechLangCode);
       if (wasCommandHandled) {
         setIsProcessing(false);
         return;
@@ -180,7 +87,7 @@ export const useMultiLanguageVoice = () => {
         });
       } else {
         // If no search terms, try AI assistant
-        await processVoiceInput(transcript);
+        await processVoiceInput(transcript, speechLangCode, detectedLang);
       }
 
     } catch (error) {
@@ -193,7 +100,7 @@ export const useMultiLanguageVoice = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [detectLanguage, translateText, getLanguageCode, processCommand, processVoiceInput]);
+  }, [detectLanguage, translateText, processCommand, processVoiceInput]);
 
   const extractSearchTerms = useCallback((text: string): string => {
     const searchPatterns = [
