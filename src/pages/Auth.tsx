@@ -1,11 +1,15 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Navbar from '@/components/Navbar';
 import AuthPage from '@/components/auth/AuthPage';
 
 const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-primary via-electric-blue to-brand-accent relative overflow-hidden">
+      {/* Navigation */}
+      <Navbar />
+
       {/* Animated background */}
       <div className="absolute inset-0">
         <motion.div 
@@ -29,7 +33,7 @@ const Auth = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-6 pt-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
