@@ -29,7 +29,9 @@ export const useAdminUsers = () => {
 
 export const useUpdateUserStatus = () => {
   return {
-    mutate: () => {},
+    mutate: (params: { userId: string; verified: boolean }) => {
+      console.log('Updating user status:', params);
+    },
     isPending: false
   };
 };
@@ -45,7 +47,9 @@ export const useAdminCoins = () => {
 
 export const useUpdateCoinStatus = () => {
   return {
-    mutate: () => {},
+    mutate: (params: { coinId: string; status: string }) => {
+      console.log('Updating coin status:', params);
+    },
     isPending: false
   };
 };
@@ -67,14 +71,24 @@ export const useApiKeyCategories = () => {
 
 export const useCreateApiKey = () => {
   return {
-    mutate: () => {},
+    mutate: (keyData: any, options?: { onSuccess?: () => void }) => {
+      console.log('Creating API key:', keyData);
+      if (options?.onSuccess) {
+        options.onSuccess();
+      }
+    },
     isPending: false
   };
 };
 
 export const useBulkCreateApiKeys = () => {
   return {
-    mutate: () => {},
+    mutate: (keysData: any[], options?: { onSuccess?: () => void }) => {
+      console.log('Bulk creating API keys:', keysData);
+      if (options?.onSuccess) {
+        options.onSuccess();
+      }
+    },
     isPending: false
   };
 };
