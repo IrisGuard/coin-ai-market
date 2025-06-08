@@ -12,7 +12,7 @@ const SampleDataSetup = () => {
   const createSampleCoins = async () => {
     setIsCreating(true);
     try {
-      // Comprehensive sample coins for ALL categories
+      // Comprehensive sample coins for ALL categories using correct enum values
       const sampleCoins = [
         // Ancient Coins
         {
@@ -22,7 +22,7 @@ const SampleDataSetup = () => {
           denomination: 'Denarius',
           grade: 'VF-20',
           price: 450.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: 'Silver',
           diameter: 18.0,
           weight: 3.4,
@@ -41,7 +41,7 @@ const SampleDataSetup = () => {
           denomination: 'Tetradrachm',
           grade: 'F-15',
           price: 850.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: 'Silver',
           diameter: 24.0,
           weight: 17.2,
@@ -62,7 +62,7 @@ const SampleDataSetup = () => {
           denomination: '1 Dollar',
           grade: 'MS-63',
           price: 85.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: '90% Silver, 10% Copper',
           diameter: 38.1,
           weight: 26.73,
@@ -81,7 +81,7 @@ const SampleDataSetup = () => {
           denomination: '50 Cents',
           grade: 'AU-58',
           price: 25.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: '90% Silver, 10% Copper',
           diameter: 30.6,
           weight: 12.5,
@@ -102,7 +102,7 @@ const SampleDataSetup = () => {
           denomination: '1 Cent',
           grade: 'AU-50',
           price: 1200.00,
-          rarity: 'Ultra Rare',
+          rarity: 'extremely_rare',
           composition: '95% Copper, 5% Tin and Zinc',
           diameter: 19.05,
           weight: 3.11,
@@ -121,7 +121,7 @@ const SampleDataSetup = () => {
           denomination: '1 Cent',
           grade: 'VF-35',
           price: 85000.00,
-          rarity: 'Ultra Rare',
+          rarity: 'extremely_rare',
           composition: 'Copper',
           diameter: 19.05,
           weight: 3.11,
@@ -134,7 +134,7 @@ const SampleDataSetup = () => {
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
-        // Graded Coins (PCGS/NGC)
+        // American Coins
         {
           name: '1893-S Morgan Dollar PCGS MS65',
           year: 1893,
@@ -143,7 +143,7 @@ const SampleDataSetup = () => {
           grade: 'MS-65',
           pcgs_grade: 'MS-65',
           price: 3500.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: '90% Silver, 10% Copper',
           diameter: 38.1,
           weight: 26.73,
@@ -152,7 +152,26 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'modern',
+          category: 'american',
+          user_id: '00000000-0000-0000-0000-000000000000'
+        },
+        {
+          name: '1909-S VDB Lincoln Cent',
+          year: 1909,
+          country: 'United States',
+          denomination: '1 Cent',
+          grade: 'VF-30',
+          price: 750.00,
+          rarity: 'rare',
+          composition: '95% Copper, 5% Tin and Zinc',
+          diameter: 19.05,
+          weight: 3.11,
+          mint: 'San Francisco',
+          description: 'Key date Lincoln cent with designer initials. Highly sought after by collectors.',
+          image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
+          authentication_status: 'verified',
+          featured: true,
+          category: 'american',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -164,7 +183,7 @@ const SampleDataSetup = () => {
           denomination: 'Crown',
           grade: 'EF-45',
           price: 2500.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: 'Silver',
           diameter: 38.61,
           weight: 28.28,
@@ -183,7 +202,7 @@ const SampleDataSetup = () => {
           denomination: '10 Francs',
           grade: 'XF-40',
           price: 45.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: 'Aluminum-Bronze',
           diameter: 26.0,
           weight: 10.0,
@@ -196,27 +215,6 @@ const SampleDataSetup = () => {
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
-        // American Coins
-        {
-          name: '1909-S VDB Lincoln Cent',
-          year: 1909,
-          country: 'United States',
-          denomination: '1 Cent',
-          grade: 'VF-30',
-          price: 750.00,
-          rarity: 'Rare',
-          composition: '95% Copper, 5% Tin and Zinc',
-          diameter: 19.05,
-          weight: 3.11,
-          mint: 'San Francisco',
-          description: 'Key date Lincoln cent with designer initials. Highly sought after by collectors.',
-          image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: true,
-          category: 'american',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-
         // Asian Coins
         {
           name: '1912 China Republic Dollar',
@@ -225,7 +223,7 @@ const SampleDataSetup = () => {
           denomination: '1 Dollar',
           grade: 'VF-25',
           price: 350.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: 'Silver',
           diameter: 39.0,
           weight: 26.9,
@@ -244,7 +242,7 @@ const SampleDataSetup = () => {
           denomination: '100 Yen',
           grade: 'MS-63',
           price: 15.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: 'Silver',
           diameter: 28.0,
           weight: 4.8,
@@ -265,7 +263,7 @@ const SampleDataSetup = () => {
           denomination: '$20',
           grade: 'Replica',
           price: 45.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: 'Gold Plated',
           diameter: 34.0,
           weight: 33.4,
@@ -274,7 +272,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'modern',
+          category: 'gold',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -284,7 +282,7 @@ const SampleDataSetup = () => {
           denomination: '$50',
           grade: 'MS-69',
           price: 2100.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: '91.67% Gold, 5.33% Copper, 3% Silver',
           diameter: 32.7,
           weight: 33.93,
@@ -293,7 +291,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'modern',
+          category: 'gold',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -305,7 +303,7 @@ const SampleDataSetup = () => {
           denomination: '50 Cents',
           grade: 'VF-20',
           price: 85.00,
-          rarity: 'Common',
+          rarity: 'common',
           composition: '90% Silver, 10% Copper',
           diameter: 30.6,
           weight: 12.5,
@@ -314,11 +312,9 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'modern',
+          category: 'silver',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
-
-        // Rare Coins
         {
           name: '1916-D Mercury Dime',
           year: 1916,
@@ -326,7 +322,7 @@ const SampleDataSetup = () => {
           denomination: '10 Cents',
           grade: 'G-6',
           price: 1250.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: '90% Silver, 10% Copper',
           diameter: 17.9,
           weight: 2.5,
@@ -335,7 +331,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'modern',
+          category: 'silver',
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];
@@ -360,7 +356,7 @@ const SampleDataSetup = () => {
           price: 125.00,
           starting_bid: 125.00,
           reserve_price: 200.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: '90% Silver, 10% Copper',
           is_auction: true,
           auction_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -368,7 +364,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'modern',
+          category: 'american',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -380,7 +376,7 @@ const SampleDataSetup = () => {
           price: 275.00,
           starting_bid: 275.00,
           reserve_price: 350.00,
-          rarity: 'Rare',
+          rarity: 'rare',
           composition: '90% Silver, 10% Copper',
           is_auction: true,
           auction_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -388,7 +384,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'modern',
+          category: 'american',
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];
@@ -451,7 +447,7 @@ const SampleDataSetup = () => {
       const { error: statsError } = await supabase
         .from('marketplace_stats')
         .insert({
-          listed_coins: 5,
+          listed_coins: 18,
           active_auctions: 2,
           registered_users: 0,
           weekly_transactions: 3,
@@ -504,7 +500,7 @@ const SampleDataSetup = () => {
         console.warn('Failed to create error coins knowledge:', knowledgeError);
       }
 
-      toast.success('Comprehensive sample data created! All 12 categories now have coins.');
+      toast.success('Comprehensive sample data created! All categories now have coins with proper enum values.');
     } catch (error: any) {
       console.error('Error creating sample data:', error);
       toast.error(`Failed to create sample data: ${error.message}`);
@@ -524,17 +520,17 @@ const SampleDataSetup = () => {
       <CardContent className="space-y-4">
         <p className="text-gray-600">
           Create comprehensive sample coins for ALL 12 categories to make the platform fully functional.
-          This will populate Ancient, Modern, Error, European, American, Asian, Gold, Silver, Rare coins and more.
+          This will populate Ancient, Modern, Error, European, American, Asian, Gold, Silver, and Auction categories.
         </p>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <Coins className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-            <p className="text-sm font-medium">16+ Sample Coins</p>
+            <p className="text-sm font-medium">18+ Sample Coins</p>
           </div>
           <div className="text-center">
             <Store className="w-8 h-8 mx-auto mb-2 text-green-600" />
-            <p className="text-sm font-medium">All 12 Categories</p>
+            <p className="text-sm font-medium">All Categories</p>
           </div>
           <div className="text-center">
             <Users className="w-8 h-8 mx-auto mb-2 text-purple-600" />

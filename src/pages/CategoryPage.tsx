@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -9,7 +10,7 @@ const CategoryPage = () => {
   const { category } = useParams<{ category: string }>();
   const { coins, isLoading } = useCachedMarketplaceData();
 
-  // Enhanced filtering for all categories
+  // Enhanced filtering for all categories using correct database fields
   const filteredCoins = React.useMemo(() => {
     if (!coins || !category) return [];
     
@@ -20,7 +21,7 @@ const CategoryPage = () => {
         case 'modern':
           return coin.year >= 1900;
         case 'error':
-          return coin.rarity === 'Ultra Rare' || 
+          return coin.rarity === 'extremely_rare' || 
                  coin.description?.toLowerCase().includes('error') ||
                  coin.description?.toLowerCase().includes('doubled') ||
                  coin.name?.toLowerCase().includes('error') ||
@@ -47,7 +48,7 @@ const CategoryPage = () => {
                  coin.name?.toLowerCase().includes('silver') ||
                  coin.description?.toLowerCase().includes('silver');
         case 'rare':
-          return coin.rarity === 'Ultra Rare' || coin.rarity === 'Rare' || coin.price > 1000;
+          return coin.rarity === 'extremely_rare' || coin.rarity === 'rare' || coin.price > 1000;
         case 'auctions':
           return coin.is_auction;
         default:
