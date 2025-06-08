@@ -30,25 +30,25 @@ export const useCategoryStats = () => {
         silverResult,
         rareResult
       ] = await Promise.all([
-        // Ancient coins (pre-1800)
+        // Ancient coins (pre-1000)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .lte('year', 1800)
+          .lt('year', 1000)
           .eq('authentication_status', 'verified'),
         
-        // Modern coins (post-1800)
+        // Modern coins (1900+)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .gt('year', 1800)
+          .gte('year', 1900)
           .eq('authentication_status', 'verified'),
         
-        // Error coins (category = 'error_coin')
+        // Error coins (category = 'error_coin' OR contains error/doubled in name/description)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .eq('category', 'error_coin')
+          .or('category.eq.error_coin,name.ilike.%error%,name.ilike.%doubled%,description.ilike.%error%,description.ilike.%doubled%')
           .eq('authentication_status', 'verified'),
         
         // Live auctions
@@ -65,11 +65,15 @@ export const useCategoryStats = () => {
           .or('pcgs_grade.neq.null,ngc_grade.neq.null')
           .eq('authentication_status', 'verified'),
         
-        // European coins
+        // European coins (expanded list)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .in('country', ['Germany', 'France', 'Italy', 'Spain', 'United Kingdom', 'Netherlands', 'Austria', 'Switzerland', 'Belgium', 'Greece'])
+          .in('country', [
+            'Germany', 'France', 'Italy', 'Spain', 'United Kingdom', 'Netherlands', 
+            'Austria', 'Switzerland', 'Belgium', 'Greece', 'Portugal', 'Roman Empire', 
+            'Ancient Greece'
+          ])
           .eq('authentication_status', 'verified'),
         
         // American coins
@@ -79,32 +83,35 @@ export const useCategoryStats = () => {
           .in('country', ['United States', 'Canada', 'Mexico'])
           .eq('authentication_status', 'verified'),
         
-        // Asian coins
+        // Asian coins (expanded list)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .in('country', ['China', 'Japan', 'India', 'Korea', 'Thailand', 'Singapore'])
+          .in('country', [
+            'China', 'Japan', 'India', 'Korea', 'Thailand', 'Singapore',
+            'Vietnam', 'Philippines', 'Malaysia', 'Indonesia'
+          ])
           .eq('authentication_status', 'verified'),
         
-        // Gold coins (composition contains gold)
+        // Gold coins (composition OR name/description contains gold)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .ilike('composition', '%gold%')
+          .or('composition.ilike.%gold%,name.ilike.%gold%,description.ilike.%gold%')
           .eq('authentication_status', 'verified'),
         
-        // Silver coins (composition contains silver)
+        // Silver coins (composition OR name/description contains silver)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .ilike('composition', '%silver%')
+          .or('composition.ilike.%silver%,name.ilike.%silver%,description.ilike.%silver%')
           .eq('authentication_status', 'verified'),
         
-        // Rare coins (rarity = 'rare' or 'extremely_rare')
+        // Rare coins (rarity = 'rare' or 'extremely_rare' OR price > 1000)
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .in('rarity', ['rare', 'extremely_rare'])
+          .or('rarity.eq.rare,rarity.eq.extremely_rare,price.gt.1000')
           .eq('authentication_status', 'verified')
       ]);
 
@@ -112,7 +119,7 @@ export const useCategoryStats = () => {
       const trendingResult = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true })
-        .or('featured.eq.true,views.gt.100')
+        .or('featured.eq.true,views.gt.50')
         .eq('authentication_status', 'verified');
 
       setStats({
