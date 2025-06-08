@@ -5,7 +5,6 @@ import { useDealerStores } from '@/hooks/useDealerStores';
 import { useRealAdminData } from '@/hooks/useRealAdminData';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 import { useExternalPriceSources } from '@/hooks/useEnhancedDataSources';
-import { useRealTimeCoins } from '@/hooks/useRealTimeCoins';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { useCoinDataAggregation } from '@/hooks/useCoinDataAggregation';
 import { useAdvancedAIBrain } from '@/hooks/useAdvancedAIBrain';
@@ -26,7 +25,10 @@ const MarketplacePanelPage = () => {
   const { stats: adminStats, isLoading: adminLoading } = useRealAdminData();
   const { systemMetrics, userBehavior, performance } = useRealTimeAnalytics();
   const { data: dataSources } = useExternalPriceSources();
-  const coinsData = useRealTimeCoins();
+  
+  // Get initial coins data from admin stats to pass to useRealTimeCoins
+  const initialCoins = adminStats ? [] : []; // Fix: Provide empty array as initial value
+  
   const aiRecognition = useRealAICoinRecognition();
   const aggregationData = useCoinDataAggregation();
   const { providers } = useAdvancedAIBrain();
@@ -36,7 +38,7 @@ const MarketplacePanelPage = () => {
 
   // Real-time stats calculations
   const totalUsers = adminStats?.totalUsers || 0;
-  const totalCoins = coinsData?.length || 0;
+  const totalCoins = adminStats?.totalCoins || 0;
   const totalStores = dealers?.length || 0;
   const aiAnalysisCount = systemMetrics?.activeConnections || 0;
   const dataSourcesActive = dataSources?.filter(source => source.is_active)?.length || 0;

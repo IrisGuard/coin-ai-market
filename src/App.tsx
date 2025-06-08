@@ -1,117 +1,56 @@
 
-// Force GitHub sync - Updated at 2025-01-09 to ensure proper deployment
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { usePageView, usePagePerformance } from "@/hooks/usePageView";
-import { usePerformanceMonitoring, useMemoryMonitoring, useWebVitals } from "@/hooks/usePerformanceMonitoring";
+import { Suspense } from "react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Index from "./pages/Index";
-import ActiveMarketplace from "./pages/ActiveMarketplace";
-import DealerStorePage from "./pages/DealerStorePage";
-import CoinUpload from "./pages/CoinUpload";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import Auth from "./pages/Auth";
-import CoinDetails from "./pages/CoinDetails";
-import Auctions from "./pages/Auctions";
-import CoinSale from "./pages/CoinSale";
-import NotFound from "./pages/NotFound";
-import EnhancedSearch from "./pages/EnhancedSearch";
-import MobileAIFeatures from '@/pages/MobileAIFeatures';
-import AIFeatures from './pages/AIFeatures';
-import CategoryPage from './pages/CategoryPage';
-import AdminPanelPage from './pages/AdminPanelPage';
-import MarketplacePanelPage from './pages/MarketplacePanelPage';
-import { AdminProvider } from "@/contexts/AdminContext";
-import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
+import ProfilePage from "./pages/ProfilePage";
+import CoinDetailsPage from "./pages/CoinDetailsPage";
+import UploadPage from "./pages/UploadPage";
+import MarketplacePage from "./pages/MarketplacePage";
+import DashboardPage from "./pages/DashboardPage";
+import StorePage from "./pages/StorePage";
+import CreateStorePage from "./pages/CreateStorePage";
+import AuctionPage from "./pages/AuctionPage";
+import AuthPage from "./pages/AuthPage";
+import SettingsPage from "./pages/SettingsPage";
+import AboutPage from "./pages/AboutPage";
+import MarketplacePanelPage from "./pages/MarketplacePanelPage";
+import AdminPanelPage from "./pages/AdminPanelPage";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-// Enhanced App component with Vercel monitoring
-const AppWithMonitoring = () => {
-  usePageView();
-  usePagePerformance();
-  usePerformanceMonitoring('App');
-  useMemoryMonitoring();
-  useWebVitals();
-
-  return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/marketplace" element={<ActiveMarketplace />} />
-      <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
-      <Route path="/search" element={<EnhancedSearch />} />
-      <Route path="/upload" element={
-        <ProtectedRoute requireAuth={true}>
-          <CoinUpload />
-        </ProtectedRoute>
-      } />
-      <Route path="/dashboard" element={
-        <ProtectedRoute requireAuth={true}>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/profile" element={
-        <ProtectedRoute requireAuth={true}>
-          <Profile />
-        </ProtectedRoute>
-      } />
-      <Route path="/auth" element={
-        <ProtectedRoute requireAuth={false}>
-          <Auth />
-        </ProtectedRoute>
-      } />
-      <Route path="/coin/:id" element={<CoinDetails />} />
-      <Route path="/auctions" element={<Auctions />} />
-      <Route path="/sell/:id" element={
-        <ProtectedRoute requireAuth={true}>
-          <CoinSale />
-        </ProtectedRoute>
-      } />
-      <Route path="/mobile-ai" element={<MobileAIFeatures />} />
-      <Route path="/ai-features" element={<AIFeatures />} />
-      <Route path="/category/:category" element={<CategoryPage />} />
-      <Route path="/admin" element={<AdminPanelPage />} />
-      <Route path="/marketplace/panel" element={<MarketplacePanelPage />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <AdminProvider>
-                <ErrorBoundary>
-                  <AppWithMonitoring />
-                  <AdminKeyboardHandler />
-                </ErrorBoundary>
-              </AdminProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </ThemeProvider>
-      </TooltipProvider>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
       <Toaster />
       <Sonner />
-    </QueryClientProvider>
-  );
-}
+      <BrowserRouter>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/coin/:id" element={<CoinDetailsPage />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/marketplace/panel" element={<MarketplacePanelPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/store/:id" element={<StorePage />} />
+            <Route path="/create-store" element={<CreateStorePage />} />
+            <Route path="/auction/:id" element={<AuctionPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/admin" element={<AdminPanelPage />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+      <SpeedInsights />
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
