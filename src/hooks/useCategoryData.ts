@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { Coin } from '@/types/coin';
 import { useCachedMarketplaceData } from './useCachedMarketplaceData';
@@ -5,7 +6,7 @@ import { useCachedMarketplaceData } from './useCachedMarketplaceData';
 export interface CategoryFilters {
   searchTerm: string;
   sortBy: string;
-  priceRange: { min: number; max: number };
+  priceRange: [number, number];
   yearRange: [number, number];
   selectedCountry: string | null;
   selectedCondition: string | null;
