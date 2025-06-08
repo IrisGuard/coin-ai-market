@@ -12,7 +12,7 @@ const SampleDataSetup = () => {
   const createSampleCoins = async () => {
     setIsCreating(true);
     try {
-      // Comprehensive sample coins for ALL categories using correct enum values
+      // Sample coins using correct enum values from Supabase
       const sampleCoins = [
         // Ancient Coins
         {
@@ -31,7 +31,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'ancient',
+          category: 'ancient' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -50,7 +50,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'ancient',
+          category: 'ancient' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         
@@ -71,7 +71,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'modern',
+          category: 'modern' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -90,7 +90,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'modern',
+          category: 'modern' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -111,26 +111,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'error_coin',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-        {
-          name: '1943 Copper Penny',
-          year: 1943,
-          country: 'United States',
-          denomination: '1 Cent',
-          grade: 'VF-35',
-          price: 85000.00,
-          rarity: 'extremely_rare',
-          composition: 'Copper',
-          diameter: 19.05,
-          weight: 3.11,
-          mint: 'Philadelphia',
-          description: 'Extremely rare copper penny from 1943 when they should have been steel.',
-          image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: true,
-          category: 'error_coin',
+          category: 'error_coin' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -152,26 +133,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'american',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-        {
-          name: '1909-S VDB Lincoln Cent',
-          year: 1909,
-          country: 'United States',
-          denomination: '1 Cent',
-          grade: 'VF-30',
-          price: 750.00,
-          rarity: 'rare',
-          composition: '95% Copper, 5% Tin and Zinc',
-          diameter: 19.05,
-          weight: 3.11,
-          mint: 'San Francisco',
-          description: 'Key date Lincoln cent with designer initials. Highly sought after by collectors.',
-          image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: true,
-          category: 'american',
+          category: 'american' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -192,26 +154,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'european',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-        {
-          name: '1950 France 10 Francs',
-          year: 1950,
-          country: 'France',
-          denomination: '10 Francs',
-          grade: 'XF-40',
-          price: 45.00,
-          rarity: 'common',
-          composition: 'Aluminum-Bronze',
-          diameter: 26.0,
-          weight: 10.0,
-          mint: 'Paris',
-          description: 'Post-war French coin featuring Marianne.',
-          image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: false,
-          category: 'european',
+          category: 'european' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -232,49 +175,11 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'asian',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-        {
-          name: '1960 Japan 100 Yen Olympics',
-          year: 1960,
-          country: 'Japan',
-          denomination: '100 Yen',
-          grade: 'MS-63',
-          price: 15.00,
-          rarity: 'common',
-          composition: 'Silver',
-          diameter: 28.0,
-          weight: 4.8,
-          mint: 'Japan Mint',
-          description: 'Commemorative coin for Tokyo Olympics preparation.',
-          image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: false,
-          category: 'asian',
+          category: 'asian' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
         // Gold Coins
-        {
-          name: '1933 Double Eagle - Replica',
-          year: 1933,
-          country: 'United States',
-          denomination: '$20',
-          grade: 'Replica',
-          price: 45.00,
-          rarity: 'common',
-          composition: 'Gold Plated',
-          diameter: 34.0,
-          weight: 33.4,
-          mint: 'Private Mint',
-          description: 'High quality replica of the famous 1933 Double Eagle.',
-          image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: false,
-          category: 'gold',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
         {
           name: '1986 American Gold Eagle 1oz',
           year: 1986,
@@ -291,7 +196,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'gold',
+          category: 'gold' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
 
@@ -312,26 +217,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'silver',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-        {
-          name: '1916-D Mercury Dime',
-          year: 1916,
-          country: 'United States',
-          denomination: '10 Cents',
-          grade: 'G-6',
-          price: 1250.00,
-          rarity: 'rare',
-          composition: '90% Silver, 10% Copper',
-          diameter: 17.9,
-          weight: 2.5,
-          mint: 'Denver',
-          description: 'Key date Mercury dime, highly sought after in any condition.',
-          image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: true,
-          category: 'silver',
+          category: 'silver' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];
@@ -345,7 +231,7 @@ const SampleDataSetup = () => {
         throw new Error(`Failed to create sample coins: ${coinsError.message}`);
       }
 
-      // Create some auction coins with proper string dates
+      // Create auction coins
       const auctionCoins = [
         {
           name: '1892-S Morgan Dollar - AUCTION',
@@ -364,27 +250,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'american',
-          user_id: '00000000-0000-0000-0000-000000000000'
-        },
-        {
-          name: '1878-CC Morgan Dollar - AUCTION',
-          year: 1878,
-          country: 'United States',
-          denomination: '1 Dollar',
-          grade: 'XF-45',
-          price: 275.00,
-          starting_bid: 275.00,
-          reserve_price: 350.00,
-          rarity: 'rare',
-          composition: '90% Silver, 10% Copper',
-          is_auction: true,
-          auction_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-          description: 'Carson City Morgan Dollar - always popular with collectors.',
-          image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
-          featured: false,
-          category: 'american',
+          category: 'american' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];
@@ -397,110 +263,7 @@ const SampleDataSetup = () => {
         console.warn('Failed to create auction coins:', auctionError);
       }
 
-      // Create AI recognition cache entries
-      const cacheEntries = [
-        {
-          image_hash: 'hash_morgan_1921',
-          recognition_results: {
-            name: "1921 Morgan Silver Dollar",
-            year: 1921,
-            grade: "MS-63",
-            composition: "90% Silver",
-            estimated_value: 85,
-            country: "United States",
-            mint: "Philadelphia",
-            rarity: "Common",
-            authentication_confidence: 0.92
-          },
-          confidence_score: 0.92,
-          processing_time_ms: 2400,
-          sources_consulted: ['numista', 'pcgs', 'heritage']
-        },
-        {
-          image_hash: 'hash_lincoln_1909svdb',
-          recognition_results: {
-            name: "1909-S VDB Lincoln Cent",
-            year: 1909,
-            grade: "VF-30",
-            composition: "95% Copper",
-            estimated_value: 750,
-            country: "United States",
-            mint: "San Francisco",
-            rarity: "Key Date",
-            authentication_confidence: 0.88
-          },
-          confidence_score: 0.88,
-          processing_time_ms: 3200,
-          sources_consulted: ['pcgs', 'ngc', 'heritage']
-        }
-      ];
-
-      const { error: cacheError } = await supabase
-        .from('ai_recognition_cache')
-        .insert(cacheEntries);
-
-      if (cacheError) {
-        console.warn('Failed to create AI cache entries:', cacheError);
-      }
-
-      // Create marketplace stats
-      const { error: statsError } = await supabase
-        .from('marketplace_stats')
-        .insert({
-          listed_coins: 18,
-          active_auctions: 2,
-          registered_users: 0,
-          weekly_transactions: 3,
-          total_volume: 2505.00
-        });
-
-      if (statsError) {
-        console.warn('Failed to create marketplace stats:', statsError);
-      }
-
-      // Create error coins knowledge
-      const errorCoinsKnowledge = [
-        {
-          error_name: 'Doubled Die Obverse',
-          error_type: 'Die Error',
-          error_category: 'Production Error',
-          description: 'Doubling occurs when the die is impressed multiple times with slight misalignment',
-          severity_level: 8,
-          rarity_score: 9,
-          identification_techniques: ['Look for doubled lettering', 'Check date area', 'Examine under magnification'],
-          common_mistakes: ['Confusing with machine doubling', 'Missing slight doubling varieties'],
-          ai_detection_markers: {
-            text_doubling: true,
-            date_emphasis: true,
-            letter_separation: true
-          }
-        },
-        {
-          error_name: 'Off-Center Strike',
-          error_type: 'Strike Error',
-          error_category: 'Minting Error',
-          description: 'Coin struck when planchet was not properly centered in the collar',
-          severity_level: 6,
-          rarity_score: 7,
-          identification_techniques: ['Measure percentage off-center', 'Check for complete date visibility', 'Look for collar marks'],
-          common_mistakes: ['Confusing with clipped planchets', 'Overstating off-center percentage'],
-          ai_detection_markers: {
-            border_analysis: true,
-            date_visibility: true,
-            collar_marks: false
-          }
-        }
-      ];
-
-      const { error: knowledgeError } = await supabase
-        .from('error_coins_knowledge')
-        .insert(errorCoinsKnowledge);
-
-      if (knowledgeError) {
-        console.warn('Failed to create error coins knowledge:', knowledgeError);
-      }
-
-      toast.success('Comprehensive sample data created! All categories now have coins with proper enum values.');
+      toast.success('Sample data created successfully! All categories now have coins.');
     } catch (error: any) {
       console.error('Error creating sample data:', error);
       toast.error(`Failed to create sample data: ${error.message}`);
@@ -514,19 +277,18 @@ const SampleDataSetup = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Database className="w-5 h-5" />
-          Comprehensive Sample Data Setup
+          Sample Data Setup
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-gray-600">
-          Create comprehensive sample coins for ALL 12 categories to make the platform fully functional.
-          This will populate Ancient, Modern, Error, European, American, Asian, Gold, Silver, and Auction categories.
+          Create sample coins for all categories to test the platform functionality.
         </p>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <Coins className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-            <p className="text-sm font-medium">18+ Sample Coins</p>
+            <p className="text-sm font-medium">10+ Sample Coins</p>
           </div>
           <div className="text-center">
             <Store className="w-8 h-8 mx-auto mb-2 text-green-600" />
@@ -534,7 +296,7 @@ const SampleDataSetup = () => {
           </div>
           <div className="text-center">
             <Users className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-            <p className="text-sm font-medium">Live Auctions</p>
+            <p className="text-sm font-medium">Auctions</p>
           </div>
           <div className="text-center">
             <Database className="w-8 h-8 mx-auto mb-2 text-orange-600" />
@@ -547,7 +309,7 @@ const SampleDataSetup = () => {
           disabled={isCreating}
           className="w-full"
         >
-          {isCreating ? 'Creating Comprehensive Data...' : 'Create All Sample Data'}
+          {isCreating ? 'Creating Sample Data...' : 'Create Sample Data'}
         </Button>
       </CardContent>
     </Card>
