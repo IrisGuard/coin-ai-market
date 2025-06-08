@@ -1,36 +1,41 @@
 
 import React from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Tabs } from '@/components/ui/tabs';
-import AdminPanelHeader from './AdminPanelHeader';
-import AdminStatsOverview from './AdminStatsOverview';
-import AdminTabsList from './AdminTabsList';
-import AdminTabsContent from './AdminTabsContent';
-import AdminDataValidator from './AdminDataValidator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Settings, Users, Database, BarChart3 } from 'lucide-react';
 
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
+  const adminActions = [
+    { icon: Users, title: 'User Management', description: 'Manage users and permissions' },
+    { icon: Database, title: 'Database Admin', description: 'Database operations and maintenance' },
+    { icon: BarChart3, title: 'Analytics', description: 'View platform analytics and reports' },
+    { icon: Settings, title: 'System Settings', description: 'Configure system settings' }
+  ];
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-        <AdminPanelHeader />
-        
-        <AdminDataValidator />
-
-        <div className="space-y-6">
-          <AdminStatsOverview />
-
-          <Tabs defaultValue="ai-brain" className="space-y-4">
-            <AdminTabsList />
-            <AdminTabsContent />
-          </Tabs>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {adminActions.map((action) => (
+        <Card key={action.title} className="hover:shadow-lg transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <action.icon className="w-5 h-5" />
+              {action.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">{action.description}</p>
+            <Button variant="outline" size="sm">
+              Access
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

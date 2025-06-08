@@ -67,8 +67,8 @@ const Auctions = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Δημοπρασίες Νομισμάτων</h1>
-          <p className="text-gray-600">Ενεργές δημοπρασίες από καταστήματα της πλατφόρμας</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Coin Auctions</h1>
+          <p className="text-gray-600">Active auctions from verified dealers on the platform</p>
         </motion.div>
 
         {/* Auction Stats */}
@@ -110,8 +110,8 @@ const Auctions = () => {
         >
           {filteredAuctions.length === 0 ? (
             <div className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">Δεν βρέθηκαν δημοπρασίες</h3>
-              <p className="text-gray-600">Δοκιμάστε να αλλάξετε τα κριτήρια αναζήτησης</p>
+              <h3 className="text-lg font-semibold mb-2">No auctions found</h3>
+              <p className="text-gray-600">Try adjusting your search criteria</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

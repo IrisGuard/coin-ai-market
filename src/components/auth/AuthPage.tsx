@@ -1,35 +1,62 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import AuthCard from './AuthCard';
-import AuthSuccessHandler from './AuthSuccessHandler';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const AuthPage = () => {
-  const { isAuthenticated, loading } = useAuth();
-  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    // If already authenticated and not loading, redirect to success handler
-    if (isAuthenticated && !loading) {
-      // Don't navigate here - let AuthSuccessHandler handle it
-      return;
-    }
-  }, [isAuthenticated, loading, navigate]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Auth submit:', { email, password, isLogin });
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin h-8 w-8 border-4 border-electric-blue border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <AuthSuccessHandler />;
-  }
-
-  return <AuthCard />;
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>{isLogin ? 'Login' : 'Sign Up'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            {isLogin ? 'Login' : 'Sign Up'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => setIsLogin(!isLogin)}
+          >
+            {isLogin ? 'Need an account? Sign up' : 'Already have an account? Login'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
 };
 
 export default AuthPage;

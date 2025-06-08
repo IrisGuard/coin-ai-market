@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store, Home, Menu, X } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store, Home, Menu, X, Settings, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/hooks/useI18n';
@@ -27,6 +27,8 @@ const Navbar = () => {
 
   const userLinks = user ? [
     { to: "/upload", icon: Upload, label: "Upload", color: "text-electric-cyan hover:text-electric-blue" },
+    { to: "/admin", icon: Settings, label: "Admin Panel", color: "text-electric-blue hover:text-electric-purple" },
+    { to: "/marketplace/panel", icon: Users, label: "User Panel", color: "text-electric-green hover:text-electric-emerald" },
   ] : [];
 
   return (
