@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { toast } from 'sonner';
+import type { UploadedImage } from '@/types/upload';
 
 export interface AIAnalysisResult {
   name: string;
@@ -24,6 +25,7 @@ export interface AIAnalysisResult {
 export const useAIAnalysis = () => {
   const { analyzeImage, isAnalyzing, result, error, clearResults } = useRealAICoinRecognition();
   const [analysisHistory, setAnalysisHistory] = useState<AIAnalysisResult[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const performAnalysis = async (imageFile: File): Promise<AIAnalysisResult | null> => {
     try {
@@ -52,6 +54,68 @@ export const useAIAnalysis = () => {
     }
   };
 
+  const analyzeImages = async (
+    images: UploadedImage[], 
+    updateCoinData: (data: any) => void,
+    setImages: (images: UploadedImage[]) => void
+  ) => {
+    if (images.length === 0) {
+      toast.error('Please select at least one image to analyze');
+      return;
+    }
+
+    setUploadProgress(0);
+
+    try {
+      // Process first image for AI analysis
+      const firstImage = images[0];
+      if (!firstImage.file) {
+        throw new Error('No valid image file found');
+      }
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      const analysisResult = await performAnalysis(firstImage.file);
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (analysisResult) {
+        // Update coin data with AI results
+        updateCoinData({
+          title: analysisResult.name,
+          year: analysisResult.year.toString(),
+          country: analysisResult.country,
+          denomination: analysisResult.denomination,
+          grade: analysisResult.grade,
+          composition: analysisResult.composition,
+          rarity: analysisResult.rarity,
+          mint: analysisResult.mint || '',
+          diameter: analysisResult.diameter?.toString() || '',
+          weight: analysisResult.weight?.toString() || '',
+          price: analysisResult.estimatedValue.toString()
+        });
+
+        // Mark images as uploaded
+        const updatedImages = images.map(img => ({
+          ...img,
+          uploaded: true,
+          uploading: false
+        }));
+        setImages(updatedImages);
+      }
+
+      setTimeout(() => setUploadProgress(0), 2000);
+    } catch (error: any) {
+      console.error('Analysis failed:', error);
+      toast.error(`Analysis failed: ${error.message}`);
+      setUploadProgress(0);
+    }
+  };
+
   const clearAnalysis = () => {
     clearResults();
   };
@@ -68,6 +132,9 @@ export const useAIAnalysis = () => {
     isAnalyzing,
     result,
     error,
-    analysisHistory
+    analysisHistory,
+    analysisResults: result, // Alias for backward compatibility
+    uploadProgress,
+    analyzeImages
   };
 };

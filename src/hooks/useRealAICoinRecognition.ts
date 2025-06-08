@@ -123,9 +123,12 @@ export const useRealAICoinRecognition = () => {
 
   const cacheRecognitionResult = async (imageHash: string, result: AIRecognitionResult) => {
     try {
+      // Convert result to JSON-compatible format for database storage
+      const jsonResult = JSON.parse(JSON.stringify(result));
+      
       await supabase.from('ai_recognition_cache').upsert({
         image_hash: imageHash,
-        recognition_results: result,
+        recognition_results: jsonResult,
         confidence_score: result.confidence,
         processing_time_ms: result.processingTime,
         sources_consulted: [result.aiProvider]

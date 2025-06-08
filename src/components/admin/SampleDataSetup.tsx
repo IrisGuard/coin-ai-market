@@ -28,10 +28,10 @@ const SampleDataSetup = () => {
           mint: 'Philadelphia',
           description: 'Classic Morgan Dollar in excellent condition. Last year of regular production.',
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
+          authentication_status: 'verified' as const,
           featured: true,
-          category: 'modern',
-          user_id: '00000000-0000-0000-0000-000000000000' // Placeholder user ID
+          category: 'modern' as const,
+          user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
           name: '1909-S VDB Lincoln Cent',
@@ -47,9 +47,9 @@ const SampleDataSetup = () => {
           mint: 'San Francisco',
           description: 'Key date Lincoln cent with designer initials. Highly sought after by collectors.',
           image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
+          authentication_status: 'verified' as const,
           featured: true,
-          category: 'modern',
+          category: 'modern' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -66,9 +66,9 @@ const SampleDataSetup = () => {
           mint: 'Philadelphia',
           description: 'First year Kennedy Half Dollar in silver. Nice uncirculated condition.',
           image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
+          authentication_status: 'verified' as const,
           featured: false,
-          category: 'modern',
+          category: 'modern' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -85,9 +85,9 @@ const SampleDataSetup = () => {
           mint: 'Rome',
           description: 'Ancient Roman silver denarius featuring Emperor Trajan. Excellent historical significance.',
           image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
+          authentication_status: 'verified' as const,
           featured: true,
-          category: 'ancient',
+          category: 'ancient' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -104,9 +104,9 @@ const SampleDataSetup = () => {
           mint: 'Philadelphia',
           description: 'Famous doubled die error coin. Clear doubling visible on date and lettering.',
           image: 'https://images.unsplash.com/photo-1635976681340-1e0d33fb93b1?w=400&h=400&fit=crop',
-          authentication_status: 'verified',
+          authentication_status: 'verified' as const,
           featured: true,
-          category: 'error_coin',
+          category: 'error_coin' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];

@@ -19,7 +19,7 @@ export const useCoinUpload = () => {
   } = useImageUpload();
   const { 
     isAnalyzing, 
-    analysisResults, 
+    result: analysisResults, 
     uploadProgress, 
     analyzeImages 
   } = useAIAnalysis();
