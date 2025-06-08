@@ -21,20 +21,16 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Enhanced Hero Section */}
       <HeroSection />
       
-      {/* Categories Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <CategoriesGrid />
       </div>
 
-      {/* Features Section */}
       <FeatureSection />
 
       <Footer />
 
-      {/* Enhanced Fixed Buttons - Bottom Right */}
       <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
         <Link to="/admin">
           <Button 
