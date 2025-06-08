@@ -1,101 +1,53 @@
 
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Coin } from '@/types/coin';
 
 export const useAllDealerCoins = () => {
-  // Mock data για testing - replace με real Supabase call
-  const mockCoins: Coin[] = [
-    {
-      id: '1',
-      name: 'Ancient Roman Denarius',
-      price: 150,
-      year: 200,
-      grade: 'Fine',
-      image: '/placeholder.svg',
-      user_id: 'mock-user-1',
-      country: 'Roman Empire',
-      rarity: 'Rare',
-      condition: 'Good',
-      featured: true,
-      is_auction: false,
-      authentication_status: 'verified',
-      views: 45,
-      created_at: '2024-01-01T00:00:00Z',
-      description: 'Beautiful ancient Roman silver denarius featuring Emperor portrait',
-      pcgs_grade: '',
-      ngc_grade: '',
-      composition: 'Silver',
-      diameter: 18,
-      weight: 3.5,
-      mint: 'Rome',
-      mintage: 1000000
-    },
-    {
-      id: '2', 
-      name: 'Morgan Silver Dollar',
-      price: 85,
-      year: 1921,
-      grade: 'VF-30',
-      image: '/placeholder.svg',
-      user_id: 'mock-user-2',
-      country: 'United States',
-      rarity: 'Common',
-      condition: 'Excellent',
-      featured: false,
-      is_auction: false,
-      authentication_status: 'verified',
-      views: 32,
-      created_at: '2024-01-02T00:00:00Z',
-      description: 'Classic Morgan Silver Dollar in Very Fine condition',
-      pcgs_grade: '',
-      ngc_grade: '',
-      composition: '90% Silver',
-      diameter: 38.1,
-      weight: 26.73,
-      mint: 'Philadelphia',
-      mintage: 44690000
-    }
-  ];
+  return useQuery({
+    queryKey: ['dealer-coins', 'all'],
+    queryFn: async () => {
+      console.log('Fetching all dealer coins from Supabase...');
+      
+      const { data, error } = await supabase
+        .from('coins')
+        .select('*')
+        .eq('authentication_status', 'verified')
+        .order('created_at', { ascending: false });
 
-  return {
-    data: mockCoins,
-    isLoading: false,
-    error: null
-  };
+      if (error) {
+        console.error('Error fetching dealer coins:', error);
+        throw error;
+      }
+
+      console.log(`Fetched ${data?.length || 0} verified coins from database`);
+      return data || [];
+    },
+    staleTime: 30000, // 30 seconds
+  });
 };
 
 export const useDealerCoins = (dealerId: string) => {
-  // Mock data για testing - replace με real Supabase call
-  const mockCoins: Coin[] = [
-    {
-      id: '1',
-      name: 'Ancient Roman Denarius',
-      price: 150,
-      year: 200,
-      grade: 'Fine',
-      image: '/placeholder.svg',
-      user_id: dealerId,
-      country: 'Roman Empire',
-      rarity: 'Rare',
-      condition: 'Good',
-      featured: true,
-      is_auction: false,
-      authentication_status: 'verified',
-      views: 45,
-      created_at: '2024-01-01T00:00:00Z',
-      description: 'Beautiful ancient Roman silver denarius featuring Emperor portrait',
-      pcgs_grade: '',
-      ngc_grade: '',
-      composition: 'Silver',
-      diameter: 18,
-      weight: 3.5,
-      mint: 'Rome',
-      mintage: 1000000
-    }
-  ];
+  return useQuery({
+    queryKey: ['dealer-coins', dealerId],
+    queryFn: async () => {
+      console.log(`Fetching coins for dealer: ${dealerId}`);
+      
+      const { data, error } = await supabase
+        .from('coins')
+        .select('*')
+        .eq('user_id', dealerId)
+        .eq('authentication_status', 'verified')
+        .order('created_at', { ascending: false });
 
-  return {
-    data: mockCoins,
-    isLoading: false,
-    error: null
-  };
+      if (error) {
+        console.error('Error fetching dealer coins:', error);
+        throw error;
+      }
+
+      console.log(`Fetched ${data?.length || 0} coins for dealer ${dealerId}`);
+      return data || [];
+    },
+    staleTime: 30000, // 30 seconds
+  });
 };

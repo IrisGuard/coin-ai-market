@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Coin } from '@/types/coin';
 import { useCachedMarketplaceData } from './useCachedMarketplaceData';
@@ -46,6 +45,8 @@ export const useCategoryData = (category: string) => {
   // Filter coins by category
   const categoryCoins = useMemo(() => {
     if (!allCoins || allCoins.length === 0) return [];
+
+    console.log(`Filtering ${allCoins.length} coins for category: ${category}`);
 
     return allCoins.filter(coin => {
       // Ensure coin has required properties before filtering
@@ -167,7 +168,7 @@ export const useCategoryData = (category: string) => {
       return {
         totalCoins: 0,
         averagePrice: 0,
-        priceRange: [0, 0],
+        priceRange: [0, 0] as [number, number],
         mostExpensive: null,
         oldestCoin: null,
         newestCoin: null,
@@ -191,7 +192,7 @@ export const useCategoryData = (category: string) => {
     return {
       totalCoins: categoryCoins.length,
       averagePrice: prices.reduce((sum, price) => sum + price, 0) / prices.length,
-      priceRange: [Math.min(...prices), Math.max(...prices)],
+      priceRange: [Math.min(...prices), Math.max(...prices)] as [number, number],
       mostExpensive,
       oldestCoin,
       newestCoin,
