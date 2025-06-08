@@ -1,7 +1,27 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Coin } from '@/types/coin';
+import { Coin, Rarity, CoinCondition } from '@/types/coin';
+
+// Type-safe transformation function
+const transformSupabaseCoinData = (rawCoin: any): Coin => {
+  return {
+    ...rawCoin,
+    rarity: rawCoin.rarity as Rarity,
+    condition: rawCoin.condition as CoinCondition | undefined,
+    authentication_status: rawCoin.authentication_status as 'pending' | 'verified' | 'rejected' | undefined,
+    profiles: rawCoin.profiles || {
+      id: '',
+      name: '',
+      reputation: 0,
+      verified_dealer: false
+    },
+    bids: rawCoin.bids?.map((bid: any) => ({
+      ...bid,
+      profiles: bid.profiles || { name: '' }
+    })) || []
+  };
+};
 
 export const useRealTimeCoins = (initialCoins: Coin[] = []) => {
   const [coins, setCoins] = useState<Coin[]>(initialCoins);
@@ -24,10 +44,10 @@ export const useRealTimeCoins = (initialCoins: Coin[] = []) => {
           console.log('Real-time coin update:', payload);
           
           if (payload.eventType === 'INSERT') {
-            const newCoin = payload.new as Coin;
+            const newCoin = transformSupabaseCoinData(payload.new);
             setCoins(prev => [newCoin, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedCoin = payload.new as Coin;
+            const updatedCoin = transformSupabaseCoinData(payload.new);
             setCoins(prev => prev.map(coin => 
               coin.id === updatedCoin.id ? updatedCoin : coin
             ));
@@ -61,7 +81,9 @@ export const useRealTimeCoinsSimple = () => {
         .limit(50);
       
       if (data) {
-        setCoins(data);
+        // Transform the data to match Coin type
+        const transformedCoins = data.map(transformSupabaseCoinData);
+        setCoins(transformedCoins);
       }
     };
 
@@ -82,10 +104,10 @@ export const useRealTimeCoinsSimple = () => {
           console.log('Real-time coin update:', payload);
           
           if (payload.eventType === 'INSERT') {
-            const newCoin = payload.new as Coin;
+            const newCoin = transformSupabaseCoinData(payload.new);
             setCoins(prev => [newCoin, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedCoin = payload.new as Coin;
+            const updatedCoin = transformSupabaseCoinData(payload.new);
             setCoins(prev => prev.map(coin => 
               coin.id === updatedCoin.id ? updatedCoin : coin
             ));
