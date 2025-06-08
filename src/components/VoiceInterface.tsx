@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Loader2, Globe } from 'lucide-react';
 import { useMultiLanguageVoice } from '@/hooks/useMultiLanguageVoice';
+import { getVoiceStatusMessages } from '@/utils/voiceStatusMessages';
 import { cn } from '@/lib/utils';
 
 const VoiceInterface = () => {
@@ -68,31 +69,30 @@ const VoiceInterface = () => {
   };
 
   const buttonState = getButtonState();
+  const statusMessages = getVoiceStatusMessages(currentLanguage);
 
   return (
     <div className="fixed bottom-4 left-4 z-40 flex flex-col items-start gap-2">
-      {/* Language Indicator */}
-      {(isListening || lastResult) && (
-        <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-lg">
-          <div className="flex items-center gap-2 text-sm">
-            <Globe className="w-4 h-4 text-blue-500" />
-            <span className="text-gray-600">
-              {getLanguageDisplayName(currentLanguage)}
-            </span>
-          </div>
+      {/* Language Indicator - Always show now since we detect language from start */}
+      <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-lg">
+        <div className="flex items-center gap-2 text-sm">
+          <Globe className="w-4 h-4 text-blue-500" />
+          <span className="text-gray-600">
+            {getLanguageDisplayName(currentLanguage)}
+          </span>
         </div>
-      )}
+      </div>
 
       {/* Last Search Result */}
       {lastResult && !isListening && !isProcessing && (
         <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-lg max-w-64">
-          <div className="text-xs text-gray-500 mb-1">Last search:</div>
+          <div className="text-xs text-gray-500 mb-1">{statusMessages.lastSearch}</div>
           <div className="text-sm font-medium text-gray-800">
             "{lastResult.searchQuery}"
           </div>
           {lastResult.originalText !== lastResult.translatedText && (
             <div className="text-xs text-gray-500 mt-1">
-              Original: "{lastResult.originalText}"
+              {statusMessages.original} "{lastResult.originalText}"
             </div>
           )}
         </div>
@@ -117,16 +117,16 @@ const VoiceInterface = () => {
         {buttonState === 'idle' && <Mic className="w-6 h-6" />}
       </Button>
 
-      {/* Status Text */}
+      {/* Status Text - Now multilingual */}
       <div className="text-xs text-center w-full">
         {buttonState === 'listening' && (
-          <span className="text-red-600 font-medium">🎤 Listening...</span>
+          <span className="text-red-600 font-medium">{statusMessages.listening}</span>
         )}
         {buttonState === 'processing' && (
-          <span className="text-blue-600 font-medium">🤖 Processing...</span>
+          <span className="text-blue-600 font-medium">{statusMessages.processing}</span>
         )}
         {buttonState === 'idle' && (
-          <span className="text-gray-500">🎙️ Voice Search</span>
+          <span className="text-gray-500">{statusMessages.idle}</span>
         )}
       </div>
     </div>
