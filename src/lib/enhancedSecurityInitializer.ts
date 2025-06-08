@@ -5,9 +5,9 @@ import { ConsoleMonitor } from '@/lib/consoleMonitoring';
 
 export const initializeEnhancedSecurity = async () => {
   try {
-    console.log('🔐 Starting enhanced security initialization...');
+    console.log('🔐 Starting enhanced security initialization with OTP optimization...');
     
-    // Initialize production security
+    // Initialize production security with OTP enhancement
     const securityResult = await initializeProductionSecurity();
     
     // Initialize enhanced security monitoring
@@ -17,19 +17,25 @@ export const initializeEnhancedSecurity = async () => {
     const consoleMonitor = ConsoleMonitor.getInstance();
     consoleMonitor.init();
     
-    // Log successful initialization
-    await securityMonitor.logSecurityInfo('initialization', 
-      'Enhanced security systems initialized successfully', {
+    // Log successful initialization with OTP details
+    await securityMonitor.logSecurityInfo('initialization_otp_enhanced', 
+      'Enhanced security systems with OTP optimization initialized successfully', {
       security_validation: securityResult.securityValidation.status,
       auth_configured: securityResult.authConfigured,
-      console_monitoring: true
+      otp_configured: securityResult.otpConfigured,
+      session_monitoring: securityResult.sessionMonitoring,
+      console_monitoring: true,
+      otp_expiry: securityResult.securityValidation.otpExpiry,
+      session_timeout: securityResult.securityValidation.sessionTimeout
     });
     
-    console.log('✅ Enhanced security systems fully initialized');
+    console.log('✅ Enhanced security systems with OTP optimization fully initialized');
     
     return {
       securityValidation: securityResult.securityValidation,
       authConfigured: securityResult.authConfigured,
+      otpConfigured: securityResult.otpConfigured,
+      sessionMonitoring: securityResult.sessionMonitoring,
       monitoringActive: true,
       headers: securityResult.headers
     };

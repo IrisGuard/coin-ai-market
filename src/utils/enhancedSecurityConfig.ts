@@ -6,6 +6,8 @@ export const validateEnhancedSecurityConfig = async (): Promise<{
   issues: string[];
   securityLevel: string;
   otpConfig: string;
+  otpExpiry?: string;
+  sessionTimeout?: string;
 }> => {
   try {
     const { data, error } = await supabase.rpc('validate_enhanced_security_config');
@@ -26,7 +28,9 @@ export const validateEnhancedSecurityConfig = async (): Promise<{
       status: result?.status || 'unknown',
       issues: Array.isArray(result?.issues) ? result.issues : [],
       securityLevel: result?.security_level || 'unknown',
-      otpConfig: result?.otp_config || 'unknown'
+      otpConfig: result?.otp_config || 'unknown',
+      otpExpiry: result?.otp_expiry || 'unknown',
+      sessionTimeout: result?.session_timeout || 'unknown'
     };
   } catch (error) {
     console.error('Enhanced security config validation failed:', error);
@@ -51,6 +55,38 @@ export const configureEnhancedAuthSecurity = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Enhanced auth security configuration failed:', error);
+    return false;
+  }
+};
+
+export const configureOTPSecurity = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.rpc('configure_otp_security');
+    
+    if (error) {
+      console.error('OTP security configuration error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('OTP security configuration failed:', error);
+    return false;
+  }
+};
+
+export const monitorAuthSessions = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.rpc('monitor_auth_sessions');
+    
+    if (error) {
+      console.error('Auth session monitoring error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Auth session monitoring failed:', error);
     return false;
   }
 };
@@ -83,12 +119,14 @@ export const getEnhancedSecurityHeaders = () => {
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'X-Auth-Session-Timeout': '86400',
+    'X-OTP-Expiry': '600'
   };
 };
 
 export const initializeProductionSecurity = async () => {
-  console.log('🔒 Initializing enhanced production security...');
+  console.log('🔒 Initializing enhanced production security with OTP optimization...');
   
   try {
     // Validate security configuration
@@ -97,18 +135,30 @@ export const initializeProductionSecurity = async () => {
     // Configure enhanced auth security
     const authConfigured = await configureEnhancedAuthSecurity();
     
+    // Configure OTP security
+    const otpConfigured = await configureOTPSecurity();
+    
+    // Monitor auth sessions
+    const sessionMonitoring = await monitorAuthSessions();
+    
     // Log security initialization
-    await logProductionError('security_init', 'Production security initialized', {
+    await logProductionError('security_init', 'Production security with OTP enhancement initialized', {
       validation_status: validation.status,
       auth_configured: authConfigured,
-      security_level: validation.securityLevel
+      otp_configured: otpConfigured,
+      session_monitoring: sessionMonitoring,
+      security_level: validation.securityLevel,
+      otp_expiry: validation.otpExpiry,
+      session_timeout: validation.sessionTimeout
     });
     
-    console.log('✅ Enhanced production security initialized successfully');
+    console.log('✅ Enhanced production security with OTP optimization initialized successfully');
     
     return {
       securityValidation: validation,
       authConfigured,
+      otpConfigured,
+      sessionMonitoring,
       headers: getEnhancedSecurityHeaders()
     };
   } catch (error) {

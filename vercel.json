@@ -32,6 +32,14 @@
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Auth-Session-Timeout",
+          "value": "86400"
+        },
+        {
+          "key": "X-OTP-Expiry",
+          "value": "600"
         }
       ]
     }

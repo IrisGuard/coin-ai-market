@@ -2353,6 +2353,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      configure_otp_security: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       create_admin_user: {
         Args: { user_email: string }
         Returns: undefined
@@ -2399,6 +2403,10 @@ export type Database = {
       log_security_event: {
         Args: { event_type: string; event_details?: Json }
         Returns: undefined
+      }
+      monitor_auth_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       set_tenant_context: {
         Args: { tenant_uuid: string }
