@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
-import { Search, Settings, Users, LogIn } from 'lucide-react';
+import { Search, Settings, Users } from 'lucide-react';
 
 const Index = () => {
   usePageView();
@@ -29,24 +29,6 @@ const Index = () => {
             <p className="text-xl text-gray-600 mb-8">
               Discover authentic coins from verified dealers worldwide
             </p>
-            
-            {/* Authentication Status Notice */}
-            {!isAuthenticated && (
-              <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-2xl mx-auto">
-                <div className="flex items-center justify-center gap-2 text-blue-700">
-                  <LogIn className="w-5 h-5" />
-                  <span className="font-medium">Sign up to unlock all features</span>
-                </div>
-                <p className="text-sm text-blue-600 mt-2">
-                  Create an account to access dealer stores, upload coins, and use AI analysis
-                </p>
-                <Link to="/auth" className="inline-block mt-3">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            )}
             
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
