@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -21,7 +20,7 @@ const CategoryPage = () => {
         case 'modern':
           return coin.year >= 1900;
         case 'error':
-          return coin.category === 'error_coin' || coin.rarity === 'extremely_rare' || 
+          return coin.rarity === 'Ultra Rare' || 
                  coin.description?.toLowerCase().includes('error') ||
                  coin.description?.toLowerCase().includes('doubled') ||
                  coin.name?.toLowerCase().includes('error') ||
@@ -48,7 +47,7 @@ const CategoryPage = () => {
                  coin.name?.toLowerCase().includes('silver') ||
                  coin.description?.toLowerCase().includes('silver');
         case 'rare':
-          return coin.rarity === 'extremely_rare' || coin.rarity === 'rare' || coin.price > 1000;
+          return coin.rarity === 'Ultra Rare' || coin.rarity === 'Rare' || coin.price > 1000;
         case 'auctions':
           return coin.is_auction;
         default:
