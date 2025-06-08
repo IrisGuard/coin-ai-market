@@ -121,11 +121,11 @@ const CategoryPage = () => {
               setPriceRange={(value) => updateFilter('priceRange', value)}
               yearRange={filters.yearRange}
               setYearRange={(value) => updateFilter('yearRange', value)}
-              selectedCountry={filters.selectedCountry}
+              selectedCountry={filters.selectedCountry || ''}
               setSelectedCountry={(value) => updateFilter('selectedCountry', value)}
-              selectedCondition={filters.selectedCondition}
+              selectedCondition={filters.selectedCondition || ''}
               setSelectedCondition={(value) => updateFilter('selectedCondition', value)}
-              selectedRarity={filters.selectedRarity}
+              selectedRarity={filters.selectedRarity || ''}
               setSelectedRarity={(value) => updateFilter('selectedRarity', value)}
               showAuctionsOnly={filters.showAuctionsOnly}
               setShowAuctionsOnly={(value) => updateFilter('showAuctionsOnly', value)}
