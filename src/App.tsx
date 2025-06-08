@@ -15,7 +15,6 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import CoinUpload from "./pages/CoinUpload";
 import CategoryPage from "./pages/CategoryPage";
-import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -67,14 +66,6 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <CoinUpload />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin" 
-                    element={
-                      <ProtectedRoute>
-                        <Admin />
                       </ProtectedRoute>
                     } 
                   />

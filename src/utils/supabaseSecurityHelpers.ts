@@ -51,6 +51,7 @@ export const logSecurityEvent = async (eventType: string, details: any = {}) => 
   try {
     await supabase.from('analytics_events').insert({
       event_type: `security_${eventType}`,
+      page_url: window.location.href,
       metadata: {
         ...details,
         timestamp: new Date().toISOString(),
