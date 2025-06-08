@@ -1,5 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
+
+interface ValidationResult {
+  status?: string;
+  issues?: string[];
+  validated_at?: string;
+}
 
 export const validateEnhancedSecurityConfig = async () => {
   try {
@@ -19,15 +24,18 @@ export const validateEnhancedSecurityConfig = async () => {
       };
     }
     
-    console.log('✅ Enhanced security validation complete:', validationResult);
+    // Type assertion for the validation result
+    const result = validationResult as ValidationResult;
+    
+    console.log('✅ Enhanced security validation complete:', result);
     
     return {
-      status: validationResult.status || 'secure',
-      issues: validationResult.issues || [],
+      status: result?.status || 'secure',
+      issues: result?.issues || [],
       otpConfig: 'optimized',
       otpExpiry: '10_minutes',
       sessionTimeout: '24_hours',
-      validatedAt: validationResult.validated_at
+      validatedAt: result?.validated_at
     };
   } catch (error) {
     console.error('Security validation failed:', error);
