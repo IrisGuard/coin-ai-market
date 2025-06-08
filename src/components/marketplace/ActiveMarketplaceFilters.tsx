@@ -59,12 +59,12 @@ const ActiveMarketplaceFilters: React.FC<ActiveMarketplaceFiltersProps> = ({
           <label className="text-sm font-medium text-electric-purple">Featured Only</label>
         </div>
 
-        <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+        <Select value={selectedCondition || 'all'} onValueChange={(value) => setSelectedCondition(value === 'all' ? '' : value)}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Condition" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Conditions</SelectItem>
+            <SelectItem value="all">All Conditions</SelectItem>
             <SelectItem value="Poor">Poor</SelectItem>
             <SelectItem value="Fair">Fair</SelectItem>
             <SelectItem value="Good">Good</SelectItem>
@@ -77,12 +77,12 @@ const ActiveMarketplaceFilters: React.FC<ActiveMarketplaceFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={selectedRarity} onValueChange={setSelectedRarity}>
+        <Select value={selectedRarity || 'all'} onValueChange={(value) => setSelectedRarity(value === 'all' ? '' : value)}>
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Rarity" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Rarities</SelectItem>
+            <SelectItem value="all">All Rarities</SelectItem>
             <SelectItem value="Common">Common</SelectItem>
             <SelectItem value="Uncommon">Uncommon</SelectItem>
             <SelectItem value="Rare">Rare</SelectItem>

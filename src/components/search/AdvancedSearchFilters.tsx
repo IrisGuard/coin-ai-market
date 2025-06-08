@@ -65,7 +65,7 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
   };
 
   const handleSelectChange = (key: keyof SearchFilters) => (value: string) => {
-    onFiltersChange({ [key]: value });
+    onFiltersChange({ [key]: value === 'all' ? '' : value });
   };
 
   return (
@@ -121,14 +121,14 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
               Country
             </Label>
             <Select 
-              value={filters.country} 
+              value={filters.country || 'all'} 
               onValueChange={handleSelectChange('country')}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Any country" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any country</SelectItem>
+                <SelectItem value="all">Any country</SelectItem>
                 {filterOptions.countries?.map(country => (
                   <SelectItem key={country} value={country}>
                     {country}
@@ -141,14 +141,14 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
           <div className="space-y-2">
             <Label>Category</Label>
             <Select 
-              value={filters.category} 
+              value={filters.category || 'all'} 
               onValueChange={handleSelectChange('category')}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Any category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any category</SelectItem>
+                <SelectItem value="all">Any category</SelectItem>
                 {filterOptions.categories?.map(category => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -217,14 +217,14 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
           <div className="space-y-2">
             <Label>Grade</Label>
             <Select 
-              value={filters.grade} 
+              value={filters.grade || 'all'} 
               onValueChange={handleSelectChange('grade')}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Any grade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any grade</SelectItem>
+                <SelectItem value="all">Any grade</SelectItem>
                 {filterOptions.grades?.map(grade => (
                   <SelectItem key={grade} value={grade}>
                     {grade}
@@ -237,14 +237,14 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
           <div className="space-y-2">
             <Label>Rarity</Label>
             <Select 
-              value={filters.rarity} 
+              value={filters.rarity || 'all'} 
               onValueChange={handleSelectChange('rarity')}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Any rarity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any rarity</SelectItem>
+                <SelectItem value="all">Any rarity</SelectItem>
                 {filterOptions.rarities?.map(rarity => (
                   <SelectItem key={rarity} value={rarity}>
                     {rarity}

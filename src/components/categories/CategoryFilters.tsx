@@ -105,12 +105,12 @@ const CategoryFilters: React.FC<CategoryFiltersProps> = ({
       case 'silver':
         return (
           <>
-            <Select value={selectedRarity} onValueChange={setSelectedRarity}>
+            <Select value={selectedRarity || 'all'} onValueChange={(value) => setSelectedRarity(value === 'all' ? '' : value)}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Purity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Purities</SelectItem>
+                <SelectItem value="all">All Purities</SelectItem>
                 <SelectItem value="24k">24K Gold</SelectItem>
                 <SelectItem value="22k">22K Gold</SelectItem>
                 <SelectItem value="18k">18K Gold</SelectItem>
@@ -177,12 +177,12 @@ const CategoryFilters: React.FC<CategoryFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+        <Select value={selectedCondition || 'all'} onValueChange={(value) => setSelectedCondition(value === 'all' ? '' : value)}>
           <SelectTrigger>
             <SelectValue placeholder="Condition" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Conditions</SelectItem>
+            <SelectItem value="all">All Conditions</SelectItem>
             <SelectItem value="Poor">Poor</SelectItem>
             <SelectItem value="Fair">Fair</SelectItem>
             <SelectItem value="Good">Good</SelectItem>
@@ -195,12 +195,12 @@ const CategoryFilters: React.FC<CategoryFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={selectedRarity} onValueChange={setSelectedRarity}>
+        <Select value={selectedRarity || 'all'} onValueChange={(value) => setSelectedRarity(value === 'all' ? '' : value)}>
           <SelectTrigger>
             <SelectValue placeholder="Rarity" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Rarities</SelectItem>
+            <SelectItem value="all">All Rarities</SelectItem>
             <SelectItem value="Common">Common</SelectItem>
             <SelectItem value="Uncommon">Uncommon</SelectItem>
             <SelectItem value="Rare">Rare</SelectItem>
@@ -209,12 +209,12 @@ const CategoryFilters: React.FC<CategoryFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+        <Select value={selectedCountry || 'all'} onValueChange={(value) => setSelectedCountry(value === 'all' ? '' : value)}>
           <SelectTrigger>
             <SelectValue placeholder="Country" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Countries</SelectItem>
+            <SelectItem value="all">All Countries</SelectItem>
             <SelectItem value="United States">United States</SelectItem>
             <SelectItem value="Germany">Germany</SelectItem>
             <SelectItem value="France">France</SelectItem>
