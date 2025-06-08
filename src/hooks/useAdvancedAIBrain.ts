@@ -24,23 +24,30 @@ export const useAdvancedAIBrain = () => {
     setIsProcessing(true);
     
     try {
-      const result = await realAI.mutateAsync({
-        image: imageBase64
-      });
+      // Convert base64 string to a File-like object for the analyzeImage function
+      const response = await fetch(`data:image/jpeg;base64,${imageBase64}`);
+      const blob = await response.blob();
+      const file = new File([blob], 'image.jpg', { type: 'image/jpeg' });
+      
+      const result = await realAI.analyzeImage(file);
 
-      // Add enhanced metrics
-      const enhancedResult = {
-        ...result,
-        metrics: {
-          imageQuality: complexity > 0.7 ? 0.9 : 0.7,
-          historicalAccuracy: result.confidence,
-          providerReliability: 0.95,
-          crossValidation: result.confidence * 0.9,
-          userFeedback: 0.8
-        }
-      };
+      if (result) {
+        // Add enhanced metrics
+        const enhancedResult = {
+          ...result,
+          metrics: {
+            imageQuality: complexity > 0.7 ? 0.9 : 0.7,
+            historicalAccuracy: result.confidence,
+            providerReliability: 0.95,
+            crossValidation: result.confidence * 0.9,
+            userFeedback: 0.8
+          }
+        };
 
-      return enhancedResult;
+        return enhancedResult;
+      }
+      
+      return null;
     } finally {
       setIsProcessing(false);
     }

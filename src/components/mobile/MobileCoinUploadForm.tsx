@@ -163,7 +163,7 @@ const MobileCoinUploadForm = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Coin:</span>
-                  <p>{analysisResults.coinName}</p>
+                  <p>{analysisResults.name}</p>
                 </div>
                 <div>
                   <span className="font-medium">Year:</span>
@@ -175,7 +175,7 @@ const MobileCoinUploadForm = () => {
                 </div>
                 <div>
                   <span className="font-medium">Value:</span>
-                  <p>{analysisResults.estimatedValue}</p>
+                  <p>${analysisResults.estimatedValue}</p>
                 </div>
               </div>
               <Badge variant="outline" className="w-full justify-center">

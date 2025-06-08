@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { CoinBatch } from '@/types/batch';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
@@ -12,19 +13,6 @@ export const useBulkUpload = () => {
   
   const aiRecognition = useRealAICoinRecognition();
   const createCoin = useCreateCoin();
-
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
 
   const addBatches = useCallback((files: File[]) => {
     const newBatches: CoinBatch[] = files.map((file, index) => ({
@@ -46,33 +34,36 @@ export const useBulkUpload = () => {
         b.id === batch.id ? { ...b, status: 'processing' as const, progress: 25 } : b
       ));
 
-      // Convert image to base64
-      const base64Image = await convertToBase64(batch.images[0]);
-      
       setBatches(prev => prev.map(b => 
         b.id === batch.id ? { ...b, progress: 50 } : b
       ));
 
-      // Real AI analysis
-      const aiResult = await aiRecognition.mutateAsync({
-        image: base64Image
-      });
+      // Real AI analysis using the correct API
+      const aiResult = await aiRecognition.analyzeImage(batch.images[0]);
 
       setBatches(prev => prev.map(b => 
         b.id === batch.id ? { ...b, progress: 75 } : b
       ));
 
-      if (aiResult.success) {
+      if (aiResult) {
+        // Convert image to base64 for storage
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(batch.images[0]);
+        });
+        const base64Image = await base64Promise;
+
         // Create coin with AI results
         const coinData = {
-          name: aiResult.identification.name || 'Unknown Coin',
-          year: aiResult.identification.year || new Date().getFullYear(),
-          grade: aiResult.grading.grade || 'Ungraded',
-          price: aiResult.valuation.current_value || 0,
+          name: aiResult.name || 'Unknown Coin',
+          year: aiResult.year || new Date().getFullYear(),
+          grade: aiResult.grade || 'Ungraded',
+          price: aiResult.estimatedValue || 0,
           rarity: aiResult.rarity || 'common',
-          image: `data:image/jpeg;base64,${base64Image}`,
-          country: aiResult.identification.country || '',
-          denomination: aiResult.identification.denomination || '',
+          image: base64Image,
+          country: aiResult.country || '',
+          denomination: aiResult.denomination || '',
           description: `AI-identified coin with ${Math.round(aiResult.confidence * 100)}% confidence`,
         };
 
@@ -83,7 +74,7 @@ export const useBulkUpload = () => {
             ...b, 
             status: 'completed' as const, 
             progress: 100,
-            estimatedValue: aiResult.valuation.current_value || 0
+            estimatedValue: aiResult.estimatedValue || 0
           } : b
         ));
       } else {

@@ -22,7 +22,7 @@ const CoinUpload = () => {
     images,
     uploadProgress,
     isAnalyzing,
-    analysisResults,
+    result: analysisResults,
     isSubmitting,
     dragActive,
     coinData,

@@ -32,6 +32,7 @@ const CoinUploadForm = () => {
   const navigate = useNavigate();
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isMobileMode, setIsMobileMode] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     year: '',
@@ -70,33 +71,29 @@ const CoinUploadForm = () => {
 
   const handleAIAnalysis = async (imageFile: File) => {
     try {
-      const base64Image = await convertToBase64(imageFile);
-      
-      const result = await aiRecognition.mutateAsync({
-        image: base64Image
-      });
+      const result = await aiRecognition.analyzeImage(imageFile);
 
-      if (result.success) {
+      if (result) {
         setFormData(prev => ({
           ...prev,
-          name: result.identification.name || '',
-          year: result.identification.year?.toString() || '',
-          grade: result.grading.grade || '',
+          name: result.name || '',
+          year: result.year?.toString() || '',
+          grade: result.grade || '',
           rarity: result.rarity || '',
-          country: result.identification.country || '',
-          denomination: result.identification.denomination || '',
-          condition: result.grading.condition || '',
-          composition: result.specifications.composition || '',
-          diameter: result.specifications.diameter?.toString() || '',
-          weight: result.specifications.weight?.toString() || '',
-          mint: result.identification.mint || '',
-          price: result.valuation.current_value?.toString() || '',
-          description: `${result.identification.name} from ${result.identification.year}. ${result.grading.details || ''}`.trim()
+          country: result.country || '',
+          denomination: result.denomination || '',
+          condition: result.grade || '',
+          composition: result.composition || '',
+          diameter: result.diameter?.toString() || '',
+          weight: result.weight?.toString() || '',
+          mint: result.mint || '',
+          price: result.estimatedValue?.toString() || '',
+          description: `${result.name} from ${result.year}. AI analyzed with ${Math.round(result.confidence * 100)}% confidence.`.trim()
         }));
 
         toast({
           title: "AI Analysis Complete!",
-          description: `${result.identification.name} identified with ${Math.round(result.confidence * 100)}% confidence`,
+          description: `${result.name} identified with ${Math.round(result.confidence * 100)}% confidence`,
         });
       }
     } catch (error) {
@@ -213,7 +210,7 @@ const CoinUploadForm = () => {
                         alt="Coin preview"
                         className="max-w-xs mx-auto rounded-lg shadow-md"
                       />
-                      {aiRecognition.isPending && (
+                      {aiRecognition.isAnalyzing && (
                         <div className="flex items-center justify-center gap-2 text-blue-600">
                           <Zap className="w-4 h-4 animate-pulse" />
                           <span>AI analyzing your coin...</span>
@@ -503,7 +500,7 @@ const CoinUploadForm = () => {
                   !formData.price || 
                   !formData.image ||
                   createCoin.isPending || 
-                  aiRecognition.isPending
+                  aiRecognition.isAnalyzing
                 }
                 size="lg"
               >
