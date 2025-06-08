@@ -89,7 +89,11 @@ export const useAdvancedSearch = () => {
       }
 
       if (filters.category) {
-        query = query.eq('category', filters.category);
+        // Cast to the correct enum type for category
+        const validCategories = ['gold', 'silver', 'error_coin', 'greek', 'american', 'british', 'asian', 'european', 'ancient', 'modern', 'commemorative', 'unclassified'];
+        if (validCategories.includes(filters.category)) {
+          query = query.eq('category', filters.category as any);
+        }
       }
 
       // Apply sorting
