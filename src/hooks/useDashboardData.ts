@@ -9,6 +9,7 @@ export const useDashboardData = () => {
     },
     watchlistItems: [],
     recentTransactions: [],
-    favorites: []
+    favorites: [],
+    isLoading: false
   };
 };

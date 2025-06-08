@@ -3,26 +3,30 @@ import { useState, useEffect } from 'react';
 import { useDashboardData } from './useDashboardData';
 
 export const useEnhancedDashboardStats = () => {
-  const { stats: baseStats, isLoading } = useDashboardData();
+  const dashboardData = useDashboardData();
   const [enhancedStats, setEnhancedStats] = useState({
-    ...baseStats,
+    ...dashboardData.stats,
     aiAccuracy: 0.94,
     analysisCount: 156,
     marketTrend: 'bullish',
-    riskScore: 0.23
+    riskScore: 0.23,
+    profitPercentage: 12.5,
+    portfolioItems: []
   });
 
   useEffect(() => {
-    if (baseStats) {
+    if (dashboardData.stats) {
       setEnhancedStats(prev => ({
         ...prev,
-        ...baseStats
+        ...dashboardData.stats,
+        profitPercentage: 12.5,
+        portfolioItems: dashboardData.favorites || []
       }));
     }
-  }, [baseStats]);
+  }, [dashboardData.stats, dashboardData.favorites]);
 
   return {
     stats: enhancedStats,
-    loading: isLoading
+    loading: false
   };
 };
