@@ -46,15 +46,33 @@ const App = () => {
                 <div className="min-h-screen bg-background font-sans antialiased">
                   <NavigationBreadcrumb />
                   <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/marketplace" element={<ActiveMarketplace />} />
-                    <Route path="/auctions" element={<Auctions />} />
-                    <Route path="/ai-features" element={<AIFeatures />} />
+                    <Route path="/" element={
+                      <ErrorBoundaryWrapper>
+                        <Index />
+                      </ErrorBoundaryWrapper>
+                    } />
+                    <Route path="/marketplace" element={
+                      <ErrorBoundaryWrapper>
+                        <ActiveMarketplace />
+                      </ErrorBoundaryWrapper>
+                    } />
+                    <Route path="/auctions" element={
+                      <ErrorBoundaryWrapper>
+                        <Auctions />
+                      </ErrorBoundaryWrapper>
+                    } />
+                    <Route path="/ai-features" element={
+                      <ErrorBoundaryWrapper>
+                        <AIFeatures />
+                      </ErrorBoundaryWrapper>
+                    } />
                     <Route 
                       path="/auth" 
                       element={
                         <ProtectedRoute requireAuth={false}>
-                          <Auth />
+                          <ErrorBoundaryWrapper>
+                            <Auth />
+                          </ErrorBoundaryWrapper>
                         </ProtectedRoute>
                       } 
                     />
@@ -62,7 +80,9 @@ const App = () => {
                       path="/dashboard" 
                       element={
                         <ProtectedRoute>
-                          <Dashboard />
+                          <ErrorBoundaryWrapper>
+                            <Dashboard />
+                          </ErrorBoundaryWrapper>
                         </ProtectedRoute>
                       } 
                     />
@@ -70,7 +90,9 @@ const App = () => {
                       path="/profile" 
                       element={
                         <ProtectedRoute>
-                          <Profile />
+                          <ErrorBoundaryWrapper>
+                            <Profile />
+                          </ErrorBoundaryWrapper>
                         </ProtectedRoute>
                       } 
                     />
@@ -78,7 +100,9 @@ const App = () => {
                       path="/upload" 
                       element={
                         <ProtectedRoute>
-                          <CoinUpload />
+                          <ErrorBoundaryWrapper>
+                            <CoinUpload />
+                          </ErrorBoundaryWrapper>
                         </ProtectedRoute>
                       } 
                     />
@@ -86,7 +110,9 @@ const App = () => {
                       path="/admin" 
                       element={
                         <ProtectedRoute>
-                          <AdminPanelPage />
+                          <ErrorBoundaryWrapper>
+                            <AdminPanelPage />
+                          </ErrorBoundaryWrapper>
                         </ProtectedRoute>
                       } 
                     />
@@ -94,15 +120,25 @@ const App = () => {
                       path="/marketplace/panel" 
                       element={
                         <ProtectedRoute>
-                          <MarketplacePanelPage />
+                          <ErrorBoundaryWrapper>
+                            <MarketplacePanelPage />
+                          </ErrorBoundaryWrapper>
                         </ProtectedRoute>
                       } 
                     />
                     <Route 
                       path="/coin/:id" 
-                      element={<CoinDetails />} 
+                      element={
+                        <ErrorBoundaryWrapper>
+                          <CoinDetails />
+                        </ErrorBoundaryWrapper>
+                      } 
                     />
-                    <Route path="/category/:category" element={<CategoryPage />} />
+                    <Route path="/category/:category" element={
+                      <ErrorBoundaryWrapper>
+                        <CategoryPage />
+                      </ErrorBoundaryWrapper>
+                    } />
                   </Routes>
                 </div>
                 <Toaster />
