@@ -6,7 +6,7 @@ import { useCachedMarketplaceData } from './useCachedMarketplaceData';
 export interface CategoryFilters {
   searchTerm: string;
   sortBy: string;
-  priceRange: [number, number];
+  priceRange: { min: number; max: number };
   yearRange: [number, number];
   selectedCountry: string | null;
   selectedCondition: string | null;
