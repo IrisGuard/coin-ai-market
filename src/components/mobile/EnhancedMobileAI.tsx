@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,20 +71,12 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
         const basicResult = {
           success: true,
           confidence: 0.75,
-          identification: {
-            name: "Coin Analysis (Offline)",
-            year: new Date().getFullYear(),
-            country: "Unknown",
-            denomination: "Unknown"
-          },
-          grading: {
-            condition: "Good",
-            grade: "Estimated VF-20"
-          },
-          valuation: {
-            current_value: 25,
-            market_trend: "Stable"
-          },
+          name: "Coin Analysis (Offline)",
+          year: new Date().getFullYear(),
+          country: "Unknown",
+          denomination: "Unknown",
+          grade: "Estimated VF-20",
+          estimatedValue: 25,
           provider: "offline",
           offline: true
         };
@@ -118,7 +109,7 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
 
         toast({
           title: "Enhanced Analysis Complete",
-          description: `${result.identification?.name || 'Coin'} identified with ${Math.round(result.confidence * 100)}% confidence`,
+          description: `${result.name || 'Coin'} identified with ${Math.round(result.confidence * 100)}% confidence`,
         });
       }
 
@@ -259,19 +250,19 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-gray-600">Coin:</span>
-                    <p className="font-medium">{analysisResults.identification?.name || 'Unknown'}</p>
+                    <p className="font-medium">{analysisResults.name || 'Unknown'}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Year:</span>
-                    <p className="font-medium">{analysisResults.identification?.year || 'Unknown'}</p>
+                    <p className="font-medium">{analysisResults.year || 'Unknown'}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Grade:</span>
-                    <p className="font-medium">{analysisResults.grading?.grade || 'Unknown'}</p>
+                    <p className="font-medium">{analysisResults.grade || 'Unknown'}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Value:</span>
-                    <p className="font-medium">${analysisResults.valuation?.current_value || 0}</p>
+                    <p className="font-medium">${analysisResults.estimatedValue || 0}</p>
                   </div>
                 </div>
               </div>

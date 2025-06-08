@@ -22,7 +22,7 @@ const CoinUpload = () => {
     images,
     uploadProgress,
     isAnalyzing,
-    result: analysisResults,
+    analysisResults,
     isSubmitting,
     dragActive,
     coinData,
@@ -76,7 +76,7 @@ const CoinUpload = () => {
               fileInputRef={fileInputRef}
             />
 
-            <AnalysisResultsCard analysisResults={analysisResults} />
+            <AnalysisResultsCard analysisResults={analysisResults ? [analysisResults] : []} />
 
             <CoinListingDetailsForm
               coinData={coinData}
