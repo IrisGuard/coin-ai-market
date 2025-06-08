@@ -1,98 +1,114 @@
 
-import { useState, useMemo } from 'react';
-import { useCachedMarketplaceData } from './useCachedMarketplaceData';
+import { useState, useEffect, useMemo } from 'react';
 import { Coin } from '@/types/coin';
+import { useCachedMarketplaceData } from './useCachedMarketplaceData';
 
-interface CategoryFilters {
+export interface CategoryFilters {
   searchTerm: string;
   sortBy: string;
   priceRange: [number, number];
   yearRange: [number, number];
-  selectedCountry: string;
-  selectedCondition: string;
-  selectedRarity: string;
+  selectedCountry: string | null;
+  selectedCondition: string | null;
+  selectedRarity: string | null;
   showAuctionsOnly: boolean;
   showFeaturedOnly: boolean;
 }
 
-const DEFAULT_FILTERS: CategoryFilters = {
-  searchTerm: '',
-  sortBy: 'newest',
-  priceRange: [0, 10000],
-  yearRange: [1800, 2024],
-  selectedCountry: '',
-  selectedCondition: '',
-  selectedRarity: '',
-  showAuctionsOnly: false,
-  showFeaturedOnly: false
-};
+export interface CategoryStats {
+  totalCoins: number;
+  averagePrice: number;
+  priceRange: [number, number];
+  mostExpensive: Coin | null;
+  oldestCoin: Coin | null;
+  newestCoin: Coin | null;
+  totalAuctions: number;
+  featuredCount: number;
+}
 
 export const useCategoryData = (category: string) => {
-  const { coins, isLoading } = useCachedMarketplaceData();
-  const [filters, setFilters] = useState<CategoryFilters>(DEFAULT_FILTERS);
+  const { coins: allCoins, isLoading } = useCachedMarketplaceData();
+  
+  const [filters, setFilters] = useState<CategoryFilters>({
+    searchTerm: '',
+    sortBy: 'newest',
+    priceRange: [0, 10000],
+    yearRange: [0, 2024],
+    selectedCountry: null,
+    selectedCondition: null,
+    selectedRarity: null,
+    showAuctionsOnly: false,
+    showFeaturedOnly: false
+  });
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Filter coins by category
   const categoryCoins = useMemo(() => {
-    if (!coins) return [];
-    
-    return coins.filter(coin => {
+    if (!allCoins || allCoins.length === 0) return [];
+
+    return allCoins.filter(coin => {
+      // Ensure coin has required properties before filtering
+      if (!coin.id || !coin.name || typeof coin.price !== 'number') return false;
+
       switch (category) {
         case 'ancient':
           return coin.year < 1000;
         case 'modern':
           return coin.year >= 1900;
         case 'error':
-          return coin.rarity?.toLowerCase().includes('rare') || 
-                 coin.description?.toLowerCase().includes('error') ||
-                 coin.description?.toLowerCase().includes('doubled') ||
-                 coin.name?.toLowerCase().includes('error') ||
-                 coin.name?.toLowerCase().includes('doubled');
+          return coin.description?.toLowerCase().includes('error') ||
+                 coin.description?.toLowerCase().includes('λάθος') ||
+                 coin.name.toLowerCase().includes('error');
         case 'graded':
           return coin.pcgs_grade || coin.ngc_grade;
         case 'trending':
-          return (coin.views && coin.views > 50) || coin.featured;
+          return (coin.views || 0) > 50;
         case 'european':
-          return ['Germany', 'France', 'Italy', 'Spain', 'Greece', 'United Kingdom', 
-                  'Netherlands', 'Austria', 'Switzerland', 'Belgium', 'Portugal',
-                  'Roman Empire', 'Ancient Greece'].includes(coin.country || '');
+          return ['Germany', 'France', 'Italy', 'Spain', 'Greece', 'United Kingdom'].includes(coin.country || '');
         case 'american':
           return ['United States', 'Canada', 'Mexico'].includes(coin.country || '');
         case 'asian':
-          return ['China', 'Japan', 'India', 'Korea', 'Thailand', 'Singapore', 
-                  'Vietnam', 'Philippines', 'Malaysia', 'Indonesia'].includes(coin.country || '');
+          return ['China', 'Japan', 'India', 'Korea', 'Thailand'].includes(coin.country || '');
         case 'gold':
           return coin.composition?.toLowerCase().includes('gold') ||
-                 coin.name?.toLowerCase().includes('gold') ||
-                 coin.description?.toLowerCase().includes('gold');
+                 coin.composition?.toLowerCase().includes('χρυσό');
         case 'silver':
           return coin.composition?.toLowerCase().includes('silver') ||
-                 coin.name?.toLowerCase().includes('silver') ||
-                 coin.description?.toLowerCase().includes('silver');
+                 coin.composition?.toLowerCase().includes('ασήμι');
         case 'rare':
-          return coin.rarity?.toLowerCase().includes('rare') || coin.price > 1000;
-        case 'auctions':
-          return coin.is_auction;
+          return coin.rarity === 'Rare' || coin.rarity === 'Ultra Rare';
         default:
           return true;
       }
     });
-  }, [coins, category]);
+  }, [allCoins, category]);
 
-  // Apply filters and sorting
+  // Apply filters
   const filteredCoins = useMemo(() => {
+    if (!categoryCoins) return [];
+
     let filtered = [...categoryCoins];
 
     // Search filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
       filtered = filtered.filter(coin =>
-        coin.name?.toLowerCase().includes(searchLower) ||
-        coin.country?.toLowerCase().includes(searchLower) ||
-        coin.description?.toLowerCase().includes(searchLower) ||
-        coin.year?.toString().includes(filters.searchTerm)
+        coin.name.toLowerCase().includes(searchLower) ||
+        (coin.description && coin.description.toLowerCase().includes(searchLower)) ||
+        (coin.country && coin.country.toLowerCase().includes(searchLower))
       );
     }
+
+    // Price range filter
+    filtered = filtered.filter(coin =>
+      coin.price >= filters.priceRange[0] && coin.price <= filters.priceRange[1]
+    );
+
+    // Year range filter
+    filtered = filtered.filter(coin =>
+      coin.year >= filters.yearRange[0] && coin.year <= filters.yearRange[1]
+    );
 
     // Country filter
     if (filters.selectedCountry) {
@@ -109,62 +125,49 @@ export const useCategoryData = (category: string) => {
       filtered = filtered.filter(coin => coin.rarity === filters.selectedRarity);
     }
 
-    // Price range filter
-    filtered = filtered.filter(coin => {
-      const price = coin.price || 0;
-      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-    });
-
-    // Year range filter
-    filtered = filtered.filter(coin => {
-      const year = coin.year || 0;
-      return year >= filters.yearRange[0] && year <= filters.yearRange[1];
-    });
-
-    // Auction filter
+    // Auctions only filter
     if (filters.showAuctionsOnly) {
       filtered = filtered.filter(coin => coin.is_auction);
     }
 
-    // Featured filter
+    // Featured only filter
     if (filters.showFeaturedOnly) {
       filtered = filtered.filter(coin => coin.featured);
     }
 
     // Sort
-    filtered.sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'price-low':
-          return (a.price || 0) - (b.price || 0);
-        case 'price-high':
-          return (b.price || 0) - (a.price || 0);
-        case 'year-old':
-          return (a.year || 0) - (b.year || 0);
-        case 'year-new':
-          return (b.year || 0) - (a.year || 0);
-        case 'popularity':
-          return (b.views || 0) - (a.views || 0);
-        case 'rarity':
-          const rarityOrder = { 'Common': 1, 'Uncommon': 2, 'Rare': 3, 'Very Rare': 4, 'Extremely Rare': 5 };
-          return (rarityOrder[b.rarity as keyof typeof rarityOrder] || 0) - (rarityOrder[a.rarity as keyof typeof rarityOrder] || 0);
-        case 'oldest':
-          return (a.year || 0) - (b.year || 0);
-        case 'newest':
-        default:
-          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-      }
-    });
+    switch (filters.sortBy) {
+      case 'price-low':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'year-old':
+        filtered.sort((a, b) => a.year - b.year);
+        break;
+      case 'year-new':
+        filtered.sort((a, b) => b.year - a.year);
+        break;
+      case 'name':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'newest':
+      default:
+        filtered.sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
+        break;
+    }
 
     return filtered;
   }, [categoryCoins, filters]);
 
-  // Category statistics
-  const categoryStats = useMemo(() => {
-    if (!categoryCoins.length) {
+  // Calculate category statistics
+  const categoryStats: CategoryStats = useMemo(() => {
+    if (!categoryCoins || categoryCoins.length === 0) {
       return {
         totalCoins: 0,
         averagePrice: 0,
-        priceRange: { min: 0, max: 0 },
+        priceRange: [0, 0],
         mostExpensive: null,
         oldestCoin: null,
         newestCoin: null,
@@ -173,31 +176,25 @@ export const useCategoryData = (category: string) => {
       };
     }
 
-    const prices = categoryCoins.map(coin => coin.price || 0).filter(price => price > 0);
-    const years = categoryCoins.map(coin => coin.year).filter(Boolean);
+    const prices = categoryCoins.map(coin => coin.price);
+    const years = categoryCoins.map(coin => coin.year);
     
     const mostExpensive = categoryCoins.reduce((max, coin) => 
-      (coin.price || 0) > (max.price || 0) ? coin : max
-    );
+      coin.price > max.price ? coin : max, categoryCoins[0]);
     
     const oldestCoin = categoryCoins.reduce((oldest, coin) => 
-      coin.year < oldest.year ? coin : oldest
-    );
+      coin.year < oldest.year ? coin : oldest, categoryCoins[0]);
     
     const newestCoin = categoryCoins.reduce((newest, coin) => 
-      coin.year > newest.year ? coin : newest
-    );
+      coin.year > newest.year ? coin : newest, categoryCoins[0]);
 
     return {
       totalCoins: categoryCoins.length,
-      averagePrice: prices.length ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0,
-      priceRange: {
-        min: prices.length ? Math.min(...prices) : 0,
-        max: prices.length ? Math.max(...prices) : 0
-      },
-      mostExpensive: mostExpensive.price ? { name: mostExpensive.name, price: mostExpensive.price } : null,
-      oldestCoin: oldestCoin.year ? { name: oldestCoin.name, year: oldestCoin.year } : null,
-      newestCoin: newestCoin.year ? { name: newestCoin.name, year: newestCoin.year } : null,
+      averagePrice: prices.reduce((sum, price) => sum + price, 0) / prices.length,
+      priceRange: [Math.min(...prices), Math.max(...prices)],
+      mostExpensive,
+      oldestCoin,
+      newestCoin,
       totalAuctions: categoryCoins.filter(coin => coin.is_auction).length,
       featuredCount: categoryCoins.filter(coin => coin.featured).length
     };
@@ -208,18 +205,34 @@ export const useCategoryData = (category: string) => {
   };
 
   const clearAllFilters = () => {
-    setFilters(DEFAULT_FILTERS);
+    setFilters({
+      searchTerm: '',
+      sortBy: 'newest',
+      priceRange: [0, 10000],
+      yearRange: [0, 2024],
+      selectedCountry: null,
+      selectedCondition: null,
+      selectedRarity: null,
+      showAuctionsOnly: false,
+      showFeaturedOnly: false
+    });
   };
 
-  const activeFiltersCount = Object.keys(filters).filter(key => {
-    const value = filters[key as keyof CategoryFilters];
-    const defaultValue = DEFAULT_FILTERS[key as keyof CategoryFilters];
-    return JSON.stringify(value) !== JSON.stringify(defaultValue);
-  }).length;
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.searchTerm) count++;
+    if (filters.selectedCountry) count++;
+    if (filters.selectedCondition) count++;
+    if (filters.selectedRarity) count++;
+    if (filters.showAuctionsOnly) count++;
+    if (filters.showFeaturedOnly) count++;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000) count++;
+    if (filters.yearRange[0] > 0 || filters.yearRange[1] < 2024) count++;
+    return count;
+  }, [filters]);
 
   return {
     coins: filteredCoins,
-    categoryCoins,
     categoryStats,
     filters,
     updateFilter,

@@ -11,6 +11,7 @@ import { initializeSecurity } from "@/lib/securityInitializer";
 import { useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NavigationBreadcrumb from "@/components/navigation/NavigationBreadcrumb";
+import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
