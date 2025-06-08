@@ -20,11 +20,13 @@ export const validateEnhancedSecurityConfig = async (): Promise<{
       };
     }
 
+    // Safely parse the data with proper type checking
+    const result = data as any;
     return {
-      status: data.status || 'unknown',
-      issues: data.issues || [],
-      securityLevel: data.security_level || 'unknown',
-      otpConfig: data.otp_config || 'unknown'
+      status: result?.status || 'unknown',
+      issues: Array.isArray(result?.issues) ? result.issues : [],
+      securityLevel: result?.security_level || 'unknown',
+      otpConfig: result?.otp_config || 'unknown'
     };
   } catch (error) {
     console.error('Enhanced security config validation failed:', error);

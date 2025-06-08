@@ -54,10 +54,10 @@ export const enhancedSafeQuery = async <T>(
   }
 };
 
-export const handleEnhancedSupabaseError = async (
+export const handleEnhancedSupabaseError = (
   error: any, 
   operation: string
-): Promise<string> => {
+): string => {
   const errorMessage = error?.message || `Failed to ${operation}`;
   
   // Enhanced error categorization
@@ -73,12 +73,14 @@ export const handleEnhancedSupabaseError = async (
     errorCategory = 'row_level_security';
   }
   
-  // Log the enhanced error
-  await logProductionError(errorCategory, errorMessage, {
+  // Log the enhanced error asynchronously
+  logProductionError(errorCategory, errorMessage, {
     operation,
     error_code: error?.code,
     error_details: error?.details,
     supabase_operation: true
+  }).catch(logError => {
+    console.warn('Failed to log production error:', logError);
   });
   
   // Return user-friendly messages
