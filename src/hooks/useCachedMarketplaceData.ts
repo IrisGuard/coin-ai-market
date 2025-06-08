@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useAllDealerCoins } from './useDealerCoins';
-import { Coin } from '@/types/coin';
+import { Coin, mapSupabaseCoinToCoin, SupabaseCoin } from '@/types/coin';
 
 interface CacheEntry<T> {
   data: T;
@@ -80,13 +79,14 @@ export const useCachedMarketplaceData = () => {
     
     // Process coins (sorting, filtering verified, etc.)
     const processed = rawCoins
-      .filter(coin => {
+      .filter((coin: SupabaseCoin) => {
         // Additional verification - ensure coin has required fields
         return coin.authentication_status === 'verified' && 
                coin.name && 
                typeof coin.price === 'number' &&
                coin.year;
       })
+      .map((coin: SupabaseCoin) => mapSupabaseCoinToCoin(coin)) // Map to proper Coin type
       .sort((a, b) => {
         // Featured coins first, then by views, then by creation date
         if (a.featured && !b.featured) return -1;

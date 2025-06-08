@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -103,7 +102,7 @@ const CategoryPage = () => {
               category={category}
               totalCoins={categoryStats.totalCoins}
               averagePrice={categoryStats.averagePrice}
-              priceRange={categoryStats.priceRange}
+              priceRange={[categoryStats.priceRange.min, categoryStats.priceRange.max]}
               mostExpensive={categoryStats.mostExpensive}
               oldestCoin={categoryStats.oldestCoin}
               newestCoin={categoryStats.newestCoin}

@@ -1,80 +1,134 @@
 
-export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare';
+export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Legendary';
 
-export type CoinCondition = 'Mint' | 'Near Mint' | 'Excellent' | 'Good' | 'Fair' | 'Poor';
+export type CoinCategory = 
+  | 'ancient'
+  | 'modern' 
+  | 'error_coin'
+  | 'graded'
+  | 'greek'
+  | 'american'
+  | 'british'
+  | 'european'
+  | 'asian'
+  | 'gold'
+  | 'silver'
+  | 'unclassified';
 
 export interface Coin {
   id: string;
   name: string;
-  year: number;
-  grade: string;
+  description?: string;
   price: number;
-  rarity: Rarity;
-  image: string;
-  user_id: string;
+  year: number;
   country?: string;
   denomination?: string;
-  pcgs_number?: string;
-  ngc_number?: string;
-  pcgs_grade?: string;
-  ngc_grade?: string;
-  condition?: CoinCondition;
   composition?: string;
-  diameter?: number;
   weight?: number;
-  mint?: string;
+  diameter?: number;
   mintage?: number;
-  description?: string;
+  rarity: Rarity;
+  grade: string;
+  condition?: string;
+  image: string;
   obverse_image?: string;
   reverse_image?: string;
   model_3d_url?: string;
+  pcgs_grade?: string;
+  ngc_grade?: string;
+  pcgs_number?: string;
+  ngc_number?: string;
+  mint?: string;
   tags?: string[];
   views?: number;
   favorites?: number;
   featured?: boolean;
-  authentication_status?: 'pending' | 'verified' | 'rejected';
   is_auction?: boolean;
   auction_end?: string;
+  starting_bid?: number;
   reserve_price?: number;
   sold?: boolean;
+  sold_at?: string;
+  listing_type?: string;
+  authentication_status?: string;
+  category?: CoinCategory;
+  user_id: string;
+  owner_id?: string;
+  seller_id?: string;
+  uploaded_by?: string;
+  store_id?: string;
+  ai_confidence?: number;
+  ai_provider?: string;
   created_at?: string;
   updated_at?: string;
-  profiles?: {
-    id: string;
-    name: string;
-    reputation: number;
-    verified_dealer?: boolean;
-    avatar_url?: string;
-  };
-  bids?: {
-    id: string;
-    amount: number;
-    user_id: string;
-    created_at: string;
-    profiles?: {
-      name: string;
-    };
-  }[];
 }
 
-export interface CoinEvaluation {
+// Supabase raw data type (more flexible)
+export interface SupabaseCoin {
   id: string;
-  coinId: string;
-  expertId: string;
-  expertName?: string;
+  name: string;
+  description?: string;
+  price: number;
+  year: number;
+  country?: string;
+  denomination?: string;
+  composition?: string;
+  weight?: number;
+  diameter?: number;
+  mintage?: number;
+  rarity: string; // This comes as string from Supabase
   grade: string;
-  estimatedValue: number;
-  comments?: string;
-  createdAt: string;
+  condition?: string;
+  image: string;
+  obverse_image?: string;
+  reverse_image?: string;
+  model_3d_url?: string;
+  pcgs_grade?: string;
+  ngc_grade?: string;
+  pcgs_number?: string;
+  ngc_number?: string;
+  mint?: string;
+  tags?: string[];
+  views?: number;
+  favorites?: number;
+  featured?: boolean;
+  is_auction?: boolean;
+  auction_end?: string;
+  starting_bid?: number;
+  reserve_price?: number;
+  sold?: boolean;
+  sold_at?: string;
+  listing_type?: string;
+  authentication_status?: string;
+  category?: string;
+  user_id: string;
+  owner_id?: string;
+  seller_id?: string;
+  uploaded_by?: string;
+  store_id?: string;
+  ai_confidence?: number;
+  ai_provider?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export interface CoinTransaction {
-  id: string;
-  coinId: string;
-  sellerId: string;
-  buyerId: string;
-  amount: number;
-  status: 'pending' | 'completed' | 'cancelled' | 'refunded';
-  createdAt: string;
-  transactionType: 'purchase' | 'auction';
-}
+// Utility function to convert Supabase data to Coin interface
+export const mapSupabaseCoinToCoin = (supabaseCoin: SupabaseCoin): Coin => {
+  // Map string rarity to proper Rarity type
+  const mapRarity = (rarity: string): Rarity => {
+    switch (rarity?.toLowerCase()) {
+      case 'common': return 'Common';
+      case 'uncommon': return 'Uncommon';
+      case 'rare': return 'Rare';
+      case 'ultra rare': return 'Ultra Rare';
+      case 'legendary': return 'Legendary';
+      default: return 'Common';
+    }
+  };
+
+  return {
+    ...supabaseCoin,
+    rarity: mapRarity(supabaseCoin.rarity),
+    category: supabaseCoin.category as CoinCategory
+  };
+};
