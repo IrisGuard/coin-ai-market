@@ -43,10 +43,10 @@ const Index = () => {
               className="text-center mb-12"
             >
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                Βρείτε το τέλειο νόμισμα για εσάς
+                Find the perfect coin for you
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Ανακαλύψτε αυθεντικά νομίσματα από <Link to="/marketplace" className="text-electric-blue hover:underline">επιβεβαιωμένους dealers</Link> παγκοσμίως με προηγμένη AI αναγνώριση
+                Discover authentic coins from <Link to="/marketplace" className="text-electric-blue hover:underline">verified dealers</Link> worldwide with advanced AI recognition
               </p>
               
               {/* Enhanced Search Bar */}
@@ -59,7 +59,7 @@ const Index = () => {
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <EnhancedSearchBar
-                      placeholder="Αναζητήστε νομίσματα με AI προτάσεις..."
+                      placeholder="Search coins with AI suggestions..."
                       onSearch={handleSearch}
                     />
                   </div>
@@ -68,7 +68,7 @@ const Index = () => {
                       size="sm"
                       className="bg-electric-orange hover:bg-electric-orange/90 text-white px-3 py-1 text-xs h-12"
                     >
-                      Περιήγηση Κατηγοριών
+                      Browse Categories
                     </Button>
                   </Link>
                 </div>
@@ -82,7 +82,7 @@ const Index = () => {
           <CategoryNavigationFix />
         </div>
 
-        {/* ΠΡΟΣΘΗΚΗ: Featured Coins Section με 1000+ νομίσματα */}
+        {/* Featured Coins Section with 1000+ coins */}
         <FeaturedCoinsSection />
 
         <Footer />

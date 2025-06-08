@@ -18,28 +18,28 @@ const CategoryNavigationFix = () => {
   // FIXED CATEGORIES - Correct routing paths
   const categories = [
     {
-      name: 'Αρχαία Νομίσματα',
+      name: 'Ancient Coins',
       icon: <Crown className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.ancient || 0),
       href: '/category/ancient',
       color: 'from-amber-400 to-orange-500',
-      description: 'Προ του 1000 μ.Χ.'
+      description: 'Pre-1000 AD'
     },
     {
-      name: 'Μοντέρνα Νομίσματα',
+      name: 'Modern Coins',
       icon: <Coins className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.modern || 0),
       href: '/category/modern',
       color: 'from-blue-400 to-indigo-500',
-      description: '1900+ νομίσματα'
+      description: '1900+ coins'
     },
     {
-      name: 'Error Νομίσματα',
+      name: 'Error Coins',
       icon: <Star className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.error || 0),
       href: '/category/error',
       color: 'from-purple-400 to-pink-500',
-      description: 'Σφάλματα κοπής'
+      description: 'Minting errors'
     },
     {
       name: 'Live Auctions',
@@ -47,15 +47,15 @@ const CategoryNavigationFix = () => {
       count: loading ? '...' : formatCount(stats.auctions || 0),
       href: '/auctions', // FIXED: Direct to auctions page
       color: 'from-red-400 to-rose-500',
-      description: 'Ενεργές δημοπρασίες'
+      description: 'Active auctions'
     },
     {
-      name: 'Graded Νομίσματα',
+      name: 'Graded Coins',
       icon: <Shield className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.graded || 0),
       href: '/category/graded',
       color: 'from-green-400 to-emerald-500',
-      description: 'PCGS/NGC πιστοποιημένα'
+      description: 'PCGS/NGC certified'
     },
     {
       name: 'Trending',
@@ -63,55 +63,55 @@ const CategoryNavigationFix = () => {
       count: loading ? '...' : formatCount(stats.trending || 0),
       href: '/category/trending',
       color: 'from-orange-400 to-red-500',
-      description: 'Δημοφιλή τώρα'
+      description: 'Popular now'
     },
     {
-      name: 'Ευρωπαϊκά',
+      name: 'European Coins',
       icon: <Globe className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.european || 0),
       href: '/category/european',
       color: 'from-cyan-400 to-blue-500',
-      description: 'Ευρωπαϊκά νομίσματα'
+      description: 'European coins'
     },
     {
-      name: 'Αμερικανικά',
+      name: 'American Coins',
       icon: <MapPin className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.american || 0),
       href: '/category/american',
       color: 'from-red-500 to-pink-500',
-      description: 'ΗΠΑ/Καναδάς/Μεξικό'
+      description: 'US/Canada/Mexico'
     },
     {
-      name: 'Ασιατικά',
+      name: 'Asian Coins',
       icon: <Globe className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.asian || 0),
       href: '/category/asian',
       color: 'from-yellow-400 to-orange-500',
-      description: 'Ασιατικές χώρες'
+      description: 'Asian countries'
     },
     {
-      name: 'Χρυσά Νομίσματα',
+      name: 'Gold Coins',
       icon: <DollarSign className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.gold || 0),
       href: '/category/gold',
       color: 'from-yellow-500 to-amber-500',
-      description: 'Περιεχόμενο χρυσού'
+      description: 'Gold content'
     },
     {
-      name: 'Ασημένια Νομίσματα',
+      name: 'Silver Coins',
       icon: <Coins className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.silver || 0),
       href: '/category/silver',
       color: 'from-gray-400 to-slate-500',
-      description: 'Περιεχόμενο ασημιού'
+      description: 'Silver content'
     },
     {
-      name: 'Σπάνια',
+      name: 'Rare Coins',
       icon: <Crown className="w-6 h-6" />,
       count: loading ? '...' : formatCount(stats.rare || 0),
       href: '/category/rare',
       color: 'from-purple-500 to-indigo-600',
-      description: 'Εξαιρετική σπανιότητα'
+      description: 'Exceptional rarity'
     }
   ];
 
@@ -119,11 +119,11 @@ const CategoryNavigationFix = () => {
     return (
       <div className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-          Αγορά ανά κατηγορία
+          Shop by Category
         </h2>
         <div className="text-center py-8">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-2">Αποτυχία φόρτωσης στατιστικών κατηγοριών</p>
+          <p className="text-red-600 mb-2">Failed to load category statistics</p>
           <p className="text-sm text-gray-500">{error}</p>
         </div>
       </div>
@@ -137,7 +137,7 @@ const CategoryNavigationFix = () => {
   return (
     <div className="mb-12">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-        Αγορά ανά κατηγορία
+        Shop by Category
       </h2>
       
       {isEmpty && (
@@ -145,13 +145,13 @@ const CategoryNavigationFix = () => {
           <div className="flex items-center gap-3">
             <Coins className="h-6 w-6 text-blue-600" />
             <div>
-              <h3 className="font-semibold text-blue-900">Δεν υπάρχουν νομίσματα ακόμα - Προσθέστε δείγμα δεδομένων!</h3>
+              <h3 className="font-semibold text-blue-900">No coins yet - Add sample data!</h3>
               <p className="text-sm text-blue-700">
-                Πηγαίνετε στο Admin Panel → Sample Data Setup για να γεμίσετε όλες τις κατηγορίες με νομίσματα.
+                Go to Admin Panel → Sample Data Setup to populate all categories with coins.
               </p>
             </div>
             <Button asChild size="sm" className="ml-auto">
-              <Link to="/admin">Πηγαίνετε στο Admin</Link>
+              <Link to="/admin">Go to Admin</Link>
             </Button>
           </div>
         </div>
@@ -183,11 +183,11 @@ const CategoryNavigationFix = () => {
       {isEmpty && (
         <div className="text-center mt-8 py-8 bg-gray-50 rounded-lg">
           <p className="text-gray-600 mb-4">
-            Όλες οι 12 κατηγορίες είναι έτοιμες - περιμένουν να προστεθούν νομίσματα!
+            All 12 categories are ready - just waiting for coins to be added!
           </p>
           <Button asChild>
             <Link to="/admin">
-              Προσθήκη Δείγμα Δεδομένων Τώρα
+              Add Sample Data Now
             </Link>
           </Button>
         </div>

@@ -52,7 +52,7 @@ const FeaturedCoinsSection = () => {
           <div className="flex justify-center items-center py-16">
             <div className="flex items-center gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
-              <span className="text-electric-blue">Φόρτωση νομισμάτων...</span>
+              <span className="text-electric-blue">Loading coins...</span>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ const FeaturedCoinsSection = () => {
           <Alert className="max-w-md mx-auto">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Αδυναμία φόρτωσης νομισμάτων. Προσπαθήστε ξανά αργότερα.
+              Unable to load coins. Please try again later.
             </AlertDescription>
           </Alert>
         </div>
@@ -80,8 +80,8 @@ const FeaturedCoinsSection = () => {
       <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-16 bg-gray-50 rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Δεν υπάρχουν διαθέσιμα νομίσματα προς πώληση</h3>
-            <p className="text-gray-600">Ελέγξτε ξανά αργότερα για νέες καταχωρήσεις!</p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">No coins available for sale</h3>
+            <p className="text-gray-600">Check back later for new listings!</p>
           </div>
         </div>
       </div>
@@ -94,13 +94,13 @@ const FeaturedCoinsSection = () => {
         {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Επιλεγμένα Νομίσματα για Άμεση Πώληση
+            Featured Coins for Direct Sale
           </h2>
           <p className="text-lg text-gray-600 mb-2">
-            Ανακαλύψτε {directSaleCoins.length.toLocaleString()} αυθεντικά νομίσματα από επιβεβαιωμένους dealers
+            Discover {directSaleCoins.length.toLocaleString()} authentic coins from verified dealers
           </p>
           <p className="text-sm text-gray-500">
-            Σελίδα {currentPage} από {totalPages} ({COINS_PER_PAGE} νομίσματα ανά σελίδα)
+            Page {currentPage} of {totalPages} ({COINS_PER_PAGE} coins per page)
           </p>
         </div>
 
@@ -136,7 +136,7 @@ const FeaturedCoinsSection = () => {
                 className="flex items-center gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Προηγούμενη
+                Previous
               </Button>
 
               {/* Page Numbers */}
@@ -174,7 +174,7 @@ const FeaturedCoinsSection = () => {
                 disabled={currentPage === totalPages}
                 className="flex items-center gap-2"
               >
-                Επόμενη
+                Next
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
@@ -185,7 +185,7 @@ const FeaturedCoinsSection = () => {
                 onClick={handleLoadMore}
                 className="bg-electric-orange hover:bg-electric-orange/90 text-white"
               >
-                Φόρτωση Περισσότερων ({Math.min(COINS_PER_PAGE, directSaleCoins.length - endIndex)} ακόμη)
+                Load More ({Math.min(COINS_PER_PAGE, directSaleCoins.length - endIndex)} more)
               </Button>
             )}
           </div>
