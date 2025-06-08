@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -23,10 +22,10 @@ const ActiveMarketplace = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
-              Ανακαλύψτε τα καλύτερα καταστήματα νομισμάτων
+              Discover the Best Coin Stores
             </h1>
             <p className="text-lg text-gray-600">
-              Εξερευνήστε αυθεντικά νομίσματα από επαληθευμένους dealers παγκοσμίως
+              Explore authentic coins from verified dealers worldwide
             </p>
           </div>
         </div>
@@ -34,15 +33,15 @@ const ActiveMarketplace = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Dealer Stores Section - ΚΑΤΑΣΤΗΜΑΤΑ ΧΡΗΣΤΩΝ */}
+        {/* Dealer Stores Section - USER STORES */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
             <Store className="w-6 h-6 text-electric-orange" />
             <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-              Καταστήματα Χρηστών
+              User Stores
             </h2>
             <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-              {dealers?.length || 0} Ενεργά Καταστήματα
+              {dealers?.length || 0} Active Stores
             </Badge>
           </div>
           
@@ -118,7 +117,7 @@ const ActiveMarketplace = () => {
                           className="bg-electric-blue/10 text-electric-blue border-electric-blue/20"
                         >
                           <Store className="w-3 h-3 mr-1" />
-                          Δες Κατάστημα
+                          View Store
                         </Badge>
                       </div>
                     </CardContent>
