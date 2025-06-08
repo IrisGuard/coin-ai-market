@@ -1,66 +1,74 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Coins, TrendingUp, Database } from 'lucide-react';
-import { useAdminUsers, useMarketplaceStats } from '@/hooks/useAdminData';
+import { Coins, Users, DollarSign, TrendingUp, Database, Settings } from 'lucide-react';
+import { useMarketplaceStats } from '@/hooks/useMarketplaceStats';
+import SampleDataSetup from './SampleDataSetup';
 
 const AdminStatsOverview = () => {
-  const { data: users } = useAdminUsers();
-  const { data: stats } = useMarketplaceStats();
+  const { stats, loading } = useMarketplaceStats();
+
+  const statsCards = [
+    {
+      title: "Total Coins",
+      value: loading ? "..." : stats.total.toString(),
+      icon: <Coins className="w-6 h-6" />,
+      color: "text-blue-600"
+    },
+    {
+      title: "Active Auctions", 
+      value: loading ? "..." : stats.auctions.toString(),
+      icon: <TrendingUp className="w-6 h-6" />,
+      color: "text-green-600"
+    },
+    {
+      title: "Featured Coins",
+      value: loading ? "..." : stats.featured.toString(),
+      icon: <Database className="w-6 h-6" />,
+      color: "text-purple-600"
+    },
+    {
+      title: "Total Value",
+      value: loading ? "..." : `$${stats.totalValue.toLocaleString()}`,
+      icon: <DollarSign className="w-6 h-6" />,
+      color: "text-amber-600"
+    },
+    {
+      title: "Active Users",
+      value: loading ? "..." : stats.activeUsers.toString(),
+      icon: <Users className="w-6 h-6" />,
+      color: "text-rose-600"
+    },
+    {
+      title: "System Status",
+      value: "Operational",
+      icon: <Settings className="w-6 h-6" />,
+      color: "text-emerald-600"
+    }
+  ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats?.registered_users || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            +{users?.filter(u => new Date(u.created_at) > new Date(Date.now() - 7*24*60*60*1000)).length || 0} this week
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Listed Coins</CardTitle>
-          <Coins className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats?.listed_coins || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats?.active_auctions || 0} active auctions
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Volume</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">${stats?.total_volume || 0}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats?.weekly_transactions || 0} transactions this week
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">External Sources</CardTitle>
-          <Database className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">8</div>
-          <p className="text-xs text-muted-foreground">
-            Active data streams
-          </p>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {statsCards.map((stat) => (
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <div className={stat.color}>
+                {stat.icon}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      {/* Sample Data Setup */}
+      <SampleDataSetup />
     </div>
   );
 };

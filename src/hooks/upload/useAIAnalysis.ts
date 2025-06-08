@@ -1,81 +1,73 @@
 
-import { useState, useCallback } from 'react';
-import { useImageHandling } from '@/hooks/useImageHandling';
-import { toast } from '@/hooks/use-toast';
-import type { UploadedImage, CoinData } from '@/types/upload';
+import { useState } from 'react';
+import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import { toast } from 'sonner';
+
+export interface AIAnalysisResult {
+  name: string;
+  year: number;
+  country: string;
+  denomination: string;
+  composition: string;
+  grade: string;
+  estimatedValue: number;
+  rarity: string;
+  mint?: string;
+  diameter?: number;
+  weight?: number;
+  errors?: string[];
+  confidence: number;
+  aiProvider: string;
+  processingTime: number;
+}
 
 export const useAIAnalysis = () => {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const { uploadImage, compressImage } = useImageHandling();
+  const { analyzeImage, isAnalyzing, result, error, clearResults } = useRealAICoinRecognition();
+  const [analysisHistory, setAnalysisHistory] = useState<AIAnalysisResult[]>([]);
 
-  const analyzeImages = useCallback(async (
-    images: UploadedImage[], 
-    updateCoinData: (data: CoinData) => void,
-    setImages: React.Dispatch<React.SetStateAction<UploadedImage[]>>
-  ) => {
-    if (images.length === 0) {
-      toast({
-        title: "No Images",
-        description: "Please upload at least one image to analyze.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setUploadProgress(0);
-
+  const performAnalysis = async (imageFile: File): Promise<AIAnalysisResult | null> => {
     try {
-      // Upload images first
-      const uploadedImages = await Promise.all(
-        images.map(async (image, index) => {
-          if (!image.uploaded) {
-            const compressedFile = await compressImage(image.file);
-            const url = await uploadImage(compressedFile);
-            setUploadProgress(((index + 1) / images.length) * 50);
-            return { ...image, uploaded: true, url };
-          }
-          return image;
-        })
-      );
-
-      setImages(uploadedImages);
-
-      // Mock AI analysis results
-      const mockResults = {
-        coinName: "Morgan Silver Dollar",
-        year: "1921",
-        grade: "MS-63",
-        estimatedValue: "$85.00",
-        confidence: 0.92
-      };
-
-      setAnalysisResults(mockResults);
-      setUploadProgress(100);
-
-      toast({
-        title: "Analysis Complete",
-        description: `Identified as ${mockResults.coinName} with ${Math.round(mockResults.confidence * 100)}% confidence`,
-      });
-
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      toast({
-        title: "Analysis Failed",
-        description: "Failed to analyze images. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
+      console.log('Starting AI analysis for:', imageFile.name);
+      
+      const result = await analyzeImage(imageFile);
+      
+      if (result) {
+        // Add to history
+        setAnalysisHistory(prev => [result, ...prev.slice(0, 4)]); // Keep last 5 analyses
+        
+        // Show success message with confidence
+        const confidencePercent = Math.round(result.confidence * 100);
+        toast.success(
+          `Analysis complete! Identified as ${result.name} with ${confidencePercent}% confidence`
+        );
+        
+        return result;
+      }
+      
+      return null;
+    } catch (error: any) {
+      console.error('AI analysis failed:', error);
+      toast.error(`Analysis failed: ${error.message}`);
+      return null;
     }
-  }, [compressImage, uploadImage]);
+  };
+
+  const clearAnalysis = () => {
+    clearResults();
+  };
+
+  const retryAnalysis = async (imageFile: File): Promise<AIAnalysisResult | null> => {
+    clearResults();
+    return await performAnalysis(imageFile);
+  };
 
   return {
+    performAnalysis,
+    retryAnalysis,
+    clearAnalysis,
     isAnalyzing,
-    analysisResults,
-    uploadProgress,
-    analyzeImages
+    result,
+    error,
+    analysisHistory
   };
 };
