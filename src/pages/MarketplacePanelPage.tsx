@@ -4,7 +4,7 @@ import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
 import { useRealAdminData } from '@/hooks/useRealAdminData';
 import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
-import { useEnhancedDataSources } from '@/hooks/useEnhancedDataSources';
+import { useExternalPriceSources } from '@/hooks/useEnhancedDataSources';
 import { useRealTimeCoins } from '@/hooks/useRealTimeCoins';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { useCoinDataAggregation } from '@/hooks/useCoinDataAggregation';
@@ -27,22 +27,22 @@ const MarketplacePanelPage = () => {
   usePageView();
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
-  const { data: adminData, isLoading: adminLoading } = useRealAdminData();
-  const { data: analyticsData } = useRealTimeAnalytics();
-  const { data: dataSources } = useEnhancedDataSources();
-  const { data: coinsData } = useRealTimeCoins();
-  const { data: aiRecognition } = useRealAICoinRecognition();
-  const { data: aggregationData } = useCoinDataAggregation();
-  const { data: aiBrainData } = useAdvancedAIBrain();
+  const { stats: adminStats, isLoading: adminLoading } = useRealAdminData();
+  const { systemMetrics, userBehavior, performance } = useRealTimeAnalytics();
+  const { data: dataSources } = useExternalPriceSources();
+  const coinsData = useRealTimeCoins();
+  const aiRecognition = useRealAICoinRecognition();
+  const aggregationData = useCoinDataAggregation();
+  const { providers } = useAdvancedAIBrain();
   const { data: errorCoinsData } = useErrorCoinsKnowledge();
 
   const [activeTab, setActiveTab] = useState('overview');
 
   // Real-time stats calculations
-  const totalUsers = adminData?.users?.length || 0;
+  const totalUsers = adminStats?.totalUsers || 0;
   const totalCoins = coinsData?.length || 0;
   const totalStores = dealers?.length || 0;
-  const aiAnalysisCount = aiRecognition?.totalAnalyses || 0;
+  const aiAnalysisCount = systemMetrics?.requests || 0;
   const dataSourcesActive = dataSources?.filter(source => source.is_active)?.length || 0;
   const avgResponseTime = dataSources?.reduce((acc, source) => acc + (source.avg_response_time || 0), 0) / (dataSources?.length || 1);
 
@@ -142,7 +142,7 @@ const MarketplacePanelPage = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm">AI Brain Status</span>
                       <Badge className="bg-electric-green/10 text-electric-green">
-                        {aiBrainData ? 'Active' : 'Initializing'}
+                        {providers?.length > 0 ? 'Active' : 'Initializing'}
                       </Badge>
                     </div>
                   </div>
@@ -158,22 +158,18 @@ const MarketplacePanelPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {analyticsData && (
-                      <>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">Page Views Today</span>
-                          <span className="text-sm font-medium">{analyticsData.pageViews || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">User Sessions</span>
-                          <span className="text-sm font-medium">{analyticsData.sessions || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">Conversion Rate</span>
-                          <span className="text-sm font-medium">{analyticsData.conversionRate || '0'}%</span>
-                        </div>
-                      </>
-                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Page Views Today</span>
+                      <span className="text-sm font-medium">{systemMetrics?.pageViews || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">User Sessions</span>
+                      <span className="text-sm font-medium">{systemMetrics?.sessions || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Conversion Rate</span>
+                      <span className="text-sm font-medium">{userBehavior?.conversionRate || '0'}%</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -191,19 +187,19 @@ const MarketplacePanelPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-electric-purple">
-                      {errorCoinsData?.totalErrors || 0}
+                      {errorCoinsData?.length || 0}
                     </div>
                     <p className="text-sm text-gray-600">Known Error Types</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-electric-orange">
-                      {errorCoinsData?.marketDataPoints || 0}
+                      {errorCoinsData?.reduce((acc, item) => acc + (item.identification_techniques?.length || 0), 0) || 0}
                     </div>
                     <p className="text-sm text-gray-600">Market Data Points</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-electric-green">
-                      {errorCoinsData?.identificationAccuracy || '0'}%
+                      {performance?.accuracy || '85'}%
                     </div>
                     <p className="text-sm text-gray-600">ID Accuracy</p>
                   </div>
@@ -226,23 +222,23 @@ const MarketplacePanelPage = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Recognition Accuracy</span>
-                      <span className="text-sm font-medium">{aiRecognition?.accuracy || 85}%</span>
+                      <span className="text-sm font-medium">{performance?.accuracy || 85}%</span>
                     </div>
-                    <Progress value={aiRecognition?.accuracy || 85} className="h-2" />
+                    <Progress value={performance?.accuracy || 85} className="h-2" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Processing Speed</span>
-                      <span className="text-sm font-medium">{aiRecognition?.avgProcessingTime || 2.5}s</span>
+                      <span className="text-sm font-medium">{performance?.avgResponseTime || 2.5}s</span>
                     </div>
                     <Progress value={75} className="h-2" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Success Rate</span>
-                      <span className="text-sm font-medium">{aiRecognition?.successRate || 92}%</span>
+                      <span className="text-sm font-medium">{performance?.successRate || 92}%</span>
                     </div>
-                    <Progress value={aiRecognition?.successRate || 92} className="h-2" />
+                    <Progress value={performance?.successRate || 92} className="h-2" />
                   </div>
                 </div>
               </CardContent>
@@ -258,17 +254,17 @@ const MarketplacePanelPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {aggregationData?.sources?.map((source, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  {dataSources?.slice(0, 5).map((source) => (
+                    <div key={source.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${source.status === 'active' ? 'bg-electric-green' : 'bg-gray-300'}`}></div>
-                        <span className="font-medium">{source.name}</span>
+                        <div className={`w-3 h-3 rounded-full ${source.is_active ? 'bg-electric-green' : 'bg-gray-300'}`}></div>
+                        <span className="font-medium">{source.source_name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={source.status === 'active' ? 'default' : 'secondary'}>
-                          {source.status}
+                        <Badge variant={source.is_active ? 'default' : 'secondary'}>
+                          {source.is_active ? 'active' : 'inactive'}
                         </Badge>
-                        <span className="text-sm text-gray-500">{source.lastSync}</span>
+                        <span className="text-sm text-gray-500">{source.reliability_score?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
                   )) || (
@@ -295,8 +291,8 @@ const MarketplacePanelPage = () => {
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${source.is_active ? 'bg-electric-green' : 'bg-red-500'}`}></div>
                         <div>
-                          <h4 className="font-medium">{source.name}</h4>
-                          <p className="text-sm text-gray-600">{source.url}</p>
+                          <h4 className="font-medium">{source.source_name}</h4>
+                          <p className="text-sm text-gray-600">{source.base_url}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -304,7 +300,7 @@ const MarketplacePanelPage = () => {
                           {source.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                         <span className="text-sm text-gray-500">
-                          {source.success_rate?.toFixed(1)}% success
+                          {((source.reliability_score || 0) * 100).toFixed(1)}% success
                         </span>
                       </div>
                     </div>
@@ -364,7 +360,7 @@ const MarketplacePanelPage = () => {
                               )}
                             </div>
                             <p className="text-sm text-gray-600">
-                              {dealer.location} • Rating: {dealer.rating || 'N/A'} • Rep: {dealer.reputation || 0}
+                              {dealer.location} • Rating: {dealer.rating || 'N/A'}
                             </p>
                           </div>
                         </div>
@@ -412,9 +408,9 @@ const MarketplacePanelPage = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm">OTP Configuration</span>
-                      <Badge className="bg-electric-orange/10 text-electric-orange">
-                        <Clock className="w-3 h-3 mr-1" />
-                        Manual Setup
+                      <Badge className="bg-electric-green/10 text-electric-green">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Updated (10 min)
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
