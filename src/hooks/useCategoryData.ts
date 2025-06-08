@@ -6,7 +6,7 @@ import { useCachedMarketplaceData } from './useCachedMarketplaceData';
 export interface CategoryFilters {
   searchTerm: string;
   sortBy: string;
-  priceRange: { min: number; max: number };
+  priceRange: [number, number];
   yearRange: [number, number];
   selectedCountry: string | null;
   selectedCondition: string | null;
@@ -32,7 +32,7 @@ export const useCategoryData = (category: string) => {
   const [filters, setFilters] = useState<CategoryFilters>({
     searchTerm: '',
     sortBy: 'newest',
-    priceRange: { min: 0, max: 10000 },
+    priceRange: [0, 10000],
     yearRange: [0, 2024],
     selectedCountry: null,
     selectedCondition: null,
@@ -102,7 +102,7 @@ export const useCategoryData = (category: string) => {
 
     // Price range filter
     filtered = filtered.filter(coin =>
-      coin.price >= filters.priceRange.min && coin.price <= filters.priceRange.max
+      coin.price >= filters.priceRange[0] && coin.price <= filters.priceRange[1]
     );
 
     // Year range filter
@@ -208,7 +208,7 @@ export const useCategoryData = (category: string) => {
     setFilters({
       searchTerm: '',
       sortBy: 'newest',
-      priceRange: { min: 0, max: 10000 },
+      priceRange: [0, 10000],
       yearRange: [0, 2024],
       selectedCountry: null,
       selectedCondition: null,
@@ -226,7 +226,7 @@ export const useCategoryData = (category: string) => {
     if (filters.selectedRarity) count++;
     if (filters.showAuctionsOnly) count++;
     if (filters.showFeaturedOnly) count++;
-    if (filters.priceRange.min > 0 || filters.priceRange.max < 10000) count++;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000) count++;
     if (filters.yearRange[0] > 0 || filters.yearRange[1] < 2024) count++;
     return count;
   }, [filters]);
