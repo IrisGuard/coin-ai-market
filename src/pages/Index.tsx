@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -48,12 +47,12 @@ const Index = () => {
                 Discover authentic coins from <Link to="/marketplace" className="text-electric-blue hover:underline">verified dealers</Link> worldwide with advanced AI recognition
               </p>
               
-              {/* Enhanced Search Bar */}
+              {/* Enhanced Search Bar with larger width */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="max-w-2xl mx-auto"
+                className="max-w-4xl mx-auto"
               >
                 <EnhancedSearchBar
                   placeholder="Search coins with AI suggestions..."
