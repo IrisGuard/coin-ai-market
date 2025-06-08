@@ -22,13 +22,13 @@ export const useDealerStores = () => {
       // Transform to match the expected interface
       const transformedData = data?.map(store => ({
         id: store.id,
-        username: store.profiles?.email?.split('@')[0] || 'unknown',
+        username: store.profiles?.[0]?.email?.split('@')[0] || 'unknown',
         full_name: store.name,
         bio: store.description,
         avatar_url: store.logo_url || '/placeholder.svg',
         rating: 4.5, // Default rating - could be calculated from store_ratings table
         location: 'Location not set',
-        verified_dealer: store.profiles?.verified_dealer || false
+        verified_dealer: store.profiles?.[0]?.verified_dealer || false
       })) || [];
 
       return transformedData;

@@ -120,8 +120,8 @@ const AdminStoresManagement = () => {
                       </td>
                       <td className="p-2">
                         <div>
-                          <p className="font-medium">{store.profiles?.name || 'Unknown'}</p>
-                          <p className="text-sm text-gray-600">{store.profiles?.email || 'No email'}</p>
+                          <p className="font-medium">{store.profiles?.[0]?.name || 'Unknown'}</p>
+                          <p className="text-sm text-gray-600">{store.profiles?.[0]?.email || 'No email'}</p>
                         </div>
                       </td>
                       <td className="p-2">
