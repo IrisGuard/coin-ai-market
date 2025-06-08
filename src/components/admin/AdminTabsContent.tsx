@@ -2,10 +2,10 @@
 import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import TenantDashboard from '@/components/tenant/TenantDashboard';
-import LiveAdminUsersSection from './LiveAdminUsersSection';
-import LiveAdminCoinsSection from './LiveAdminCoinsSection';
+import AdminUsersSection from './AdminUsersSection';
+import AdminCoinsSection from './AdminCoinsSection';
 import AdminSystemSection from './AdminSystemSection';
-import LiveExternalSourcesSection from './LiveExternalSourcesSection';
+import AdminDataSourcesSection from './AdminDataSourcesSection';
 
 const AdminTabsContent = () => {
   return (
@@ -15,15 +15,15 @@ const AdminTabsContent = () => {
       </TabsContent>
       
       <TabsContent value="users">
-        <LiveAdminUsersSection />
+        <AdminUsersSection />
       </TabsContent>
       
       <TabsContent value="coins">
-        <LiveAdminCoinsSection />
+        <AdminCoinsSection />
       </TabsContent>
       
       <TabsContent value="data-sources">
-        <LiveExternalSourcesSection />
+        <AdminDataSourcesSection />
       </TabsContent>
       
       <TabsContent value="tenant-management">

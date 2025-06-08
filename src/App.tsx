@@ -1,59 +1,98 @@
 
+// Force GitHub sync - Updated at 2025-01-09 to ensure proper deployment
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Suspense } from "react";
-import { SpeedInsights } from '@vercel/speed-insights/react';
+import ErrorBoundary from "@/components/ErrorBoundary";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
-import ProfilePage from "./pages/Profile";
-import CoinDetailsPage from "./pages/CoinDetails";
-import UploadPage from "./pages/CoinUpload";
-import MarketplacePage from "./pages/ActiveMarketplace";
-import DashboardPage from "./pages/Dashboard";
-import StorePage from "./pages/DealerStorePage";
-import CreateStorePage from "./pages/CreateStorePage";
-import AuctionPage from "./pages/Auctions";
-import AuthPage from "./pages/Auth";
-import SettingsPage from "./pages/SettingsPage";
-import AboutPage from "./pages/AboutPage";
-import MarketplacePanelPage from "./pages/MarketplacePanelPage";
-import AdminPanelPage from "./pages/AdminPanelPage";
+import ActiveMarketplace from "./pages/ActiveMarketplace";
+import DealerStorePage from "./pages/DealerStorePage";
+import CoinUpload from "./pages/CoinUpload";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Auth from "./pages/Auth";
+import CoinDetails from "./pages/CoinDetails";
+import Auctions from "./pages/Auctions";
+import CoinSale from "./pages/CoinSale";
+import NotFound from "./pages/NotFound";
+import EnhancedSearch from "./pages/EnhancedSearch";
+import MobileAIFeatures from '@/pages/MobileAIFeatures';
+import AIFeatures from './pages/AIFeatures';
+import CategoryPage from './pages/CategoryPage';
+import { AdminProvider } from "@/contexts/AdminContext";
+import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/coin/:id" element={<CoinDetailsPage />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/marketplace" element={<MarketplacePage />} />
-              <Route path="/marketplace/panel" element={<MarketplacePanelPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/store/:id" element={<StorePage />} />
-              <Route path="/create-store" element={<CreateStorePage />} />
-              <Route path="/auction/:id" element={<AuctionPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/admin" element={<AdminPanelPage />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-        <SpeedInsights />
+        <ThemeProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <AdminProvider>
+                <ErrorBoundary>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/marketplace" element={<ActiveMarketplace />} />
+                    <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
+                    <Route path="/search" element={<EnhancedSearch />} />
+                    <Route path="/upload" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <CoinUpload />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/profile" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <Profile />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <Auth />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/coin/:id" element={<CoinDetails />} />
+                    <Route path="/auctions" element={<Auctions />} />
+                    <Route path="/sell/:id" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <CoinSale />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/mobile-ai" element={<MobileAIFeatures />} />
+                    <Route path="/ai-features" element={<AIFeatures />} />
+                    <Route path="/category/:category" element={<CategoryPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <AdminKeyboardHandler />
+                </ErrorBoundary>
+              </AdminProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeProvider>
       </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+      <Toaster />
+      <Sonner />
+    </QueryClientProvider>
+  );
+}
 
 export default App;

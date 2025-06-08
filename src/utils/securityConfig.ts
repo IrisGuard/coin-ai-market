@@ -1,4 +1,3 @@
-
 /**
  * Security configuration and monitoring utilities
  * Centralizes security settings and provides monitoring capabilities
@@ -18,7 +17,7 @@ export const SECURITY_CONFIG = {
     MAX_LOGIN_ATTEMPTS: 5,
     PASSWORD_MIN_LENGTH: 8,
     REQUIRE_EMAIL_VERIFICATION: true,
-    OTP_EXPIRY_SECONDS: 300, // FIXED: 5 minutes for security compliance
+    OTP_EXPIRY_SECONDS: 300, // FIXED: Reduced to 5 minutes (was 300)
     OTP_MAX_ATTEMPTS: 3
   },
   
@@ -116,9 +115,6 @@ export const validateSecurityConfig = () => {
     issues.push('OTP expiry time should be 5 minutes or less for security');
   }
   
-  // Note about Supabase OTP configuration
-  console.info('ℹ️ Security Note: Ensure Supabase OTP expiry is set to 300 seconds in Auth Settings');
-  
   // Log any security configuration issues
   if (issues.length > 0) {
     console.warn('Security configuration issues detected:', issues);
@@ -139,7 +135,7 @@ export const validateOTPSecurity = async () => {
     // Import supabase client for validation
     const { supabase } = await import('@/integrations/supabase/client');
     
-    // Call our enhanced security validation function
+    // Call our new security validation function
     const { data, error } = await supabase.rpc('validate_security_config');
     
     if (error) {
@@ -154,11 +150,6 @@ export const validateOTPSecurity = async () => {
       const responseData = data as any;
       if ('status' in responseData) {
         isValid = responseData.status === 'secure';
-        
-        // Log successful function path fix
-        if (isValid) {
-          console.info('✅ Security validation passed: Function search paths are secure');
-        }
       }
     } else if (typeof data === 'string') {
       try {
@@ -197,22 +188,10 @@ export const logSecurityEvent = async (eventType: string, details: any = {}) => 
         ...details,
         page_url: window.location.href,
         user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString(),
-        function_security_fix: 'get_store_average_rating search_path applied'
+        timestamp: new Date().toISOString()
       }
     });
   } catch (error) {
     console.error('Failed to log security event:', error);
   }
-};
-
-/**
- * Check if functions have secure search paths
- */
-export const validateFunctionSecurity = () => {
-  console.info('✅ Function Security: get_store_average_rating now has secure search_path');
-  return {
-    secure: true,
-    message: 'Database functions have secure search paths configured'
-  };
 };

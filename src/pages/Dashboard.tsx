@@ -5,7 +5,6 @@ import { Navigate } from 'react-router-dom';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
 import DashboardTabsContent from '@/components/dashboard/DashboardTabsContent';
-import AICoinsSection from '@/components/dashboard/AICoinsSection';
 import { DataSyncStatus } from '@/components/dashboard/DataSyncStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -29,17 +28,12 @@ const Dashboard = () => {
         <DashboardStatsGrid stats={stats} />
         
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="ai-coins">AI Coins</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="ai-coins" className="space-y-6">
-            <AICoinsSection />
-          </TabsContent>
           
           <DashboardTabsContent 
             watchlistItems={watchlistItems}
