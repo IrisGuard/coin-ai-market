@@ -43,7 +43,7 @@ const Index = () => {
               Find the perfect coin for you
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Discover authentic coins from <Link to="/marketplace" className="text-electric-blue hover:underline">verified dealers</Link> worldwide
+              Discover authentic coins from <Link to="/marketplace" className="text-electric-blue hover:underline">verified dealers</Link> worldwide with advanced AI recognition
             </p>
             
             {/* Enhanced Search Bar */}
@@ -56,7 +56,7 @@ const Index = () => {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <EnhancedSearchBar
-                    placeholder="Search for coins..."
+                    placeholder="Search for coins with AI-powered suggestions..."
                     onSearch={handleSearch}
                   />
                 </div>

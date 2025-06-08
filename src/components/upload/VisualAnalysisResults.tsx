@@ -2,17 +2,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   Coins, 
   Calendar, 
   MapPin, 
   DollarSign, 
-  Star, 
+  Award, 
   AlertTriangle,
-  CheckCircle,
-  Eye,
   TrendingUp,
+  Scale,
+  Ruler,
   Shield
 } from 'lucide-react';
 
@@ -30,192 +29,253 @@ const VisualAnalysisResults: React.FC<VisualAnalysisResultsProps> = ({ results }
     );
   }
 
+  const primaryResult = results[0];
+  const analysis = primaryResult.analysis || primaryResult;
+
   const getRarityColor = (rarity: string) => {
     switch (rarity?.toLowerCase()) {
-      case 'ultra rare': return 'bg-purple-600 text-white';
-      case 'rare': return 'bg-red-600 text-white';
-      case 'uncommon': return 'bg-yellow-600 text-white';
-      default: return 'bg-green-600 text-white';
+      case 'extremely rare': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'very rare': return 'bg-red-100 text-red-800 border-red-200';
+      case 'rare': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'uncommon': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-green-100 text-green-800 border-green-200';
     }
   };
 
-  const getConditionIcon = (condition: string) => {
-    switch (condition?.toLowerCase()) {
-      case 'mint': return <Star className="w-4 h-4 text-yellow-500" />;
-      case 'near mint': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'excellent': return <CheckCircle className="w-4 h-4 text-blue-500" />;
-      default: return <AlertTriangle className="w-4 h-4 text-orange-500" />;
-    }
+  const getGradeColor = (grade: string) => {
+    if (grade?.includes('MS') || grade?.includes('PF')) return 'bg-blue-100 text-blue-800';
+    if (grade?.includes('AU')) return 'bg-green-100 text-green-800';
+    if (grade?.includes('XF') || grade?.includes('EF')) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-gray-100 text-gray-800';
   };
 
   return (
     <div className="space-y-6">
-      {results.map((result, index) => (
-        <Card key={index} className="border-2 border-gray-200 hover:border-blue-300 transition-colors">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <span className="text-blue-600 font-bold">{index + 1}</span>
-              </div>
-              {result.identification?.name || result.name || 'Unidentified Coin'}
-              <Badge className={`ml-auto ${getRarityColor(result.rarity)}`}>
-                {result.rarity || 'Common'}
+      {/* Primary Identification */}
+      <Card className="border-2 border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="w-6 h-6 text-blue-600" />
+            Coin Identification
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {analysis.name || 'Unknown Coin'}
+            </h3>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Badge className={getRarityColor(analysis.rarity)}>
+                {analysis.rarity || 'Common'}
               </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Image */}
-              <div className="space-y-4">
-                <div className="aspect-square w-full max-w-xs mx-auto">
-                  <img
-                    src={result.imageUrl}
-                    alt={result.identification?.name || 'Coin'}
-                    className="w-full h-full object-cover rounded-xl border-2 border-gray-200 shadow-lg"
-                  />
-                </div>
-                <div className="text-center">
-                  <Badge variant="outline" className="text-xs">
-                    Confidence: {Math.round((result.confidence || 0) * 100)}%
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Identification Details */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-lg flex items-center gap-2">
-                  <Coins className="w-5 h-5" />
-                  Identification
-                </h4>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Year:</span>
-                    <span className="font-medium">{result.identification?.year || result.year || 'Unknown'}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Country:</span>
-                    <span className="font-medium">{result.identification?.country || result.country || 'Unknown'}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Denomination:</span>
-                    <span className="font-medium">{result.identification?.denomination || result.denomination || 'Unknown'}</span>
-                  </div>
-                  
-                  {(result.identification?.mint || result.mint) && (
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">Mint:</span>
-                      <span className="font-medium">{result.identification?.mint || result.mint}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Grading */}
-                <div className="pt-4 border-t">
-                  <h5 className="font-medium mb-2 flex items-center gap-2">
-                    {getConditionIcon(result.grading?.condition || result.condition)}
-                    Condition & Grading
-                  </h5>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Condition:</span>
-                      <Badge variant="outline">{result.grading?.condition || result.condition || 'Unknown'}</Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Grade:</span>
-                      <Badge variant="outline">{result.grading?.grade || result.grade || 'Ungraded'}</Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Valuation & Market Info */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-lg flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Valuation
-                </h4>
-                
-                <div className="space-y-3">
-                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="text-2xl font-bold text-green-600">
-                      ${result.valuation?.current_value || result.estimated_value || 'N/A'}
-                    </div>
-                    <p className="text-sm text-green-700">Current Market Value</p>
-                  </div>
-                  
-                  {(result.valuation?.low_estimate && result.valuation?.high_estimate) && (
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <div className="font-medium">${result.valuation.low_estimate}</div>
-                        <div className="text-gray-600">Low Est.</div>
-                      </div>
-                      <div className="text-center p-2 bg-gray-50 rounded">
-                        <div className="font-medium">${result.valuation.high_estimate}</div>
-                        <div className="text-gray-600">High Est.</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {(result.valuation?.market_trend || result.market_trend) && (
-                    <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                      <TrendingUp className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm">Market Trend:</span>
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {result.valuation?.market_trend || result.market_trend}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-
-                {/* Authentication Notes */}
-                {(result.authentication_notes && result.authentication_notes.length > 0) && (
-                  <div className="pt-4 border-t">
-                    <h5 className="font-medium mb-2 flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      Authentication
-                    </h5>
-                    <div className="text-sm text-gray-600 bg-yellow-50 p-3 rounded border border-yellow-200">
-                      {result.authentication_notes}
-                    </div>
-                  </div>
-                )}
-
-                {/* Errors & Varieties */}
-                {(result.errors && result.errors.length > 0) && (
-                  <div className="pt-4 border-t">
-                    <h5 className="font-medium mb-2 text-red-600">Mint Errors Detected</h5>
-                    <div className="space-y-1">
-                      {result.errors.map((error: string, errorIndex: number) => (
-                        <Badge key={errorIndex} variant="destructive" className="text-xs mr-1 mb-1">
-                          {error}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Badge className={getGradeColor(analysis.grade)}>
+                {analysis.grade || 'Ungraded'}
+              </Badge>
+              <Badge variant="outline" className="border-green-300 text-green-700">
+                {Math.round((analysis.confidence || 0.5) * 100)}% Confidence
+              </Badge>
             </div>
+            {analysis.historical_significance && (
+              <p className="text-sm text-gray-600 italic">
+                {analysis.historical_significance}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t">
-              <Button variant="outline" className="flex-1">
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </Button>
-              <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
-                Add to Collection
-              </Button>
+      {/* Key Details Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-600">Year</p>
+                <p className="font-semibold">{analysis.year || 'Unknown'}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
-      ))}
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-sm text-gray-600">Country</p>
+                <p className="font-semibold">{analysis.country || 'Unknown'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <DollarSign className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-sm text-gray-600">Denomination</p>
+                <p className="font-semibold">{analysis.denomination || 'Unknown'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Award className="w-5 h-5 text-purple-600" />
+              <div>
+                <p className="text-sm text-gray-600">Composition</p>
+                <p className="font-semibold">{analysis.composition || 'Unknown'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {analysis.mint && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Shield className="w-5 h-5 text-gray-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Mint</p>
+                  <p className="font-semibold">{analysis.mint}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="text-sm text-gray-600">Market Trend</p>
+                <p className="font-semibold capitalize">
+                  {analysis.market_trend || 'Stable'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Physical Specifications */}
+      {(analysis.diameter || analysis.weight) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Ruler className="w-5 h-5 text-gray-600" />
+              Physical Specifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              {analysis.diameter && (
+                <div className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm">Diameter: </span>
+                  <span className="font-medium">{analysis.diameter}mm</span>
+                </div>
+              )}
+              {analysis.weight && (
+                <div className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm">Weight: </span>
+                  <span className="font-medium">{analysis.weight}g</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Valuation */}
+      <Card className="border-2 border-green-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-6 h-6 text-green-600" />
+            Estimated Value
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center mb-4">
+            <div className="text-3xl font-bold text-green-600">
+              ${analysis.estimated_value?.toFixed(2) || '0.00'}
+            </div>
+            <p className="text-sm text-gray-600">
+              Based on current market conditions and coin grade
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Errors and Varieties */}
+      {(analysis.errors?.length > 0 || analysis.varieties?.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {analysis.errors?.length > 0 && (
+            <Card className="border-orange-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="w-5 h-5" />
+                  Mint Errors Detected
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {analysis.errors.map((error: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {analysis.varieties?.length > 0 && (
+            <Card className="border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-600">
+                  <Award className="w-5 h-5" />
+                  Known Varieties
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {analysis.varieties.map((variety: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Award className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{variety}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Authentication Notes */}
+      {analysis.authentication_notes && (
+        <Card className="border-purple-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-600">
+              <Shield className="w-5 h-5" />
+              Authentication Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-700">
+              {analysis.authentication_notes}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
