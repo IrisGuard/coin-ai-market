@@ -1,8 +1,20 @@
 
 export class ConsoleMonitor {
   private static instance: ConsoleMonitor;
-  private originalConsole: any = {};
+  private originalConsole: {
+    error: typeof console.error;
+    warn: typeof console.warn;
+    log: typeof console.log;
+  };
   private isInitialized = false;
+
+  private constructor() {
+    this.originalConsole = {
+      error: console.error.bind(console),
+      warn: console.warn.bind(console),
+      log: console.log.bind(console)
+    };
+  }
 
   static getInstance(): ConsoleMonitor {
     if (!ConsoleMonitor.instance) {
@@ -14,56 +26,42 @@ export class ConsoleMonitor {
   init() {
     if (this.isInitialized) return;
 
-    // Store original console methods
-    this.originalConsole = {
-      log: console.log,
-      warn: console.warn,
-      error: console.error,
-      info: console.info
+    console.error = (...args: any[]) => {
+      this.logToSupabase('error', args);
+      this.originalConsole.error(...args);
     };
 
-    // Intercept console methods
-    console.log = this.interceptLog.bind(this, 'log');
-    console.warn = this.interceptLog.bind(this, 'warn');
-    console.error = this.interceptLog.bind(this, 'error');
-    console.info = this.interceptLog.bind(this, 'info');
+    console.warn = (...args: any[]) => {
+      this.logToSupabase('warn', args);
+      this.originalConsole.warn(...args);
+    };
 
     this.isInitialized = true;
-    console.log('🔍 Console monitoring initialized');
   }
 
-  private async interceptLog(level: string, ...args: any[]) {
-    // Call original console method
-    this.originalConsole[level]?.apply(console, args);
+  private async logToSupabase(level: string, args: any[]) {
+    try {
+      const message = args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
 
-    // Send to monitoring in production
-    if (import.meta.env.PROD) {
-      try {
-        await fetch('/api/console-monitor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            level,
-            message: args.map(arg => 
-              typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-            ).join(' '),
-            timestamp: new Date().toISOString(),
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            stack: level === 'error' && args[0]?.stack ? args[0].stack : undefined
-          })
-        });
-      } catch (error) {
-        // Fail silently to avoid infinite loops
+      // Only log in development or for serious errors
+      if (level === 'error' || window.location.hostname === 'localhost') {
+        // We'll implement this when we have proper error logging
+        console.info(`Console Monitor: ${level} - ${message}`);
       }
+    } catch (error) {
+      this.originalConsole.error('Console monitoring failed:', error);
     }
   }
 
   destroy() {
     if (!this.isInitialized) return;
 
-    // Restore original console methods
-    Object.assign(console, this.originalConsole);
+    console.error = this.originalConsole.error;
+    console.warn = this.originalConsole.warn;
+    console.log = this.originalConsole.log;
+
     this.isInitialized = false;
   }
 }

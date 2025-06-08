@@ -2203,6 +2203,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           app_settings: Json | null
@@ -2325,6 +2349,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_admin_user: {
+        Args: { user_email: string }
+        Returns: undefined
+      }
       encrypt_api_key_secure: {
         Args: { plain_key: string }
         Returns: string
@@ -2337,9 +2365,20 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
       increment_page_view: {
         Args: { page_path_param: string }
         Returns: undefined
+      }
+      is_admin: {
+        Args: { _user_id?: string }
+        Returns: boolean
       }
       is_admin_user: {
         Args: { user_id?: string }
@@ -2372,6 +2411,7 @@ export type Database = {
         | "gold"
         | "commemorative"
         | "unclassified"
+      user_role: "admin" | "moderator" | "user" | "dealer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2501,6 +2541,7 @@ export const Constants = {
         "commemorative",
         "unclassified",
       ],
+      user_role: ["admin", "moderator", "user", "dealer"],
     },
   },
 } as const
