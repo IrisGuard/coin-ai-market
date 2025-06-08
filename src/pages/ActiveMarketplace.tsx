@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
 import Navbar from "@/components/Navbar";
+import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
+import BackButton from '@/components/navigation/BackButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +19,12 @@ const ActiveMarketplace = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
+      <NavigationBreadcrumb />
+      
+      {/* Back Button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <BackButton to="/" label="Back to Home" />
+      </div>
       
       {/* Simple Marketplace Header */}
       <div className="bg-white border-b border-gray-200">

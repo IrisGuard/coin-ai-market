@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import CoinUpload from "./pages/CoinUpload";
 import CategoryPage from "./pages/CategoryPage";
+import ActiveMarketplace from "./pages/ActiveMarketplace";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => {
                 <div className="min-h-screen bg-background font-sans antialiased">
                   <Routes>
                     <Route path="/" element={<Index />} />
+                    <Route path="/marketplace" element={<ActiveMarketplace />} />
                     <Route 
                       path="/auth" 
                       element={

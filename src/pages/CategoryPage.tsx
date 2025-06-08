@@ -3,6 +3,8 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
+import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
+import BackButton from '@/components/navigation/BackButton';
 import CategoryHeader from '@/components/categories/CategoryHeader';
 import CategoryStats from '@/components/categories/CategoryStats';
 import CategoryFilters from '@/components/categories/CategoryFilters';
@@ -71,8 +73,14 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      <NavigationBreadcrumb />
       
-      <div className="pt-16">
+      <div className="pt-4">
+        {/* Back Button */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+          <BackButton to="/marketplace" label="Back to Marketplace" />
+        </div>
+
         <CategoryHeader
           category={category}
           title={categoryTitle}
