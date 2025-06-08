@@ -27,66 +27,66 @@ export const useMarketplaceStats = () => {
       setLoading(true);
       setError(null);
       
-      // Use the real database function to get marketplace stats
-      const { data: marketplaceStats, error: statsError } = await supabase
-        .rpc('get_marketplace_stats');
+      // Fetch marketplace statistics using direct queries
+      const [
+        totalCoinsResult,
+        auctionsResult,
+        featuredResult,
+        priceDataResult,
+        activeUsersResult
+      ] = await Promise.all([
+        supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('authentication_status', 'verified'),
+        
+        supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_auction', true)
+          .eq('authentication_status', 'verified'),
+        
+        supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('featured', true)
+          .eq('authentication_status', 'verified'),
+        
+        supabase
+          .from('coins')
+          .select('price')
+          .eq('authentication_status', 'verified'),
+        
+        supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+      ]);
 
-      if (statsError) {
-        console.error('Error fetching marketplace stats:', statsError);
-        // Fallback to individual queries if function fails
-        const [
-          totalCoinsResult,
-          auctionsResult,
-          featuredResult,
-          priceDataResult,
-          activeUsersResult
-        ] = await Promise.all([
-          supabase
-            .from('coins')
-            .select('*', { count: 'exact', head: true })
-            .eq('authentication_status', 'verified'),
-          
-          supabase
-            .from('coins')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_auction', true)
-            .eq('authentication_status', 'verified'),
-          
-          supabase
-            .from('coins')
-            .select('*', { count: 'exact', head: true })
-            .eq('featured', true)
-            .eq('authentication_status', 'verified'),
-          
-          supabase
-            .from('coins')
-            .select('price')
-            .eq('authentication_status', 'verified'),
-          
-          supabase
-            .from('profiles')
-            .select('*', { count: 'exact', head: true })
-        ]);
-
-        const totalValue = priceDataResult.data?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
-
-        setStats({
-          total: totalCoinsResult.count || 0,
-          auctions: auctionsResult.count || 0,
-          featured: featuredResult.count || 0,
-          totalValue,
-          activeUsers: activeUsersResult.count || 0
-        });
-      } else {
-        // Use the function result
-        setStats({
-          total: marketplaceStats?.listed_coins || 0,
-          auctions: marketplaceStats?.active_auctions || 0,
-          featured: 0, // This would need to be added to the function
-          totalValue: marketplaceStats?.total_volume || 0,
-          activeUsers: marketplaceStats?.registered_users || 0
-        });
+      if (totalCoinsResult.error) {
+        console.error('Error fetching total coins:', totalCoinsResult.error);
       }
+      if (auctionsResult.error) {
+        console.error('Error fetching auctions:', auctionsResult.error);
+      }
+      if (featuredResult.error) {
+        console.error('Error fetching featured coins:', featuredResult.error);
+      }
+      if (priceDataResult.error) {
+        console.error('Error fetching price data:', priceDataResult.error);
+      }
+      if (activeUsersResult.error) {
+        console.error('Error fetching active users:', activeUsersResult.error);
+      }
+
+      const totalValue = priceDataResult.data?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
+
+      setStats({
+        total: totalCoinsResult.count || 0,
+        auctions: auctionsResult.count || 0,
+        featured: featuredResult.count || 0,
+        totalValue,
+        activeUsers: activeUsersResult.count || 0
+      });
 
     } catch (error: any) {
       console.error('Error fetching marketplace stats:', error);
