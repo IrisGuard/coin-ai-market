@@ -1,20 +1,21 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { initSentry } from "@/lib/sentry";
-import { setupGlobalErrorHandlers } from "@/lib/globalErrorHandlers";
-import { initializeSecurity } from "@/lib/securityInitializer";
 import App from "./App.tsx";
 import "./index.css";
 
-// Initialize error monitoring
-initSentry();
-setupGlobalErrorHandlers();
+// Import enhanced security systems
+import { initializeEnhancedSecurity } from "@/lib/enhancedSecurityInitializer";
 
-// Initialize security systems
-initializeSecurity();
+// Initialize enhanced security on app startup
+initializeEnhancedSecurity().catch(error => {
+  console.error('Failed to initialize enhanced security:', error);
+});
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Root element not found");
+
+createRoot(rootElement).render(
   <StrictMode>
     <App />
   </StrictMode>

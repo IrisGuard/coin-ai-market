@@ -1,72 +1,48 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  validateEnhancedSecurityConfig,
+  getEnhancedSecurityHeaders,
+  logProductionError 
+} from './enhancedSecurityConfig';
 
-export const validateSecurityConfig = (): string[] => {
-  const issues: string[] = [];
-  
-  // Check if we're in production
-  const isProduction = window.location.hostname !== 'localhost';
-  
-  if (isProduction) {
-    // Check HTTPS
-    if (window.location.protocol !== 'https:') {
-      issues.push('Application should use HTTPS in production');
+export const validateSecurityConfig = async (): Promise<string[]> => {
+  try {
+    const validation = await validateEnhancedSecurityConfig();
+    
+    if (validation.status !== 'secure') {
+      return validation.issues;
     }
     
-    // Check for secure headers (basic check)
-    if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
-      issues.push('Content Security Policy not detected');
-    }
+    return [];
+  } catch (error) {
+    console.error('Security config validation failed:', error);
+    return ['Security validation system error'];
   }
-  
-  // Check Supabase configuration without accessing protected properties
-  const supabaseUrl = 'https://wdgnllgbfvjgurbqhfqb.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU';
-  
-  if (!supabaseUrl || !supabaseKey) {
-    issues.push('Supabase configuration incomplete');
-  }
-  
-  return issues;
 };
 
 export const validateOTPSecurity = async (): Promise<boolean> => {
   try {
-    // Basic validation - check if auth is working
-    const { data: { session } } = await supabase.auth.getSession();
-    return true; // If we can check session, auth is working
+    const validation = await validateEnhancedSecurityConfig();
+    return validation.otpConfig === 'enhanced';
   } catch (error) {
     console.error('OTP security validation failed:', error);
+    await logProductionError('otp_validation_error', 
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return false;
   }
 };
 
-export const getSecurityHeaders = () => {
-  return {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin'
-  };
-};
+export const getSecurityHeaders = getEnhancedSecurityHeaders;
 
 export const logSecurityEvent = async (eventType: string, details: any = {}) => {
-  try {
-    await supabase.from('analytics_events').insert({
-      event_type: `security_${eventType}`,
-      page_url: window.location.href,
-      metadata: {
-        ...details,
-        timestamp: new Date().toISOString(),
-        user_agent: navigator.userAgent
-      }
-    });
-  } catch (error) {
-    console.warn('Failed to log security event:', error);
-  }
+  await logProductionError(`security_${eventType}`, 
+    `Security event: ${eventType}`, details
+  );
 };
 
-// Security monitor class for enhanced security features
+// Enhanced security monitor class for backwards compatibility
 export class SecurityMonitor {
   private static instance: SecurityMonitor;
   
@@ -77,8 +53,8 @@ export class SecurityMonitor {
     return SecurityMonitor.instance;
   }
   
-  logSecurityViolation(type: string, message: string): void {
+  async logSecurityViolation(type: string, message: string): Promise<void> {
     console.warn(`Security violation [${type}]: ${message}`);
-    logSecurityEvent('violation', { type, message });
+    await logSecurityEvent('violation', { type, message });
   }
 }

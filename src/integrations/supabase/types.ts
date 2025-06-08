@@ -2349,6 +2349,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      configure_enhanced_auth_security: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_admin_user: {
         Args: { user_email: string }
         Returns: undefined
@@ -2384,6 +2388,14 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      log_production_error: {
+        Args: {
+          error_type: string
+          error_message: string
+          error_context?: Json
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: { event_type: string; event_details?: Json }
         Returns: undefined
@@ -2392,9 +2404,17 @@ export type Database = {
         Args: { tenant_uuid: string }
         Returns: undefined
       }
+      validate_enhanced_security_config: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       validate_security_config: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      verify_admin_access_secure: {
+        Args: { user_id?: string }
+        Returns: boolean
       }
     }
     Enums: {
