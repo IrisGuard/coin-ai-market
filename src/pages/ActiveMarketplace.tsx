@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -61,6 +62,23 @@ const ActiveMarketplace = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          ) : dealers?.length === 0 ? (
+            <div className="text-center py-16">
+              <Store className="w-16 h-16 mx-auto mb-6 text-gray-300" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No User Stores Yet</h3>
+              <p className="text-gray-500 mb-6">
+                User stores will appear here when dealers join and get verified.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+                <h4 className="font-medium text-blue-900 mb-2">💡 Getting Started</h4>
+                <p className="text-blue-700 text-sm">
+                  To see user stores here, users need to:
+                  <br />1. Sign up for an account
+                  <br />2. Get verified as a dealer
+                  <br />3. Create their store profile
+                </p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

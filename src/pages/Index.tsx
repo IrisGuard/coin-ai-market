@@ -3,15 +3,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
+import { useAuth } from '@/contexts/AuthContext';
 import Navbar from "@/components/Navbar";
 import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
-import { Search, Settings, Users } from 'lucide-react';
+import { Search, Settings, Users, LogIn } from 'lucide-react';
 
 const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
@@ -28,6 +30,24 @@ const Index = () => {
               Discover authentic coins from verified dealers worldwide
             </p>
             
+            {/* Authentication Status Notice */}
+            {!isAuthenticated && (
+              <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-2xl mx-auto">
+                <div className="flex items-center justify-center gap-2 text-blue-700">
+                  <LogIn className="w-5 h-5" />
+                  <span className="font-medium">Sign up to unlock all features</span>
+                </div>
+                <p className="text-sm text-blue-600 mt-2">
+                  Create an account to access dealer stores, upload coins, and use AI analysis
+                </p>
+                <Link to="/auth" className="inline-block mt-3">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
+            
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="flex gap-4">
@@ -39,9 +59,11 @@ const Index = () => {
                   />
                   <Search className="absolute right-3 top-3.5 h-5 w-5 text-gray-400" />
                 </div>
-                <Button className="bg-electric-orange hover:bg-electric-orange/90 text-white px-8 py-3">
-                  Browse Categories
-                </Button>
+                <Link to="/marketplace">
+                  <Button className="bg-electric-orange hover:bg-electric-orange/90 text-white px-8 py-3">
+                    Browse Categories
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

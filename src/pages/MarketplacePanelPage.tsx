@@ -2,6 +2,7 @@
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
+import { useMarketplaceStats } from '@/hooks/admin/useAdminSystem';
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ const MarketplacePanelPage = () => {
   usePageView();
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
+  const { data: marketplaceStats } = useMarketplaceStats();
 
   return (
     <div className="min-h-screen bg-white">
@@ -43,23 +45,23 @@ const MarketplacePanelPage = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
-              <Eye className="h-4 w-4 text-electric-blue" />
+              <CardTitle className="text-sm font-medium">Registered Users</CardTitle>
+              <Users className="h-4 w-4 text-electric-blue" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12,456</div>
-              <p className="text-xs text-gray-600">+18% this month</p>
+              <div className="text-2xl font-bold">{marketplaceStats?.registered_users || 0}</div>
+              <p className="text-xs text-gray-600">Total platform users</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue Growth</CardTitle>
+              <CardTitle className="text-sm font-medium">Listed Coins</CardTitle>
               <TrendingUp className="h-4 w-4 text-electric-orange" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+24%</div>
-              <p className="text-xs text-gray-600">Compared to last quarter</p>
+              <div className="text-2xl font-bold">{marketplaceStats?.listed_coins || 0}</div>
+              <p className="text-xs text-gray-600">Active listings</p>
             </CardContent>
           </Card>
         </div>
@@ -88,6 +90,12 @@ const MarketplacePanelPage = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : dealers?.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Store className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium mb-2">No User Stores Yet</h3>
+                <p>When users create verified dealer accounts, they will appear here.</p>
               </div>
             ) : (
               <div className="space-y-4">

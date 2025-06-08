@@ -5,9 +5,11 @@ import Navbar from "@/components/Navbar";
 import AdminPanel from "@/components/admin/AdminPanel";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Database, Users, BarChart3 } from 'lucide-react';
+import { useAdminData } from '@/hooks/useAdminData';
 
 const AdminPanelPage = () => {
   usePageView();
+  const { stats, isLoading } = useAdminData();
 
   return (
     <div className="min-h-screen bg-white">
@@ -31,30 +33,42 @@ const AdminPanelPage = () => {
               <Users className="h-4 w-4 text-electric-blue" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1,234</div>
-              <p className="text-xs text-gray-600">+12% from last month</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Stores</CardTitle>
-              <Database className="h-4 w-4 text-electric-green" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">89</div>
-              <p className="text-xs text-gray-600">+3 new this week</p>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : stats?.totalUsers || 0}
+              </div>
+              <p className="text-xs text-gray-600">
+                +{stats?.newUsersToday || 0} new today
+              </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
+              <Database className="h-4 w-4 text-electric-green" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : stats?.totalCoins || 0}
+              </div>
+              <p className="text-xs text-gray-600">
+                {stats?.pendingVerification || 0} pending verification
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <BarChart3 className="h-4 w-4 text-electric-orange" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">15,678</div>
-              <p className="text-xs text-gray-600">+234 this week</p>
+              <div className="text-2xl font-bold">
+                ${isLoading ? '...' : (stats?.totalRevenue || 0).toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-600">
+                ${(stats?.revenueToday || 0).toFixed(2)} today
+              </p>
             </CardContent>
           </Card>
           
