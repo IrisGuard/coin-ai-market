@@ -44,11 +44,11 @@ export const useCategoryStats = () => {
           .gt('year', 1800)
           .eq('authentication_status', 'verified'),
         
-        // Error coins (category = 'error')
+        // Error coins (category = 'error_coin')
         supabase
           .from('coins')
           .select('*', { count: 'exact', head: true })
-          .eq('category', 'error')
+          .eq('category', 'error_coin')
           .eq('authentication_status', 'verified'),
         
         // Live auctions
