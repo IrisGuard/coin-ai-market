@@ -39,36 +39,36 @@ const CategoryPage = () => {
 
   const getCategoryTitle = (cat: string) => {
     const titles: { [key: string]: string } = {
-      'ancient': 'Αρχαία Νομίσματα',
-      'modern': 'Μοντέρνα Νομίσματα', 
-      'error': 'Error Νομίσματα',
-      'graded': 'Graded Νομίσματα',
-      'trending': 'Trending Νομίσματα',
-      'european': 'Ευρωπαϊκά Νομίσματα',
-      'american': 'Αμερικανικά Νομίσματα',
-      'asian': 'Ασιατικά Νομίσματα',
-      'gold': 'Χρυσά Νομίσματα',
-      'silver': 'Ασημένια Νομίσματα',
-      'rare': 'Σπάνια Νομίσματα'
+      'ancient': 'Ancient Coins',
+      'modern': 'Modern Coins', 
+      'error': 'Error Coins',
+      'graded': 'Graded Coins',
+      'trending': 'Trending Coins',
+      'european': 'European Coins',
+      'american': 'American Coins',
+      'asian': 'Asian Coins',
+      'gold': 'Gold Coins',
+      'silver': 'Silver Coins',
+      'rare': 'Rare Coins'
     };
-    return titles[cat] || 'Κατηγορία';
+    return titles[cat] || 'Category';
   };
 
   const getCategoryDescription = (cat: string) => {
     const descriptions: { [key: string]: string } = {
-      'ancient': 'Ανακαλύψτε μεγαλοπρεπή νομίσματα από αρχαίους πολιτισμούς, αυτοκρατορίες και ιστορικές περιόδους. Κάθε κομμάτι αφηγείται μια ιστορία από παρελθούσες εποχές και αρχαία τεχνουργία.',
-      'modern': 'Εξερευνήστε σύγχρονα νομίσματα από τη μοντέρνα εποχή (1900 και μετά), με ενημερωμένα σχέδια, προηγμένες τεχνικές κοπής και σύγχρονα θέματα.',
-      'error': 'Βρείτε σπάνια error νομίσματα και λάθη κοπής που εκτιμώνται ιδιαίτερα από συλλέκτες. Αυτά τα μοναδικά κομμάτια αντιπροσωπεύουν συναρπαστικές ανωμαλίες παραγωγής.',
-      'graded': 'Περιηγηθείτε σε επαγγελματικά βαθμολογημένα νομίσματα πιστοποιημένα από PCGS, NGC και άλλες κορυφαίες υπηρεσίες βαθμολόγησης με πιστοποιημένη ποιότητα και κατάσταση.',
-      'trending': 'Δημοφιλή νομίσματα που τείνουν αυτή τη στιγμή με συλλέκτες παγκοσμίως. Μείνετε μπροστά από τις κινήσεις της αγοράς και τις προτιμήσεις των συλλεκτών.',
-      'european': 'Ευρωπαϊκά νομίσματα από διάφορες χώρες και χρονικές περιόδους, παρουσιάζοντας την πλούσια νομισματική κληρονομιά της ευρωπαϊκής ηπείρου.',
-      'american': 'Νομίσματα από τις Ηνωμένες Πολιτείες, τον Καναδά και το Μεξικό, αντιπροσωπεύοντας τις διαφορετικές νομισματικές παραδόσεις της Βόρειας Αμερικής.',
-      'asian': 'Ασιατικά νομίσματα από την Κίνα, την Ιαπωνία, την Ινδία, την Κορέα και άλλες χώρες, με μοναδικά σχέδια και πολιτισμική σημασία.',
-      'gold': 'Νομίσματα πολύτιμων μετάλλων που περιέχουν χρυσό σε διάφορες καθαρότητες. Αυτά τα κομμάτια συνδυάζουν νομισματική αξία με περιεχόμενο πολύτιμου μετάλλου.',
-      'silver': 'Ασημένια νομίσματα και συλλεκτικά πολύτιμων μετάλλων με εγγενή αξία και νομισματική έλξη από διάφορα νομισματοκοπεία παγκοσμίως.',
-      'rare': 'Εξαιρετικά σπάνια και πολύτιμα νομίσματα για σοβαρούς συλλέκτες, με χαμηλές κυκλοφορίες, ιστορική σημασία ή μοναδικά χαρακτηριστικά.'
+      'ancient': 'Discover magnificent coins from ancient civilizations, empires and historic periods. Each piece tells a story from bygone eras and ancient craftsmanship.',
+      'modern': 'Explore modern coins from the contemporary era (1900 onwards), featuring updated designs, advanced minting techniques and modern themes.',
+      'error': 'Find rare error coins and minting mistakes that are highly valued by collectors. These unique pieces represent fascinating production anomalies.',
+      'graded': 'Browse professionally graded coins certified by PCGS, NGC and other top grading services with certified quality and condition.',
+      'trending': 'Popular coins currently trending with collectors worldwide. Stay ahead of market movements and collector preferences.',
+      'european': 'European coins from various countries and time periods, showcasing the rich numismatic heritage of the European continent.',
+      'american': 'Coins from the United States, Canada and Mexico, representing the diverse numismatic traditions of North America.',
+      'asian': 'Asian coins from China, Japan, India, Korea and other countries, featuring unique designs and cultural significance.',
+      'gold': 'Precious metal coins containing gold in various purities. These pieces combine numismatic value with precious metal content.',
+      'silver': 'Silver coins and precious metal collectibles with inherent value and numismatic appeal from various mints worldwide.',
+      'rare': 'Extremely rare and valuable coins for serious collectors, with low mintages, historical significance or unique characteristics.'
     };
-    return descriptions[cat] || 'Περιηγηθείτε σε αυτή την ειδικευμένη κατηγορία νομισμάτων.';
+    return descriptions[cat] || 'Browse this specialized category of coins.';
   };
 
   if (!category || category === 'auctions') {
@@ -87,7 +87,7 @@ const CategoryPage = () => {
         <div className="pt-4">
           {/* Back Button */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-            <BackButton to="/marketplace" label="Πίσω στο Marketplace" />
+            <BackButton to="/marketplace" label="Back to Marketplace" />
           </div>
 
           <CategoryHeader
@@ -141,7 +141,7 @@ const CategoryPage = () => {
               <div className="flex justify-center items-center py-16">
                 <div className="flex items-center gap-3">
                   <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
-                  <span className="text-electric-blue">Φόρτωση {categoryTitle.toLowerCase()}...</span>
+                  <span className="text-electric-blue">Loading {categoryTitle.toLowerCase()}...</span>
                 </div>
               </div>
             ) : (
@@ -183,16 +183,16 @@ const CategoryPage = () => {
                       <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Coins className="w-8 h-8 text-gray-400" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Δεν βρέθηκαν νομίσματα</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No coins found</h3>
                       <p className="text-gray-500 text-sm mb-4">
-                        Δεν υπάρχουν νομίσματα που να ταιριάζουν με τα τρέχοντα κριτήρια φίλτρου σε αυτή την κατηγορία.
+                        There are no coins matching the current filter criteria in this category.
                       </p>
                       {activeFiltersCount > 0 && (
                         <button
                           onClick={clearAllFilters}
                           className="text-electric-blue hover:text-electric-purple font-medium text-sm"
                         >
-                          Εκκαθάριση όλων των φίλτρων για να δείτε περισσότερα αποτελέσματα
+                          Clear all filters to see more results
                         </button>
                       )}
                     </div>
