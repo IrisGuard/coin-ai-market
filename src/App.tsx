@@ -1,4 +1,3 @@
-
 // Force GitHub sync - Updated at 2025-01-09 to ensure proper deployment
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -28,6 +27,7 @@ import AdminPanelPage from './pages/AdminPanelPage';
 import MarketplacePanelPage from './pages/MarketplacePanelPage';
 import { AdminProvider } from "@/contexts/AdminContext";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
+import ChatMessageHandler from "@/components/ChatMessageHandler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -87,6 +87,7 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <AdminKeyboardHandler />
+                  <ChatMessageHandler />
                 </ErrorBoundary>
               </AdminProvider>
             </AuthProvider>

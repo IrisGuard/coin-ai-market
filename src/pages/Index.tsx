@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -9,6 +8,7 @@ import CategoriesGrid from "@/components/marketplace/CategoriesGrid";
 import Footer from "@/components/Footer";
 import { Button } from '@/components/ui/button';
 import { Search, Settings, Users } from 'lucide-react';
+import PhaseControlPanel from "@/components/PhaseControlPanel";
 
 const Index = () => {
   usePageView();
@@ -60,7 +60,7 @@ const Index = () => {
       <Footer />
 
       {/* Fixed Buttons - Bottom Right */}
-      <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-50">
+      <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
         <Link to="/admin">
           <Button 
             className="bg-electric-blue hover:bg-electric-blue/90 text-white px-4 py-2 text-sm shadow-lg"
@@ -80,6 +80,9 @@ const Index = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Phase Control Panel */}
+      <PhaseControlPanel />
     </div>
   );
 };
