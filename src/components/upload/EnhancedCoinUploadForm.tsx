@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,7 +106,7 @@ const EnhancedCoinUploadForm: React.FC = () => {
       if (result) {
         setAiResults(result);
         
-        // Auto-fill form with AI results
+        // Auto-fill form with AI results - remove category mapping since it doesn't exist
         setFormData(prev => ({
           ...prev,
           title: result.name || prev.title,
@@ -118,7 +117,6 @@ const EnhancedCoinUploadForm: React.FC = () => {
           composition: result.composition || prev.composition,
           rarity: result.rarity || prev.rarity,
           price: result.estimatedValue?.toString() || prev.price,
-          category: mapAICategoryToForm(result.category) || prev.category,
           diameter: result.diameter?.toString() || prev.diameter,
           weight: result.weight?.toString() || prev.weight,
           mint: result.mint || prev.mint
@@ -132,24 +130,6 @@ const EnhancedCoinUploadForm: React.FC = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  };
-
-  const mapAICategoryToForm = (aiCategory: string): string => {
-    const mapping: { [key: string]: string } = {
-      'ancient': 'ancient',
-      'modern': 'modern',
-      'error': 'error_coin',
-      'american': 'american',
-      'european': 'european',
-      'asian': 'asian',
-      'gold': 'gold',
-      'silver': 'silver',
-      'british': 'british',
-      'greek': 'greek',
-      'commemorative': 'commemorative'
-    };
-    
-    return mapping[aiCategory?.toLowerCase()] || 'unclassified';
   };
 
   const handleSubmit = async () => {

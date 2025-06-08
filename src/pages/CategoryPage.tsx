@@ -10,7 +10,7 @@ const CategoryPage = () => {
   const { category } = useParams<{ category: string }>();
   const { coins, isLoading } = useCachedMarketplaceData();
 
-  // Enhanced filtering for all categories using correct database fields
+  // Enhanced filtering for all categories using correct database field types
   const filteredCoins = React.useMemo(() => {
     if (!coins || !category) return [];
     
@@ -21,7 +21,7 @@ const CategoryPage = () => {
         case 'modern':
           return coin.year >= 1900;
         case 'error':
-          return coin.rarity === 'extremely_rare' || 
+          return coin.rarity?.toLowerCase().includes('rare') || 
                  coin.description?.toLowerCase().includes('error') ||
                  coin.description?.toLowerCase().includes('doubled') ||
                  coin.name?.toLowerCase().includes('error') ||
@@ -29,7 +29,7 @@ const CategoryPage = () => {
         case 'graded':
           return coin.pcgs_grade || coin.ngc_grade;
         case 'trending':
-          return coin.views && coin.views > 50 || coin.featured;
+          return (coin.views && coin.views > 50) || coin.featured;
         case 'european':
           return ['Germany', 'France', 'Italy', 'Spain', 'Greece', 'United Kingdom', 
                   'Netherlands', 'Austria', 'Switzerland', 'Belgium', 'Portugal',
@@ -48,7 +48,7 @@ const CategoryPage = () => {
                  coin.name?.toLowerCase().includes('silver') ||
                  coin.description?.toLowerCase().includes('silver');
         case 'rare':
-          return coin.rarity === 'extremely_rare' || coin.rarity === 'rare' || coin.price > 1000;
+          return coin.rarity?.toLowerCase().includes('rare') || coin.price > 1000;
         case 'auctions':
           return coin.is_auction;
         default:
