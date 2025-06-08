@@ -3,11 +3,11 @@ import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
 import Navbar from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AccountTab from '@/components/settings/AccountTab';
-import NotificationsTab from '@/components/settings/NotificationsTab';
-import PreferencesTab from '@/components/settings/PreferencesTab';
-import PrivacyTab from '@/components/settings/PrivacyTab';
-import DataTab from '@/components/settings/DataTab';
+import { AccountTab } from '@/components/settings/AccountTab';
+import { NotificationsTab } from '@/components/settings/NotificationsTab';
+import { PreferencesTab } from '@/components/settings/PreferencesTab';
+import { PrivacyTab } from '@/components/settings/PrivacyTab';
+import { DataTab } from '@/components/settings/DataTab';
 
 const SettingsPage = () => {
   usePageView();
