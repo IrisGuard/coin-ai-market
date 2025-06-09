@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -77,7 +76,7 @@ const Index = () => {
                     className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white px-8 py-3 text-lg font-semibold flex items-center gap-2"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    Join as Buyer
+                    Join as Buyer (For Coin Buyers Only)
                   </Button>
                   
                   <p className="text-gray-500 text-sm">

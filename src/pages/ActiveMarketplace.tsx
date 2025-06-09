@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -58,7 +57,7 @@ const ActiveMarketplace = () => {
               className="bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan text-white px-8 py-3 text-lg font-semibold"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Open a Store
+              Open a Store (For Sellers/Dealers Only)
             </Button>
           </div>
         </div>
@@ -118,7 +117,7 @@ const ActiveMarketplace = () => {
                   className="border-electric-green text-electric-green hover:bg-electric-green hover:text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Be the First to Open a Store
+                  Be the First to Open a Store (For Sellers/Dealers Only)
                 </Button>
               </div>
             </div>
