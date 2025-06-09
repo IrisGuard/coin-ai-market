@@ -1,4 +1,5 @@
 
+import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +9,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { initializeSecurity } from "@/lib/securityInitializer";
-import { useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NavigationBreadcrumb from "@/components/navigation/NavigationBreadcrumb";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
@@ -100,7 +100,7 @@ const App = () => {
                     <Route 
                       path="/upload" 
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requireDealer={true}>
                           <ErrorBoundaryWrapper>
                             <CoinUpload />
                           </ErrorBoundaryWrapper>
@@ -110,7 +110,7 @@ const App = () => {
                     <Route 
                       path="/admin" 
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requireAdmin={true}>
                           <ErrorBoundaryWrapper>
                             <AdminPanelPage />
                           </ErrorBoundaryWrapper>
