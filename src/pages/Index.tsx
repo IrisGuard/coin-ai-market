@@ -15,7 +15,7 @@ import EnhancedNavigationButtons from "@/components/navigation/EnhancedNavigatio
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 import BuyerSignupForm from "@/components/auth/BuyerSignupForm";
 import { motion } from 'framer-motion';
-import { ShoppingCart, Users } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
