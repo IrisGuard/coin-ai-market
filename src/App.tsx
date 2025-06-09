@@ -12,6 +12,7 @@ import { initializeSecurity } from "@/lib/securityInitializer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NavigationBreadcrumb from "@/components/navigation/NavigationBreadcrumb";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
+import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -144,6 +145,7 @@ const App = () => {
                 </div>
                 <Toaster />
                 <Sonner />
+                <AdminKeyboardHandler />
               </AdminProvider>
             </AuthProvider>
           </BrowserRouter>
