@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
@@ -12,17 +13,20 @@ import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import EnhancedNavigationButtons from "@/components/navigation/EnhancedNavigationButtons";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
+import BuyerSignupForm from "@/components/auth/BuyerSignupForm";
 import { motion } from 'framer-motion';
+import { ShoppingCart, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
   const { isAuthenticated } = useAuth();
   const { performSearch } = useSearchEnhancement();
+  const [showBuyerSignup, setShowBuyerSignup] = useState(false);
 
   const handleSearch = (query: string) => {
     performSearch(query);
-    // Navigate to marketplace with search query
     window.location.href = `/marketplace?search=${encodeURIComponent(query)}`;
   };
 
@@ -52,32 +56,54 @@ const Index = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="max-w-4xl mx-auto"
+                className="max-w-4xl mx-auto mb-8"
               >
                 <EnhancedSearchBar
                   placeholder="Search coins with AI suggestions..."
                   onSearch={handleSearch}
                 />
               </motion.div>
+
+              {/* Join as Buyer Button - Only show if not authenticated */}
+              {!isAuthenticated && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                >
+                  <Button
+                    onClick={() => setShowBuyerSignup(true)}
+                    className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white px-8 py-3 text-lg font-semibold flex items-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Join as Buyer
+                  </Button>
+                  
+                  <p className="text-gray-500 text-sm">
+                    or visit our <Link to="/marketplace" className="text-electric-green hover:underline font-medium">marketplace</Link> to open a store
+                  </p>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Enhanced Categories Grid */}
           <CategoryNavigationFix />
         </div>
 
-        {/* Featured Coins Section with 1000+ coins */}
         <FeaturedCoinsSection />
 
         <Footer />
-
-        {/* Enhanced Navigation Buttons */}
         <EnhancedNavigationButtons />
-
-        {/* Voice Interface */}
         <VoiceInterface />
+
+        {/* Buyer Signup Modal */}
+        <BuyerSignupForm 
+          isOpen={showBuyerSignup} 
+          onClose={() => setShowBuyerSignup(false)} 
+        />
       </div>
     </ErrorBoundaryWrapper>
   );

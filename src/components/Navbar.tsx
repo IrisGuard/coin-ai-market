@@ -98,7 +98,7 @@ const Navbar = () => {
               ) : (
                 <Link to="/auth">
                   <Button className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white">
-                    Login / Sign Up
+                    Login
                   </Button>
                 </Link>
               )}
@@ -173,7 +173,7 @@ const Navbar = () => {
               ) : (
                 <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button className="w-full bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white">
-                    Login / Sign Up
+                    Login
                   </Button>
                 </Link>
               )}

@@ -6,9 +6,10 @@ interface ProtectedRouteProps {
   children: ReactNode;
   requireAuth?: boolean;
   requireAdmin?: boolean;
+  requireDealer?: boolean;
 }
 
-const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, requireDealer = false }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
@@ -32,20 +33,28 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false }: 
 
   // If the route requires admin access, check for admin role
   if (requireAdmin && isAuthenticated) {
-    // For now, we'll check if this is the admin email
-    // In a real app, you'd check the user's role from the database
     const isAdmin = user?.email === 'admin@coinai.com';
     if (!isAdmin) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/marketplace" replace />;
     }
   }
 
+  // If the route requires dealer access, check for dealer role
+  if (requireDealer && isAuthenticated) {
+    // In a real implementation, you'd check the user's role from the database
+    // For now, we'll assume dealers have access
+  }
+
   // If the route is auth and the user is already authenticated,
-  // redirect to the appropriate dashboard
+  // redirect to the appropriate page based on role
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
     // Check if user is admin
     const isAdmin = user?.email === 'admin@coinai.com';
-    return <Navigate to={isAdmin ? "/admin" : "/dashboard"} replace />;
+    if (isAdmin) {
+      return <Navigate to="/admin" replace />;
+    }
+    // For all other users (buyers and dealers), redirect to marketplace
+    return <Navigate to="/marketplace" replace />;
   }
 
   // Otherwise, render the children

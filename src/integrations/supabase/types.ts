@@ -2443,7 +2443,7 @@ export type Database = {
         | "gold"
         | "commemorative"
         | "unclassified"
-      user_role: "admin" | "moderator" | "user" | "dealer"
+      user_role: "admin" | "moderator" | "user" | "dealer" | "buyer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2573,7 +2573,7 @@ export const Constants = {
         "commemorative",
         "unclassified",
       ],
-      user_role: ["admin", "moderator", "user", "dealer"],
+      user_role: ["admin", "moderator", "user", "dealer", "buyer"],
     },
   },
 } as const

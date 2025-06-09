@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Handle authentication redirects
         if (event === 'SIGNED_IN' && session?.user) {
-          // Check if user has admin role after a short delay to allow profile creation
+          // Check user role and redirect accordingly
           setTimeout(async () => {
             try {
               const { data: profile } = await supabase
@@ -59,14 +59,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .eq('id', session.user.id)
                 .single();
               
-              if (profile?.role === 'admin') {
-                navigate('/admin');
+              const userRole = profile?.role;
+              
+              // Check if user is admin
+              if (session.user.email === 'admin@coinai.com' || userRole === 'admin') {
+                // Admin stays where they are (usually opened via CTRL+ALT+A)
+                return;
+              }
+              
+              // Route based on role
+              if (userRole === 'dealer') {
+                navigate('/marketplace');
+              } else if (userRole === 'buyer') {
+                navigate('/marketplace');
               } else {
-                navigate('/dashboard');
+                // Default fallback
+                navigate('/marketplace');
               }
             } catch (error) {
               console.error('Error checking user role:', error);
-              navigate('/dashboard');
+              navigate('/marketplace');
             }
           }, 1000);
         }
@@ -94,7 +106,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         data: {
           full_name: userData.fullName,
           name: userData.fullName,
-          username: userData.username
+          username: userData.username,
+          role: 'buyer' // Default role
         }
       }
     });
