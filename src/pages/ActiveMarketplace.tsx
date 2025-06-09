@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
@@ -8,13 +8,16 @@ import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
 import BackButton from '@/components/navigation/BackButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
+import { Store, Shield, Star, ArrowRight, MapPin, Plus } from 'lucide-react';
+import DealerSignupForm from '@/components/auth/DealerSignupForm';
 
 const ActiveMarketplace = () => {
   usePageView();
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
+  const [isDealerSignupOpen, setIsDealerSignupOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
@@ -36,6 +39,27 @@ const ActiveMarketplace = () => {
             <p className="text-lg text-gray-600">
               Explore authentic coins from verified dealers worldwide
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Dealer CTA Section */}
+      <div className="bg-gradient-to-r from-electric-green/10 via-electric-blue/10 to-electric-purple/10 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Ready to Start Selling?
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Join thousands of dealers worldwide and showcase your coin collection to collectors everywhere
+            </p>
+            <Button 
+              onClick={() => setIsDealerSignupOpen(true)}
+              className="bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan text-white px-8 py-3 text-lg font-semibold"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Open a Store
+            </Button>
           </div>
         </div>
       </div>
@@ -86,6 +110,16 @@ const ActiveMarketplace = () => {
                   <br />2. Get verified as a dealer
                   <br />3. Create their store profile
                 </p>
+              </div>
+              <div className="mt-6">
+                <Button 
+                  onClick={() => setIsDealerSignupOpen(true)}
+                  variant="outline"
+                  className="border-electric-green text-electric-green hover:bg-electric-green hover:text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Be the First to Open a Store
+                </Button>
               </div>
             </div>
           ) : (
@@ -154,6 +188,12 @@ const ActiveMarketplace = () => {
           )}
         </div>
       </div>
+
+      {/* Dealer Signup Modal */}
+      <DealerSignupForm 
+        isOpen={isDealerSignupOpen}
+        onClose={() => setIsDealerSignupOpen(false)}
+      />
     </div>
   );
 };
