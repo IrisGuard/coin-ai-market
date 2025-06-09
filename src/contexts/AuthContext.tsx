@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -46,6 +47,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Handle authentication redirects
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if user has admin role after a short delay to allow profile creation
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (profile?.role === 'admin') {
+                navigate('/admin');
+              } else {
+                navigate('/dashboard');
+              }
+            } catch (error) {
+              console.error('Error checking user role:', error);
+              navigate('/dashboard');
+            }
+          }, 1000);
+        }
       }
     );
 
@@ -57,7 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signUp = async (email: string, password: string, userData: { fullName: string; username: string }) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -101,6 +125,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    navigate('/');
   };
 
   const resetPassword = async (email: string) => {

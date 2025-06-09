@@ -15,8 +15,11 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    setIsMobileMenuOpen(false);
   };
+
+  // Check if user is admin
+  const isAdmin = user?.email === 'admin@coinai.com';
 
   const navLinks = [
     { to: "/", icon: Home, label: "Home", color: "text-electric-blue hover:text-electric-purple" },
@@ -27,8 +30,8 @@ const Navbar = () => {
 
   const userLinks = user ? [
     { to: "/upload", icon: Upload, label: "Upload", color: "text-electric-cyan hover:text-electric-blue" },
-    { to: "/admin", icon: Settings, label: "Admin Panel", color: "text-electric-blue hover:text-electric-purple" },
-    { to: "/marketplace/panel", icon: Users, label: "User Panel", color: "text-electric-green hover:text-electric-emerald" },
+    ...(isAdmin ? [{ to: "/admin", icon: Settings, label: "Admin Panel", color: "text-electric-red hover:text-electric-orange" }] : []),
+    { to: "/dashboard", icon: Users, label: "Dashboard", color: "text-electric-green hover:text-electric-emerald" },
   ] : [];
 
   return (
@@ -46,7 +49,7 @@ const Navbar = () => {
                 <Brain className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-                CoinVision
+                CoinAI
               </span>
             </Link>
 
@@ -78,12 +81,10 @@ const Navbar = () => {
             <div className="hidden lg:flex items-center space-x-3">
               {user ? (
                 <>
-                  <Link to="/dashboard">
-                    <Button variant="ghost" size="sm" className="flex items-center gap-2 text-electric-blue hover:text-electric-purple">
-                      <User className="w-4 h-4" />
-                      Dashboard
-                    </Button>
-                  </Link>
+                  <span className="text-sm text-gray-600">
+                    Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    {isAdmin && <span className="ml-1 text-red-600 font-semibold">(Admin)</span>}
+                  </span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -97,7 +98,7 @@ const Navbar = () => {
               ) : (
                 <Link to="/auth">
                   <Button className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white">
-                    Login
+                    Login / Sign Up
                   </Button>
                 </Link>
               )}
@@ -156,18 +157,13 @@ const Navbar = () => {
             <div className="pt-4 border-t border-gray-200">
               {user ? (
                 <div className="space-y-2">
-                  <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-2 text-electric-blue hover:text-electric-purple">
-                      <User className="w-4 h-4" />
-                      Dashboard
-                    </Button>
-                  </Link>
+                  <div className="text-sm text-gray-600 p-2">
+                    Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    {isAdmin && <span className="ml-1 text-red-600 font-semibold">(Admin)</span>}
+                  </div>
                   <Button
                     variant="ghost"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      handleLogout();
-                    }}
+                    onClick={handleLogout}
                     className="w-full justify-start gap-2 text-electric-red hover:text-electric-orange"
                   >
                     <LogOut className="w-4 h-4" />
@@ -177,7 +173,7 @@ const Navbar = () => {
               ) : (
                 <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button className="w-full bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white">
-                    Login
+                    Login / Sign Up
                   </Button>
                 </Link>
               )}

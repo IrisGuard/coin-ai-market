@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import AuthPage from '@/components/auth/AuthPage';
+import AuthForm from '@/components/auth/AuthForm';
 
 const Auth = () => {
   return (
@@ -40,29 +40,7 @@ const Auth = () => {
           transition={{ duration: 0.8 }}
           className="w-full max-w-md"
         >
-          <div className="glass-card p-8 rounded-3xl border-2 border-white/30 shadow-2xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-center mb-8"
-            >
-              <h1 className="text-4xl font-serif font-bold gradient-text mb-2">
-                Welcome to CoinAI
-              </h1>
-              <p className="text-gray-600">
-                Join the future of coin collecting and trading
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <AuthPage />
-            </motion.div>
-          </div>
+          <AuthForm />
         </motion.div>
       </div>
     </div>

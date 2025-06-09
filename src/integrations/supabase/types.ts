@@ -2361,6 +2361,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      create_default_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       encrypt_api_key_secure: {
         Args: { plain_key: string }
         Returns: string
