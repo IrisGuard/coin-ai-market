@@ -4,16 +4,52 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import CoinUploadHeader from '@/components/upload/CoinUploadHeader';
 import CoinUploadFeatures from '@/components/upload/CoinUploadFeatures';
-import EnhancedCoinUploadForm from '@/components/upload/EnhancedCoinUploadForm';
+import BulkCoinUploadManager from '@/components/mobile/BulkCoinUploadManager';
 import CoinUploadTips from '@/components/upload/CoinUploadTips';
 
 const CoinUpload = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
+  // Check user role
+  const { data: userRole, isLoading } = useQuery({
+    queryKey: ['userRole', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data?.role;
+    },
+    enabled: !!user?.id,
+  });
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <div className="flex items-center gap-3">
+          <div className="animate-spin h-8 w-8 border-4 border-electric-blue border-t-transparent rounded-full"></div>
+          <span className="text-electric-blue font-medium">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect non-dealers to marketplace
+  if (userRole !== 'dealer') {
+    return <Navigate to="/marketplace" replace />;
   }
 
   return (
@@ -33,7 +69,7 @@ const CoinUpload = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="space-y-8"
           >
-            <EnhancedCoinUploadForm />
+            <BulkCoinUploadManager />
             <CoinUploadTips />
           </motion.div>
         </div>
