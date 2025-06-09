@@ -2,7 +2,6 @@
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
 import Navbar from "@/components/Navbar";
-import AdminPanel from "@/components/admin/AdminPanel";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Database, Users, BarChart3 } from 'lucide-react';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -84,18 +83,56 @@ const AdminPanelPage = () => {
           </Card>
         </div>
 
-        {/* Admin Panel Component */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Advanced Admin Controls
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AdminPanel isOpen={true} onClose={() => {}} />
-          </CardContent>
-        </Card>
+        {/* Admin Panel Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                User Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Manage users and permissions</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Database Admin
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Database operations and maintenance</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Analytics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">View platform analytics and reports</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                System Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Configure system settings</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

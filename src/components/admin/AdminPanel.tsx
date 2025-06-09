@@ -10,6 +10,9 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
+  // This component should only be used within the admin page
+  if (!isOpen) return null;
+
   const adminActions = [
     { icon: Users, title: 'User Management', description: 'Manage users and permissions' },
     { icon: Database, title: 'Database Admin', description: 'Database operations and maintenance' },
