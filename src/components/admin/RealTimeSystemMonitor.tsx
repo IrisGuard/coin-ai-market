@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Cpu, Database, Users, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useRealTimeMonitoring } from '@/hooks/admin/useRealTimeMonitoring';
+import { useRealTimeMetrics } from '@/hooks/admin/useRealTimeMonitoring';
 import { useSystemHealth } from '@/hooks/admin/useSystemHealth';
 
 const RealTimeSystemMonitor = () => {
-  const { metrics, isConnected } = useRealTimeMonitoring();
+  const { metrics, isConnected } = useRealTimeMetrics();
   const { data: health, isLoading: healthLoading } = useSystemHealth();
 
   return (
@@ -109,10 +109,10 @@ const RealTimeSystemMonitor = () => {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm">CPU Usage</span>
-                <span className="text-sm font-medium">{metrics.systemLoad.toFixed(1)}%</span>
+                <span className="text-sm font-medium">CPU Usage</span>
+                <span className="text-sm text-gray-500">{Math.round(metrics.systemLoad)}%</span>
               </div>
-              <Progress value={metrics.systemLoad} className="h-2" />
+              <Progress value={metrics.systemLoad} className="w-full" />
             </div>
           </CardContent>
         </Card>
@@ -120,63 +120,23 @@ const RealTimeSystemMonitor = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              Error Rate
+              <Activity className="w-5 h-5" />
+              Performance
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm">Last Hour</span>
-                <span className="text-sm font-medium">{metrics.errorRate.toFixed(2)}%</span>
-              </div>
-              <Progress 
-                value={metrics.errorRate} 
-                className="h-2" 
-                // @ts-ignore
-                indicatorClassName={metrics.errorRate > 5 ? 'bg-red-500' : 'bg-green-500'}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Response Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.responseTime.toFixed(0)}ms</div>
-            <div className="text-sm text-gray-500">Average response time</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Throughput</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.throughput.toFixed(0)}</div>
-            <div className="text-sm text-gray-500">Requests per minute</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Database Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm">Total Users</span>
-                <span className="text-sm font-medium">{health?.total_users || 0}</span>
+                <span className="text-sm">Response Time</span>
+                <span className="text-sm font-medium">{Math.round(metrics.responseTime)}ms</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm">Total Coins</span>
-                <span className="text-sm font-medium">{health?.total_coins || 0}</span>
+                <span className="text-sm">Error Rate</span>
+                <span className="text-sm font-medium">{(metrics.errorRate * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm">Total Value</span>
-                <span className="text-sm font-medium">€{health?.total_value?.toLocaleString() || 0}</span>
+                <span className="text-sm">Throughput</span>
+                <span className="text-sm font-medium">{Math.round(metrics.throughput)}/min</span>
               </div>
             </div>
           </CardContent>
