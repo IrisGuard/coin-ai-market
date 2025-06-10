@@ -47,3 +47,18 @@ export const useExternalSources = () => {
     },
   });
 };
+
+export const useScrapingJobs = () => {
+  return useQuery({
+    queryKey: ['scraping-jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('scraping_jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};

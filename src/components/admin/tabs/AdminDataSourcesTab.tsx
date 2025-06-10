@@ -91,12 +91,12 @@ const AdminDataSourcesTab = () => {
               {proxies.map((proxy) => (
                 <ProxyCard
                   key={proxy.id}
-                  name={proxy.name}
-                  country_code={proxy.country_code}
-                  type={proxy.type}
+                  name={proxy.source_name}
+                  country_code={proxy.region_id}
+                  type={proxy.source_type}
                   is_active={proxy.is_active}
-                  success_rate={proxy.success_rate}
-                  last_used={proxy.last_used}
+                  success_rate={proxy.reliability_score * 100}
+                  last_used={proxy.created_at}
                   onEdit={() => handleEditProxy(proxy)}
                   onDelete={() => handleDeleteProxy(proxy.id)}
                   onTest={() => handleTestProxy(proxy.id)}
