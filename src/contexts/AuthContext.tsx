@@ -63,7 +63,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               
               // Check if user is admin
               if (session.user.email === 'admin@coinai.com' || userRole === 'admin') {
-                // Admin stays where they are (usually opened via CTRL+ALT+A)
+                // Admin goes to admin panel
+                navigate('/admin');
                 return;
               }
               
@@ -71,14 +72,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               if (userRole === 'dealer') {
                 navigate('/marketplace');
               } else if (userRole === 'user') {
-                navigate('/marketplace');
+                navigate('/');
               } else {
                 // Default fallback
-                navigate('/marketplace');
+                navigate('/');
               }
             } catch (error) {
               console.error('Error checking user role:', error);
-              navigate('/marketplace');
+              navigate('/');
             }
           }, 1000);
         }
