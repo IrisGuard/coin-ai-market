@@ -9,3 +9,5 @@ export * from './useAdminTransactions';
 export * from './useAdminSystem';
 export * from './useAdminDataSources';
 export * from './useAdminStores';
+export * from './useCoinAnalytics';
+export * from './useBulkCoinOperations';
