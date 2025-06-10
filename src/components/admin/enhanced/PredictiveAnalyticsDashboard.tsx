@@ -1,260 +1,182 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  TrendingUp, Brain, Target, BarChart3, 
-  Zap, Calendar, Settings, Play
-} from 'lucide-react';
-import { usePredictionModels, useGeneratePrediction } from '@/hooks/admin/useEnhancedAIBrain';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, TrendingDown, Brain, Target } from 'lucide-react';
 
 const PredictiveAnalyticsDashboard = () => {
-  const [selectedModel, setSelectedModel] = useState<string>('');
-  const [inputData, setInputData] = useState<string>('{}');
-  const [predictionResults, setPredictionResults] = useState<any[]>([]);
-  
-  const { data: models, isLoading } = usePredictionModels();
-  const generatePrediction = useGeneratePrediction();
-
-  const handleGeneratePrediction = async () => {
-    if (!selectedModel) return;
-    
-    try {
-      const parsedInput = JSON.parse(inputData);
-      const result = await generatePrediction.mutateAsync({
-        modelId: selectedModel,
-        inputData: parsedInput
-      });
-      
-      setPredictionResults(prev => [result, ...prev.slice(0, 4)]);
-      setInputData('{}');
-    } catch (error) {
-      console.error('Failed to generate prediction:', error);
+  // Mock prediction models data
+  const predictionModels = [
+    {
+      id: '1',
+      name: 'Market Trend Predictor',
+      model_type: 'trend_analysis',
+      accuracy_score: 0.87,
+      last_trained: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      is_active: true,
+      predictions_count: 145
+    },
+    {
+      id: '2',
+      name: 'Price Forecast Model',
+      model_type: 'price_prediction',
+      accuracy_score: 0.82,
+      last_trained: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      is_active: true,
+      predictions_count: 89
+    },
+    {
+      id: '3',
+      name: 'Demand Forecaster',
+      model_type: 'demand_analysis',
+      accuracy_score: 0.75,
+      last_trained: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      is_active: false,
+      predictions_count: 32
     }
-  };
+  ];
 
-  const getModelTypeIcon = (type: string) => {
-    switch (type) {
-      case 'trend_analysis': return <TrendingUp className="w-4 h-4" />;
-      case 'market_prediction': return <BarChart3 className="w-4 h-4" />;
-      case 'user_behavior': return <Target className="w-4 h-4" />;
-      default: return <Brain className="w-4 h-4" />;
+  // Mock recent predictions
+  const recentPredictions = [
+    {
+      id: '1',
+      model_name: 'Market Trend Predictor',
+      prediction_type: 'trend_analysis',
+      predicted_value: { trend: 'increasing', percentage: 15.5 },
+      confidence_score: 0.89,
+      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000)
+    },
+    {
+      id: '2',
+      model_name: 'Price Forecast Model',
+      prediction_type: 'price_prediction',
+      predicted_value: { predicted_price: 1250.75, range_low: 1100, range_high: 1400 },
+      confidence_score: 0.83,
+      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000)
+    },
+    {
+      id: '3',
+      model_name: 'Demand Forecaster',
+      prediction_type: 'demand_analysis',
+      predicted_value: { demand_level: 'high', category: 'gold_coins' },
+      confidence_score: 0.76,
+      created_at: new Date(Date.now() - 6 * 60 * 60 * 1000)
     }
-  };
-
-  const getModelTypeColor = (type: string) => {
-    switch (type) {
-      case 'trend_analysis': return 'bg-blue-100 text-blue-800';
-      case 'market_prediction': return 'bg-green-100 text-green-800';
-      case 'user_behavior': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  ];
 
   const getAccuracyColor = (score: number) => {
     if (score >= 0.8) return 'text-green-600';
-    if (score >= 0.6) return 'text-yellow-600';
+    if (score >= 0.7) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading prediction models...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const getConfidenceColor = (score: number) => {
+    if (score >= 0.8) return 'bg-green-100 text-green-800';
+    if (score >= 0.7) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Predictive Analytics</h3>
+          <p className="text-sm text-gray-600">AI-powered predictions and forecasting</p>
+        </div>
+        <Button>
+          <Brain className="w-4 h-4 mr-2" />
+          Train New Model
+        </Button>
+      </div>
+
+      {/* Model Performance Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {predictionModels.map((model) => (
+          <Card key={model.id}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">{model.name}</CardTitle>
+                <Badge variant={model.is_active ? 'default' : 'secondary'}>
+                  {model.is_active ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Accuracy</span>
+                <span className={`font-medium ${getAccuracyColor(model.accuracy_score)}`}>
+                  {(model.accuracy_score * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Predictions</span>
+                <span className="font-medium">{model.predictions_count}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Last Trained</span>
+                <span className="text-sm">{model.last_trained.toLocaleDateString()}</span>
+              </div>
+              <Button size="sm" className="w-full">
+                <Target className="w-4 h-4 mr-2" />
+                Generate Prediction
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Recent Predictions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5" />
-            Predictive Analytics Dashboard
-          </CardTitle>
+          <CardTitle>Recent Predictions</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Model Selection and Prediction Generation */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="font-semibold">Generate Prediction</h3>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Select Model</label>
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="">Choose a model...</option>
-                  {models?.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.name} ({model.model_type})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Input Data (JSON)</label>
-                <Textarea
-                  value={inputData}
-                  onChange={(e) => setInputData(e.target.value)}
-                  placeholder='{"data_points": [1, 2, 3], "timeframe": "7d"}'
-                  rows={4}
-                />
-              </div>
-
-              <Button
-                onClick={handleGeneratePrediction}
-                disabled={!selectedModel || generatePrediction.isPending}
-                className="w-full"
-              >
-                {generatePrediction.isPending ? (
-                  <>
-                    <Zap className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Generate Prediction
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Recent Predictions */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Recent Predictions</h3>
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {predictionResults.map((result, index) => (
-                  <Card key={index} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm">{result.model_name}</span>
-                          <Badge variant="outline">
-                            {(result.confidence_score * 100).toFixed(1)}% confidence
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          <pre className="whitespace-pre-wrap">
-                            {JSON.stringify(result.predicted_value, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                {predictionResults.length === 0 && (
-                  <div className="text-center text-gray-500 py-8">
-                    No predictions generated yet.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Available Models */}
+        <CardContent>
           <div className="space-y-4">
-            <h3 className="font-semibold">Available Prediction Models</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {models?.map((model) => (
-                <Card key={model.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {getModelTypeIcon(model.model_type)}
-                          <h4 className="font-medium">{model.name}</h4>
-                        </div>
-                        <Badge className={getModelTypeColor(model.model_type)}>
-                          {model.model_type.replace('_', ' ')}
-                        </Badge>
-                      </div>
-
-                      <div className="text-sm text-gray-600">
-                        Target: <span className="font-medium">{model.target_metric}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Accuracy:</span>
-                        <span className={`font-medium ${getAccuracyColor(model.accuracy_score)}`}>
-                          {(model.accuracy_score * 100).toFixed(1)}%
+            {recentPredictions.map((prediction) => (
+              <div key={prediction.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="font-medium">{prediction.model_name}</h4>
+                    <Badge variant="outline">{prediction.prediction_type}</Badge>
+                    <Badge className={getConfidenceColor(prediction.confidence_score)}>
+                      {(prediction.confidence_score * 100).toFixed(0)}% confidence
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {prediction.prediction_type === 'trend_analysis' && (
+                      <div className="flex items-center gap-2">
+                        {prediction.predicted_value.trend === 'increasing' ? (
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 text-red-500" />
+                        )}
+                        <span>
+                          Trend: {prediction.predicted_value.trend} ({prediction.predicted_value.percentage}%)
                         </span>
                       </div>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Last Trained:</span>
-                        <span className="font-medium">
-                          {model.last_trained 
-                            ? new Date(model.last_trained).toLocaleDateString()
-                            : 'Never'
-                          }
-                        </span>
-                      </div>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedModel(model.id)}
-                        className="w-full"
-                      >
-                        <Target className="w-3 h-3 mr-1" />
-                        Select Model
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    )}
+                    {prediction.prediction_type === 'price_prediction' && (
+                      <span>
+                        Predicted Price: ${prediction.predicted_value.predicted_price} 
+                        (Range: ${prediction.predicted_value.range_low} - ${prediction.predicted_value.range_high})
+                      </span>
+                    )}
+                    {prediction.prediction_type === 'demand_analysis' && (
+                      <span>
+                        Demand Level: {prediction.predicted_value.demand_level} for {prediction.predicted_value.category}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right text-sm text-gray-500">
+                  {prediction.created_at.toLocaleString()}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
-
-      {/* Model Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {models?.filter(m => m.is_active).length || 0}
-            </div>
-            <div className="text-sm text-gray-600">Active Models</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {models?.filter(m => m.model_type === 'trend_analysis').length || 0}
-            </div>
-            <div className="text-sm text-gray-600">Trend Analysis</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {models?.filter(m => m.model_type === 'market_prediction').length || 0}
-            </div>
-            <div className="text-sm text-gray-600">Market Prediction</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600">
-              {models?.reduce((sum, m) => sum + m.accuracy_score, 0) ? 
-                ((models?.reduce((sum, m) => sum + m.accuracy_score, 0) / models?.length) * 100).toFixed(1) : 0}%
-            </div>
-            <div className="text-sm text-gray-600">Avg Accuracy</div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

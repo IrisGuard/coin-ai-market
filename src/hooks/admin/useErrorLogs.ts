@@ -4,24 +4,24 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useErrorLogs = () => {
   return useQuery({
-    queryKey: ['error-logs'],
+    queryKey: ['admin-error-logs'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('error_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
       
       if (error) throw error;
       return data || [];
     },
-    staleTime: 60000, // 1 minute
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 };
 
 export const useConsoleErrors = () => {
   return useQuery({
-    queryKey: ['console-errors'],
+    queryKey: ['admin-console-errors'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('console_errors')
@@ -32,55 +32,43 @@ export const useConsoleErrors = () => {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 60000, // 1 minute
+    refetchInterval: 30000,
   });
 };
 
 export const useErrorAnalytics = () => {
   return useQuery({
-    queryKey: ['error-analytics'],
+    queryKey: ['admin-error-analytics'],
     queryFn: async () => {
-      // Get error statistics
-      const [
-        { count: totalErrors },
-        { count: criticalErrors },
-        { count: highErrors },
-        { count: mediumErrors },
-        { data: errorsByType }
-      ] = await Promise.all([
-        supabase.from('error_logs').select('*', { count: 'exact', head: true }),
-        supabase.from('error_logs').select('*', { count: 'exact', head: true }).eq('error_type', 'critical'),
-        supabase.from('error_logs').select('*', { count: 'exact', head: true }).eq('error_type', 'high'),
-        supabase.from('error_logs').select('*', { count: 'exact', head: true }).eq('error_type', 'medium'),
-        supabase.from('error_logs')
-          .select('error_type, created_at')
-          .order('created_at', { ascending: false })
-          .limit(100)
-      ]);
-
-      // Calculate categories based on actual data
-      const categories = [];
-      const typeCounts = {};
+      const { data, error } = await supabase
+        .from('error_logs')
+        .select('error_type, created_at')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
       
-      if (errorsByType) {
-        errorsByType.forEach(error => {
-          const type = error.error_type || 'unknown';
-          typeCounts[type] = (typeCounts[type] || 0) + 1;
-        });
-        
-        for (const [type, count] of Object.entries(typeCounts)) {
-          categories.push({ type, count });
+      if (error) throw error;
+      
+      // Process analytics data
+      const criticalCount = data?.filter(e => 
+        e.error_type === 'critical' || e.error_type === 'error'
+      ).length || 0;
+      
+      const categories = data?.reduce((acc: any[], curr) => {
+        const existing = acc.find(item => item.type === curr.error_type);
+        if (existing) {
+          existing.count++;
+        } else {
+          acc.push({ type: curr.error_type, count: 1 });
         }
-      }
-
+        return acc;
+      }, []) || [];
+      
       return {
-        critical_24h: criticalErrors || 0,
-        error_rate: totalErrors ? ((criticalErrors + highErrors) / totalErrors) * 100 : 0,
-        avg_resolution_time: 15, // This would need a more complex calculation in the future
-        categories: categories,
-        total_errors: totalErrors || 0
+        critical_24h: criticalCount,
+        error_rate: data?.length ? (criticalCount / data.length) * 100 : 0,
+        avg_resolution_time: 25, // Mock data for now
+        categories
       };
     },
-    staleTime: 60000, // 1 minute
+    refetchInterval: 60000,
   });
 };

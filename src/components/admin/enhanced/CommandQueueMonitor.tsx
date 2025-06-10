@@ -1,241 +1,212 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  List, Play, Pause, CheckCircle, AlertTriangle, 
-  Clock, Zap, RotateCcw, X
-} from 'lucide-react';
-import { useCommandQueue } from '@/hooks/admin/useEnhancedAIBrain';
+import { Button } from '@/components/ui/button';
+import { Clock, Play, Square, RotateCcw, Trash2 } from 'lucide-react';
 
 const CommandQueueMonitor = () => {
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  
-  const { data: queueItems, isLoading } = useCommandQueue();
-
-  const filteredItems = queueItems?.filter(item => {
-    return filterStatus === 'all' || item.status === filterStatus;
-  }) || [];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'running': return <Zap className="w-4 h-4 text-blue-500 animate-pulse" />;
-      case 'completed': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'failed': return <AlertTriangle className="w-4 h-4 text-red-500" />;
-      case 'cancelled': return <X className="w-4 h-4 text-gray-500" />;
-      default: return <Clock className="w-4 h-4 text-gray-400" />;
+  // Mock command queue data
+  const queuedCommands = [
+    {
+      id: '1',
+      command_name: 'Market Data Sync',
+      status: 'pending',
+      priority: 1,
+      scheduled_at: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+      retry_count: 0,
+      created_by: 'System',
+      input_data: { source: 'external_api', type: 'price_update' }
+    },
+    {
+      id: '2',
+      command_name: 'User Analytics Report',
+      status: 'running',
+      priority: 2,
+      scheduled_at: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+      retry_count: 0,
+      created_by: 'Admin',
+      input_data: { period: '24h', format: 'json' }
+    },
+    {
+      id: '3',
+      command_name: 'Image Processing Batch',
+      status: 'failed',
+      priority: 3,
+      scheduled_at: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
+      retry_count: 2,
+      created_by: 'System',
+      input_data: { batch_size: 50, resize: true }
+    },
+    {
+      id: '4',
+      command_name: 'Email Notification Batch',
+      status: 'completed',
+      priority: 2,
+      scheduled_at: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+      retry_count: 0,
+      created_by: 'System',
+      input_data: { template: 'price_alert', recipients: 145 }
     }
-  };
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'running': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-blue-100 text-blue-800';
+      case 'running': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'failed': return 'bg-red-100 text-red-800';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'running': return <Play className="w-4 h-4 animate-spin" />;
+      case 'completed': return <Square className="w-4 h-4" />;
+      case 'failed': return <RotateCcw className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
   const getPriorityColor = (priority: number) => {
-    if (priority >= 3) return 'text-red-600 font-bold';
-    if (priority >= 2) return 'text-yellow-600 font-medium';
-    return 'text-gray-600';
+    switch (priority) {
+      case 1: return 'bg-red-100 text-red-800';
+      case 2: return 'bg-yellow-100 text-yellow-800';
+      case 3: return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const getExecutionTime = (item: any) => {
-    if (!item.execution_started) return 'Not started';
-    if (!item.execution_completed) return 'Running...';
-    
-    const start = new Date(item.execution_started).getTime();
-    const end = new Date(item.execution_completed).getTime();
-    const duration = end - start;
-    
-    return `${Math.round(duration / 1000)}s`;
+  const handleRetryCommand = (commandId: string) => {
+    console.log('Retrying command:', commandId);
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading command queue...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleCancelCommand = (commandId: string) => {
+    console.log('Canceling command:', commandId);
+  };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <List className="w-5 h-5" />
-              Command Queue Monitor
-            </span>
-            <div className="flex items-center gap-2">
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-1 border rounded-md text-sm"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="running">Running</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredItems.map((item) => (
-              <Card key={item.id} className="border-l-4 border-l-blue-500">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(item.status)}
-                      <div>
-                        <h4 className="font-medium">
-                          {item.ai_commands?.name || 'Unknown Command'}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {item.ai_commands?.category || 'General'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(item.status)}>
-                        {item.status}
-                      </Badge>
-                      <span className={`text-sm ${getPriorityColor(item.priority)}`}>
-                        P{item.priority}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                    <div>
-                      <span className="text-gray-500">Scheduled:</span>
-                      <div className="font-medium">
-                        {new Date(item.scheduled_at).toLocaleString()}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Execution Time:</span>
-                      <div className="font-medium">{getExecutionTime(item)}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Retries:</span>
-                      <div className="font-medium">
-                        {item.retry_count}/{item.max_retries}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Created:</span>
-                      <div className="font-medium">
-                        {new Date(item.created_at).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-
-                  {item.error_message && (
-                    <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                      <span className="text-red-600 font-medium">Error: </span>
-                      {item.error_message}
-                    </div>
-                  )}
-
-                  {item.result_data && (
-                    <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm">
-                      <span className="text-green-600 font-medium">Result: </span>
-                      <pre className="mt-1 text-xs overflow-x-auto">
-                        {JSON.stringify(item.result_data, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-                    {item.status === 'pending' && (
-                      <Button size="sm" variant="outline">
-                        <Play className="w-3 h-3 mr-1" />
-                        Execute Now
-                      </Button>
-                    )}
-                    {item.status === 'running' && (
-                      <Button size="sm" variant="outline">
-                        <Pause className="w-3 h-3 mr-1" />
-                        Cancel
-                      </Button>
-                    )}
-                    {item.status === 'failed' && (
-                      <Button size="sm" variant="outline">
-                        <RotateCcw className="w-3 h-3 mr-1" />
-                        Retry
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {filteredItems.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No commands found in the queue.
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Command Queue Monitor</h3>
+          <p className="text-sm text-gray-600">Monitor and manage queued AI commands</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            Clear Completed
+          </Button>
+          <Button>
+            Pause Queue
+          </Button>
+        </div>
+      </div>
 
       {/* Queue Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">
-              {queueItems?.filter(i => i.status === 'pending').length || 0}
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {queuedCommands.filter(c => c.status === 'pending').length}
+              </div>
+              <div className="text-sm text-gray-600">Pending</div>
             </div>
-            <div className="text-sm text-gray-600">Pending</div>
           </CardContent>
         </Card>
+        
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {queueItems?.filter(i => i.status === 'running').length || 0}
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {queuedCommands.filter(c => c.status === 'running').length}
+              </div>
+              <div className="text-sm text-gray-600">Running</div>
             </div>
-            <div className="text-sm text-gray-600">Running</div>
           </CardContent>
         </Card>
+        
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {queueItems?.filter(i => i.status === 'completed').length || 0}
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {queuedCommands.filter(c => c.status === 'completed').length}
+              </div>
+              <div className="text-sm text-gray-600">Completed</div>
             </div>
-            <div className="text-sm text-gray-600">Completed</div>
           </CardContent>
         </Card>
+        
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">
-              {queueItems?.filter(i => i.status === 'failed').length || 0}
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {queuedCommands.filter(c => c.status === 'failed').length}
+              </div>
+              <div className="text-sm text-gray-600">Failed</div>
             </div>
-            <div className="text-sm text-gray-600">Failed</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {queueItems?.length || 0}
-            </div>
-            <div className="text-sm text-gray-600">Total</div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Command Queue List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Queued Commands</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {queuedCommands.map((command) => (
+              <div key={command.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(command.status)}
+                    <Badge className={getStatusColor(command.status)}>
+                      {command.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="font-medium">{command.command_name}</h4>
+                      <Badge className={getPriorityColor(command.priority)}>
+                        Priority {command.priority}
+                      </Badge>
+                      {command.retry_count > 0 && (
+                        <Badge variant="outline">
+                          Retry {command.retry_count}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Scheduled: {command.scheduled_at.toLocaleString()} | 
+                      Created by: {command.created_by}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  {command.status === 'failed' && (
+                    <Button size="sm" variant="outline" onClick={() => handleRetryCommand(command.id)}>
+                      <RotateCcw className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {(command.status === 'pending' || command.status === 'running') && (
+                    <Button size="sm" variant="outline" onClick={() => handleCancelCommand(command.id)}>
+                      <Square className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

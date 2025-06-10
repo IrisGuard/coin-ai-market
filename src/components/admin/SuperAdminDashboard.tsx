@@ -98,7 +98,7 @@ const SuperAdminDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Super Admin Dashboard
+            GlobalCoinsAI Super Admin Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Complete system control and monitoring
@@ -121,14 +121,14 @@ const SuperAdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-7 lg:grid-cols-13 gap-1">
+        <TabsList className="grid grid-cols-4 lg:grid-cols-8 xl:grid-cols-13 gap-1 h-auto p-1">
           {adminTabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="flex items-center gap-2 text-xs"
+                className="flex flex-col items-center gap-1 p-2 h-auto text-xs"
               >
                 <Icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
