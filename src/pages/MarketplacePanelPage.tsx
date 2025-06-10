@@ -11,6 +11,7 @@ import MarketplacePanelHeader from '@/components/marketplace/MarketplacePanelHea
 import MarketplaceStatsCards from '@/components/marketplace/MarketplaceStatsCards';
 import UserStoresManagement from '@/components/marketplace/UserStoresManagement';
 import DealerCoinUploadPanel from '@/components/marketplace/DealerCoinUploadPanel';
+import type { MarketplaceStore } from '@/types/marketplace';
 
 const MarketplacePanelPage = () => {
   usePageView();
@@ -20,6 +21,14 @@ const MarketplacePanelPage = () => {
   const { data: userRole } = useUserRole();
 
   const isDealer = userRole === 'dealer';
+
+  // Transform the stores data to match the expected type
+  const transformedStores: MarketplaceStore[] = stores?.map(store => ({
+    ...store,
+    // Ensure all required properties are present
+    verified: store.verified || false,
+    is_active: store.is_active || true,
+  })) || [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -45,7 +54,7 @@ const MarketplacePanelPage = () => {
 
           <TabsContent value="overview" className="space-y-6">
             <MarketplaceStatsCards 
-              dealersCount={stores?.length || 0}
+              dealersCount={transformedStores.length}
               registeredUsers={marketplaceStats?.registered_users || 0}
               listedCoins={marketplaceStats?.listed_coins || 0}
             />
@@ -53,7 +62,7 @@ const MarketplacePanelPage = () => {
 
           <TabsContent value="stores">
             <UserStoresManagement 
-              dealers={stores || []}
+              dealers={transformedStores}
               dealersLoading={dealersLoading}
             />
           </TabsContent>

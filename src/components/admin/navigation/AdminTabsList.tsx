@@ -1,71 +1,63 @@
 
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  Brain,
+  Brain, 
   Users, 
   Coins, 
-  Key,
-  BarChart3,
-  Settings,
-  User,
-  Database,
-  Globe,
-  Zap,
+  Database, 
+  Building2,
   DollarSign,
-  AlertTriangle,
-  AlertCircle,
-  Bell,
+  Bot,
   CreditCard,
-  Grid3X3,
-  Store,
-  Image,
-  Activity,
-  TrendingUp
+  BarChart3,
+  AlertTriangle
 } from 'lucide-react';
 
 const AdminTabsList = () => {
-  const tabs = [
-    { value: 'ai-brain', icon: Brain, label: 'AI Brain' },
-    { value: 'profile', icon: User, label: 'Profile' },
-    { value: 'users', icon: Users, label: 'Users' },
-    { value: 'coins', icon: Coins, label: 'Coins' },
-    { value: 'error-coins', icon: AlertCircle, label: 'Error Coins' },
-    { value: 'categories', icon: Grid3X3, label: 'Categories' },
-    { value: 'enhanced-categories', icon: Image, label: 'Enhanced Categories' },
-    { value: 'store-management', icon: Store, label: 'Store Management' },
-    { value: 'enhanced-stores', icon: Activity, label: 'Enhanced Stores' },
-    { value: 'category-analytics', icon: TrendingUp, label: 'Category Analytics' },
-    { value: 'data-sources', icon: Database, label: 'Data Sources' },
-    { value: 'external-sources', icon: Globe, label: 'External Sources' },
-    { value: 'scraping', icon: Zap, label: 'Scraping' },
-    { value: 'price-aggregation', icon: DollarSign, label: 'Price Aggregation' },
-    { value: 'api-keys', icon: Key, label: 'API Keys' },
-    { value: 'analytics', icon: BarChart3, label: 'Analytics' },
-    { value: 'error-monitoring', icon: AlertTriangle, label: 'Error Monitoring' },
-    { value: 'notifications', icon: Bell, label: 'Notifications' },
-    { value: 'transactions', icon: CreditCard, label: 'Transactions' },
-    { value: 'system', icon: Settings, label: 'System' }
-  ];
-
   return (
-    <div className="border-b">
-      <ScrollArea className="w-full">
-        <TabsList className="inline-flex h-12 items-center justify-start rounded-none bg-transparent p-0 w-max">
-          {tabs.map((tab) => (
-            <TabsTrigger 
-              key={tab.value}
-              value={tab.value}
-              className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50 rounded-none"
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </ScrollArea>
-    </div>
+    <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 gap-1">
+      <TabsTrigger value="ai-brain" className="flex items-center gap-2">
+        <Brain className="h-4 w-4" />
+        <span className="hidden sm:inline">AI Brain</span>
+      </TabsTrigger>
+      <TabsTrigger value="users" className="flex items-center gap-2">
+        <Users className="h-4 w-4" />
+        <span className="hidden sm:inline">Users</span>
+      </TabsTrigger>
+      <TabsTrigger value="coins" className="flex items-center gap-2">
+        <Coins className="h-4 w-4" />
+        <span className="hidden sm:inline">Coins</span>
+      </TabsTrigger>
+      <TabsTrigger value="data-sources" className="flex items-center gap-2">
+        <Database className="h-4 w-4" />
+        <span className="hidden sm:inline">Sources</span>
+      </TabsTrigger>
+      <TabsTrigger value="tenant-management" className="flex items-center gap-2">
+        <Building2 className="h-4 w-4" />
+        <span className="hidden sm:inline">Stores</span>
+      </TabsTrigger>
+      <TabsTrigger value="price-aggregation" className="flex items-center gap-2">
+        <DollarSign className="h-4 w-4" />
+        <span className="hidden sm:inline">Pricing</span>
+      </TabsTrigger>
+      <TabsTrigger value="scraping" className="flex items-center gap-2">
+        <Bot className="h-4 w-4" />
+        <span className="hidden sm:inline">Scraping</span>
+      </TabsTrigger>
+      <TabsTrigger value="transactions" className="flex items-center gap-2">
+        <CreditCard className="h-4 w-4" />
+        <span className="hidden sm:inline">Payments</span>
+      </TabsTrigger>
+      <TabsTrigger value="analytics" className="flex items-center gap-2">
+        <BarChart3 className="h-4 w-4" />
+        <span className="hidden sm:inline">Analytics</span>
+      </TabsTrigger>
+      <TabsTrigger value="error-coins" className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4" />
+        <span className="hidden sm:inline">Errors</span>
+      </TabsTrigger>
+    </TabsList>
   );
 };
 

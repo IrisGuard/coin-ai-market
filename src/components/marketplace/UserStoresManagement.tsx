@@ -1,30 +1,13 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Users, Eye, Edit, Trash2 } from 'lucide-react';
-
-interface StoreWithProfile {
-  id: string;
-  name: string;
-  description?: string;
-  logo_url?: string;
-  address?: any;
-  verified: boolean;
-  profiles?: Array<{
-    id: string;
-    full_name?: string;
-    email?: string;
-    avatar_url?: string;
-    verified_dealer?: boolean;
-    rating?: number;
-  }>;
-}
+import type { MarketplaceStore } from '@/types/marketplace';
 
 interface UserStoresManagementProps {
-  dealers: StoreWithProfile[];
+  dealers: MarketplaceStore[];
   dealersLoading: boolean;
 }
 
@@ -117,7 +100,7 @@ const UserStoresManagement: React.FC<UserStoresManagementProps> = ({
                       {typeof store.address === 'object' && store.address !== null 
                         ? (store.address as any).city || 'Unknown Location'
                         : 'Unknown Location'
-                      } • Rating: {profile?.rating || 'N/A'}
+                      } • Rating: {profile?.rating ? Number(profile.rating).toFixed(1) : 'N/A'}
                     </p>
                   </div>
                 </div>
