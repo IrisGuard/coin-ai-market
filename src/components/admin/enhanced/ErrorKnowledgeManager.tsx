@@ -1,468 +1,192 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { 
   BookOpen, 
   Plus, 
   Search, 
-  AlertCircle, 
-  TrendingUp,
-  ExternalLink,
-  Brain,
-  Target
+  Edit, 
+  Trash2,
+  Eye,
+  Filter
 } from 'lucide-react';
-import { useErrorCoinsKnowledge, useAddErrorKnowledge } from '@/hooks/useErrorCoinsKnowledge';
-import { toast } from '@/components/ui/use-toast';
 
 const ErrorKnowledgeManager = () => {
-  const { data: knowledge } = useErrorCoinsKnowledge();
-  const addKnowledge = useAddErrorKnowledge();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [searchFilter, setSearchFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const [newKnowledge, setNewKnowledge] = useState({
-    error_type: '',
-    error_category: 'die_error',
-    error_name: '',
-    description: '',
-    identification_techniques: [],
-    common_mistakes: [],
-    reference_links: [],
-    severity_level: 1,
-    rarity_score: 1,
-    technical_specifications: {},
-    ai_detection_markers: {}
-  });
-
-  const errorCategories = [
-    { value: 'die_error', label: 'Die Errors', icon: '🔨' },
-    { value: 'planchet_error', label: 'Planchet Errors', icon: '⚪' },
-    { value: 'strike_error', label: 'Strike Errors', icon: '💥' }
+  // Mock data - in real implementation, this would come from useErrorCoinsKnowledge hook
+  const knowledgeEntries = [
+    {
+      id: '1',
+      error_name: 'Double Die Obverse',
+      error_type: 'Die Error',
+      error_category: 'Striking Error',
+      rarity_score: 8,
+      severity_level: 7,
+      description: 'Doubling visible on the obverse side of the coin due to die shift during striking process.',
+      identification_techniques: ['Check for doubled lettering', 'Look for doubled design elements', 'Use magnification'],
+      common_mistakes: ['Confusing with machine doubling', 'Missing subtle doubling'],
+      created_at: '2024-01-15'
+    },
+    {
+      id: '2',
+      error_name: 'Off-Center Strike',
+      error_type: 'Striking Error',
+      error_category: 'Planchet Error',
+      rarity_score: 6,
+      severity_level: 5,
+      description: 'Coin struck when planchet was not properly centered in the collar.',
+      identification_techniques: ['Measure missing rim percentage', 'Check for blank area', 'Verify design displacement'],
+      common_mistakes: ['Confusing with clipped planchet', 'Overestimating rarity'],
+      created_at: '2024-01-12'
+    },
+    {
+      id: '3',
+      error_name: 'Clipped Planchet',
+      error_type: 'Planchet Error',
+      error_category: 'Planchet Error',
+      rarity_score: 5,
+      severity_level: 4,
+      description: 'Missing portion of the planchet due to improper cutting from the metal strip.',
+      identification_techniques: ['Identify clip type', 'Measure clip size', 'Check for overlapping cuts'],
+      common_mistakes: ['Confusing with post-mint damage', 'Misidentifying clip type'],
+      created_at: '2024-01-10'
+    }
   ];
 
-  const getSeverityColor = (level: number) => {
-    const colors = {
-      1: 'bg-green-100 text-green-800',
-      2: 'bg-yellow-100 text-yellow-800',
-      3: 'bg-orange-100 text-orange-800',
-      4: 'bg-red-100 text-red-800',
-      5: 'bg-purple-100 text-purple-800'
-    };
-    return colors[level] || 'bg-gray-100 text-gray-800';
-  };
+  const categories = ['all', 'Die Error', 'Striking Error', 'Planchet Error', 'Design Error'];
 
-  const getRarityStars = (score: number) => {
-    return Array.from({ length: 10 }, (_, i) => (
-      <span key={i} className={`text-xs ${i < score ? 'text-yellow-400' : 'text-gray-300'}`}>
-        ★
-      </span>
-    ));
-  };
-
-  const filteredKnowledge = knowledge?.filter(item => {
-    const matchesSearch = item.error_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchFilter.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || item.error_category === categoryFilter;
+  const filteredEntries = knowledgeEntries.filter(entry => {
+    const matchesSearch = entry.error_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         entry.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || entry.error_type === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddKnowledge = () => {
-    try {
-      addKnowledge.mutate(newKnowledge, {
-        onSuccess: () => {
-          setIsAddDialogOpen(false);
-          setNewKnowledge({
-            error_type: '',
-            error_category: 'die_error',
-            error_name: '',
-            description: '',
-            identification_techniques: [],
-            common_mistakes: [],
-            reference_links: [],
-            severity_level: 1,
-            rarity_score: 1,
-            technical_specifications: {},
-            ai_detection_markers: {}
-          });
-          toast({
-            title: "Success",
-            description: "Knowledge entry created successfully",
-          });
-        },
-        onError: (error) => {
-          console.error('Error creating knowledge entry:', error);
-          toast({
-            title: "Error",
-            description: "Failed to create knowledge entry",
-            variant: "destructive",
-          });
-        }
-      });
-    } catch (error) {
-      console.error('Error creating knowledge entry:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to create knowledge entry",
-        variant: "destructive",
-      });
-    }
+  const getRarityColor = (score: number) => {
+    if (score >= 8) return 'bg-red-100 text-red-800';
+    if (score >= 6) return 'bg-orange-100 text-orange-800';
+    if (score >= 4) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-blue-600" />
-            Error Coins Knowledge Base
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Technical knowledge and identification guidelines for error coins
-          </p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
+      {/* Header with Search and Filters */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Error Coins Knowledge Base
+            </CardTitle>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Knowledge Entry
+              Add Entry
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add Error Knowledge Entry</DialogTitle>
-            </DialogHeader>
-            <Tabs defaultValue="basic" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="identification">Identification</TabsTrigger>
-                <TabsTrigger value="technical">Technical</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="basic" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="error_name">Error Name</Label>
-                    <Input
-                      id="error_name"
-                      value={newKnowledge.error_name}
-                      onChange={(e) => setNewKnowledge({...newKnowledge, error_name: e.target.value})}
-                      placeholder="e.g., 1955 Doubled Die Obverse"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="error_type">Error Type</Label>
-                    <Input
-                      id="error_type"
-                      value={newKnowledge.error_type}
-                      onChange={(e) => setNewKnowledge({...newKnowledge, error_type: e.target.value})}
-                      placeholder="e.g., doubled_die"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="error_category">Error Category</Label>
-                  <Select value={newKnowledge.error_category} onValueChange={(value) => setNewKnowledge({...newKnowledge, error_category: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {errorCategories.map(cat => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.icon} {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={newKnowledge.description}
-                    onChange={(e) => setNewKnowledge({...newKnowledge, description: e.target.value})}
-                    placeholder="Detailed technical description..."
-                    rows={4}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="severity_level">Severity Level (1-5)</Label>
-                    <Select value={newKnowledge.severity_level.toString()} onValueChange={(value) => setNewKnowledge({...newKnowledge, severity_level: parseInt(value)})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1,2,3,4,5].map(level => (
-                          <SelectItem key={level} value={level.toString()}>
-                            Level {level} - {['Minor', 'Moderate', 'Significant', 'Major', 'Extreme'][level-1]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="rarity_score">Rarity Score (1-10)</Label>
-                    <Select value={newKnowledge.rarity_score.toString()} onValueChange={(value) => setNewKnowledge({...newKnowledge, rarity_score: parseInt(value)})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({length: 10}, (_, i) => i + 1).map(score => (
-                          <SelectItem key={score} value={score.toString()}>
-                            {score} Star{score > 1 ? 's' : ''} - {score <= 3 ? 'Common' : score <= 6 ? 'Uncommon' : score <= 8 ? 'Rare' : 'Extremely Rare'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="identification" className="space-y-4">
-                <div>
-                  <Label>Identification Techniques</Label>
-                  <Textarea
-                    placeholder="Enter techniques separated by newlines..."
-                    onChange={(e) => setNewKnowledge({
-                      ...newKnowledge, 
-                      identification_techniques: e.target.value.split('\n').filter(t => t.trim())
-                    })}
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <Label>Common Mistakes</Label>
-                  <Textarea
-                    placeholder="Enter common mistakes separated by newlines..."
-                    onChange={(e) => setNewKnowledge({
-                      ...newKnowledge, 
-                      common_mistakes: e.target.value.split('\n').filter(t => t.trim())
-                    })}
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <Label>Reference Links</Label>
-                  <Textarea
-                    placeholder="Enter reference URLs separated by newlines..."
-                    onChange={(e) => setNewKnowledge({
-                      ...newKnowledge, 
-                      reference_links: e.target.value.split('\n').filter(t => t.trim())
-                    })}
-                    rows={3}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="technical" className="space-y-4">
-                <div>
-                  <Label>Technical Specifications (JSON)</Label>
-                  <Textarea
-                    placeholder='{"die_state": "early", "hub_alignment": "rotated"}'
-                    onChange={(e) => {
-                      try {
-                        setNewKnowledge({...newKnowledge, technical_specifications: JSON.parse(e.target.value)});
-                      } catch (error) {
-                        // Invalid JSON - keep previous value
-                        console.warn('Invalid JSON for technical specifications:', error);
-                      }
-                    }}
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <Label>AI Detection Markers (JSON)</Label>
-                  <Textarea
-                    placeholder='{"key_features": ["doubling_direction", "shelf_effect"], "detection_areas": ["date", "motto"]}'
-                    onChange={(e) => {
-                      try {
-                        setNewKnowledge({...newKnowledge, ai_detection_markers: JSON.parse(e.target.value)});
-                      } catch (error) {
-                        // Invalid JSON - keep previous value
-                        console.warn('Invalid JSON for AI detection markers:', error);
-                      }
-                    }}
-                    rows={4}
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex gap-2 pt-4">
-              <Button onClick={handleAddKnowledge} className="flex-1">
-                Add Knowledge Entry
-              </Button>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancel
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search error knowledge..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="pl-10"
-            />
           </div>
-        </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {errorCategories.map(cat => (
-              <SelectItem key={cat.value} value={cat.value}>
-                {cat.icon} {cat.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Knowledge Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredKnowledge?.map((item) => (
-          <Card key={item.id} className="relative">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{item.error_name}</CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">
-                      {errorCategories.find(c => c.value === item.error_category)?.icon} {item.error_category.replace('_', ' ').toUpperCase()}
-                    </Badge>
-                    <Badge className={getSeverityColor(item.severity_level)}>
-                      Level {item.severity_level}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground">Rarity</div>
-                  <div className="flex items-center">
-                    {getRarityStars(item.rarity_score)}
-                  </div>
-                </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search knowledge entries..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {item.description}
-              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 border rounded-md"
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-              {item.identification_techniques && item.identification_techniques.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
-                    <Target className="h-3 w-3" />
-                    Identification Techniques
-                  </h4>
-                  <div className="space-y-1">
-                    {item.identification_techniques.slice(0, 2).map((technique, index) => (
-                      <div key={index} className="text-xs bg-muted p-2 rounded">
-                        • {technique}
-                      </div>
-                    ))}
-                    {item.identification_techniques.length > 2 && (
-                      <div className="text-xs text-muted-foreground">
-                        +{item.identification_techniques.length - 2} more techniques
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {item.common_mistakes && item.common_mistakes.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
-                    <AlertCircle className="h-3 w-3 text-orange-500" />
-                    Common Mistakes
-                  </h4>
-                  <div className="space-y-1">
-                    {item.common_mistakes.slice(0, 2).map((mistake, index) => (
-                      <div key={index} className="text-xs bg-orange-50 text-orange-700 p-2 rounded">
-                        ⚠ {mistake}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {item.reference_links && item.reference_links.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
-                    <ExternalLink className="h-3 w-3" />
-                    References
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {item.reference_links.slice(0, 2).map((link, index) => (
-                      <Button key={index} variant="outline" size="sm" className="text-xs h-6" asChild>
-                        <a href={link} target="_blank" rel="noopener noreferrer">
-                          Source {index + 1}
-                        </a>
+      {/* Knowledge Entries Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Knowledge Entries ({filteredEntries.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Error Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Rarity</TableHead>
+                <TableHead>Severity</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEntries.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell className="font-medium">{entry.error_name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{entry.error_type}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{entry.error_category}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getRarityColor(entry.rarity_score)}>
+                      {entry.rarity_score}/10
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{entry.severity_level}/10</Badge>
+                  </TableCell>
+                  <TableCell className="max-w-md">
+                    <p className="truncate">{entry.description}</p>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
                       </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 pt-2 border-t">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Brain className="h-3 w-3 mr-1" />
-                  AI Train
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Market Data
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredKnowledge?.length === 0 && (
-        <Card className="text-center py-8">
-          <CardContent>
-            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Knowledge Entries Found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchFilter || categoryFilter !== 'all' 
-                ? 'No entries match your current filters'
-                : 'Add error coin knowledge to help train the AI recognition system'
-              }
-            </p>
-            {!searchFilter && categoryFilter === 'all' && (
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Knowledge Entry
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
