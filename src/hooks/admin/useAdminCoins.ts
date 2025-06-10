@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-// Admin Coins Hook
 export const useAdminCoins = () => {
   return useQuery({
     queryKey: ['admin-coins'],
@@ -15,7 +14,8 @@ export const useAdminCoins = () => {
           profiles!coins_user_id_fkey (
             id,
             name,
-            email
+            email,
+            verified_dealer
           )
         `)
         .order('created_at', { ascending: false });
@@ -26,7 +26,6 @@ export const useAdminCoins = () => {
   });
 };
 
-// Update Coin Status Mutation
 export const useUpdateCoinStatus = () => {
   const queryClient = useQueryClient();
   
@@ -44,6 +43,35 @@ export const useUpdateCoinStatus = () => {
       toast({
         title: "Success",
         description: "Coin status updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useToggleCoinFeature = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ coinId, featured }: { coinId: string; featured: boolean }) => {
+      const { error } = await supabase
+        .from('coins')
+        .update({ featured })
+        .eq('id', coinId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
+      toast({
+        title: "Success",
+        description: "Coin feature status updated successfully.",
       });
     },
     onError: (error: Error) => {
