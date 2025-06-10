@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 import BuyerSignupForm from "@/components/auth/BuyerSignupForm";
+import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 import { motion } from 'framer-motion';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,9 @@ const Index = () => {
     <ErrorBoundaryWrapper>
       <div className="min-h-screen bg-white">
         <Navbar />
+        
+        {/* Admin keyboard handler for Ctrl+Alt+A access */}
+        <AdminKeyboardHandler />
         
         {/* Enhanced Hero Section */}
         <div className="bg-white border-b border-gray-200 relative">
