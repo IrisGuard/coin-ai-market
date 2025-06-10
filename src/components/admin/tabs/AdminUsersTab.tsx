@@ -21,7 +21,7 @@ const AdminUsersTab = () => {
     updateUserStatus.mutate({ userId, verified });
   };
 
-  const handleUpdateRole = (userId: string, role: string) => {
+  const handleUpdateRole = (userId: string, role: 'admin' | 'moderator' | 'user' | 'dealer' | 'buyer') => {
     updateUserRole.mutate({ userId, role });
   };
 
@@ -152,7 +152,7 @@ const AdminUsersTab = () => {
                   <TableCell>
                     <Select
                       value={user.role || 'user'}
-                      onValueChange={(role) => handleUpdateRole(user.id, role)}
+                      onValueChange={(role: 'admin' | 'moderator' | 'user' | 'dealer' | 'buyer') => handleUpdateRole(user.id, role)}
                       disabled={updateUserRole.isPending}
                     >
                       <SelectTrigger className="w-32">
