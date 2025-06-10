@@ -1,3 +1,4 @@
+
 // Admin hook exports
 export * from './useAdminUsers';
 export * from './useAdminCoins';
@@ -18,3 +19,8 @@ export * from './useAdvancedAnalytics';
 export * from './useRealTimeMetrics';
 export * from './usePerformanceMetrics';
 export * from './useUserBehaviorAnalytics';
+// Error Monitoring System
+export * from './useErrorLogs';
+export * from './useConsoleErrors';
+export * from './useErrorAnalytics';
+export * from './useRealTimeErrors';
