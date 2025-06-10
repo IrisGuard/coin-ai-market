@@ -7,16 +7,20 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Store, TrendingUp, Users, Package, DollarSign } from 'lucide-react';
 
+interface MarketplaceData {
+  earnings?: {
+    total: number;
+  };
+}
+
 const AdminMarketplaceTab = () => {
   // Get marketplace stats
   const { data: marketplaceStats, isLoading } = useQuery({
     queryKey: ['marketplace-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dealer_dashboard_data', {
-        dealer_id: '00000000-0000-0000-0000-000000000000' // Admin overview
-      });
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
-      return data;
+      return data as MarketplaceData;
     },
   });
 
@@ -33,7 +37,7 @@ const AdminMarketplaceTab = () => {
             year,
             price,
             user_id,
-            profiles (name)
+            profiles:user_id (name)
           )
         `)
         .order('created_at', { ascending: false })
@@ -52,7 +56,7 @@ const AdminMarketplaceTab = () => {
         .from('stores')
         .select(`
           *,
-          profiles (name, verified_dealer)
+          profiles:user_id (name, verified_dealer)
         `)
         .order('created_at', { ascending: false });
       

@@ -10,6 +10,8 @@ interface AdminContextType {
   authenticateAdmin: (password: string) => Promise<boolean>;
   logoutAdmin: () => void;
   sessionTimeLeft: number;
+  checkAdminStatus: () => Promise<void>;
+  updateAdminProfile: (data: { fullName: string; email: string }) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -138,13 +140,46 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     clearAdminSession();
   };
 
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+
+      setIsAdmin(!!data);
+    } catch (error) {
+      setIsAdmin(false);
+    }
+  };
+
+  const updateAdminProfile = async (data: { fullName: string; email: string }) => {
+    if (!user) throw new Error('No user found');
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        full_name: data.fullName,
+        email: data.email
+      })
+      .eq('id', user.id);
+
+    if (error) throw error;
+  };
+
   const value = {
     isAdmin,
     isAdminAuthenticated,
     isLoading,
     authenticateAdmin,
     logoutAdmin,
-    sessionTimeLeft
+    sessionTimeLeft,
+    checkAdminStatus,
+    updateAdminProfile
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

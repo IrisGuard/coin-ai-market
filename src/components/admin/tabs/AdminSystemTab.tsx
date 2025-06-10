@@ -62,7 +62,7 @@ const AdminSystemTab = () => {
   const { data: systemStatsRaw, isLoading, refetch } = useQuery({
     queryKey: ['admin-system-comprehensive'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_comprehensive_admin_dashboard');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
       return data;
     },

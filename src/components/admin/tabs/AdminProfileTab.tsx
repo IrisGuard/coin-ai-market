@@ -8,6 +8,7 @@ import { User, Mail, Shield, Save, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 
 const AdminProfileTab = () => {
   const { user } = useAuth();
@@ -22,8 +23,17 @@ const AdminProfileTab = () => {
     
     try {
       await updateAdminProfile({ fullName, email });
+      toast({
+        title: "Profile Updated",
+        description: "Your admin profile has been updated successfully.",
+      });
     } catch (error) {
       console.error('Failed to update profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

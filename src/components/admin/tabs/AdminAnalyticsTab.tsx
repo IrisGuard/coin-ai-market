@@ -5,6 +5,20 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BarChart3, TrendingUp, Users, Activity, Eye, Search } from 'lucide-react';
 
+interface AnalyticsData {
+  active_users_24h: number;
+  searches_24h: number;
+  avg_session_time: number;
+  new_listings_24h: number;
+  avg_data_quality: number;
+}
+
+interface PerformanceData {
+  avg_response_time: number;
+  active_sessions: number;
+  errors_last_hour: number;
+}
+
 const AdminAnalyticsTab = () => {
   // Get analytics data
   const { data: analyticsData, isLoading } = useQuery({
@@ -12,7 +26,7 @@ const AdminAnalyticsTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_advanced_analytics_dashboard');
       if (error) throw error;
-      return data;
+      return data as AnalyticsData;
     },
     refetchInterval: 60000,
   });
@@ -23,7 +37,7 @@ const AdminAnalyticsTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_performance_metrics');
       if (error) throw error;
-      return data;
+      return data as PerformanceData;
     },
   });
 
@@ -110,7 +124,7 @@ const AdminAnalyticsTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(analyticsData?.avg_data_quality || 0)}%
+              {Math.round((analyticsData?.avg_data_quality || 0) * 100)}%
             </div>
             <p className="text-xs text-muted-foreground">average quality score</p>
           </CardContent>

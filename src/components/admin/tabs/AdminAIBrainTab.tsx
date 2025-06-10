@@ -7,7 +7,17 @@ import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Brain, Zap, Settings, Play, Pause, Plus, Search } from 'lucide-react';
+import { Brain, Zap, Settings, Play, Pause, Plus, Search, Activity } from 'lucide-react';
+
+interface AIStatsData {
+  active_commands: number;
+  active_automation_rules: number;
+  active_prediction_models: number;
+  pending_commands: number;
+  executions_24h: number;
+  average_prediction_confidence: number;
+  automation_rules_executed_24h: number;
+}
 
 const AdminAIBrainTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,7 +29,7 @@ const AdminAIBrainTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_ai_brain_dashboard_stats');
       if (error) throw error;
-      return data;
+      return data as AIStatsData;
     },
     refetchInterval: 30000,
   });
@@ -74,8 +84,8 @@ const AdminAIBrainTab = () => {
   // Execute AI Command
   const executeCommand = useMutation({
     mutationFn: async (commandId: string) => {
-      const { data, error } = await supabase.rpc('execute_ai_command', {
-        command_id: commandId
+      const { data, error } = await supabase.rpc('execute_automation_rule', {
+        rule_id: commandId
       });
       if (error) throw error;
       return data;
@@ -160,7 +170,7 @@ const AdminAIBrainTab = () => {
           <CardContent>
             <div className="text-2xl font-bold">{aiStats?.active_prediction_models || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(aiStats?.average_prediction_confidence * 100 || 0)}% avg confidence
+              {Math.round((aiStats?.average_prediction_confidence || 0) * 100)}% avg confidence
             </p>
           </CardContent>
         </Card>
