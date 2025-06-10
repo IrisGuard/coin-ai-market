@@ -15,7 +15,8 @@ export const useDealerStores = () => {
             full_name,
             email,
             avatar_url,
-            verified_dealer
+            verified_dealer,
+            rating
           )
         `)
         .order('created_at', { ascending: false });

@@ -15,7 +15,7 @@ import DealerCoinUploadPanel from '@/components/marketplace/DealerCoinUploadPane
 const MarketplacePanelPage = () => {
   usePageView();
   
-  const { data: dealers, isLoading: dealersLoading } = useDealerStores();
+  const { data: stores, isLoading: dealersLoading } = useDealerStores();
   const { data: marketplaceStats } = useMarketplaceStats();
   const { data: userRole } = useUserRole();
 
@@ -45,7 +45,7 @@ const MarketplacePanelPage = () => {
 
           <TabsContent value="overview" className="space-y-6">
             <MarketplaceStatsCards 
-              dealersCount={dealers?.length || 0}
+              dealersCount={stores?.length || 0}
               registeredUsers={marketplaceStats?.registered_users || 0}
               listedCoins={marketplaceStats?.listed_coins || 0}
             />
@@ -53,7 +53,7 @@ const MarketplacePanelPage = () => {
 
           <TabsContent value="stores">
             <UserStoresManagement 
-              dealers={dealers}
+              dealers={stores || []}
               dealersLoading={dealersLoading}
             />
           </TabsContent>
