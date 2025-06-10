@@ -1,34 +1,15 @@
 
 import React from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
-import { useNavigate } from 'react-router-dom';
 import AdminStatsOverview from './AdminStatsOverview';
 import AdminTabsContent from './AdminTabsContent';
 import SecurityValidationWrapper from './SecurityValidationWrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Shield, AlertTriangle, Home, LogOut } from 'lucide-react';
+import { Shield, AlertTriangle } from 'lucide-react';
 
 const EnhancedAdminPanel: React.FC = () => {
   const { isAdmin, isLoading } = useAdmin();
-  const navigate = useNavigate();
-
-  const handleHomeClick = () => {
-    navigate('/');
-  };
-
-  const handleLogout = () => {
-    // Clear any admin session data
-    localStorage.removeItem('adminToken');
-    sessionStorage.clear();
-    
-    // Navigate to home page
-    navigate('/');
-    
-    // Force a page reload to ensure clean state
-    window.location.reload();
-  };
 
   if (isLoading) {
     return (
@@ -66,34 +47,13 @@ const EnhancedAdminPanel: React.FC = () => {
     >
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                GlobalCoinsAI Admin Dashboard
-              </h1>
-              <p className="text-gray-600">
-                Comprehensive administration and monitoring system
-              </p>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleHomeClick}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Home className="w-4 h-4" />
-                Home
-              </Button>
-              <Button 
-                onClick={handleLogout}
-                variant="outline"
-                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              CoinVision Admin Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Comprehensive administration and monitoring system
+            </p>
           </div>
           
           <AdminStatsOverview />

@@ -50,3 +50,37 @@ export const useScrapingJobs = () => {
     },
   });
 };
+
+// Error Logs Hook
+export const useErrorLogs = () => {
+  return useQuery({
+    queryKey: ['admin-error-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('error_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};
+
+// Console Errors Hook
+export const useConsoleErrors = () => {
+  return useQuery({
+    queryKey: ['admin-console-errors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('console_errors')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};

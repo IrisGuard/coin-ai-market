@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Coins, Users, Store, Database, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -33,15 +33,11 @@ const SampleDataSetup = () => {
     try {
       // Only create if there are fewer than 5 coins in the database
       if (existingCoinsCount >= 5) {
-        toast({
-          title: "Database already has sufficient coins",
-          description: "No sample data needed.",
-          variant: "destructive"
-        });
+        toast.error('Database already has sufficient coins. No sample data needed.');
         return;
       }
 
-      // Create production-quality sample coins with proper types
+      // Create production-quality sample coins
       const productionCoins = [
         {
           name: '1921 Morgan Silver Dollar',
@@ -112,17 +108,10 @@ const SampleDataSetup = () => {
       }
 
       setExistingCoinsCount(existingCoinsCount + productionCoins.length);
-      toast({
-        title: "Success",
-        description: `Created ${productionCoins.length} production-quality coin listings.`
-      });
+      toast.success(`Created ${productionCoins.length} production-quality coin listings.`);
     } catch (error: any) {
       console.error('Error creating production data:', error);
-      toast({
-        title: "Error",
-        description: `Failed to create production data: ${error.message}`,
-        variant: "destructive"
-      });
+      toast.error(`Failed to create production data: ${error.message}`);
     } finally {
       setIsCreating(false);
     }

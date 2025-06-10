@@ -9,7 +9,11 @@ export const useAdminUsers = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          user_roles!inner(role),
+          stores(id, name, verified)
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -52,12 +56,23 @@ export const useUpdateUserRole = () => {
   
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: 'admin' | 'moderator' | 'user' | 'dealer' | 'buyer' }) => {
-      const { error } = await supabase
+      // Update user role in user_roles table
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .upsert({ 
+          user_id: userId, 
+          role: role as 'admin' | 'moderator' | 'user' | 'dealer' | 'buyer'
+        });
+      
+      if (roleError) throw roleError;
+
+      // Also update profile role for consistency
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ role })
         .eq('id', userId);
       
-      if (error) throw error;
+      if (profileError) throw profileError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -68,7 +83,7 @@ export const useUpdateUserRole = () => {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Error", 
         description: error.message,
         variant: "destructive",
       });

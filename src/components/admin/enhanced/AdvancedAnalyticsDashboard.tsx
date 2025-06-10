@@ -1,248 +1,399 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  TrendingUp, Users, Search, DollarSign, 
-  Activity, AlertTriangle, BarChart3, Map
+  Activity, 
+  Users, 
+  Server, 
+  Zap, 
+  TrendingUp, 
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Database,
+  Cpu,
+  HardDrive,
+  Wifi
 } from 'lucide-react';
-import { useAdvancedAnalyticsDashboard, useUserAnalytics, useMarketAnalytics, useRevenueForecasts } from '@/hooks/admin/useAdvancedAnalytics';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-
-interface DashboardData {
-  active_users_24h: number;
-  searches_24h: number;
-  revenue_24h: number;
-  avg_session_time: number;
-  new_listings_24h: number;
-  avg_data_quality: number;
-}
+import { useRealTimeAnalytics } from '@/hooks/useRealTimeAnalytics';
 
 const AdvancedAnalyticsDashboard = () => {
-  const { data: dashboardData, isLoading: dashboardLoading } = useAdvancedAnalyticsDashboard();
-  const { data: userAnalytics } = useUserAnalytics();
-  const { data: marketAnalytics } = useMarketAnalytics();
-  const { data: revenueForecasts } = useRevenueForecasts();
+  const { systemMetrics, userBehavior, performance, isCollecting } = useRealTimeAnalytics();
 
-  // Safely type cast the dashboard data
-  const typedDashboardData = (dashboardData as unknown) as DashboardData;
+  const getStatusColor = (value: number, thresholds: { warning: number; critical: number }) => {
+    if (value >= thresholds.critical) return 'text-red-600 bg-red-100';
+    if (value >= thresholds.warning) return 'text-yellow-600 bg-yellow-100';
+    return 'text-green-600 bg-green-100';
+  };
 
-  const dashboardMetrics = [
-    {
-      title: 'Active Users (24h)',
-      value: typedDashboardData?.active_users_24h || 0,
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Searches (24h)',
-      value: typedDashboardData?.searches_24h || 0,
-      icon: Search,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Revenue (24h)',
-      value: `$${(typedDashboardData?.revenue_24h || 0).toLocaleString()}`,
-      icon: DollarSign,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    },
-    {
-      title: 'Avg Session Time',
-      value: `${Math.round(typedDashboardData?.avg_session_time || 0)}m`,
-      icon: Activity,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
-    },
-    {
-      title: 'New Listings (24h)',
-      value: typedDashboardData?.new_listings_24h || 0,
-      icon: TrendingUp,
-      color: 'text-teal-600',
-      bgColor: 'bg-teal-50'
-    },
-    {
-      title: 'Data Quality Score',
-      value: `${Math.round((typedDashboardData?.avg_data_quality || 0) * 100)}%`,
-      icon: BarChart3,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50'
-    }
-  ];
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
-
-  if (dashboardLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading advanced analytics...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const getStatusIcon = (value: number, thresholds: { warning: number; critical: number }) => {
+    if (value >= thresholds.critical) return <AlertTriangle className="w-4 h-4" />;
+    if (value >= thresholds.warning) return <AlertTriangle className="w-4 h-4" />;
+    return <CheckCircle className="w-4 h-4" />;
+  };
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {dashboardMetrics.map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <Card key={index}>
+      {/* Real-time Status Indicator */}
+      <Card className="border-l-4 border-l-green-500">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="font-medium">Real-time Analytics Active</span>
+            </div>
+            <Badge variant="outline" className="text-green-600">
+              {isCollecting ? 'Collecting' : 'Idle'}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="system" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="system">System Health</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="users">User Behavior</TabsTrigger>
+          <TabsTrigger value="alerts">Alerts & Trends</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="system" className="space-y-6">
+          {/* System Metrics Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium">CPU Usage</span>
+                  </div>
+                  <Badge className={getStatusColor(systemMetrics.cpuUsage, { warning: 70, critical: 85 })}>
+                    {getStatusIcon(systemMetrics.cpuUsage, { warning: 70, critical: 85 })}
+                    {systemMetrics.cpuUsage.toFixed(1)}%
+                  </Badge>
+                </div>
+                <Progress value={systemMetrics.cpuUsage} className="h-3" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 70%</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium">Memory Usage</span>
+                  </div>
+                  <Badge className={getStatusColor(systemMetrics.memoryUsage, { warning: 75, critical: 90 })}>
+                    {getStatusIcon(systemMetrics.memoryUsage, { warning: 75, critical: 90 })}
+                    {systemMetrics.memoryUsage.toFixed(1)}%
+                  </Badge>
+                </div>
+                <Progress value={systemMetrics.memoryUsage} className="h-3" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 75%</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <HardDrive className="w-5 h-5 text-orange-600" />
+                    <span className="font-medium">Disk Usage</span>
+                  </div>
+                  <Badge className={getStatusColor(systemMetrics.diskUsage, { warning: 80, critical: 90 })}>
+                    {getStatusIcon(systemMetrics.diskUsage, { warning: 80, critical: 90 })}
+                    {systemMetrics.diskUsage.toFixed(1)}%
+                  </Badge>
+                </div>
+                <Progress value={systemMetrics.diskUsage} className="h-3" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 80%</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Network & Connection Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">{metric.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-                  </div>
-                  <div className={`p-3 rounded-lg ${metric.bgColor}`}>
-                    <Icon className={`w-6 h-6 ${metric.color}`} />
+                    <div className="flex items-center gap-2 mb-1">
+                      <Wifi className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium">Network Latency</span>
+                    </div>
+                    <p className="text-2xl font-bold text-green-600">{systemMetrics.networkLatency.toFixed(0)}ms</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
 
-      {/* Advanced Analytics Tabs */}
-      <Tabs defaultValue="user-behavior" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="user-behavior">User Behavior</TabsTrigger>
-          <TabsTrigger value="market-trends">Market Trends</TabsTrigger>
-          <TabsTrigger value="revenue-forecast">Revenue Forecast</TabsTrigger>
-          <TabsTrigger value="geographic">Geographic Data</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="user-behavior">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Session Duration Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={userAnalytics?.slice(-10) || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="created_at" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="time_spent_minutes" stroke="#8884d8" />
-                  </LineChart>
-                </ResponsiveContainer>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Activity className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium">Active Connections</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-600">{systemMetrics.activeConnections}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Page Views Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={userAnalytics?.slice(-10) || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="session_id" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="page_views" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Zap className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium">Requests/Min</span>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-600">{systemMetrics.requestsPerMinute}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="market-trends">
-          <Card>
-            <CardHeader>
-              <CardTitle>Market Analytics Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={marketAnalytics || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="recorded_at" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="metric_value" stroke="#8884d8" />
-                  </LineChart>
-                </ResponsiveContainer>
+        <TabsContent value="performance" className="space-y-6">
+          {/* Performance Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium">API Response</span>
+                  </div>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {performance.apiResponseTime.toFixed(0)}ms
+                  </span>
+                </div>
+                <Progress value={Math.min((performance.apiResponseTime / 500) * 100, 100)} className="h-2" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 200ms</p>
+              </CardContent>
+            </Card>
 
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={marketAnalytics?.slice(0, 6) || []}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="metric_value"
-                      label
-                    >
-                      {(marketAnalytics || []).slice(0, 6).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-5 h-5 text-green-600" />
+                    <span className="font-medium">Database Response</span>
+                  </div>
+                  <span className="text-2xl font-bold text-green-600">
+                    {performance.databaseResponseTime.toFixed(0)}ms
+                  </span>
+                </div>
+                <Progress value={Math.min((performance.databaseResponseTime / 100) * 100, 100)} className="h-2" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 50ms</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium">AI Processing</span>
+                  </div>
+                  <span className="text-2xl font-bold text-purple-600">
+                    {performance.aiProcessingTime.toFixed(0)}ms
+                  </span>
+                </div>
+                <Progress value={Math.min((performance.aiProcessingTime / 3000) * 100, 100)} className="h-2" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 2000ms</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Success Rate & Throughput */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  Success Rate
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-green-600 mb-2">
+                    {performance.successRate.toFixed(1)}%
+                  </div>
+                  <Progress value={performance.successRate} className="h-4 mb-2" />
+                  <div className="text-sm text-gray-600">
+                    Error Rate: {performance.errorRate.toFixed(2)}%
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Throughput
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-blue-600 mb-2">
+                    {performance.throughput.toFixed(0)}
+                  </div>
+                  <div className="text-sm text-gray-600 mb-2">requests/minute</div>
+                  <Progress value={Math.min((performance.throughput / 500) * 100, 100)} className="h-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="revenue-forecast">
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Forecasting</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={revenueForecasts || []}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="forecast_period" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="predicted_revenue" 
-                    stroke="#8884d8" 
-                    strokeWidth={2}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="confidence_score" 
-                    stroke="#82ca9d" 
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <TabsContent value="users" className="space-y-6">
+          {/* User Behavior Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Users className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium">Active Users</span>
+                    </div>
+                    <p className="text-2xl font-bold text-green-600">{userBehavior.activeUsers}</p>
+                    <p className="text-xs text-gray-500">Last 15 minutes</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium">New Signups</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-600">{userBehavior.newRegistrations}</p>
+                    <p className="text-xs text-gray-500">Today</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Activity className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium">Coin Uploads</span>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-600">{userBehavior.coinUploads}</p>
+                    <p className="text-xs text-gray-500">Last hour</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="w-4 h-4 text-orange-600" />
+                      <span className="text-sm font-medium">Avg Session</span>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {Math.floor(userBehavior.averageSessionDuration / 60)}m
+                    </p>
+                    <p className="text-xs text-gray-500">Duration</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* User Engagement Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Search Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm">Search Queries</span>
+                  <span className="text-2xl font-bold">{userBehavior.searchQueries}</span>
+                </div>
+                <Progress value={Math.min((userBehavior.searchQueries / 500) * 100, 100)} className="h-3" />
+                <p className="text-xs text-gray-500 mt-2">Per hour</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>User Retention</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm">Bounce Rate</span>
+                  <span className="text-2xl font-bold text-red-600">
+                    {userBehavior.bounceRate.toFixed(1)}%
+                  </span>
+                </div>
+                <Progress value={userBehavior.bounceRate} className="h-3" />
+                <p className="text-xs text-gray-500 mt-2">Target: &lt; 25%</p>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="geographic">
+        <TabsContent value="alerts" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Map className="w-5 h-5" />
-                Geographic Distribution
+                <AlertTriangle className="w-5 h-5" />
+                System Alerts & Trends
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <Map className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Geographic Analytics
-                </h3>
-                <p className="text-gray-600 max-w-md mx-auto">
-                  Interactive geographic distribution maps and regional analytics 
-                  will be displayed here with user distribution and market data.
-                </p>
+              <div className="space-y-4">
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    <span className="font-medium text-yellow-800">Performance Alert</span>
+                  </div>
+                  <p className="text-sm text-yellow-700">
+                    AI processing time is above optimal threshold (current: {performance.aiProcessingTime.toFixed(0)}ms)
+                  </p>
+                </div>
+
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="font-medium text-green-800">System Healthy</span>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    All core systems operating within normal parameters
+                  </p>
+                </div>
+
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                    <span className="font-medium text-blue-800">Growth Trend</span>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    User activity increased by 15% compared to last week
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

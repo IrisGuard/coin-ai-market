@@ -16,7 +16,6 @@ import {
   Star
 } from 'lucide-react';
 import { useEnhancedDashboardStats } from '@/hooks/useEnhancedDashboardStats';
-import { useRealTimeMetrics } from '@/hooks/admin/useRealTimeMetrics';
 import AIPortfolioInsights from './AIPortfolioInsights';
 import SmartRecommendations from './SmartRecommendations';
 import MarketPredictions from './MarketPredictions';
@@ -24,7 +23,6 @@ import PersonalizedAlerts from './PersonalizedAlerts';
 
 const SmartPortfolioAI = () => {
   const { stats, loading } = useEnhancedDashboardStats();
-  const { metrics, isConnected } = useRealTimeMetrics();
   const [aiAnalysisActive, setAiAnalysisActive] = useState(false);
 
   const portfolioMetrics = [
@@ -103,12 +101,6 @@ const SmartPortfolioAI = () => {
             Smart Portfolio AI Dashboard
           </h2>
           <p className="text-gray-600 mt-2">AI-powered insights for your coin collection</p>
-          {isConnected && (
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-600">Real-time data active</span>
-            </div>
-          )}
         </div>
         <Button
           onClick={startAIAnalysis}
@@ -128,40 +120,6 @@ const SmartPortfolioAI = () => {
           )}
         </Button>
       </motion.div>
-
-      {/* Real-time System Status */}
-      {isConnected && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
-        >
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-600">Active Users</div>
-              <div className="text-xl font-bold text-blue-600">{metrics.activeUsers}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-green-500">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-600">Live Auctions</div>
-              <div className="text-xl font-bold text-green-600">{metrics.liveAuctions}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-600">System Load</div>
-              <div className="text-xl font-bold text-purple-600">{metrics.systemLoad.toFixed(1)}%</div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-orange-500">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-600">Response Time</div>
-              <div className="text-xl font-bold text-orange-600">{metrics.responseTime.toFixed(0)}ms</div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
 
       {/* AI Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

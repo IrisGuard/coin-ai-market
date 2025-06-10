@@ -15,16 +15,17 @@ export const useBulkCoinOperations = () => {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, { coinIds, status }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-coin-analytics'] });
       toast({
-        title: "Success",
-        description: "Coins updated successfully.",
+        title: "Bulk Update Successful",
+        description: `Updated ${coinIds.length} coins to ${status}`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Bulk Update Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -40,16 +41,17 @@ export const useBulkCoinOperations = () => {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, { coinIds, featured }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-coin-analytics'] });
       toast({
-        title: "Success",
-        description: "Coins featured status updated successfully.",
+        title: "Bulk Feature Update",
+        description: `${featured ? 'Featured' : 'Unfeatured'} ${coinIds.length} coins`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Bulk Feature Update Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -65,16 +67,17 @@ export const useBulkCoinOperations = () => {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, { coinIds }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-coin-analytics'] });
       toast({
-        title: "Success",
-        description: "Coins deleted successfully.",
+        title: "Bulk Delete Successful",
+        description: `Deleted ${coinIds.length} coins`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Bulk Delete Failed",
         description: error.message,
         variant: "destructive",
       });
