@@ -58,6 +58,24 @@ const AdminKeyboardShortcuts: React.FC<AdminKeyboardShortcutsProps> = ({
       description: 'Navigate to Data Sources tab'
     },
     {
+      key: '6',
+      ctrl: true,
+      action: () => onTabChange('scraping'),
+      description: 'Navigate to Scraping tab'
+    },
+    {
+      key: '7',
+      ctrl: true,
+      action: () => onTabChange('marketplace'),
+      description: 'Navigate to Marketplace tab'
+    },
+    {
+      key: '8',
+      ctrl: true,
+      action: () => onTabChange('analytics'),
+      description: 'Navigate to Analytics tab'
+    },
+    {
       key: 'e',
       ctrl: true,
       shift: true,

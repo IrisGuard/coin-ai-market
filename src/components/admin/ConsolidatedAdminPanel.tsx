@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,8 @@ import {
   ScrollText,
   HardDrive,
   Search,
-  Keyboard
+  Keyboard,
+  Bot
 } from 'lucide-react';
 import AdminErrorBoundary from './enhanced/AdminErrorBoundary';
 import { AdminTooltipProvider, AdminTooltip } from './enhanced/AdminTooltipProvider';
@@ -42,6 +43,7 @@ import AdminReportsTab from './tabs/AdminReportsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminBackupTab from './tabs/AdminBackupTab';
+import EnhancedAdminScrapingTab from './tabs/EnhancedAdminScrapingTab';
 import AdminMobileResponsive from './enhanced/AdminMobileResponsive';
 
 const ConsolidatedAdminPanel: React.FC = () => {
@@ -121,7 +123,7 @@ const ConsolidatedAdminPanel: React.FC = () => {
   const tabContent = (
     <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
       <div className="overflow-x-auto">
-        <TabsList className="grid w-full grid-cols-12 min-w-max">
+        <TabsList className="grid w-full grid-cols-13 min-w-max">
           <AdminTooltip content="System monitoring and health" shortcut="Ctrl+1">
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
@@ -154,6 +156,13 @@ const ConsolidatedAdminPanel: React.FC = () => {
             <TabsTrigger value="data-sources" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               <span className="hidden sm:inline">Data Sources</span>
+            </TabsTrigger>
+          </AdminTooltip>
+
+          <AdminTooltip content="Advanced web scraping management" shortcut="Ctrl+6">
+            <TabsTrigger value="scraping" className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              <span className="hidden sm:inline">Scraping</span>
             </TabsTrigger>
           </AdminTooltip>
 
@@ -215,6 +224,10 @@ const ConsolidatedAdminPanel: React.FC = () => {
           <AdminDataSourcesTab />
         </TabsContent>
 
+        <TabsContent value="scraping">
+          <EnhancedAdminScrapingTab />
+        </TabsContent>
+
         <TabsContent value="marketplace">
           <AdminMarketplaceTab />
         </TabsContent>
@@ -243,7 +256,6 @@ const ConsolidatedAdminPanel: React.FC = () => {
           <AdminBackupTab />
         </TabsContent>
 
-        {/* New 100% Complete Status Tab */}
         <TabsContent value="completion-status">
           <AdminFinalOptimizations />
         </TabsContent>
