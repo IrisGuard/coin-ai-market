@@ -3,16 +3,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import AuthForm from '@/components/auth/AuthForm';
-import AdminKeyboardHandler from '@/components/admin/AdminKeyboardHandler';
 
 const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-primary via-electric-blue to-brand-accent relative overflow-hidden">
       {/* Navigation */}
       <Navbar />
-
-      {/* Admin keyboard handler */}
-      <AdminKeyboardHandler />
 
       {/* Animated background */}
       <div className="absolute inset-0">
