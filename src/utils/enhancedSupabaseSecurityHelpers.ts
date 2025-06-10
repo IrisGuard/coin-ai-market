@@ -1,159 +1,179 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { logProductionError } from './enhancedSecurityConfig';
 
+// Enhanced admin access verification with multiple security layers
 export const verifyEnhancedAdminAccess = async (): Promise<boolean> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    const { data, error } = await supabase
-      .rpc('verify_admin_access_secure', { user_id: user.id });
-
-    if (error) {
-      await logProductionError('admin_verification_error', error.message, {
-        user_id: user.id,
-        function: 'verify_admin_access_secure'
-      });
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.warn('Authentication failed:', authError);
+      await logEnhancedSecurityEvent('admin_access_denied', 'authentication_failed');
       return false;
     }
 
-    return !!data;
+    // Verify admin role with enhanced security
+    const { data: adminCheck, error: adminError } = await supabase
+      .rpc('verify_admin_access_secure', { user_id: user.id });
+    
+    if (adminError) {
+      console.warn('Admin verification failed:', adminError);
+      await logEnhancedSecurityEvent('admin_access_denied', 'role_verification_failed');
+      return false;
+    }
+
+    if (!adminCheck) {
+      await logEnhancedSecurityEvent('admin_access_denied', 'insufficient_privileges');
+      return false;
+    }
+
+    // Log successful admin access
+    await logEnhancedSecurityEvent('admin_access_granted', 'success');
+    return true;
+
   } catch (error) {
-    console.error('Enhanced admin verification failed:', error);
-    await logProductionError('admin_verification_exception', 
-      error instanceof Error ? error.message : 'Unknown error', {
-      function: 'verifyEnhancedAdminAccess'
-    });
+    console.error('Enhanced admin access verification failed:', error);
+    await logEnhancedSecurityEvent('admin_access_error', 'system_error');
     return false;
   }
 };
 
+// Enhanced safe query wrapper with comprehensive error handling
 export const enhancedSafeQuery = async <T>(
-  queryFn: () => Promise<{ data: T; error: any }>,
-  context: string = 'unknown'
-): Promise<{ data: T | null; error: any }> => {
+  queryFn: () => Promise<{ data: T; error: any }>
+): Promise<{ data: T | null; error: string | null }> => {
   try {
     const result = await queryFn();
     
     if (result.error) {
-      await logProductionError('database_query_error', result.error.message, {
-        context,
-        query_function: queryFn.name
-      });
+      const handledError = handleEnhancedSupabaseError(result.error, 'database_query');
+      await logEnhancedSecurityEvent('database_error', handledError);
+      return { data: null, error: handledError };
     }
-    
-    return result;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    await logProductionError('database_query_exception', errorMessage, {
-      context,
-      query_function: queryFn.name
-    });
-    return { data: null, error };
+
+    return { data: result.data, error: null };
+
+  } catch (error: any) {
+    const handledError = handleEnhancedSupabaseError(error, 'query_execution');
+    await logEnhancedSecurityEvent('query_error', handledError);
+    return { data: null, error: handledError };
   }
 };
 
-export const handleEnhancedSupabaseError = (
-  error: any, 
-  operation: string
-): string => {
-  const errorMessage = error?.message || `Failed to ${operation}`;
-  
-  // Enhanced error categorization
-  let errorCategory = 'general_error';
-  
-  if (error?.code === 'PGRST301') {
-    errorCategory = 'access_denied';
-  } else if (error?.code === 'PGRST116') {
-    errorCategory = 'not_found';
-  } else if (error?.message?.includes('JWT')) {
-    errorCategory = 'authentication_required';
-  } else if (error?.message?.includes('RLS')) {
-    errorCategory = 'row_level_security';
+// Enhanced error handling with security-focused messaging
+export const handleEnhancedSupabaseError = (error: any, context: string): string => {
+  // Log the full error for debugging (server-side only)
+  console.error(`Enhanced Supabase error in ${context}:`, error);
+
+  // Security-focused error messages for users
+  if (error?.code === 'PGRST116' || error?.message?.includes('permission denied')) {
+    return 'Access denied. Administrative privileges required.';
   }
-  
-  // Log the enhanced error asynchronously
-  logProductionError(errorCategory, errorMessage, {
-    operation,
-    error_code: error?.code,
-    error_details: error?.details,
-    supabase_operation: true
-  }).catch(logError => {
-    console.warn('Failed to log production error:', logError);
-  });
-  
-  // Return user-friendly messages
-  switch (errorCategory) {
-    case 'access_denied':
-      return 'Access denied - insufficient permissions';
-    case 'not_found':
-      return 'Requested data not found';
-    case 'authentication_required':
-      return 'Authentication required - please log in';
-    case 'row_level_security':
-      return 'Access restricted by security policy';
-    default:
-      return errorMessage;
+
+  if (error?.code === 'PGRST301' || error?.message?.includes('JWT')) {
+    return 'Authentication expired. Please log in again.';
   }
+
+  if (error?.code === '23505' || error?.message?.includes('duplicate')) {
+    return 'Resource already exists. Please check for duplicates.';
+  }
+
+  if (error?.code === '23503' || error?.message?.includes('foreign key')) {
+    return 'Operation failed. Referenced resource may not exist.';
+  }
+
+  if (error?.code === '42501' || error?.message?.includes('insufficient privilege')) {
+    return 'Insufficient permissions for this operation.';
+  }
+
+  // Network and connection errors
+  if (error?.message?.includes('Failed to fetch') || error?.message?.includes('network')) {
+    return 'Network error. Please check your connection and try again.';
+  }
+
+  // Rate limiting
+  if (error?.message?.includes('rate limit') || error?.status === 429) {
+    return 'Too many requests. Please wait before trying again.';
+  }
+
+  // Generic fallback that doesn't expose system details
+  return 'An error occurred while processing your request. Please try again.';
 };
 
+// Enhanced security event logging with structured data
 export const logEnhancedSecurityEvent = async (
   eventType: string, 
-  details: any = {}
-) => {
+  eventDetails: string | object,
+  severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'
+): Promise<void> => {
   try {
-    await logProductionError(`security_${eventType}`, 
-      `Security event: ${eventType}`, {
-      ...details,
-      event_type: eventType,
-      security_event: true
+    const eventData = {
+      event_type: `security_${eventType}`,
+      event_details: typeof eventDetails === 'string' ? eventDetails : JSON.stringify(eventDetails),
+      severity,
+      timestamp: new Date().toISOString(),
+      user_agent: navigator?.userAgent || 'unknown',
+      page_url: window?.location?.href || 'unknown'
+    };
+
+    // Use the enhanced security logging function
+    await supabase.rpc('log_production_error', {
+      error_type: eventData.event_type,
+      error_message: eventData.event_details,
+      error_context: {
+        severity: eventData.severity,
+        timestamp: eventData.timestamp,
+        user_agent: eventData.user_agent,
+        page_url: eventData.page_url
+      }
     });
+
   } catch (error) {
-    console.warn('Failed to log enhanced security event:', error);
+    // Fail silently for logging errors to prevent infinite loops
+    console.warn('Failed to log security event:', error);
   }
 };
 
-export class EnhancedSecurityMonitor {
-  private static instance: EnhancedSecurityMonitor;
-  
-  static getInstance(): EnhancedSecurityMonitor {
-    if (!EnhancedSecurityMonitor.instance) {
-      EnhancedSecurityMonitor.instance = new EnhancedSecurityMonitor();
+// Enhanced session validation with security checks
+export const validateEnhancedAdminSession = async (): Promise<{
+  isValid: boolean;
+  timeLeft: number;
+  requiresReauth: boolean;
+}> => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error || !session) {
+      await logEnhancedSecurityEvent('session_validation_failed', 'no_session');
+      return { isValid: false, timeLeft: 0, requiresReauth: true };
     }
-    return EnhancedSecurityMonitor.instance;
+
+    // Check if session is close to expiry (less than 5 minutes)
+    const expiryTime = new Date(session.expires_at || 0).getTime();
+    const currentTime = Date.now();
+    const timeLeft = expiryTime - currentTime;
+    const requiresReauth = timeLeft < 5 * 60 * 1000; // 5 minutes
+
+    if (requiresReauth) {
+      await logEnhancedSecurityEvent('session_near_expiry', { timeLeft });
+    }
+
+    return {
+      isValid: timeLeft > 0,
+      timeLeft: Math.max(0, timeLeft),
+      requiresReauth
+    };
+
+  } catch (error) {
+    await logEnhancedSecurityEvent('session_validation_error', error);
+    return { isValid: false, timeLeft: 0, requiresReauth: true };
   }
-  
-  async logSecurityViolation(type: string, message: string, context: any = {}): Promise<void> {
-    console.warn(`🚨 Security violation [${type}]: ${message}`);
-    
-    await logEnhancedSecurityEvent('violation', { 
-      type, 
-      message, 
-      context,
-      severity: 'high'
-    });
-  }
-  
-  async logSecurityWarning(type: string, message: string, context: any = {}): Promise<void> {
-    console.warn(`⚠️ Security warning [${type}]: ${message}`);
-    
-    await logEnhancedSecurityEvent('warning', { 
-      type, 
-      message, 
-      context,
-      severity: 'medium'
-    });
-  }
-  
-  async logSecurityInfo(type: string, message: string, context: any = {}): Promise<void> {
-    console.info(`ℹ️ Security info [${type}]: ${message}`);
-    
-    await logEnhancedSecurityEvent('info', { 
-      type, 
-      message, 
-      context,
-      severity: 'low'
-    });
-  }
-}
+};
+
+export default {
+  verifyEnhancedAdminAccess,
+  enhancedSafeQuery,
+  handleEnhancedSupabaseError,
+  logEnhancedSecurityEvent,
+  validateEnhancedAdminSession
+};
