@@ -12,12 +12,12 @@ const AdminTabsContent = () => {
   return (
     <Tabs defaultValue="profile" className="space-y-6">
       <TabsList className="grid w-full grid-cols-6">
-        <TabsTrigger value="profile">Προφίλ</TabsTrigger>
-        <TabsTrigger value="users">Χρήστες</TabsTrigger>
-        <TabsTrigger value="coins">Νομίσματα</TabsTrigger>
+        <TabsTrigger value="profile">Profile</TabsTrigger>
+        <TabsTrigger value="users">Users</TabsTrigger>
+        <TabsTrigger value="coins">Coins</TabsTrigger>
         <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-        <TabsTrigger value="analytics">Αναλυτικά</TabsTrigger>
-        <TabsTrigger value="system">Σύστημα</TabsTrigger>
+        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsTrigger value="system">System</TabsTrigger>
       </TabsList>
       
       <TabsContent value="profile">

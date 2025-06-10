@@ -55,20 +55,20 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-center justify-center">
             <Crown className="h-6 w-6 text-yellow-600" />
-            Γίνετε Διαχειριστής
+            Become Administrator
           </DialogTitle>
         </DialogHeader>
         
         <div className="text-center mb-4">
           <Shield className="h-12 w-12 mx-auto text-blue-600 mb-2" />
           <p className="text-sm text-gray-600">
-            Συμπληρώστε τα στοιχεία σας για να αποκτήσετε πρόσβαση διαχειριστή
+            Complete your details to gain administrator access
           </p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="admin-fullname">Πλήρες Όνομα</Label>
+            <Label htmlFor="admin-fullname">Full Name</Label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
@@ -76,7 +76,7 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Εισάγετε το πλήρες όνομά σας"
+                placeholder="Enter your full name"
                 className="pl-10"
                 required
               />
@@ -106,14 +106,14 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
               onClick={handleClose}
               className="flex-1"
             >
-              Ακύρωση
+              Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={isLoading || !fullName || !email}
               className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? 'Δημιουργία...' : 'Γίνε Admin'}
+              {isLoading ? 'Creating...' : 'Become Admin'}
             </Button>
           </div>
         </form>

@@ -34,13 +34,13 @@ const AdminProfileTab = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-blue-600" />
-            Προφίλ Διαχειριστή
+            Administrator Profile
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
             <div className="space-y-2">
-              <Label htmlFor="profile-fullname">Πλήρες Όνομα</Label>
+              <Label htmlFor="profile-fullname">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -48,7 +48,7 @@ const AdminProfileTab = () => {
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  placeholder="Εισάγετε το πλήρες όνομά σας"
+                  placeholder="Enter your full name"
                   className="pl-10"
                 />
               </div>
@@ -75,7 +75,7 @@ const AdminProfileTab = () => {
               className="flex items-center gap-2"
             >
               <Save className="h-4 w-4" />
-              {isLoading ? 'Αποθήκευση...' : 'Αποθήκευση Αλλαγών'}
+              {isLoading ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
         </CardContent>
@@ -83,7 +83,7 @@ const AdminProfileTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Στοιχεία Λογαριασμού</CardTitle>
+          <CardTitle>Account Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between">
@@ -95,8 +95,8 @@ const AdminProfileTab = () => {
             <span className="text-sm font-semibold text-blue-600">Administrator</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Ημερομηνία Δημιουργίας:</span>
-            <span className="text-sm">{user?.created_at ? new Date(user.created_at).toLocaleDateString('el-GR') : 'N/A'}</span>
+            <span className="text-sm text-gray-600">Creation Date:</span>
+            <span className="text-sm">{user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US') : 'N/A'}</span>
           </div>
         </CardContent>
       </Card>

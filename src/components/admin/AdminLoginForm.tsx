@@ -24,7 +24,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
 
   const handleBecomeAdmin = () => {
     if (!isAuthenticated) {
-      alert('Πρέπει να είστε συνδεδεμένος για να γίνετε admin');
+      alert('You must be logged in to become an admin');
       return;
     }
     setShowSetupForm(true);
@@ -58,17 +58,17 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
               <Crown className="h-16 w-16 mx-auto text-yellow-600" />
               <div>
                 <h3 className="text-lg font-semibold text-green-600 mb-2">
-                  Έχετε ήδη πρόσβαση Admin!
+                  You already have Admin access!
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Μπορείτε να προχωρήσετε στο admin panel
+                  You can proceed to the admin panel
                 </p>
               </div>
               <Button 
                 onClick={handleClose}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
-                Συνέχεια στο Admin Panel
+                Continue to Admin Panel
               </Button>
             </div>
           ) : (
@@ -76,12 +76,12 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
               <User className="h-16 w-16 mx-auto text-blue-600" />
               <div>
                 <h3 className="text-lg font-semibold mb-2">
-                  Γίνετε Διαχειριστής
+                  Become Administrator
                 </h3>
                 <p className="text-sm text-gray-600">
                   {isAuthenticated 
-                    ? 'Κάντε κλικ παρακάτω για να αποκτήσετε πρόσβαση διαχειριστή'
-                    : 'Πρέπει να συνδεθείτε πρώτα για να γίνετε admin'
+                    ? 'Click below to gain administrator access'
+                    : 'You must log in first to become an admin'
                   }
                 </p>
               </div>
@@ -92,7 +92,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                   className="w-full bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
                 >
                   <Crown className="h-4 w-4" />
-                  Γίνε Admin
+                  Become Admin
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               ) : (
@@ -101,10 +101,10 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                     onClick={() => window.location.href = '/auth'}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
-                    Σύνδεση / Εγγραφή
+                    Sign In / Sign Up
                   </Button>
                   <p className="text-xs text-gray-500">
-                    Μετά τη σύνδεση, επιστρέψτε εδώ για να γίνετε admin
+                    After signing in, return here to become an admin
                   </p>
                 </div>
               )}
