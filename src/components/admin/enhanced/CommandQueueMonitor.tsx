@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Queue, Play, Pause, CheckCircle, AlertTriangle, 
+  List, Play, Pause, CheckCircle, AlertTriangle, 
   Clock, Zap, RotateCcw, X
 } from 'lucide-react';
 import { useCommandQueue } from '@/hooks/admin/useEnhancedAIBrain';
@@ -73,7 +73,7 @@ const CommandQueueMonitor = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <Queue className="w-5 h-5" />
+              <List className="w-5 h-5" />
               Command Queue Monitor
             </span>
             <div className="flex items-center gap-2">

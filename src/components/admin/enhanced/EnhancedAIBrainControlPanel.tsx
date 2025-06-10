@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  Brain, Settings, TrendingUp, Queue, BarChart3,
+  Brain, Settings, TrendingUp, List, BarChart3,
   Zap, Clock, CheckCircle, AlertTriangle
 } from 'lucide-react';
 
@@ -18,8 +18,21 @@ import AIBrainControlPanel from './AIBrainControlPanel';
 // Import the enhanced hooks
 import { useAIBrainDashboardStats } from '@/hooks/admin/useEnhancedAIBrain';
 
+// Define interface for dashboard stats
+interface DashboardStats {
+  active_commands?: number;
+  active_automation_rules?: number;
+  active_prediction_models?: number;
+  pending_commands?: number;
+  executions_24h?: number;
+  average_prediction_confidence?: number;
+  automation_rules_executed_24h?: number;
+  last_updated?: string;
+}
+
 const EnhancedAIBrainControlPanel = () => {
-  const { data: dashboardStats, isLoading } = useAIBrainDashboardStats();
+  const { data: rawDashboardStats, isLoading } = useAIBrainDashboardStats();
+  const dashboardStats = rawDashboardStats as DashboardStats;
 
   const aiModules = [
     {
@@ -50,7 +63,7 @@ const EnhancedAIBrainControlPanel = () => {
       id: 'queue',
       title: 'Pending Commands',
       value: dashboardStats?.pending_commands || 0,
-      icon: Queue,
+      icon: List,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50'
     }
@@ -160,7 +173,7 @@ const EnhancedAIBrainControlPanel = () => {
             Predictions
           </TabsTrigger>
           <TabsTrigger value="queue" className="flex items-center gap-2">
-            <Queue className="w-4 h-4" />
+            <List className="w-4 h-4" />
             Queue
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
