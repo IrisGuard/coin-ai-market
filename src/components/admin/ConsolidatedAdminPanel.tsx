@@ -21,7 +21,7 @@ import {
 import AdminSystemTab from './tabs/AdminSystemTab';
 import AdminUsersTab from './tabs/AdminUsersTab';
 import AdminAIBrainTab from './tabs/AdminAIBrainTab';
-import AdminApiKeysTab from './tabs/AdminApiKeysTab';
+import AdminAPIKeysTab from './tabs/AdminAPIKeysTab';
 import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
 import AdminMarketplaceTab from './tabs/AdminMarketplaceTab';
 import AdminAuctionsTab from './tabs/AdminAuctionsTab';
@@ -150,7 +150,7 @@ const ConsolidatedAdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="api-keys">
-            <AdminApiKeysTab />
+            <AdminAPIKeysTab />
           </TabsContent>
 
           <TabsContent value="data-sources">
