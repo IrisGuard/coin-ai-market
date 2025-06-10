@@ -74,7 +74,7 @@ export const useCategoryUsageStats = () => {
           const { count } = await supabase
             .from('coins')
             .select('*', { count: 'exact', head: true })
-            .eq('category', category.name);
+            .eq('category', category.name); // Fix: Use category name instead of trying to cast
           
           return {
             id: category.id,

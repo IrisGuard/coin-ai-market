@@ -139,6 +139,8 @@ const EnhancedStoreManager = () => {
             {stores?.map((store) => {
               const metrics = getStoreMetrics(store.id);
               const recentActivity = getRecentActivity(store.id);
+              // Fix: Access the first profile from the profiles array
+              const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
               
               return (
                 <Card key={store.id} className="relative">
@@ -171,7 +173,7 @@ const EnhancedStoreManager = () => {
                             </div>
                             <p className="text-gray-600">{store.description}</p>
                             <p className="text-sm text-gray-500">
-                              Owner: {store.profiles?.full_name} ({store.profiles?.email})
+                              Owner: {profile?.full_name || 'Unknown'} ({profile?.email || 'No email'})
                             </p>
                           </div>
                           
