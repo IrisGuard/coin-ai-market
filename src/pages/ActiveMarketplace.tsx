@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -22,6 +21,19 @@ const ActiveMarketplace = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
+      
+      {/* Fixed Top-Right Button - Absolute top corner */}
+      <div className="fixed top-1 right-1 z-50">
+        <Button 
+          onClick={() => setIsDealerSignupOpen(true)}
+          size="sm"
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-medium border-2 border-green-700 shadow-lg"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Open Store
+        </Button>
+      </div>
+      
       <NavigationBreadcrumb />
       
       {/* Back Button */}
@@ -29,20 +41,8 @@ const ActiveMarketplace = () => {
         <BackButton to="/" label="Back to Home" />
       </div>
       
-      {/* Simple Marketplace Header with Top-Right Button */}
-      <div className="bg-white border-b border-gray-200 relative">
-        {/* Open Your Store Button - Top Right Position */}
-        <div className="absolute top-4 right-4 z-50">
-          <Button 
-            onClick={() => setIsDealerSignupOpen(true)}
-            size="sm"
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-medium border-2 border-green-700 shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Open Store
-          </Button>
-        </div>
-        
+      {/* Simple Marketplace Header */}
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
