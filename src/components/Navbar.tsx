@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store, Home, Menu, X, Settings, Users } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store, Home, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/hooks/useI18n';
@@ -18,9 +18,6 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Check if user is admin
-  const isAdmin = user?.email === 'admin@coinai.com';
-
   const navLinks = [
     { to: "/", icon: Home, label: "Home", color: "text-electric-blue hover:text-electric-purple" },
     { to: "/marketplace", icon: Store, label: "Marketplace", color: "text-electric-orange hover:text-electric-red" },
@@ -30,8 +27,7 @@ const Navbar = () => {
 
   const userLinks = user ? [
     { to: "/upload", icon: Upload, label: "Upload", color: "text-electric-cyan hover:text-electric-blue" },
-    ...(isAdmin ? [{ to: "/admin", icon: Settings, label: "Admin Panel", color: "text-electric-red hover:text-electric-orange" }] : []),
-    { to: "/dashboard", icon: Users, label: "Dashboard", color: "text-electric-green hover:text-electric-emerald" },
+    { to: "/dashboard", icon: User, label: "Dashboard", color: "text-electric-green hover:text-electric-emerald" },
   ] : [];
 
   return (
@@ -83,7 +79,6 @@ const Navbar = () => {
                 <>
                   <span className="text-sm text-gray-600">
                     Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                    {isAdmin && <span className="ml-1 text-red-600 font-semibold">(Admin)</span>}
                   </span>
                   <Button
                     variant="ghost"
@@ -153,7 +148,6 @@ const Navbar = () => {
                 <div className="space-y-2">
                   <div className="text-sm text-gray-600 p-2">
                     Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                    {isAdmin && <span className="ml-1 text-red-600 font-semibold">(Admin)</span>}
                   </div>
                   <Button
                     variant="ghost"
