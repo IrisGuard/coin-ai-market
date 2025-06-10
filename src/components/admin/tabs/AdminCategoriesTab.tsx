@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Grid3X3, Plus, BarChart3, Settings } from 'lucide-react';
+import { Grid3X3, Plus, BarChart3, Settings, Edit } from 'lucide-react';
 import EnhancedCategoryManager from '../enhanced/EnhancedCategoryManager';
 import CategoryAnalyticsDashboard from '../enhanced/CategoryAnalyticsDashboard';
 import { Input } from '@/components/ui/input';
