@@ -1,56 +1,23 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Store, BarChart3, Activity, Settings } from 'lucide-react';
+import { useEnhancedStoreData, useStorePerformanceMetrics, useStoreActivityLogs } from '@/hooks/admin/useEnhancedStores';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useDealerStores } from '@/hooks/useDealerStores';
-import { useAdminCoins } from '@/hooks/admin/useAdminCoins';
-import { Store, Eye, Edit, Trash2, Users, Package, TrendingUp, AlertCircle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 const AdminStoreManagementTab = () => {
-  const { data: stores, isLoading: storesLoading } = useDealerStores();
-  const { data: coins } = useAdminCoins();
-  const [selectedStore, setSelectedStore] = useState<any>(null);
+  const { data: stores, isLoading } = useEnhancedStoreData();
+  const { data: performanceMetrics } = useStorePerformanceMetrics();
+  const { data: activityLogs } = useStoreActivityLogs();
 
-  const getStoreCoins = (storeId: string) => {
-    return coins?.filter(coin => coin.store_id === storeId) || [];
-  };
-
-  const getStoreStats = (storeId: string) => {
-    const storeCoins = getStoreCoins(storeId);
-    return {
-      totalListings: storeCoins.length,
-      activeListings: storeCoins.filter(coin => !coin.sold).length,
-      soldItems: storeCoins.filter(coin => coin.sold).length,
-      totalValue: storeCoins.reduce((sum, coin) => sum + (coin.price || 0), 0)
-    };
-  };
-
-  const handleVerifyStore = async (storeId: string, verified: boolean) => {
-    // This would typically call an API to update store verification
-    toast({
-      title: verified ? "Store Verified" : "Store Unverified",
-      description: `Store has been ${verified ? 'verified' : 'unverified'} successfully`
-    });
-  };
-
-  const handleToggleStoreStatus = async (storeId: string, isActive: boolean) => {
-    // This would typically call an API to update store status
-    toast({
-      title: isActive ? "Store Activated" : "Store Deactivated",
-      description: `Store has been ${isActive ? 'activated' : 'deactivated'} successfully`
-    });
-  };
-
-  if (storesLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="text-center py-12">
           <div className="animate-spin h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p>Loading stores...</p>
+          <p>Loading store management...</p>
         </CardContent>
       </Card>
     );
@@ -62,199 +29,178 @@ const AdminStoreManagementTab = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Store className="w-5 h-5" />
-            Store Management
+            Enhanced Store Management
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Store className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Total Stores</p>
-                    <p className="text-2xl font-bold">{stores?.length || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Verified Stores</p>
-                    <p className="text-2xl font-bold">
-                      {stores?.filter(store => store.verified).length || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Active Stores</p>
-                    <p className="text-2xl font-bold">
-                      {stores?.filter(store => store.is_active).length || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Pending Review</p>
-                    <p className="text-2xl font-bold">
-                      {stores?.filter(store => !store.verified && store.is_active).length || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Tabs defaultValue="stores" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="stores" className="flex items-center gap-2">
+                <Store className="w-4 h-4" />
+                Store Overview
+              </TabsTrigger>
+              <TabsTrigger value="performance" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Performance Metrics
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Activity Logs
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Stores List */}
-          <div className="space-y-4">
-            {stores?.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Store className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>No stores found</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {stores?.map((store) => {
-                  const stats = getStoreStats(store.id);
-                  const storeCoins = getStoreCoins(store.id);
-                  
-                  return (
-                    <Card key={store.id} className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4 flex-1">
-                          <Avatar className="w-16 h-16">
-                            <AvatarImage src={store.logo_url} />
-                            <AvatarFallback className="bg-blue-100 text-blue-600">
-                              {store.name?.[0] || 'S'}
-                            </AvatarFallback>
-                          </Avatar>
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-lg font-medium">{store.name}</h3>
-                              <Badge variant={store.verified ? 'default' : 'secondary'}>
-                                {store.verified ? 'Verified' : 'Unverified'}
-                              </Badge>
-                              <Badge variant={store.is_active ? 'default' : 'destructive'}>
-                                {store.is_active ? 'Active' : 'Inactive'}
-                              </Badge>
-                            </div>
-                            
-                            <p className="text-gray-600 mb-3">{store.description}</p>
-                            
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <span className="text-gray-500">Total Listings:</span>
-                                <span className="ml-1 font-medium">{stats.totalListings}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Active:</span>
-                                <span className="ml-1 font-medium text-green-600">{stats.activeListings}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Sold:</span>
-                                <span className="ml-1 font-medium text-blue-600">{stats.soldItems}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Total Value:</span>
-                                <span className="ml-1 font-medium">${stats.totalValue.toLocaleString()}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedStore(store)}
-                              >
-                                <Eye className="w-4 h-4 mr-1" />
-                                View Details
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl">
-                              <DialogHeader>
-                                <DialogTitle>{store.name} - Store Details</DialogTitle>
-                              </DialogHeader>
-                              {selectedStore && (
-                                <div className="space-y-6">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                      <h4 className="font-medium mb-2">Store Information</h4>
-                                      <div className="space-y-2 text-sm">
-                                        <p><span className="font-medium">Owner:</span> {selectedStore.profiles?.full_name}</p>
-                                        <p><span className="font-medium">Email:</span> {selectedStore.profiles?.email}</p>
-                                        <p><span className="font-medium">Phone:</span> {selectedStore.phone || 'Not provided'}</p>
-                                        <p><span className="font-medium">Website:</span> {selectedStore.website || 'Not provided'}</p>
-                                        <p><span className="font-medium">Created:</span> {new Date(selectedStore.created_at).toLocaleDateString()}</p>
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <h4 className="font-medium mb-2">Recent Listings</h4>
-                                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                                        {storeCoins.slice(0, 5).map((coin) => (
-                                          <div key={coin.id} className="flex items-center gap-2 p-2 border rounded text-sm">
-                                            <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded" />
-                                            <div className="flex-1">
-                                              <p className="font-medium">{coin.name}</p>
-                                              <p className="text-gray-500">${coin.price}</p>
-                                            </div>
-                                            <Badge variant={coin.sold ? 'secondary' : 'default'}>
-                                              {coin.sold ? 'Sold' : 'Active'}
-                                            </Badge>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleVerifyStore(store.id, !store.verified)}
-                            className={store.verified ? 'text-orange-600' : 'text-green-600'}
-                          >
-                            {store.verified ? 'Unverify' : 'Verify'}
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleToggleStoreStatus(store.id, !store.is_active)}
-                            className={store.is_active ? 'text-red-600' : 'text-green-600'}
-                          >
-                            {store.is_active ? 'Deactivate' : 'Activate'}
-                          </Button>
+            <TabsContent value="stores" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {stores?.map((store) => (
+                  <Card key={store.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-medium">{store.name}</h3>
+                        <div className="flex gap-2">
+                          <Badge variant={store.verified ? 'default' : 'secondary'}>
+                            {store.verified ? 'Verified' : 'Unverified'}
+                          </Badge>
+                          <Badge variant={store.is_active ? 'default' : 'destructive'}>
+                            {store.is_active ? 'Active' : 'Inactive'}
+                          </Badge>
                         </div>
                       </div>
-                    </Card>
-                  );
-                })}
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Owner:</span>
+                          <span>{store.profiles?.full_name || 'Unknown'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Items:</span>
+                          <span>{store.coins?.length || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Rating:</span>
+                          <span>{store.profiles?.rating || 'N/A'}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mt-4">
+                        <Button size="sm" variant="outline">View Details</Button>
+                        {!store.verified && (
+                          <Button size="sm" variant="outline">Verify</Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            )}
-          </div>
+            </TabsContent>
+
+            <TabsContent value="performance" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {performanceMetrics?.length || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Stores</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {performanceMetrics?.filter(m => m.verified).length || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Verified Stores</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {performanceMetrics?.reduce((sum, m) => sum + m.total_listings, 0) || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Listings</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">
+                        ${performanceMetrics?.reduce((sum, m) => sum + m.total_revenue, 0).toFixed(0) || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Revenue</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Store Performance Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Store</th>
+                          <th className="text-right p-2">Listings</th>
+                          <th className="text-right p-2">Sold</th>
+                          <th className="text-right p-2">Revenue</th>
+                          <th className="text-right p-2">Conv. Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {performanceMetrics?.map((metric) => (
+                          <tr key={metric.store_id} className="border-b hover:bg-gray-50">
+                            <td className="p-2 font-medium">{metric.store_name}</td>
+                            <td className="p-2 text-right">{metric.total_listings}</td>
+                            <td className="p-2 text-right">{metric.sold_items}</td>
+                            <td className="p-2 text-right">${metric.total_revenue.toFixed(2)}</td>
+                            <td className="p-2 text-right">{metric.conversion_rate.toFixed(1)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="activity" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Store Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {activityLogs?.map((log) => (
+                      <div key={log.id} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Activity className="w-4 h-4 text-blue-600" />
+                            <span className="font-medium">{log.activity_type}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {new Date(log.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          Store: {log.stores?.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

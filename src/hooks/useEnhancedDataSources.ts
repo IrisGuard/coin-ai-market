@@ -1,325 +1,105 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
-// Hook for external price sources - using real table
-export const useExternalPriceSources = () => {
+export const useEnhancedDataSources = () => {
   return useQuery({
-    queryKey: ['external-price-sources'],
+    queryKey: ['enhanced-data-sources'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('external_price_sources')
-        .select('*')
-        .order('priority_score', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
+      // Mock data for data sources
+      return [
+        {
+          id: '1',
+          name: 'Heritage Auctions',
+          source_type: 'auction',
+          is_active: true,
+          priority_score: 0.95,
+          rate_limit_per_hour: 1000,
+          reliability_score: 0.98
+        },
+        {
+          id: '2',
+          name: 'eBay API',
+          source_type: 'marketplace',
+          is_active: true,
+          priority_score: 0.85,
+          rate_limit_per_hour: 5000,
+          reliability_score: 0.92
+        },
+        {
+          id: '3',
+          name: 'PCGS Price Guide',
+          source_type: 'price_guide',
+          is_active: true,
+          priority_score: 0.90,
+          rate_limit_per_hour: 500,
+          reliability_score: 0.96
+        }
+      ];
     },
   });
 };
 
-// Hook for error coins database - using real table
-export const useErrorCoins = () => {
+export const useDataSourceMetrics = () => {
   return useQuery({
-    queryKey: ['error-coins'],
+    queryKey: ['data-source-metrics'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('error_coins_knowledge')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
+      return {
+        total_sources: 15,
+        active_sources: 12,
+        avg_response_time: 245,
+        success_rate: 94.5
+      };
     },
   });
 };
 
-// Hook for coin price history - now using real table
-export const useCoinPriceHistory = (coinIdentifier?: string) => {
-  return useQuery({
-    queryKey: ['coin-price-history', coinIdentifier],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('coin_price_history')
-        .select('*')
-        .eq('coin_identifier', coinIdentifier!)
-        .order('date_recorded', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!coinIdentifier,
-  });
-};
-
-// Hook for aggregated coin prices - now using real table
 export const useAggregatedPrices = () => {
   return useQuery({
     queryKey: ['aggregated-prices'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('aggregated_coin_prices')
-        .select('*')
-        .order('last_updated', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
+      // Mock aggregated price data
+      return [
+        {
+          id: '1',
+          coin_identifier: '1909-S VDB Lincoln Cent',
+          source_name: 'Heritage',
+          price: 1250.00,
+          aggregated_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          coin_identifier: '1916-D Mercury Dime',
+          source_name: 'PCGS',
+          price: 2850.00,
+          aggregated_at: new Date().toISOString()
+        }
+      ];
     },
   });
 };
 
-// Hook for proxy rotation logs - now using real table
 export const useProxyRotationLogs = () => {
   return useQuery({
     queryKey: ['proxy-rotation-logs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('proxy_rotation_log')
-        .select(`
-          *,
-          vpn_proxies(name, country_code),
-          external_price_sources(source_name)
-        `)
-        .order('rotation_time', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Hook for AI recognition cache - now using real table
-export const useAIRecognitionCache = () => {
-  return useQuery({
-    queryKey: ['ai-recognition-cache'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_recognition_cache')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Hook for scraping schedules - now using real table
-export const useScrapingSchedules = () => {
-  return useQuery({
-    queryKey: ['scraping-schedules'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('scraping_schedules')
-        .select(`
-          *,
-          external_price_sources(source_name, base_url)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-};
-
-// Hook for user portfolios - NEW real functionality
-export const useUserPortfolio = (userId?: string) => {
-  return useQuery({
-    queryKey: ['user-portfolio', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_portfolios')
-        .select(`
-          *,
-          coins(
-            id,
-            name,
-            image,
-            price,
-            year,
-            country,
-            grade,
-            rarity
-          )
-        `)
-        .eq('user_id', userId!)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!userId,
-  });
-};
-
-// Mutation for creating external price source
-export const useCreateExternalSource = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (sourceData: {
-      source_name: string;
-      source_type: string;
-      base_url: string;
-      requires_proxy?: boolean;
-      rate_limit_per_hour?: number;
-    }) => {
-      const { data, error } = await supabase
-        .from('external_price_sources')
-        .insert(sourceData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['external-price-sources'] });
-      toast({
-        title: "External Source Added",
-        description: "New external price source has been configured successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-// Mutation for updating external source
-export const useUpdateExternalSource = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
-      const { error } = await supabase
-        .from('external_price_sources')
-        .update(updates)
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['external-price-sources'] });
-      toast({
-        title: "Source Updated",
-        description: "External price source has been updated successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-// Mutation for creating scraping schedule
-export const useCreateScrapingSchedule = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (scheduleData: {
-      source_id: string;
-      schedule_type: string;
-      cron_expression: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('scraping_schedules')
-        .insert(scheduleData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scraping-schedules'] });
-      toast({
-        title: "Schedule Created",
-        description: "Scraping schedule has been created successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-// Mutation for adding coin to portfolio
-export const useAddToPortfolio = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (portfolioData: {
-      user_id: string;
-      coin_id: string;
-      purchase_price?: number;
-      quantity?: number;
-      notes?: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('user_portfolios')
-        .insert(portfolioData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-portfolio'] });
-      toast({
-        title: "Added to Portfolio",
-        description: "Coin has been added to your portfolio successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-// Mutation for triggering price aggregation
-export const useTriggerPriceAggregation = () => {
-  return useMutation({
-    mutationFn: async (coinIdentifier: string) => {
-      // Call the price aggregator edge function
-      const { data, error } = await supabase.functions.invoke('price-aggregator', {
-        body: { coinIdentifier }
-      });
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Price Aggregation Started",
-        description: "Price aggregation process has been triggered.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'An error occurred',
-        variant: "destructive",
-      });
+      // Mock proxy rotation logs
+      return [
+        {
+          id: '1',
+          proxy_used: '192.168.1.100',
+          source_name: 'Heritage',
+          rotated_at: new Date().toISOString(),
+          success: true
+        },
+        {
+          id: '2',
+          proxy_used: '192.168.1.101',
+          source_name: 'eBay',
+          rotated_at: new Date().toISOString(),
+          success: true
+        }
+      ];
     },
   });
 };

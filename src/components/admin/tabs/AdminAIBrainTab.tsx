@@ -1,11 +1,11 @@
 
 import React from 'react';
-import AIBrainCapabilities from '../enhanced/AIBrainCapabilities';
+import AIBrainPanel from '../AIBrainPanel';
 
 const AdminAIBrainTab = () => {
   return (
     <div className="space-y-6">
-      <AIBrainCapabilities />
+      <AIBrainPanel />
     </div>
   );
 };

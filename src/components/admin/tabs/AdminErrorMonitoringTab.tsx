@@ -1,266 +1,277 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertTriangle, Activity, BarChart3, Eye } from 'lucide-react';
+import { useRealTimeErrors } from '@/hooks/admin/useRealTimeErrors';
+import { useErrorLogs, useErrorAnalytics, useConsoleErrors } from '@/hooks/admin';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Bug, XCircle, AlertCircle, Activity, Lightbulb, Bell } from 'lucide-react';
-import { useErrorLogs, useConsoleErrors } from '@/hooks/admin';
-import ErrorTrendAnalytics from '../enhanced/ErrorTrendAnalytics';
-import RealTimeErrorMonitor from '../enhanced/RealTimeErrorMonitor';
-import ErrorNotificationCenter from '../enhanced/ErrorNotificationCenter';
-import ErrorResolutionSuggestions from '../enhanced/ErrorResolutionSuggestions';
 
 const AdminErrorMonitoringTab = () => {
-  const { data: errorLogs = [], isLoading: errorLogsLoading } = useErrorLogs();
-  const { data: consoleErrors = [], isLoading: consoleErrorsLoading } = useConsoleErrors();
+  const { recentErrors, isConnected } = useRealTimeErrors();
+  const { data: errorLogs } = useErrorLogs();
+  const { data: errorAnalytics } = useErrorAnalytics();
+  const { data: consoleErrors } = useConsoleErrors();
 
-  const getErrorSeverityBadge = (level: string) => {
-    switch (level.toLowerCase()) {
-      case 'error':
-        return <Badge className="bg-red-100 text-red-800">Error</Badge>;
-      case 'warn':
-        return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>;
-      case 'info':
-        return <Badge className="bg-blue-100 text-blue-800">Info</Badge>;
-      default:
-        return <Badge variant="outline">{level}</Badge>;
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'bg-red-100 text-red-800';
+      case 'high': return 'bg-orange-100 text-orange-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const stats = {
-    totalErrors: errorLogs.length,
-    consoleErrors: consoleErrors.length,
-    criticalErrors: errorLogs.filter(e => e.error_type === 'critical').length,
-    todayErrors: errorLogs.filter(e => {
-      const today = new Date().toDateString();
-      return new Date(e.created_at || '').toDateString() === today;
-    }).length,
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">Error Monitoring & Resolution System</h3>
-        <p className="text-sm text-muted-foreground">
-          Comprehensive error tracking, real-time monitoring, and AI-powered resolution suggestions
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Real-time Error Monitoring
+            {isConnected && (
+              <div className="flex items-center gap-2 ml-auto">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-600">Live</span>
+              </div>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="realtime" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="realtime" className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Real-time Errors
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Error Analytics
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="flex items-center gap-2">
+                <Eye className="w-4 h-4" />
+                Error Logs
+              </TabsTrigger>
+              <TabsTrigger value="console" className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Console Errors
+              </TabsTrigger>
+            </TabsList>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="real-time" className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Real-time
-          </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center gap-2">
-            <Bug className="w-4 h-4" />
-            Trends
-          </TabsTrigger>
-          <TabsTrigger value="suggestions" className="flex items-center gap-2">
-            <Lightbulb className="w-4 h-4" />
-            AI Suggestions
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="logs" className="flex items-center gap-2">
-            <XCircle className="w-4 h-4" />
-            Error Logs
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Errors</CardTitle>
-                <Bug className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalErrors}</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Console Errors</CardTitle>
-                <XCircle className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">{stats.consoleErrors}</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Critical Errors</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{stats.criticalErrors}</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today's Errors</CardTitle>
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{stats.todayErrors}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RealTimeErrorMonitor />
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Run Error Analysis</span>
-                      <Badge variant="outline">Recommended</Badge>
+            <TabsContent value="realtime" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-600">
+                        {recentErrors.filter(e => e.severity === 'critical').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Critical Errors</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Analyze recent error patterns and get AI suggestions
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Export Error Report</span>
-                      <Badge variant="outline">PDF</Badge>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {recentErrors.filter(e => e.severity === 'high').length}
+                      </div>
+                      <div className="text-sm text-gray-600">High Priority</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Generate comprehensive error report for stakeholders
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Configure Alerts</span>
-                      <Badge variant="outline">Setup</Badge>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {recentErrors.filter(e => e.severity === 'medium').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Medium Priority</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Set up email/Slack notifications for critical errors
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {recentErrors.length}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Recent</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-        <TabsContent value="real-time">
-          <RealTimeErrorMonitor />
-        </TabsContent>
-
-        <TabsContent value="trends">
-          <ErrorTrendAnalytics />
-        </TabsContent>
-
-        <TabsContent value="suggestions">
-          <ErrorResolutionSuggestions />
-        </TabsContent>
-
-        <TabsContent value="notifications">
-          <ErrorNotificationCenter />
-        </TabsContent>
-
-        <TabsContent value="logs">
-          <div className="space-y-6">
-            {/* Error Logs */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bug className="h-5 w-5" />
-                  Application Error Logs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {errorLogsLoading ? (
-                  <div>Loading error logs...</div>
-                ) : (
-                  <div className="space-y-3">
-                    {errorLogs.slice(0, 10).map((error) => (
-                      <div key={error.id} className="border rounded-lg p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="destructive">{error.error_type}</Badge>
-                              {error.created_at && (
-                                <span className="text-xs text-gray-500">
-                                  {new Date(error.created_at).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-700 mb-1">{error.message}</p>
-                            {error.page_url && (
-                              <p className="text-xs text-gray-500 font-mono">{error.page_url}</p>
-                            )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Live Error Stream</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {recentErrors.map((error) => (
+                      <div key={error.id} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
+                            <span className="font-medium">{error.error_type}</span>
+                            <Badge className={getSeverityColor(error.severity)}>
+                              {error.severity}
+                            </Badge>
                           </div>
+                          <span className="text-xs text-gray-500">
+                            {new Date(error.created_at).toLocaleTimeString()}
+                          </span>
                         </div>
+                        <p className="text-sm text-gray-600 mb-1">{error.message}</p>
+                        {error.page_url && (
+                          <p className="text-xs text-gray-500">Page: {error.page_url}</p>
+                        )}
                       </div>
                     ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Console Errors */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <XCircle className="h-5 w-5" />
-                  Console Error Logs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {consoleErrorsLoading ? (
-                  <div>Loading console errors...</div>
-                ) : (
-                  <div className="space-y-3">
-                    {consoleErrors.slice(0, 10).map((error) => (
-                      <div key={error.id} className="border rounded-lg p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              {getErrorSeverityBadge(error.error_level)}
-                              {error.created_at && (
-                                <span className="text-xs text-gray-500">
-                                  {new Date(error.created_at).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-700 mb-1">{error.message}</p>
-                            {error.source_file && (
-                              <p className="text-xs text-gray-500 font-mono">
-                                {error.source_file}:{error.line_number || 'Unknown'}
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                    {recentErrors.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        No recent errors detected
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Error Trends</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span>Critical Errors (24h)</span>
+                        <span className="font-bold text-red-600">
+                          {errorAnalytics?.critical_24h || 0}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Error Rate (%)</span>
+                        <span className="font-bold text-orange-600">
+                          {errorAnalytics?.error_rate || 0}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Resolution Time (avg)</span>
+                        <span className="font-bold text-blue-600">
+                          {errorAnalytics?.avg_resolution_time || 0}min
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Error Categories</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {errorAnalytics?.categories?.map((category, index) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span>{category.type}</span>
+                          <Badge variant="outline">{category.count}</Badge>
+                        </div>
+                      )) || (
+                        <div className="text-center text-gray-500">No category data</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="logs" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Error Logs History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Time</th>
+                          <th className="text-left p-2">Type</th>
+                          <th className="text-left p-2">Message</th>
+                          <th className="text-left p-2">Page</th>
+                          <th className="text-left p-2">User</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {errorLogs?.map((log) => (
+                          <tr key={log.id} className="border-b hover:bg-gray-50">
+                            <td className="p-2 text-sm">
+                              {new Date(log.created_at).toLocaleString()}
+                            </td>
+                            <td className="p-2">
+                              <Badge variant="outline">{log.error_type}</Badge>
+                            </td>
+                            <td className="p-2 text-sm max-w-xs truncate">
+                              {log.message}
+                            </td>
+                            <td className="p-2 text-sm">{log.page_url || 'N/A'}</td>
+                            <td className="p-2 text-sm">{log.user_id || 'Anonymous'}</td>
+                          </tr>
+                        )) || (
+                          <tr>
+                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                              No error logs found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="console" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Console Error Monitoring</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {consoleErrors?.map((error, index) => (
+                      <div key={index} className="p-3 border rounded-lg bg-red-50">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-red-800">{error.type}</span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(error.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-red-700">{error.message}</p>
+                        {error.stack && (
+                          <pre className="text-xs text-gray-600 mt-2 overflow-x-auto">
+                            {error.stack}
+                          </pre>
+                        )}
+                      </div>
+                    )) || (
+                      <div className="text-center py-8 text-gray-500">
+                        No console errors detected
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
