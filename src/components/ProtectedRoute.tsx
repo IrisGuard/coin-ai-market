@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import AdminLoginForm from '@/components/admin/AdminLoginForm';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -46,18 +47,21 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // If the route requires authentication and the user isn't authenticated,
-  // redirect to the login page
-  if (requireAuth && !isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+  // If the route requires admin access, show admin login form instead of redirecting
+  if (requireAdmin) {
+    const isAdmin = user?.email === 'admin@coinai.com' || 
+                   user?.email === 'pvc.laminate@gmail.com' || 
+                   userRole === 'admin';
+    
+    if (!isAuthenticated || !isAdmin) {
+      return <AdminLoginForm isOpen={true} onClose={() => {}} />;
+    }
   }
 
-  // If the route requires admin access, check for admin role
-  if (requireAdmin && isAuthenticated) {
-    const isAdmin = user?.email === 'admin@coinai.com' || userRole === 'admin';
-    if (!isAdmin) {
-      return <Navigate to="/marketplace" replace />;
-    }
+  // If the route requires authentication and the user isn't authenticated,
+  // redirect to the login page
+  if (requireAuth && !isAuthenticated && !requireAdmin) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // If the route requires dealer access, check for dealer role
@@ -71,7 +75,9 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
   // redirect to the appropriate page based on role
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
     // Check if user is admin
-    const isAdmin = user?.email === 'admin@coinai.com' || userRole === 'admin';
+    const isAdmin = user?.email === 'admin@coinai.com' || 
+                   user?.email === 'pvc.laminate@gmail.com' || 
+                   userRole === 'admin';
     if (isAdmin) {
       return <Navigate to="/admin" replace />;
     }
