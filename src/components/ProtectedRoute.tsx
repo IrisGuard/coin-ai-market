@@ -4,7 +4,6 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import AdminLoginForm from '@/components/admin/AdminLoginForm';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -47,17 +46,12 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: Για admin routes, ΔΕΝ κάνουμε automatic redirect
-  // Αν θέλει admin access, show το admin login form
+  // 🚨 ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: Admin routes ΔΕΝ κάνουν automatic redirects
+  // Admin access ΜΟΝΟ μέσω Ctrl+Alt+A
   if (requireAdmin) {
-    const isAdmin = user?.email === 'admin@coinai.com' || 
-                   user?.email === 'pvc.laminate@gmail.com' || 
-                   userRole === 'admin';
-    
-    // ΔΕΝ ελέγχουμε για authentication εδώ - ΜΟΝΟ με Ctrl+Alt+A
-    if (!isAuthenticated || !isAdmin) {
-      return <AdminLoginForm isOpen={true} onClose={() => {}} />;
-    }
+    // ΔΕΝ κάνουμε redirect εδώ - το AdminKeyboardHandler θα το χειριστεί
+    console.log('🔒 Admin route accessed - AdminKeyboardHandler will handle access');
+    return <>{children}</>;
   }
 
   // Regular auth check για non-admin routes
