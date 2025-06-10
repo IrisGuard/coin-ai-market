@@ -6,18 +6,25 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Users, Eye, Edit, Trash2 } from 'lucide-react';
 
-interface Dealer {
+interface StoreWithProfile {
   id: string;
-  full_name?: string;
-  username?: string;
-  avatar_url?: string;
-  verified_dealer: boolean;
-  location?: string;
-  rating?: number;
+  name: string;
+  description?: string;
+  logo_url?: string;
+  address?: any;
+  verified: boolean;
+  profiles?: Array<{
+    id: string;
+    full_name?: string;
+    email?: string;
+    avatar_url?: string;
+    verified_dealer?: boolean;
+    rating?: number;
+  }>;
 }
 
 interface UserStoresManagementProps {
-  dealers: Dealer[] | undefined;
+  dealers: StoreWithProfile[];
   dealersLoading: boolean;
 }
 
@@ -85,47 +92,53 @@ const UserStoresManagement: React.FC<UserStoresManagementProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {dealers.map((dealer) => (
-            <div key={dealer.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-12 h-12">
-                  <AvatarImage src={dealer.avatar_url} />
-                  <AvatarFallback className="bg-electric-blue/10 text-electric-blue">
-                    {dealer.full_name?.[0] || dealer.username?.[0] || 'D'}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{dealer.full_name || dealer.username}</h3>
-                    {dealer.verified_dealer && (
-                      <Badge variant="secondary" className="bg-electric-green/10 text-electric-green">
-                        Verified
-                      </Badge>
-                    )}
+          {dealers.map((store) => {
+            const profile = store.profiles?.[0];
+            return (
+              <div key={store.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={profile?.avatar_url || store.logo_url} />
+                    <AvatarFallback className="bg-electric-blue/10 text-electric-blue">
+                      {profile?.full_name?.[0] || store.name?.[0] || 'S'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{profile?.full_name || store.name}</h3>
+                      {(profile?.verified_dealer || store.verified) && (
+                        <Badge variant="secondary" className="bg-electric-green/10 text-electric-green">
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {typeof store.address === 'object' && store.address !== null 
+                        ? (store.address as any).city || 'Unknown Location'
+                        : 'Unknown Location'
+                      } • Rating: {profile?.rating || 'N/A'}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {dealer.location} • Rating: {dealer.rating || 'N/A'}
-                  </p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Remove
+                  </Button>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
-                </Button>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Remove
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
