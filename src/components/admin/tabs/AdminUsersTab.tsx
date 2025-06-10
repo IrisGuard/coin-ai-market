@@ -18,10 +18,7 @@ const AdminUsersTab = () => {
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          user_roles!inner(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -29,6 +26,19 @@ const AdminUsersTab = () => {
       }
 
       const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Get user roles separately
+  const { data: userRoles } = useQuery({
+    queryKey: ['user-roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
       if (error) throw error;
       return data || [];
     },
@@ -69,6 +79,7 @@ const AdminUsersTab = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
       toast({
         title: "User Promoted",
         description: "User has been promoted to admin successfully.",
@@ -83,9 +94,19 @@ const AdminUsersTab = () => {
     },
   });
 
+  // Helper function to get user roles
+  const getUserRoles = (userId: string) => {
+    return userRoles?.filter(role => role.user_id === userId) || [];
+  };
+
+  // Helper function to check if user is admin
+  const isUserAdmin = (userId: string) => {
+    return getUserRoles(userId).some(role => role.role === 'admin');
+  };
+
   const totalUsers = users?.length || 0;
   const verifiedDealers = users?.filter(user => user.verified_dealer)?.length || 0;
-  const adminUsers = users?.filter(user => user.user_roles?.some((role: any) => role.role === 'admin'))?.length || 0;
+  const adminUsers = users?.filter(user => isUserAdmin(user.id))?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -169,7 +190,7 @@ const AdminUsersTab = () => {
                       <div className="flex gap-2 mt-1">
                         <Badge variant="outline">{user.role || 'user'}</Badge>
                         {user.verified_dealer && <Badge variant="default">Verified Dealer</Badge>}
-                        {user.user_roles?.some((role: any) => role.role === 'admin') && (
+                        {isUserAdmin(user.id) && (
                           <Badge variant="destructive">Admin</Badge>
                         )}
                       </div>
@@ -190,7 +211,7 @@ const AdminUsersTab = () => {
                         {user.verified_dealer ? 'Revoke' : 'Verify'}
                       </Button>
                     )}
-                    {!user.user_roles?.some((role: any) => role.role === 'admin') && (
+                    {!isUserAdmin(user.id) && (
                       <Button
                         variant="outline"
                         size="sm"
