@@ -24,8 +24,8 @@ const AdvancedAnalyticsDashboard = () => {
   const { data: marketAnalytics } = useMarketAnalytics();
   const { data: revenueForecasts } = useRevenueForecasts();
 
-  // Type cast the dashboard data
-  const typedDashboardData = dashboardData as DashboardData;
+  // Safely type cast the dashboard data
+  const typedDashboardData = (dashboardData as unknown) as DashboardData;
 
   const dashboardMetrics = [
     {

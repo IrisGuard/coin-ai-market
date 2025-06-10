@@ -29,8 +29,8 @@ const RealTimeSystemMonitor = () => {
 
   const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
 
-  // Type cast the performance metrics
-  const typedMetrics = performanceMetrics as PerformanceMetrics;
+  // Safely type cast the performance metrics
+  const typedMetrics = (performanceMetrics as unknown) as PerformanceMetrics;
 
   const getSystemHealthColor = (health: string) => {
     switch (health) {

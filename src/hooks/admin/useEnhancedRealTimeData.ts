@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSystemHealth } from './useSystemHealth';
-import { useRealTimeMonitoring } from './useRealTimeMonitoring';
+import { useRealTimeMetrics } from './useRealTimeMonitoring';
 
 interface EnhancedRealTimeData {
   systemHealth: any;
@@ -24,7 +24,7 @@ export const useEnhancedRealTimeData = () => {
   });
 
   const { data: health, isLoading: healthLoading } = useSystemHealth();
-  const { metrics, isConnected } = useRealTimeMonitoring();
+  const { metrics, isConnected } = useRealTimeMetrics();
 
   useEffect(() => {
     const fetchDashboardStats = async () => {

@@ -87,6 +87,9 @@ export const useRealTimeMetrics = () => {
   return { metrics, isConnected };
 };
 
+// Export as useRealTimeMonitoring for compatibility
+export const useRealTimeMonitoring = useRealTimeMetrics;
+
 export const useSystemHealth = () => {
   return {
     data: {
