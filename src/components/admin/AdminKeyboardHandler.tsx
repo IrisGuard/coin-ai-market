@@ -10,42 +10,54 @@ const AdminKeyboardHandler = () => {
   const navigate = useNavigate();
   const { isAdmin, isAdminAuthenticated } = useAdmin();
 
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // ΑΚΡΙΒΩΣ 10 λεπτά
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes in milliseconds
 
-  // Monitor user activity και timeout session
+  // Monitor user activity and enforce STRICT 10-minute timeout
   useEffect(() => {
     const updateActivity = () => {
-      setLastActivity(Date.now());
-      // Update στο sessionStorage επίσης για consistency
-      sessionStorage.setItem('adminLastActivity', Date.now().toString());
+      const currentTime = Date.now();
+      setLastActivity(currentTime);
+      sessionStorage.setItem('adminLastActivity', currentTime.toString());
     };
     
     const checkTimeout = () => {
       const storedActivity = sessionStorage.getItem('adminLastActivity');
-      const lastActivityTime = storedActivity ? parseInt(storedActivity) : lastActivity;
+      const storedSessionTime = sessionStorage.getItem('adminSessionTime');
+      const adminAuthenticated = sessionStorage.getItem('adminAuthenticated') === 'true';
       
-      if (isAdminAuthenticated && Date.now() - lastActivityTime > SESSION_TIMEOUT) {
-        console.log('🔒 Admin session expired due to inactivity - EXACTLY 10 minutes');
-        // ΚΑΘΑΡΙΣΜΟΣ όλων των admin session data
-        localStorage.removeItem('adminSession');
+      if (!adminAuthenticated) return;
+      
+      const lastActivityTime = storedActivity ? parseInt(storedActivity) : lastActivity;
+      const sessionStartTime = storedSessionTime ? parseInt(storedSessionTime) : lastActivity;
+      const currentTime = Date.now();
+      
+      // Check if EXACTLY 10 minutes have passed since last activity OR session start
+      const timeSinceActivity = currentTime - lastActivityTime;
+      const timeSinceSession = currentTime - sessionStartTime;
+      
+      if (timeSinceActivity > SESSION_TIMEOUT || timeSinceSession > SESSION_TIMEOUT) {
+        console.log('🔒 Admin session expired - EXACTLY 10 minutes timeout enforced');
+        
+        // CLEAR ALL admin session data
         sessionStorage.removeItem('adminAuthenticated');
         sessionStorage.removeItem('adminSessionTime');
         sessionStorage.removeItem('adminLastActivity');
         sessionStorage.removeItem('adminFingerprint');
+        localStorage.removeItem('adminSession');
         
-        // FORCE redirect to home - ΚΑΝΕΝΑ admin panel access
+        // FORCE redirect to home page
         window.location.href = '/';
       }
     };
 
     // Add activity listeners
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'click'];
     events.forEach(event => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
 
-    // Check timeout κάθε λεπτό
-    const timeoutInterval = setInterval(checkTimeout, 60000);
+    // Check timeout every 30 seconds for precise timing
+    const timeoutInterval = setInterval(checkTimeout, 30000);
     
     return () => {
       events.forEach(event => {
@@ -57,30 +69,40 @@ const AdminKeyboardHandler = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // ΜΟΝΟ Ctrl+Alt+A - ΤΙΠΟΤΑ ΑΛΛΟ
+      // ONLY Ctrl+Alt+A - NO other shortcuts
       if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
         console.log('🔑 Admin keyboard shortcut detected: Ctrl+Alt+A');
         event.preventDefault();
         
         // Update activity when admin shortcut is used
-        setLastActivity(Date.now());
-        sessionStorage.setItem('adminLastActivity', Date.now().toString());
+        const currentTime = Date.now();
+        setLastActivity(currentTime);
+        sessionStorage.setItem('adminLastActivity', currentTime.toString());
         
-        if (isAdminAuthenticated) {
-          console.log('✅ User is already admin authenticated, navigating to admin panel');
-          navigate('/admin');
-        } else {
-          console.log('🔐 User not admin authenticated, showing admin login form');
-          setShowAdminLogin(true);
+        // Check if already authenticated and session is valid
+        const adminAuthenticated = sessionStorage.getItem('adminAuthenticated') === 'true';
+        const sessionTime = sessionStorage.getItem('adminSessionTime');
+        
+        if (adminAuthenticated && sessionTime) {
+          const timeSinceSession = currentTime - parseInt(sessionTime);
+          if (timeSinceSession <= SESSION_TIMEOUT) {
+            console.log('✅ Admin session valid, navigating to admin panel');
+            navigate('/admin');
+            return;
+          }
         }
+        
+        // Show login form if not authenticated or session expired
+        console.log('🔐 Admin authentication required, showing login form');
+        setShowAdminLogin(true);
       }
     };
 
-    console.log('🎯 AdminKeyboardHandler: Adding keyboard event listener for Ctrl+Alt+A ONLY');
+    console.log('🎯 AdminKeyboardHandler: Registering Ctrl+Alt+A listener');
     document.addEventListener('keydown', handleKeyDown);
     
     return () => {
-      console.log('🔌 AdminKeyboardHandler: Removing keyboard event listener');
+      console.log('🔌 AdminKeyboardHandler: Removing keyboard listener');
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [navigate, isAdminAuthenticated]);
@@ -88,14 +110,32 @@ const AdminKeyboardHandler = () => {
   const handleAdminLoginClose = () => {
     console.log('❌ Admin login form closing');
     setShowAdminLogin(false);
-    setLastActivity(Date.now());
-    sessionStorage.setItem('adminLastActivity', Date.now().toString());
+    
+    // Update activity
+    const currentTime = Date.now();
+    setLastActivity(currentTime);
+    sessionStorage.setItem('adminLastActivity', currentTime.toString());
+  };
+
+  const handleAdminLoginSuccess = () => {
+    console.log('✅ Admin login successful');
+    setShowAdminLogin(false);
+    
+    // Set session data with current timestamp
+    const currentTime = Date.now();
+    sessionStorage.setItem('adminAuthenticated', 'true');
+    sessionStorage.setItem('adminSessionTime', currentTime.toString());
+    sessionStorage.setItem('adminLastActivity', currentTime.toString());
+    
+    // Navigate to admin panel
+    navigate('/admin');
   };
 
   return (
     <AdminLoginForm 
       isOpen={showAdminLogin} 
       onClose={handleAdminLoginClose}
+      onSuccess={handleAdminLoginSuccess}
     />
   );
 };
