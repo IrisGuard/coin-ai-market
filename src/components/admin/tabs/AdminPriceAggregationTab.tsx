@@ -217,7 +217,7 @@ const AdminPriceAggregationTab = () => {
                     <h4 className="font-medium mb-2">Aggregation Rules</h4>
                     <div className="space-y-2 text-sm">
                       <p>• Minimum 3 sources required</p>
-                      <p>• Outliers removed (>2 standard deviations)</p>
+                      <p>• Outliers removed (more than 2 standard deviations)</p>
                       <p>• Time-weighted averaging (recent data prioritized)</p>
                       <p>• Grade-specific aggregation</p>
                     </div>
@@ -317,7 +317,7 @@ const AdminPriceAggregationTab = () => {
                   <h4 className="font-medium mb-3">Aggregation Quality</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm">High Confidence (>90%)</span>
+                      <span className="text-sm">High Confidence (90%+)</span>
                       <span className="text-sm font-medium">68%</span>
                     </div>
                     <div className="flex justify-between">
@@ -325,7 +325,7 @@ const AdminPriceAggregationTab = () => {
                       <span className="text-sm font-medium">25%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm">Low Confidence (<80%)</span>
+                      <span className="text-sm">Low Confidence (less than 80%)</span>
                       <span className="text-sm font-medium">7%</span>
                     </div>
                   </div>
