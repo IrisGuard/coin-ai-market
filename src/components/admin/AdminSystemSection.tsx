@@ -18,8 +18,20 @@ const AdminSystemSection = () => {
     );
   }
 
-  const stats = data?.stats || {};
-  const systemHealth = data?.systemHealth || {};
+  // Provide proper fallback values with expected properties
+  const stats = data?.stats || {
+    totalUsers: 0,
+    totalCoins: 0,
+    totalTransactions: 0,
+    totalErrors: 0,
+    averageAccuracy: 94
+  };
+
+  const systemHealth = data?.systemHealth || {
+    status: 'healthy',
+    uptime: '99.9%',
+    serverStatus: 'online'
+  };
 
   return (
     <div className="space-y-6">
@@ -35,15 +47,15 @@ const AdminSystemSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="font-medium text-green-800">System Status: {systemHealth.status || 'healthy'}</p>
+              <p className="font-medium text-green-800">System Status: {systemHealth.status}</p>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <p className="font-medium text-blue-800">Uptime: {systemHealth.uptime || '99.9%'}</p>
+              <p className="font-medium text-blue-800">Uptime: {systemHealth.uptime}</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <Activity className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <p className="font-medium text-purple-800">AI Accuracy: {stats.averageAccuracy || 94}%</p>
+              <p className="font-medium text-purple-800">AI Accuracy: {stats.averageAccuracy}%</p>
             </div>
           </div>
         </CardContent>
