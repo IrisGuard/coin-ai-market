@@ -8,26 +8,53 @@ import { supabase } from '@/integrations/supabase/client';
 import { Store, TrendingUp, Users, Package, DollarSign } from 'lucide-react';
 
 interface MarketplaceData {
-  marketplace?: {
-    total_stores: number;
-    verified_stores: number;
-    active_stores: number;
-    total_listings: number;
-    active_listings: number;
-  };
-  transactions?: {
-    total_revenue: number;
-  };
+  total_users: number;
+  total_coins: number;
+  total_transactions: number;
+  completed_transactions: number;
+  total_revenue: number;
 }
 
 const AdminMarketplaceTab = () => {
   // Get comprehensive dashboard stats
   const { data: dashboardStats, isLoading } = useQuery({
-    queryKey: ['comprehensive-dashboard'],
+    queryKey: ['admin-dashboard-comprehensive'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_comprehensive_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
       if (error) throw error;
       return data as MarketplaceData;
+    },
+  });
+
+  // Get marketplace-specific stats
+  const { data: marketplaceStats } = useQuery({
+    queryKey: ['marketplace-specific-stats'],
+    queryFn: async () => {
+      // Get stores count
+      const { data: stores, error: storesError } = await supabase
+        .from('stores')
+        .select('id, is_active, verified');
+      
+      if (storesError) throw storesError;
+
+      // Get listings count
+      const { data: listings, error: listingsError } = await supabase
+        .from('marketplace_listings')
+        .select('id, status, starting_price');
+      
+      if (listingsError) throw listingsError;
+
+      const activeStores = stores?.filter(s => s.is_active).length || 0;
+      const verifiedStores = stores?.filter(s => s.verified).length || 0;
+      const activeListings = listings?.filter(l => l.status === 'active').length || 0;
+
+      return {
+        total_stores: stores?.length || 0,
+        active_stores: activeStores,
+        verified_stores: verifiedStores,
+        total_listings: listings?.length || 0,
+        active_listings: activeListings
+      };
     },
   });
 
@@ -137,9 +164,9 @@ const AdminMarketplaceTab = () => {
             <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats?.marketplace?.active_stores || 0}</div>
+            <div className="text-2xl font-bold">{marketplaceStats?.active_stores || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {dashboardStats?.marketplace?.verified_stores || 0} verified
+              {marketplaceStats?.verified_stores || 0} verified
             </p>
           </CardContent>
         </Card>
@@ -150,9 +177,9 @@ const AdminMarketplaceTab = () => {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats?.marketplace?.active_listings || 0}</div>
+            <div className="text-2xl font-bold">{marketplaceStats?.active_listings || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {dashboardStats?.marketplace?.total_listings || 0} total listings
+              {marketplaceStats?.total_listings || 0} total listings
             </p>
           </CardContent>
         </Card>
@@ -164,7 +191,7 @@ const AdminMarketplaceTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{dashboardStats?.transactions?.total_revenue?.toLocaleString() || '0'}
+              €{dashboardStats?.total_revenue?.toLocaleString() || '0'}
             </div>
             <p className="text-xs text-muted-foreground">lifetime earnings</p>
           </CardContent>

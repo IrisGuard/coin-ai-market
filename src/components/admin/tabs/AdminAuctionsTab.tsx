@@ -8,39 +8,69 @@ import { supabase } from '@/integrations/supabase/client';
 import { Gavel, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 interface AuctionData {
-  auctions: {
-    active: number;
-    ended: number;
-    bids_24h: number;
-    avg_bid_amount: number;
-    total_bids: number;
-    active_bidders_7d: number;
-  };
+  total_users: number;
+  total_coins: number;
+  total_transactions: number;
+  errors_24h: number;
+  active_alerts: number;
+  health_status: string;
 }
 
 const AdminAuctionsTab = () => {
-  // Get comprehensive dashboard data
+  // Get dashboard data for auction stats
   const { data: dashboardDataRaw, isLoading } = useQuery({
-    queryKey: ['comprehensive-dashboard'],
+    queryKey: ['admin-dashboard-comprehensive'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_comprehensive_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
       if (error) throw error;
-      return data;
+      return data as AuctionData;
     },
     refetchInterval: 30000,
   });
 
-  // Safely cast with fallback
-  const auctionData: AuctionData = {
-    auctions: {
-      active: dashboardDataRaw?.auctions?.active || 0,
-      ended: 0,
-      bids_24h: dashboardDataRaw?.auctions?.bids_24h || 0,
-      avg_bid_amount: dashboardDataRaw?.auctions?.avg_bid_amount || 0,
-      total_bids: dashboardDataRaw?.auctions?.total_bids || 0,
-      active_bidders_7d: dashboardDataRaw?.auctions?.active_bidders_7d || 0,
-    }
-  };
+  // Get auction-specific stats
+  const { data: auctionStats } = useQuery({
+    queryKey: ['auction-stats'],
+    queryFn: async () => {
+      // Get active auctions count
+      const { data: activeAuctions, error: auctionError } = await supabase
+        .from('coins')
+        .select('id')
+        .eq('is_auction', true)
+        .gt('auction_end', new Date().toISOString());
+      
+      if (auctionError) throw auctionError;
+
+      // Get bids count for last 24h
+      const { data: recentBids, error: bidError } = await supabase
+        .from('auction_bids')
+        .select('id, amount')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      
+      if (bidError) throw bidError;
+
+      // Get unique bidders in last 7 days
+      const { data: bidders, error: biddersError } = await supabase
+        .from('auction_bids')
+        .select('bidder_id')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (biddersError) throw biddersError;
+
+      const uniqueBidders = new Set(bidders?.map(b => b.bidder_id) || []).size;
+      const avgBidAmount = recentBids?.length 
+        ? recentBids.reduce((sum, bid) => sum + Number(bid.amount), 0) / recentBids.length 
+        : 0;
+
+      return {
+        active: activeAuctions?.length || 0,
+        bids_24h: recentBids?.length || 0,
+        avg_bid_amount: avgBidAmount,
+        active_bidders_7d: uniqueBidders,
+        total_bids: bidders?.length || 0
+      };
+    },
+  });
 
   // Get active auctions
   const { data: activeAuctions, isLoading: auctionsLoading } = useQuery({
@@ -125,9 +155,9 @@ const AdminAuctionsTab = () => {
             <Gavel className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{auctionData.auctions.active}</div>
+            <div className="text-2xl font-bold">{auctionStats?.active || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {auctionData.auctions.ended} ended auctions
+              live auctions
             </p>
           </CardContent>
         </Card>
@@ -138,7 +168,7 @@ const AdminAuctionsTab = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{auctionData.auctions.bids_24h}</div>
+            <div className="text-2xl font-bold">{auctionStats?.bids_24h || 0}</div>
             <p className="text-xs text-muted-foreground">bidding activity</p>
           </CardContent>
         </Card>
@@ -149,7 +179,7 @@ const AdminAuctionsTab = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">€{Math.round(auctionData.auctions.avg_bid_amount)}</div>
+            <div className="text-2xl font-bold">€{Math.round(auctionStats?.avg_bid_amount || 0)}</div>
             <p className="text-xs text-muted-foreground">average bid value</p>
           </CardContent>
         </Card>
@@ -160,7 +190,7 @@ const AdminAuctionsTab = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{auctionData.auctions.active_bidders_7d}</div>
+            <div className="text-2xl font-bold">{auctionStats?.active_bidders_7d || 0}</div>
             <p className="text-xs text-muted-foreground">unique participants</p>
           </CardContent>
         </Card>
