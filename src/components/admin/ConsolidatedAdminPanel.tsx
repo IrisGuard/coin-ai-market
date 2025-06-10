@@ -27,6 +27,7 @@ import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
 import AdminMarketplaceTab from './tabs/AdminMarketplaceTab';
 import AdminAuctionsTab from './tabs/AdminAuctionsTab';
 import AdminAnalyticsTab from './tabs/AdminAnalyticsTab';
+import AdminProfileTab from './tabs/AdminProfileTab';
 
 const ConsolidatedAdminPanel: React.FC = () => {
   const { isAdmin, isAdminAuthenticated, isLoading, sessionTimeLeft, logoutAdmin } = useAdmin();

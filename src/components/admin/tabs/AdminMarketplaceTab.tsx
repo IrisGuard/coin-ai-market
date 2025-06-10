@@ -18,7 +18,7 @@ const AdminMarketplaceTab = () => {
   const { data: marketplaceStats, isLoading } = useQuery({
     queryKey: ['marketplace-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_comprehensive_admin_dashboard');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
       return data as MarketplaceData;
     },

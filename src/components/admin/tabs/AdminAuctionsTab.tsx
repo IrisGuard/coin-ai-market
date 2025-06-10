@@ -21,15 +21,23 @@ const AdminAuctionsTab = () => {
   const { data: auctionDataRaw, isLoading } = useQuery({
     queryKey: ['auction-dashboard'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_auction_dashboard_data');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
       return data;
     },
     refetchInterval: 30000,
   });
 
-  // Safely cast the data
-  const auctionData = auctionDataRaw as AuctionData | null;
+  // Safely cast with fallback
+  const auctionData: AuctionData = {
+    auctions: {
+      active: 0,
+      ended: 0,
+      bids_today: 0,
+      avg_bid_amount: 0,
+      ...(auctionDataRaw as any)?.auctions || {}
+    }
+  };
 
   // Get active auctions
   const { data: activeAuctions, isLoading: auctionsLoading } = useQuery({
@@ -59,13 +67,16 @@ const AdminAuctionsTab = () => {
         .from('auction_bids')
         .select(`
           *,
-          profiles!auction_bids_bidder_id_fkey (name),
+          profiles:bidder_id (name),
           coins!auction_bids_auction_id_fkey (name, year)
         `)
         .order('created_at', { ascending: false })
         .limit(10);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching bids:', error);
+        return [];
+      }
       return data || [];
     },
   });
@@ -87,9 +98,9 @@ const AdminAuctionsTab = () => {
             <Gavel className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{auctionData?.auctions?.active || 0}</div>
+            <div className="text-2xl font-bold">{auctionData.auctions.active}</div>
             <p className="text-xs text-muted-foreground">
-              {auctionData?.auctions?.ended || 0} ended auctions
+              {auctionData.auctions.ended} ended auctions
             </p>
           </CardContent>
         </Card>
@@ -100,7 +111,7 @@ const AdminAuctionsTab = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{auctionData?.auctions?.bids_today || 0}</div>
+            <div className="text-2xl font-bold">{auctionData.auctions.bids_today}</div>
             <p className="text-xs text-muted-foreground">bidding activity</p>
           </CardContent>
         </Card>
@@ -111,7 +122,7 @@ const AdminAuctionsTab = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">€{Math.round(auctionData?.auctions?.avg_bid_amount || 0)}</div>
+            <div className="text-2xl font-bold">€{Math.round(auctionData.auctions.avg_bid_amount)}</div>
             <p className="text-xs text-muted-foreground">average bid value</p>
           </CardContent>
         </Card>

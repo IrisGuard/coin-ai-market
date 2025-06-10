@@ -27,15 +27,24 @@ const AdminAIBrainTab = () => {
   const { data: aiStatsRaw, isLoading: statsLoading } = useQuery({
     queryKey: ['ai-brain-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_ai_brain_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
       return data;
     },
     refetchInterval: 30000,
   });
 
-  // Safely cast the data
-  const aiStats = aiStatsRaw as AIStatsData | null;
+  // Safely cast the data with fallback
+  const aiStats: AIStatsData = {
+    active_commands: 0,
+    active_automation_rules: 0,
+    active_prediction_models: 0,
+    pending_commands: 0,
+    executions_24h: 0,
+    average_prediction_confidence: 0,
+    automation_rules_executed_24h: 0,
+    ...(aiStatsRaw as Partial<AIStatsData> || {})
+  };
 
   // Get AI Commands
   const { data: aiCommands, isLoading: commandsLoading } = useQuery({
@@ -145,9 +154,9 @@ const AdminAIBrainTab = () => {
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats?.active_commands || 0}</div>
+            <div className="text-2xl font-bold">{aiStats.active_commands}</div>
             <p className="text-xs text-muted-foreground">
-              {aiStats?.executions_24h || 0} executions today
+              {aiStats.executions_24h} executions today
             </p>
           </CardContent>
         </Card>
@@ -158,9 +167,9 @@ const AdminAIBrainTab = () => {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats?.active_automation_rules || 0}</div>
+            <div className="text-2xl font-bold">{aiStats.active_automation_rules}</div>
             <p className="text-xs text-muted-foreground">
-              {aiStats?.automation_rules_executed_24h || 0} executed today
+              {aiStats.automation_rules_executed_24h} executed today
             </p>
           </CardContent>
         </Card>
@@ -171,9 +180,9 @@ const AdminAIBrainTab = () => {
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats?.active_prediction_models || 0}</div>
+            <div className="text-2xl font-bold">{aiStats.active_prediction_models}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((aiStats?.average_prediction_confidence || 0) * 100)}% avg confidence
+              {Math.round(aiStats.average_prediction_confidence * 100)}% avg confidence
             </p>
           </CardContent>
         </Card>
@@ -184,7 +193,7 @@ const AdminAIBrainTab = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats?.pending_commands || 0}</div>
+            <div className="text-2xl font-bold">{aiStats.pending_commands}</div>
             <p className="text-xs text-muted-foreground">commands waiting</p>
           </CardContent>
         </Card>
@@ -289,7 +298,6 @@ const AdminAIBrainTab = () => {
         </CardContent>
       </Card>
 
-      {/* Prediction Models Section */}
       <Card>
         <CardHeader>
           <CardTitle>Prediction Models</CardTitle>

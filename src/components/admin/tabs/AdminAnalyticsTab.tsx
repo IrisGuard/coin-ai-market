@@ -24,7 +24,7 @@ const AdminAnalyticsTab = () => {
   const { data: analyticsDataRaw, isLoading } = useQuery({
     queryKey: ['analytics-dashboard'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_advanced_analytics_dashboard');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
       return data;
     },
@@ -35,15 +35,28 @@ const AdminAnalyticsTab = () => {
   const { data: performanceDataRaw, isLoading: perfLoading } = useQuery({
     queryKey: ['performance-metrics'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_system_performance_metrics');
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
       return data;
     },
   });
 
-  // Safely cast the data
-  const analyticsData = analyticsDataRaw as AnalyticsData | null;
-  const performanceData = performanceDataRaw as PerformanceData | null;
+  // Safely cast the data with fallbacks
+  const analyticsData: AnalyticsData = {
+    active_users_24h: 0,
+    searches_24h: 0,
+    avg_session_time: 0,
+    new_listings_24h: 0,
+    avg_data_quality: 0,
+    ...(analyticsDataRaw as Partial<AnalyticsData> || {})
+  };
+
+  const performanceData: PerformanceData = {
+    avg_response_time: 0,
+    active_sessions: 0,
+    errors_last_hour: 0,
+    ...(performanceDataRaw as Partial<PerformanceData> || {})
+  };
 
   // Get page views
   const { data: pageViews, isLoading: viewsLoading } = useQuery({
@@ -92,9 +105,9 @@ const AdminAnalyticsTab = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData?.active_users_24h || 0}</div>
+            <div className="text-2xl font-bold">{analyticsData.active_users_24h}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(analyticsData?.avg_session_time || 0)} min avg session
+              {Math.round(analyticsData.avg_session_time)} min avg session
             </p>
           </CardContent>
         </Card>
@@ -105,7 +118,7 @@ const AdminAnalyticsTab = () => {
             <Search className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData?.searches_24h || 0}</div>
+            <div className="text-2xl font-bold">{analyticsData.searches_24h}</div>
             <p className="text-xs text-muted-foreground">search queries</p>
           </CardContent>
         </Card>
@@ -116,7 +129,7 @@ const AdminAnalyticsTab = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData?.new_listings_24h || 0}</div>
+            <div className="text-2xl font-bold">{analyticsData.new_listings_24h}</div>
             <p className="text-xs text-muted-foreground">new coin listings</p>
           </CardContent>
         </Card>
@@ -128,7 +141,7 @@ const AdminAnalyticsTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round((analyticsData?.avg_data_quality || 0) * 100)}%
+              {Math.round(analyticsData.avg_data_quality * 100)}%
             </div>
             <p className="text-xs text-muted-foreground">average quality score</p>
           </CardContent>
@@ -147,19 +160,19 @@ const AdminAnalyticsTab = () => {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {Math.round(performanceData?.avg_response_time || 0)}ms
+                {Math.round(performanceData.avg_response_time)}ms
               </div>
               <p className="text-sm text-muted-foreground">Avg Response Time</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {performanceData?.active_sessions || 0}
+                {performanceData.active_sessions}
               </div>
               <p className="text-sm text-muted-foreground">Active Sessions</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
-                {performanceData?.errors_last_hour || 0}
+                {performanceData.errors_last_hour}
               </div>
               <p className="text-sm text-muted-foreground">Errors (Last Hour)</p>
             </div>
@@ -203,7 +216,6 @@ const AdminAnalyticsTab = () => {
         </CardContent>
       </Card>
 
-      {/* Search Analytics */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
