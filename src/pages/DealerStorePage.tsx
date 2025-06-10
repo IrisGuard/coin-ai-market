@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useDealerStores } from '@/hooks/useDealerStores';
@@ -16,6 +17,7 @@ const DealerStorePage = () => {
   const { data: coins, isLoading: coinsLoading } = useDealerCoins(dealerId || '');
 
   const dealer = dealers?.find(d => d.id === dealerId);
+  const profile = dealer?.profiles?.[0];
 
   if (dealersLoading) {
     return (
@@ -56,18 +58,18 @@ const DealerStorePage = () => {
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={dealer.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url || dealer.logo_url} />
                   <AvatarFallback className="text-2xl font-bold bg-purple-100">
-                    {dealer.full_name?.[0] || dealer.username?.[0] || 'D'}
+                    {profile?.full_name?.[0] || dealer.name?.[0] || 'D'}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-gray-800">
-                      {dealer.full_name || dealer.username}
+                      {profile?.full_name || dealer.name}
                     </h1>
-                    {dealer.verified_dealer && (
+                    {profile?.verified_dealer && (
                       <Badge className="bg-blue-600 text-white">
                         <Shield className="w-4 h-4 mr-1" />
                         Verified Dealer
@@ -76,22 +78,22 @@ const DealerStorePage = () => {
                   </div>
                   
                   <div className="flex items-center gap-4 text-gray-600 mb-4">
-                    {dealer.location && (
+                    {dealer.address && typeof dealer.address === 'object' && dealer.address !== null && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        <span>{dealer.location}</span>
+                        <span>{(dealer.address as any).city || 'Unknown Location'}</span>
                       </div>
                     )}
-                    {dealer.rating && (
+                    {profile?.rating && (
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span>{Number(dealer.rating).toFixed(1)}</span>
+                        <span>{Number(profile.rating).toFixed(1)}</span>
                       </div>
                     )}
                   </div>
                   
-                  {dealer.bio && (
-                    <p className="text-gray-700 max-w-3xl">{dealer.bio}</p>
+                  {dealer.description && (
+                    <p className="text-gray-700 max-w-3xl">{dealer.description}</p>
                   )}
                 </div>
               </div>
