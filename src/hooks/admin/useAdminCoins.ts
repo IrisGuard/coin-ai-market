@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { CoinCategory } from '@/types/coin';
 
 interface CoinFilters {
   status?: string;
@@ -35,7 +36,9 @@ export const useAdminCoins = (filters: CoinFilters = {}) => {
         query = query.eq('authentication_status', filters.status);
       }
       if (filters.category) {
-        query = query.eq('category', filters.category);
+        // Cast the string to CoinCategory type after validation
+        const categoryFilter = filters.category as CoinCategory;
+        query = query.eq('category', categoryFilter);
       }
       if (filters.featured !== undefined) {
         query = query.eq('featured', filters.featured);
