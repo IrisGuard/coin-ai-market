@@ -1,4 +1,3 @@
-
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -71,17 +70,11 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
   }
 
-  // If the route is auth and the user is already authenticated,
-  // redirect to the appropriate page based on role
+  // CRITICAL FIX: Do NOT auto-redirect authenticated users to admin panel
+  // Only redirect from auth page to marketplace for regular users
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
-    // Check if user is admin
-    const isAdmin = user?.email === 'admin@coinai.com' || 
-                   user?.email === 'pvc.laminate@gmail.com' || 
-                   userRole === 'admin';
-    if (isAdmin) {
-      return <Navigate to="/admin" replace />;
-    }
-    // For all other users (buyers and dealers), redirect to marketplace
+    // For all users (buyers and dealers), redirect to marketplace
+    // Admin access should ONLY happen via Ctrl+Alt+A
     return <Navigate to="/marketplace" replace />;
   }
 

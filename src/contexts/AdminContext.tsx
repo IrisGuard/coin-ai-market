@@ -1,63 +1,63 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { checkAdminStatus } from '@/utils/adminUtils';
 
 interface AdminContextType {
   isAdmin: boolean;
-  isLoading: boolean;
   isAdminAuthenticated: boolean;
+  isLoading: boolean;
   checkAdminStatus: () => Promise<void>;
-  verifyAdminAccess: () => Promise<boolean>;
-  makeCurrentUserAdmin: (adminData: { fullName: string; email: string }) => Promise<boolean>;
-  updateAdminProfile: (updates: { fullName?: string; email?: string }) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-export const useAdmin = () => {
-  const context = useContext(AdminContext);
-  if (context === undefined) {
-    throw new Error('useAdmin must be used within an AdminProvider');
-  }
-  return context;
-};
-
-export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated } = useAuth();
 
-  const checkAdminStatus = async () => {
-    if (!user) {
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+
+  const checkAdminStatusInternal = async () => {
+    if (!user || !isAuthenticated) {
       setIsAdmin(false);
       setIsAdminAuthenticated(false);
       setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
+      setIsLoading(true);
+      
+      // Check if user has admin privileges
+      const adminStatus = await checkAdminStatus();
+      setIsAdmin(adminStatus);
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-        setIsAdminAuthenticated(false);
+      // Check if admin session is still valid
+      const adminSession = localStorage.getItem('adminSession');
+      const sessionTime = sessionStorage.getItem('adminSessionTime');
+      
+      if (adminStatus && adminSession && sessionTime) {
+        const sessionStart = parseInt(sessionTime);
+        const now = Date.now();
+        
+        if (now - sessionStart < SESSION_TIMEOUT) {
+          setIsAdminAuthenticated(true);
+          console.log('Admin session restored and valid');
+        } else {
+          console.log('Admin session expired, clearing...');
+          localStorage.removeItem('adminSession');
+          sessionStorage.removeItem('adminSessionTime');
+          sessionStorage.removeItem('adminAuthenticated');
+          setIsAdminAuthenticated(false);
+        }
       } else {
-        const adminStatus = !!data;
-        setIsAdmin(adminStatus);
-        setIsAdminAuthenticated(adminStatus);
+        setIsAdminAuthenticated(false);
       }
     } catch (error) {
-      console.error('Admin check failed:', error);
+      console.error('Error checking admin status:', error);
       setIsAdmin(false);
       setIsAdminAuthenticated(false);
     } finally {
@@ -65,138 +65,52 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const verifyAdminAccess = async (): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
-
-      return !error && !!data;
-    } catch (error) {
-      console.error('Admin verification failed:', error);
-      return false;
-    }
-  };
-
-  const makeCurrentUserAdmin = async (adminData: { fullName: string; email: string }): Promise<boolean> => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to become an admin",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    try {
-      // First update the profile with the provided data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: adminData.fullName,
-          email: adminData.email,
-        })
-        .eq('id', user.id);
-
-      if (profileError) {
-        console.error('Profile update error:', profileError);
-        // Continue anyway, as the main goal is to create admin
-      }
-
-      // Use the new secure function to create the first admin
-      const { data: adminCreated, error: adminError } = await supabase
-        .rpc('create_first_admin_safely', {
-          target_user_id: user.id,
-          admin_role: 'admin'
-        });
-
-      if (adminError) {
-        throw new Error(adminError.message);
-      }
-
-      if (!adminCreated) {
-        throw new Error('Unable to create admin - an administrator may already exist');
-      }
-
-      setIsAdmin(true);
-      setIsAdminAuthenticated(true);
-      
-      toast({
-        title: "Success!",
-        description: "You are now an administrator",
-      });
-      
-      return true;
-    } catch (error: any) {
-      console.error('Failed to make user admin:', error);
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to create admin',
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const updateAdminProfile = async (updates: { fullName?: string; email?: string }): Promise<boolean> => {
-    if (!user || !isAdmin) {
-      toast({
-        title: "Error",
-        description: "Only admins can update their profile",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    try {
-      const updateData: any = {};
-      if (updates.fullName) updateData.full_name = updates.fullName;
-      if (updates.email) updateData.email = updates.email;
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success!",
-        description: "Your profile has been updated successfully",
-      });
-      
-      return true;
-    } catch (error: any) {
-      console.error('Failed to update admin profile:', error);
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to update profile',
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
   useEffect(() => {
-    if (!loading) {
-      checkAdminStatus();
-    }
-  }, [user, loading]);
+    checkAdminStatusInternal();
+  }, [user, isAuthenticated]);
+
+  // Monitor admin session timeout
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const checkSessionTimeout = () => {
+      const sessionTime = sessionStorage.getItem('adminSessionTime');
+      if (sessionTime) {
+        const sessionStart = parseInt(sessionTime);
+        const now = Date.now();
+        
+        if (now - sessionStart >= SESSION_TIMEOUT) {
+          console.log('Admin session timeout detected');
+          localStorage.removeItem('adminSession');
+          sessionStorage.removeItem('adminSessionTime');
+          sessionStorage.removeItem('adminAuthenticated');
+          setIsAdminAuthenticated(false);
+          
+          // Force redirect to home
+          window.location.href = '/';
+        }
+      }
+    };
+
+    const interval = setInterval(checkSessionTimeout, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, [isAdminAuthenticated]);
 
   const value = {
     isAdmin,
-    isLoading,
     isAdminAuthenticated,
-    checkAdminStatus,
-    verifyAdminAccess,
-    makeCurrentUserAdmin,
-    updateAdminProfile,
+    isLoading,
+    checkAdminStatus: checkAdminStatusInternal,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
+};
+
+export const useAdmin = () => {
+  const context = useContext(AdminContext);
+  if (context === undefined) {
+    throw new Error('useAdmin must be used within an AdminProvider');
+  }
+  return context;
 };

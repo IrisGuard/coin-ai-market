@@ -63,6 +63,12 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
   const handleAdminSetupComplete = () => {
     console.log('Admin setup completed, navigating to admin panel');
     setShowSetupForm(false);
+    
+    // Set admin session with proper timestamp
+    localStorage.setItem('adminSession', 'true');
+    sessionStorage.setItem('adminSessionTime', Date.now().toString());
+    sessionStorage.setItem('adminAuthenticated', 'true');
+    
     onClose();
     // Navigate to admin panel after a short delay to ensure modal closes
     setTimeout(() => {
@@ -125,9 +131,17 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                 <p className="text-sm text-gray-600">
                   You can proceed to the admin panel
                 </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Session will expire after 10 minutes of inactivity
+                </p>
               </div>
               <Button 
                 onClick={() => {
+                  // Set admin session with proper timestamp
+                  localStorage.setItem('adminSession', 'true');
+                  sessionStorage.setItem('adminSessionTime', Date.now().toString());
+                  sessionStorage.setItem('adminAuthenticated', 'true');
+                  
                   handleClose();
                   navigate('/admin');
                 }}
@@ -151,6 +165,9 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                 </h3>
                 <p className="text-sm text-gray-600">
                   Click below to gain administrator access
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Admin sessions expire after 10 minutes of inactivity
                 </p>
               </div>
               

@@ -4,10 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Crown, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
+import { Crown, Shield, CheckCircle, Loader2 } from 'lucide-react';
+import { createFirstAdmin } from '@/utils/adminUtils';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { motion } from 'framer-motion';
 
 interface AdminSetupFormProps {
   isOpen: boolean;
@@ -15,35 +15,48 @@ interface AdminSetupFormProps {
 }
 
 const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
-  const [fullName, setFullName] = useState('PVC Admin');
-  const [email, setEmail] = useState('pvc.laminate@gmail.com');
+  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const { makeCurrentUserAdmin } = useAdmin();
+  const [success, setSuccess] = useState(false);
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email) return;
+    if (!email) return;
 
     setIsSubmitting(true);
+    
     try {
-      const success = await makeCurrentUserAdmin({ fullName, email });
-      if (success) {
-        setIsSuccess(true);
+      const result = await createFirstAdmin(email);
+      
+      if (result.success) {
+        setSuccess(true);
+        
+        // Set admin session with proper timeout
+        localStorage.setItem('adminSession', 'true');
+        sessionStorage.setItem('adminSessionTime', Date.now().toString());
+        sessionStorage.setItem('adminAuthenticated', 'true');
+        
         toast({
-          title: "Success!",
-          description: "You now have administrator privileges.",
+          title: "Admin Setup Complete",
+          description: result.message,
         });
-        // Close after short delay to show success state
+        
+        // Close after a short delay
         setTimeout(() => {
           onClose();
-        }, 2000);
+        }, 1500);
+      } else {
+        toast({
+          title: "Setup Failed",
+          description: result.message,
+          variant: "destructive",
+        });
       }
-    } catch (error: any) {
-      console.error('Admin setup error:', error);
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || 'Failed to create administrator',
+        description: "An unexpected error occurred during admin setup.",
         variant: "destructive",
       });
     } finally {
@@ -51,81 +64,62 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
     }
   };
 
+  if (success) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md bg-gradient-to-br from-green-50 to-emerald-50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-center justify-center text-green-700">
+              <CheckCircle className="h-6 w-6" />
+              Admin Setup Complete
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="text-center py-6">
+            <Crown className="h-16 w-16 mx-auto text-yellow-600 mb-4" />
+            <h3 className="text-lg font-semibold text-green-600 mb-2">
+              Welcome, Administrator!
+            </h3>
+            <p className="text-sm text-gray-600">
+              Your admin access has been successfully configured.
+              You will be redirected to the admin panel.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-br from-white to-blue-50 border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-center justify-center text-xl">
-            <Crown className="h-6 w-6 text-yellow-600" />
-            Create Administrator
+          <DialogTitle className="flex items-center gap-2 text-center justify-center">
+            <Shield className="h-6 w-6 text-blue-600" />
+            Admin Setup
           </DialogTitle>
         </DialogHeader>
         
-        {isSuccess ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-6 py-4"
-          >
-            <CheckCircle className="h-16 w-16 mx-auto text-green-600" />
-            <div>
-              <h3 className="text-lg font-semibold text-green-600 mb-2">
-                Successfully Created!
-              </h3>
-              <p className="text-sm text-gray-600">
-                You now have full administrator privileges
-              </p>
-            </div>
-          </motion.div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="text-center mb-6">
-              <Crown className="h-12 w-12 mx-auto text-yellow-600 mb-3" />
-              <p className="text-sm text-gray-600">
-                Fill in the details to become an administrator
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                  Full Name
-                </Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Administrator Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-yellow-800">
-                  <strong>Warning:</strong> This action will give you full administrator privileges 
-                  including access to the AI Brain.
-                </div>
-              </div>
+        <div className="space-y-6">
+          <div className="text-center">
+            <Crown className="h-12 w-12 mx-auto text-blue-600 mb-3" />
+            <h3 className="text-lg font-semibold mb-2">Create Admin Access</h3>
+            <p className="text-sm text-gray-600">
+              Enter your email to gain administrative privileges
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-email">Email Address</Label>
+              <Input
+                id="admin-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={user?.email || "admin@example.com"}
+                required
+              />
             </div>
             
             <div className="flex gap-2 pt-4">
@@ -133,31 +127,31 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="flex-1"
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={isSubmitting || !fullName || !email}
-                className="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-medium"
+                disabled={isSubmitting || !email}
+                className="flex-1"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
+                    Setting up...
                   </>
                 ) : (
                   <>
                     <Crown className="h-4 w-4 mr-2" />
-                    Become Administrator
+                    Create Admin
                   </>
                 )}
               </Button>
             </div>
           </form>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );

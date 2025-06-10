@@ -6,8 +6,43 @@ import AdminLoginForm from './AdminLoginForm';
 
 const AdminKeyboardHandler = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const navigate = useNavigate();
   const { isAdmin, isAdminAuthenticated } = useAdmin();
+
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes as requested
+
+  // Monitor user activity and implement session timeout
+  useEffect(() => {
+    const updateActivity = () => setLastActivity(Date.now());
+    
+    const checkTimeout = () => {
+      if (isAdminAuthenticated && Date.now() - lastActivity > SESSION_TIMEOUT) {
+        console.log('Admin session expired due to inactivity');
+        // Clear admin session
+        localStorage.removeItem('adminSession');
+        sessionStorage.removeItem('adminAuthenticated');
+        window.location.href = '/'; // Force redirect to home
+      }
+    };
+
+    // Add activity listeners
+    document.addEventListener('mousedown', updateActivity);
+    document.addEventListener('keydown', updateActivity);
+    document.addEventListener('scroll', updateActivity);
+    document.addEventListener('touchstart', updateActivity);
+
+    // Check timeout every minute
+    const timeoutInterval = setInterval(checkTimeout, 60000);
+    
+    return () => {
+      document.removeEventListener('mousedown', updateActivity);
+      document.removeEventListener('keydown', updateActivity);
+      document.removeEventListener('scroll', updateActivity);
+      document.removeEventListener('touchstart', updateActivity);
+      clearInterval(timeoutInterval);
+    };
+  }, [isAdminAuthenticated, lastActivity]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -15,6 +50,9 @@ const AdminKeyboardHandler = () => {
       if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
         console.log('Admin keyboard shortcut detected: Ctrl+Alt+A');
         event.preventDefault();
+        
+        // Update activity when admin shortcut is used
+        setLastActivity(Date.now());
         
         if (isAdminAuthenticated) {
           console.log('User is already admin authenticated, navigating to admin panel');
@@ -40,7 +78,7 @@ const AdminKeyboardHandler = () => {
   const handleAdminLoginClose = () => {
     console.log('Admin login form closing');
     setShowAdminLogin(false);
-    // The AdminLoginForm now handles navigation internally
+    setLastActivity(Date.now()); // Reset activity timer
   };
 
   return (
