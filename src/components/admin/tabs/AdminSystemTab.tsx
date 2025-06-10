@@ -57,10 +57,15 @@ interface SystemStatsData {
 interface SystemAlert {
   id: string;
   alert_type: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: string;
   title: string;
   description: string;
   created_at: string;
+  alert_data: any;
+  is_resolved: boolean;
+  current_value: number;
+  metric_threshold: number;
+  resolved_at: string;
 }
 
 const AdminSystemTab = () => {
@@ -88,8 +93,8 @@ const AdminSystemTab = () => {
     },
   });
 
-  // Type cast the raw data to our interface
-  const systemStats = systemStatsRaw as SystemStatsData | null;
+  // Type cast the raw data to our interface with proper type safety
+  const systemStats = (systemStatsRaw as unknown) as SystemStatsData | null;
 
   const getSystemStatus = () => {
     if (!systemStats?.system) return 'unknown';
@@ -294,7 +299,7 @@ const AdminSystemTab = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {systemAlerts.map((alert: SystemAlert) => (
+              {systemAlerts.map((alert) => (
                 <div key={alert.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <div className="font-medium">{alert.title}</div>
