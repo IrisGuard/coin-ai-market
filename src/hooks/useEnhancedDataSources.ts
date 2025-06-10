@@ -40,6 +40,34 @@ export const useEnhancedDataSources = () => {
   });
 };
 
+export const useExternalPriceSources = () => {
+  return useQuery({
+    queryKey: ['external-price-sources'],
+    queryFn: async () => {
+      return [
+        {
+          id: '1',
+          source_name: 'Heritage Auctions',
+          base_url: 'https://coins.ha.com',
+          source_type: 'auction',
+          is_active: true,
+          priority_score: 0.95,
+          rate_limit_per_hour: 1000
+        },
+        {
+          id: '2',
+          source_name: 'eBay Coins',
+          base_url: 'https://ebay.com/coins',
+          source_type: 'marketplace',
+          is_active: true,
+          priority_score: 0.85,
+          rate_limit_per_hour: 2000
+        }
+      ];
+    },
+  });
+};
+
 export const useDataSourceMetrics = () => {
   return useQuery({
     queryKey: ['data-source-metrics'],

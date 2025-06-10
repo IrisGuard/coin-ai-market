@@ -99,7 +99,7 @@ const AdminStoreManagementTab = () => {
                   <CardContent className="p-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">
-                        {performanceMetrics?.length || 0}
+                        {stores?.length || 0}
                       </div>
                       <div className="text-sm text-gray-600">Total Stores</div>
                     </div>
@@ -110,7 +110,7 @@ const AdminStoreManagementTab = () => {
                   <CardContent className="p-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">
-                        {performanceMetrics?.filter(m => m.verified).length || 0}
+                        {stores?.filter(s => s.verified).length || 0}
                       </div>
                       <div className="text-sm text-gray-600">Verified Stores</div>
                     </div>

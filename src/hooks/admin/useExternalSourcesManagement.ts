@@ -64,6 +64,84 @@ export const useExternalSourcesManagement = () => {
   });
 };
 
+export const useCreateExternalSource = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (sourceData: any) => {
+      console.log('Creating external source:', sourceData);
+      // Mock creation process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { id: Math.random().toString(), ...sourceData };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['external-sources-management'] });
+      toast({
+        title: "External Source Created",
+        description: "The external source has been successfully created.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Creation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useSourceTesting = () => {
+  return useMutation({
+    mutationFn: async ({ sourceId, testUrl }: { sourceId: string; testUrl: string }) => {
+      console.log('Testing source:', sourceId, testUrl);
+      // Mock testing process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return { success: true, responseTime: Math.random() * 1000 };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Source Test Complete",
+        description: `Source responded in ${data.responseTime.toFixed(0)}ms`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Source Test Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useBulkSourceImport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (sources: any[]) => {
+      console.log('Bulk importing sources:', sources);
+      // Mock bulk import process
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      return { imported: sources.length, failed: 0 };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['external-sources-management'] });
+      toast({
+        title: "Bulk Import Complete",
+        description: `Successfully imported ${data.imported} sources`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Bulk Import Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 export const useDataAggregation = () => {
   const queryClient = useQueryClient();
   
