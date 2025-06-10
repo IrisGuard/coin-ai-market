@@ -69,9 +69,8 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
   }
 
-  // 🚨 CRITICAL FIX: NO automatic redirects - users stay where they are
+  // 🚨 CRITICAL FIX: Only redirect from auth page if authenticated
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
-    // Only redirect from auth page to marketplace for authenticated users
     return <Navigate to="/marketplace" replace />;
   }
 

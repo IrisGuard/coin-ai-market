@@ -3356,6 +3356,10 @@ export type Database = {
         Args: { model_id: string; input_data: Json }
         Returns: Json
       }
+      get_admin_dashboard_comprehensive: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_advanced_analytics_dashboard: {
         Args: Record<PropertyKey, never>
         Returns: Json

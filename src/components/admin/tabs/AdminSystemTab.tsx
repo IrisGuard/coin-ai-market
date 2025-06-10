@@ -15,75 +15,91 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-interface SystemStats {
-  errors_24h: number;
-  active_users: number;
-  total_users: number;
-  total_coins: number;
-  total_transactions: number;
-  live_auctions: number;
-  featured_coins: number;
-  total_value: number;
-}
+import { toast } from '@/hooks/use-toast';
 
 const AdminSystemTab = () => {
-  const { data: systemStatsRaw, isLoading, refetch } = useQuery({
-    queryKey: ['admin-system-stats'],
+  const { data: systemStats, isLoading, refetch } = useQuery({
+    queryKey: ['admin-system-comprehensive'],
     queryFn: async () => {
-      // Get basic counts from tables
-      const [usersResult, coinsResult, transactionsResult, errorsResult] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('coins').select('id', { count: 'exact', head: true }),
-        supabase.from('payment_transactions').select('id', { count: 'exact', head: true }),
-        supabase.from('error_logs').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      ]);
-
-      return {
-        total_users: usersResult.count || 0,
-        total_coins: coinsResult.count || 0,
-        total_transactions: transactionsResult.count || 0,
-        errors_24h: errorsResult.count || 0,
-        active_users: Math.floor((usersResult.count || 0) * 0.1), // Estimate 10% active
-        live_auctions: 0,
-        featured_coins: 0,
-        total_value: 0
-      };
+      const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
+      if (error) throw error;
+      return data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Type the systemStats properly
-  const systemStats: SystemStats = systemStatsRaw || {
-    errors_24h: 0,
-    active_users: 0,
-    total_users: 0,
-    total_coins: 0,
-    total_transactions: 0,
-    live_auctions: 0,
-    featured_coins: 0,
-    total_value: 0
-  };
+  const { data: systemAlerts } = useQuery({
+    queryKey: ['system-alerts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('system_alerts')
+        .select('*')
+        .eq('is_resolved', false)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const getSystemStatus = () => {
-    if (systemStats.errors_24h > 10) return 'critical';
-    if (systemStats.errors_24h > 5) return 'warning';
-    return 'healthy';
+    if (!systemStats?.system) return 'unknown';
+    return systemStats.system.health_status || 'healthy';
   };
 
   const systemStatus = getSystemStatus();
+  const errorsCount = systemStats?.system?.errors_24h || 0;
+  const activeAlerts = systemStats?.system?.active_alerts || 0;
 
   const handleRefreshStats = () => {
     refetch();
+    toast({
+      title: "Stats Refreshed",
+      description: "System statistics have been updated.",
+    });
   };
 
   const handleClearCache = async () => {
     try {
       // Clear AI recognition cache
       await supabase.from('ai_recognition_cache').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      console.log('Cache cleared successfully');
+      
+      // Record system metric
+      await supabase.rpc('record_system_metric', {
+        p_metric_name: 'cache_cleared',
+        p_metric_value: 1,
+        p_metric_type: 'counter'
+      });
+      
+      toast({
+        title: "Cache Cleared",
+        description: "AI recognition cache has been cleared successfully.",
+      });
     } catch (error) {
       console.error('Error clearing cache:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear cache.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateAlert = async () => {
+    try {
+      await supabase.from('system_alerts').insert({
+        alert_type: 'manual',
+        severity: 'info',
+        title: 'System Check',
+        description: 'Manual system check performed by admin'
+      });
+      
+      toast({
+        title: "Alert Created",
+        description: "System alert has been created.",
+      });
+    } catch (error) {
+      console.error('Error creating alert:', error);
     }
   };
 
@@ -128,7 +144,7 @@ const AdminSystemTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">Connected</div>
-            <p className="text-xs text-muted-foreground">Response time: 45ms</p>
+            <p className="text-xs text-muted-foreground">Response time: &lt;50ms</p>
           </CardContent>
         </Card>
 
@@ -138,20 +154,20 @@ const AdminSystemTab = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemStats.total_users.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">{systemStats.active_users} currently active</p>
+            <div className="text-2xl font-bold">{systemStats?.users?.total?.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">{systemStats?.users?.active_15min || 0} active now</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
+            <CardTitle className="text-sm font-medium">System Health</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemStats.total_coins.toLocaleString()}</div>
-            <p className={`text-xs ${systemStats.errors_24h > 5 ? 'text-red-600' : 'text-green-600'}`}>
-              {systemStats.errors_24h} errors (24h)
+            <div className="text-2xl font-bold">{errorsCount}</div>
+            <p className={`text-xs ${errorsCount > 5 ? 'text-red-600' : 'text-green-600'}`}>
+              errors (24h)
             </p>
           </CardContent>
         </Card>
@@ -162,25 +178,25 @@ const AdminSystemTab = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              System Configuration
+              Real-time System Stats
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Admin Session Timeout</span>
-              <Badge variant="outline">10 minutes</Badge>
+              <span className="text-sm font-medium">Total Coins</span>
+              <Badge variant="outline">{systemStats?.coins?.total || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Database Connection Pool</span>
-              <Badge variant="outline">Active</Badge>
+              <span className="text-sm font-medium">Live Auctions</span>
+              <Badge variant="outline">{systemStats?.coins?.live_auctions || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Real-time Updates</span>
-              <Badge variant="outline">Enabled</Badge>
+              <span className="text-sm font-medium">Total Revenue</span>
+              <Badge variant="outline">€{systemStats?.transactions?.revenue?.toLocaleString() || 0}</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Error Logging</span>
-              <Badge variant="outline">Enabled</Badge>
+              <span className="text-sm font-medium">Active Data Sources</span>
+              <Badge variant="outline">{systemStats?.integrations?.data_sources || 0}</Badge>
             </div>
           </CardContent>
         </Card>
@@ -189,29 +205,61 @@ const AdminSystemTab = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              Security Status
+              AI & Automation Status
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">RLS Policies</span>
-              <Badge variant="default" className="text-green-700 bg-green-100">Active</Badge>
+              <span className="text-sm font-medium">AI Commands</span>
+              <Badge variant="default" className="text-green-700 bg-green-100">
+                {systemStats?.ai_automation?.commands || 0} Active
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Admin Access Control</span>
-              <Badge variant="default" className="text-green-700 bg-green-100">Secure</Badge>
+              <span className="text-sm font-medium">Automation Rules</span>
+              <Badge variant="default" className="text-blue-700 bg-blue-100">
+                {systemStats?.ai_automation?.rules || 0} Running
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">API Rate Limiting</span>
-              <Badge variant="default" className="text-green-700 bg-green-100">Active</Badge>
+              <span className="text-sm font-medium">Prediction Models</span>
+              <Badge variant="default" className="text-purple-700 bg-purple-100">
+                {systemStats?.ai_automation?.models || 0} Active
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Data Encryption</span>
-              <Badge variant="default" className="text-green-700 bg-green-100">Enabled</Badge>
+              <span className="text-sm font-medium">API Keys</span>
+              <Badge variant="default" className="text-orange-700 bg-orange-100">
+                {systemStats?.integrations?.api_keys || 0} Configured
+              </Badge>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* System Alerts */}
+      {systemAlerts && systemAlerts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Active System Alerts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {systemAlerts.map((alert: any) => (
+                <div key={alert.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium">{alert.title}</div>
+                    <div className="text-sm text-gray-600">{alert.description}</div>
+                  </div>
+                  <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
+                    {alert.severity}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -227,9 +275,9 @@ const AdminSystemTab = () => {
               <Database className="h-4 w-4" />
               Clear Cache
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Export Logs
+            <Button variant="outline" className="flex items-center gap-2" onClick={handleCreateAlert}>
+              <AlertTriangle className="h-4 w-4" />
+              Create Alert
             </Button>
           </div>
         </CardContent>

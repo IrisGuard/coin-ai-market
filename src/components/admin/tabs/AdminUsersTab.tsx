@@ -31,7 +31,7 @@ const AdminUsersTab = () => {
     },
   });
 
-  // Get user roles separately
+  // Get user roles separately with proper error handling
   const { data: userRoles } = useQuery({
     queryKey: ['user-roles'],
     queryFn: async () => {
@@ -39,7 +39,10 @@ const AdminUsersTab = () => {
         .from('user_roles')
         .select('user_id, role');
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Could not fetch user roles:', error);
+        return [];
+      }
       return data || [];
     },
   });
@@ -52,6 +55,14 @@ const AdminUsersTab = () => {
         .eq('id', userId);
       
       if (error) throw error;
+      
+      // Log admin activity
+      await supabase.rpc('log_admin_activity', {
+        p_action: verified ? 'verify_dealer' : 'revoke_dealer',
+        p_target_type: 'profile',
+        p_target_id: userId,
+        p_details: { verified_dealer: verified }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -76,6 +87,14 @@ const AdminUsersTab = () => {
         .insert({ user_id: userId, role: 'admin' });
       
       if (error) throw error;
+
+      // Log admin activity
+      await supabase.rpc('log_admin_activity', {
+        p_action: 'promote_to_admin',
+        p_target_type: 'user_role',
+        p_target_id: userId,
+        p_details: { role: 'admin' }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });

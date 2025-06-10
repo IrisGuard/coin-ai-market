@@ -34,7 +34,7 @@ const Index = () => {
       <div className="min-h-screen bg-white">
         <Navbar />
         
-        {/* 🚨 REMOVED AdminKeyboardHandler from Index - it's already in App.tsx */}
+        {/* 🚨 NO AdminKeyboardHandler here - it's ONLY in App.tsx */}
         
         {/* Enhanced Hero Section */}
         <div className="bg-white border-b border-gray-200 relative">

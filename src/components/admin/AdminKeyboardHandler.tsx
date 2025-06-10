@@ -43,8 +43,8 @@ const AdminKeyboardHandler = () => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
 
-    // Check timeout every minute
-    const timeoutInterval = setInterval(checkTimeout, 60000);
+    // Check timeout every 30 seconds for precise monitoring
+    const timeoutInterval = setInterval(checkTimeout, 30000);
     
     return () => {
       events.forEach(event => {

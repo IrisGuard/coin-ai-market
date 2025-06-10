@@ -43,17 +43,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('🔐 Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // 🚨 CRITICAL FIX: NO automatic admin redirects - users choose where to go
+        // 🚨 CRITICAL FIX: NO AUTOMATIC REDIRECTS - Users stay where they are
         if (event === 'SIGNED_IN' && session?.user) {
-          // Simple redirect to home page for all users - NO admin auto-redirect
-          setTimeout(() => {
-            navigate('/');
-          }, 100);
+          // Only redirect from auth page to home - NO admin redirects
+          if (window.location.pathname === '/auth') {
+            console.log('✅ Redirecting from auth page to home');
+            setTimeout(() => {
+              navigate('/');
+            }, 100);
+          }
+          // Users stay on current page otherwise
         }
       }
     );
