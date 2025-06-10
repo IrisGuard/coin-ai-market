@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
@@ -86,8 +85,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const makeCurrentUserAdmin = async (adminData: { fullName: string; email: string }): Promise<boolean> => {
     if (!user) {
       toast({
-        title: "Σφάλμα",
-        description: "Πρέπει να είστε συνδεδεμένος για να γίνετε admin",
+        title: "Error",
+        description: "You must be logged in to become an admin",
         variant: "destructive",
       });
       return false;
@@ -123,16 +122,16 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAdminAuthenticated(true);
       
       toast({
-        title: "Επιτυχία!",
-        description: "Έχετε γίνει διαχειριστής του συστήματος",
+        title: "Success!",
+        description: "You are now an administrator",
       });
       
       return true;
     } catch (error: any) {
       console.error('Failed to make user admin:', error);
       toast({
-        title: "Σφάλμα",
-        description: error.message || 'Αποτυχία δημιουργίας admin',
+        title: "Error",
+        description: error.message || 'Failed to create admin',
         variant: "destructive",
       });
       return false;
@@ -142,8 +141,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const updateAdminProfile = async (updates: { fullName?: string; email?: string }): Promise<boolean> => {
     if (!user || !isAdmin) {
       toast({
-        title: "Σφάλμα",
-        description: "Μόνο admin μπορούν να ενημερώσουν το προφίλ τους",
+        title: "Error",
+        description: "Only admins can update their profile",
         variant: "destructive",
       });
       return false;
@@ -162,16 +161,16 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
 
       toast({
-        title: "Επιτυχία!",
-        description: "Το προφίλ σας ενημερώθηκε επιτυχώς",
+        title: "Success!",
+        description: "Your profile has been updated successfully",
       });
       
       return true;
     } catch (error: any) {
       console.error('Failed to update admin profile:', error);
       toast({
-        title: "Σφάλμα",
-        description: error.message || 'Αποτυχία ενημέρωσης προφίλ',
+        title: "Error",
+        description: error.message || 'Failed to update profile',
         variant: "destructive",
       });
       return false;
