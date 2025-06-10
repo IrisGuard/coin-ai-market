@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, X } from 'lucide-react';
-import { useBulkCreateApiKeys } from '@/hooks/useAdminData';
+import { useBulkCreateApiKeys } from '@/hooks/admin';
 
 interface Category {
   id: string;

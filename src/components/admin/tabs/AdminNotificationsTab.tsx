@@ -10,7 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { useNotifications } from '@/hooks/useAdminData';
+import { useNotifications } from '@/hooks/admin';
 import { Bell, Check } from 'lucide-react';
 
 const AdminNotificationsTab = () => {

@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, UserCheck, UserX, Shield } from 'lucide-react';
-import { useAdminUsers, useUpdateUserStatus } from '@/hooks/useAdminData';
+import { useAdminUsers, useUpdateUserStatus } from '@/hooks/admin';
 
 const AdminUsersTab = () => {
   const { data: users = [], isLoading } = useAdminUsers();

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/useAdminData';
+import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/admin';
 
 const AdminCoinsTab = () => {
   const { data: coins = [], isLoading } = useAdminCoins();

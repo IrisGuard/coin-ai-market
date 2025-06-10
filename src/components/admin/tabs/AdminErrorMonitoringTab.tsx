@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Bug, XCircle, AlertCircle } from 'lucide-react';
-import { useErrorLogs, useConsoleErrors } from '@/hooks/useAdminData';
+import { useErrorLogs, useConsoleErrors } from '@/hooks/admin';
 
 const AdminErrorMonitoringTab = () => {
   const { data: errorLogs = [], isLoading: errorLogsLoading } = useErrorLogs();

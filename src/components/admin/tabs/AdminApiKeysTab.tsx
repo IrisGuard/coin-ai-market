@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Upload } from 'lucide-react';
-import { useApiKeys, useApiKeyCategories } from '@/hooks/useAdminData';
+import { useApiKeys, useApiKeyCategories } from '@/hooks/admin';
 import BulkImportSection from '../api-keys/BulkImportSection';
 import AddKeyForm from '../api-keys/AddKeyForm';
 import CategorizedKeysDisplay from '../api-keys/CategorizedKeysDisplay';

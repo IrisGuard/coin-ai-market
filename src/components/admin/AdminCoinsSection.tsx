@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/useAdminData';
+import { useAdminCoins, useUpdateCoinStatus } from '@/hooks/admin';
 import { Coins, CheckCircle, XCircle, Eye } from 'lucide-react';
 
 const AdminCoinsSection = () => {

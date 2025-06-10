@@ -9,7 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { useTransactions } from '@/hooks/useAdminData';
+import { useTransactions } from '@/hooks/admin';
 import { DollarSign } from 'lucide-react';
 
 const AdminTransactionsTab = () => {

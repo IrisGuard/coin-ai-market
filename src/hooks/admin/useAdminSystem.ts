@@ -58,3 +58,24 @@ export const useAdminData = () => {
     },
   });
 };
+
+// Marketplace Stats Hook (for MarketplacePanelPage)
+export const useMarketplaceStats = () => {
+  return useQuery({
+    queryKey: ['marketplace-stats'],
+    queryFn: async () => {
+      // Get marketplace statistics
+      const [usersCount, coinsCount, dealersCount] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('coins').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('verified_dealer', true),
+      ]);
+
+      return {
+        registered_users: usersCount.count || 0,
+        listed_coins: coinsCount.count || 0,
+        verified_dealers: dealersCount.count || 0,
+      };
+    },
+  });
+};

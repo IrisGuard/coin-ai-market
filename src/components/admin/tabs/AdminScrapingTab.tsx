@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Play, Pause, RotateCcw, Activity } from 'lucide-react';
-import { useScrapingJobs } from '@/hooks/useAdminData';
+import { useScrapingJobs } from '@/hooks/admin';
 import ScrapingJobRow from '../components/ScrapingJobRow';
 
 interface ScrapingJob {
