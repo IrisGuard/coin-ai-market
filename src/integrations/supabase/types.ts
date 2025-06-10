@@ -2373,6 +2373,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_first_admin_safely: {
+        Args: {
+          target_user_id: string
+          admin_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
       enable_password_protection: {
         Args: Record<PropertyKey, never>
         Returns: Json

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
@@ -93,29 +94,33 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      // Update user profile
+      // First update the profile with the provided data
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: adminData.fullName,
           email: adminData.email,
-          role: 'admin'
         })
         .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        // Continue anyway, as the main goal is to create admin
+      }
 
-      // Add admin role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: user.id,
-          role: 'admin'
-        })
-        .single();
+      // Use the new secure function to create the first admin
+      const { data: adminCreated, error: adminError } = await supabase
+        .rpc('create_first_admin_safely', {
+          target_user_id: user.id,
+          admin_role: 'admin'
+        });
 
-      if (roleError && roleError.code !== '23505') { // Ignore duplicate key error
-        throw roleError;
+      if (adminError) {
+        throw new Error(adminError.message);
+      }
+
+      if (!adminCreated) {
+        throw new Error('Unable to create admin - an administrator may already exist');
       }
 
       setIsAdmin(true);
