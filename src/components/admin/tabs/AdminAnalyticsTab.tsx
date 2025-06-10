@@ -21,25 +21,29 @@ interface PerformanceData {
 
 const AdminAnalyticsTab = () => {
   // Get analytics data
-  const { data: analyticsData, isLoading } = useQuery({
+  const { data: analyticsDataRaw, isLoading } = useQuery({
     queryKey: ['analytics-dashboard'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_advanced_analytics_dashboard');
       if (error) throw error;
-      return data as AnalyticsData;
+      return data;
     },
     refetchInterval: 60000,
   });
 
   // Get performance metrics
-  const { data: performanceData, isLoading: perfLoading } = useQuery({
+  const { data: performanceDataRaw, isLoading: perfLoading } = useQuery({
     queryKey: ['performance-metrics'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_performance_metrics');
       if (error) throw error;
-      return data as PerformanceData;
+      return data;
     },
   });
+
+  // Safely cast the data
+  const analyticsData = analyticsDataRaw as AnalyticsData | null;
+  const performanceData = performanceDataRaw as PerformanceData | null;
 
   // Get page views
   const { data: pageViews, isLoading: viewsLoading } = useQuery({

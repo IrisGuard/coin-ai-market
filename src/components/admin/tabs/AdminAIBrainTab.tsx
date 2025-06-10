@@ -24,15 +24,18 @@ const AdminAIBrainTab = () => {
   const queryClient = useQueryClient();
 
   // Get AI Brain dashboard stats
-  const { data: aiStats, isLoading: statsLoading } = useQuery({
+  const { data: aiStatsRaw, isLoading: statsLoading } = useQuery({
     queryKey: ['ai-brain-stats'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_ai_brain_dashboard_stats');
       if (error) throw error;
-      return data as AIStatsData;
+      return data;
     },
     refetchInterval: 30000,
   });
+
+  // Safely cast the data
+  const aiStats = aiStatsRaw as AIStatsData | null;
 
   // Get AI Commands
   const { data: aiCommands, isLoading: commandsLoading } = useQuery({

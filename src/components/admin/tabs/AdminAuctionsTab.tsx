@@ -18,15 +18,18 @@ interface AuctionData {
 
 const AdminAuctionsTab = () => {
   // Get auction dashboard data
-  const { data: auctionData, isLoading } = useQuery({
+  const { data: auctionDataRaw, isLoading } = useQuery({
     queryKey: ['auction-dashboard'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_auction_dashboard_data');
       if (error) throw error;
-      return data as AuctionData;
+      return data;
     },
     refetchInterval: 30000,
   });
+
+  // Safely cast the data
+  const auctionData = auctionDataRaw as AuctionData | null;
 
   // Get active auctions
   const { data: activeAuctions, isLoading: auctionsLoading } = useQuery({
@@ -36,7 +39,7 @@ const AdminAuctionsTab = () => {
         .from('coins')
         .select(`
           *,
-          profiles:user_id (name)
+          profiles!coins_user_id_fkey (name)
         `)
         .eq('is_auction', true)
         .gt('auction_end', new Date().toISOString())
@@ -56,7 +59,7 @@ const AdminAuctionsTab = () => {
         .from('auction_bids')
         .select(`
           *,
-          profiles:bidder_id (name),
+          profiles!auction_bids_bidder_id_fkey (name),
           coins!auction_bids_auction_id_fkey (name, year)
         `)
         .order('created_at', { ascending: false })

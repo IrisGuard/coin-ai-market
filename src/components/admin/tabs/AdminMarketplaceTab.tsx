@@ -18,7 +18,7 @@ const AdminMarketplaceTab = () => {
   const { data: marketplaceStats, isLoading } = useQuery({
     queryKey: ['marketplace-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_comprehensive_admin_dashboard');
       if (error) throw error;
       return data as MarketplaceData;
     },
@@ -37,7 +37,7 @@ const AdminMarketplaceTab = () => {
             year,
             price,
             user_id,
-            profiles:user_id (name)
+            profiles!coins_user_id_fkey (name)
           )
         `)
         .order('created_at', { ascending: false })
@@ -56,7 +56,7 @@ const AdminMarketplaceTab = () => {
         .from('stores')
         .select(`
           *,
-          profiles:user_id (name, verified_dealer)
+          profiles!stores_user_id_fkey (name, verified_dealer)
         `)
         .order('created_at', { ascending: false });
       
