@@ -19,7 +19,10 @@ import {
   Bell,
   CreditCard,
   Grid3X3,
-  Store
+  Store,
+  Image,
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 
 const AdminTabsList = () => {
@@ -30,7 +33,10 @@ const AdminTabsList = () => {
     { value: 'coins', icon: Coins, label: 'Coins' },
     { value: 'error-coins', icon: AlertCircle, label: 'Error Coins' },
     { value: 'categories', icon: Grid3X3, label: 'Categories' },
+    { value: 'enhanced-categories', icon: Image, label: 'Enhanced Categories' },
     { value: 'store-management', icon: Store, label: 'Store Management' },
+    { value: 'enhanced-stores', icon: Activity, label: 'Enhanced Stores' },
+    { value: 'category-analytics', icon: TrendingUp, label: 'Category Analytics' },
     { value: 'data-sources', icon: Database, label: 'Data Sources' },
     { value: 'external-sources', icon: Globe, label: 'External Sources' },
     { value: 'scraping', icon: Zap, label: 'Scraping' },
