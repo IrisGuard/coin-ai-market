@@ -16,6 +16,29 @@ export const useRealTimeErrors = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    // First fetch recent errors
+    const fetchInitialErrors = async () => {
+      const { data, error } = await supabase
+        .from('error_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (!error && data) {
+        const formattedErrors = data.map(error => ({
+          id: error.id,
+          error_type: error.error_type,
+          message: error.message,
+          page_url: error.page_url,
+          created_at: error.created_at,
+          severity: determineSeverity(error)
+        }));
+        setRecentErrors(formattedErrors);
+      }
+    };
+
+    fetchInitialErrors();
+
     // Subscribe to real-time error updates
     const channel = supabase
       .channel('error-monitoring')

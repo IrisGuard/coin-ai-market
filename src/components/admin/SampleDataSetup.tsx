@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Coins, Users, Store, Database, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -33,7 +33,11 @@ const SampleDataSetup = () => {
     try {
       // Only create if there are fewer than 5 coins in the database
       if (existingCoinsCount >= 5) {
-        toast.error('Database already has sufficient coins. No sample data needed.');
+        toast({
+          title: "Database already has sufficient coins",
+          description: "No sample data needed.",
+          variant: "destructive"
+        });
         return;
       }
 
@@ -55,7 +59,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'american' as const,
+          category: 'american',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -74,7 +78,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'american' as const,
+          category: 'american',
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -93,7 +97,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'american' as const,
+          category: 'american',
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];
@@ -108,10 +112,17 @@ const SampleDataSetup = () => {
       }
 
       setExistingCoinsCount(existingCoinsCount + productionCoins.length);
-      toast.success(`Created ${productionCoins.length} production-quality coin listings.`);
+      toast({
+        title: "Success",
+        description: `Created ${productionCoins.length} production-quality coin listings.`
+      });
     } catch (error: any) {
       console.error('Error creating production data:', error);
-      toast.error(`Failed to create production data: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to create production data: ${error.message}`,
+        variant: "destructive"
+      });
     } finally {
       setIsCreating(false);
     }

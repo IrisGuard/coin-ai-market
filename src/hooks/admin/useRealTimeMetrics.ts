@@ -50,7 +50,7 @@ export const useRealTimeMetrics = () => {
         const liveAuctions = auctions?.length || 0;
         const recentActivity = recentCoins?.length || 0;
 
-        // Simulate system metrics
+        // Simulate system metrics that aren't easily obtainable from Supabase
         const systemLoad = Math.random() * 30 + 40; // 40-70%
         const responseTime = Math.random() * 100 + 80; // 80-180ms
 

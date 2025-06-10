@@ -7,13 +7,19 @@ interface ErrorStatsCardsProps {
 }
 
 const ErrorStatsCards = ({ recentErrors }: ErrorStatsCardsProps) => {
+  // Count errors by severity
+  const criticalCount = recentErrors.filter(e => e.severity === 'critical').length;
+  const highCount = recentErrors.filter(e => e.severity === 'high').length;
+  const mediumCount = recentErrors.filter(e => e.severity === 'medium').length;
+  const totalCount = recentErrors.length;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardContent className="p-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600">
-              {recentErrors.filter(e => e.severity === 'critical').length}
+              {criticalCount}
             </div>
             <div className="text-sm text-gray-600">Critical Errors</div>
           </div>
@@ -24,7 +30,7 @@ const ErrorStatsCards = ({ recentErrors }: ErrorStatsCardsProps) => {
         <CardContent className="p-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-orange-600">
-              {recentErrors.filter(e => e.severity === 'high').length}
+              {highCount}
             </div>
             <div className="text-sm text-gray-600">High Priority</div>
           </div>
@@ -35,7 +41,7 @@ const ErrorStatsCards = ({ recentErrors }: ErrorStatsCardsProps) => {
         <CardContent className="p-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {recentErrors.filter(e => e.severity === 'medium').length}
+              {mediumCount}
             </div>
             <div className="text-sm text-gray-600">Medium Priority</div>
           </div>
@@ -46,7 +52,7 @@ const ErrorStatsCards = ({ recentErrors }: ErrorStatsCardsProps) => {
         <CardContent className="p-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {recentErrors.length}
+              {totalCount}
             </div>
             <div className="text-sm text-gray-600">Total Recent</div>
           </div>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Activity, BarChart3, Eye } from 'lucide-react';
 import { useRealTimeErrors } from '@/hooks/admin/useRealTimeErrors';
-import { useErrorLogs, useErrorAnalytics, useConsoleErrors } from '@/hooks/admin';
+import { useErrorLogs, useConsoleErrors, useErrorAnalytics } from '@/hooks/admin/useErrorLogs';
 import RealTimeErrorsTab from '../error-monitoring/RealTimeErrorsTab';
 import ErrorAnalyticsTab from '../error-monitoring/ErrorAnalyticsTab';
 import ErrorLogsTab from '../error-monitoring/ErrorLogsTab';
@@ -12,9 +12,9 @@ import ConsoleErrorsTab from '../error-monitoring/ConsoleErrorsTab';
 
 const AdminErrorMonitoringTab = () => {
   const { recentErrors, isConnected } = useRealTimeErrors();
-  const { data: errorLogs } = useErrorLogs();
-  const { data: errorAnalytics } = useErrorAnalytics();
-  const { data: consoleErrors } = useConsoleErrors();
+  const { data: errorLogs, isLoading: logsLoading } = useErrorLogs();
+  const { data: errorAnalytics, isLoading: analyticsLoading } = useErrorAnalytics();
+  const { data: consoleErrors, isLoading: consoleLoading } = useConsoleErrors();
 
   return (
     <div className="space-y-6">
