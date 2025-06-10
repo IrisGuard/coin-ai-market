@@ -68,8 +68,8 @@ export const useCategoryUsageStats = () => {
       
       if (categoriesError) throw categoriesError;
       
-      // Create a mapping of category names to valid coin category values
-      const categoryMapping: { [key: string]: string } = {
+      // Create a mapping of category names to valid coin category values with proper typing
+      const categoryMapping: { [key: string]: 'ancient' | 'modern' | 'error_coin' | 'greek' | 'american' | 'british' | 'european' | 'asian' | 'gold' | 'silver' | 'commemorative' | 'unclassified' } = {
         'Ancient Coins': 'ancient',
         'Modern Coins': 'modern',
         'Error Coins': 'error_coin',
@@ -87,7 +87,7 @@ export const useCategoryUsageStats = () => {
       const categoriesWithStats = await Promise.all(
         (categories || []).map(async (category) => {
           // Map category name to valid coin category enum value
-          const coinCategory = categoryMapping[category.name] || 'unclassified';
+          const coinCategory = categoryMapping[category.name] || 'unclassified' as const;
           
           const { count } = await supabase
             .from('coins')
