@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,7 @@ import {
   Users, 
   Zap,
   Globe,
-  CPU,
+  Cpu,
   HardDrive,
   Wifi,
   AlertTriangle,
@@ -117,7 +116,7 @@ const AdminMonitoringDashboardTab = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <CPU className="w-5 h-5 text-blue-600" />
+                <Cpu className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium">CPU Usage</span>
               </div>
               <span className="text-lg font-bold">{systemMetrics.cpu_usage}%</span>
