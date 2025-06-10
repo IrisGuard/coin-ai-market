@@ -2357,6 +2357,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      configure_production_auth_security: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      configure_secure_otp_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       create_admin_user: {
         Args: { user_email: string }
         Returns: undefined
@@ -2364,6 +2372,10 @@ export type Database = {
       create_default_admin: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      enable_password_protection: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       encrypt_api_key_secure: {
         Args: { plain_key: string }
@@ -2417,6 +2429,10 @@ export type Database = {
         Returns: undefined
       }
       validate_enhanced_security_config: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_production_security_config: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
