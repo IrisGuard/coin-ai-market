@@ -40,11 +40,7 @@ const AdminKeyboardHandler = () => {
   const handleAdminLoginClose = () => {
     console.log('Admin login form closing');
     setShowAdminLogin(false);
-    // If user became admin during the process, navigate to admin panel
-    if (isAdminAuthenticated) {
-      console.log('User became admin, navigating to admin panel');
-      navigate('/admin');
-    }
+    // The AdminLoginForm now handles navigation internally
   };
 
   return (

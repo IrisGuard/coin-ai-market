@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, Crown, User, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2, AtSign } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import AdminSetupForm from './AdminSetupForm';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,8 +24,9 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { isAdmin } = useAdmin();
+  const { isAdmin, isAdminAuthenticated } = useAdmin();
   const { user, isAuthenticated, login, signup } = useAuth();
+  const navigate = useNavigate();
 
   const handleClose = () => {
     setShowSetupForm(false);
@@ -58,6 +60,16 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
     setShowSetupForm(true);
   };
 
+  const handleAdminSetupComplete = () => {
+    console.log('Admin setup completed, navigating to admin panel');
+    setShowSetupForm(false);
+    onClose();
+    // Navigate to admin panel after a short delay to ensure modal closes
+    setTimeout(() => {
+      navigate('/admin');
+    }, 100);
+  };
+
   // Handle automatic flow progression
   React.useEffect(() => {
     if (isAuthenticated && !isAdmin && !showSetupForm) {
@@ -66,14 +78,22 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
     }
   }, [isAuthenticated, isAdmin, showSetupForm]);
 
+  // Handle navigation when user becomes admin
+  React.useEffect(() => {
+    if (isAdminAuthenticated && !showSetupForm) {
+      console.log('User is now admin authenticated, closing modal and navigating');
+      handleClose();
+      setTimeout(() => {
+        navigate('/admin');
+      }, 100);
+    }
+  }, [isAdminAuthenticated, showSetupForm, navigate]);
+
   if (showSetupForm) {
     return (
       <AdminSetupForm 
         isOpen={true} 
-        onClose={() => {
-          setShowSetupForm(false);
-          onClose();
-        }} 
+        onClose={handleAdminSetupComplete}
       />
     );
   }
@@ -107,7 +127,10 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                 </p>
               </div>
               <Button 
-                onClick={handleClose}
+                onClick={() => {
+                  handleClose();
+                  navigate('/admin');
+                }}
                 className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium"
               >
                 Continue to Admin Panel
