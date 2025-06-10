@@ -17,15 +17,19 @@ export const useSystemHealth = () => {
         await supabase.from('profiles').select('id').limit(1);
         const apiResponseTime = Date.now() - startTime;
 
-        return {
+        const baseHealthData = {
           status: 'healthy',
           uptime: '99.9%',
           serverStatus: 'online',
           databaseStatus: 'connected',
           apiResponseTime,
-          lastChecked: new Date(),
-          ...data
+          lastChecked: new Date()
         };
+
+        // Only spread data if it exists and is an object
+        return data && typeof data === 'object' 
+          ? { ...baseHealthData, ...data }
+          : baseHealthData;
       } catch (error) {
         return {
           status: 'error',
