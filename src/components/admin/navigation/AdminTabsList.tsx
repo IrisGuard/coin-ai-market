@@ -17,7 +17,9 @@ import {
   AlertTriangle,
   AlertCircle,
   Bell,
-  CreditCard
+  CreditCard,
+  Grid3X3,
+  Store
 } from 'lucide-react';
 
 const AdminTabsList = () => {
@@ -27,6 +29,8 @@ const AdminTabsList = () => {
     { value: 'users', icon: Users, label: 'Users' },
     { value: 'coins', icon: Coins, label: 'Coins' },
     { value: 'error-coins', icon: AlertCircle, label: 'Error Coins' },
+    { value: 'categories', icon: Grid3X3, label: 'Categories' },
+    { value: 'store-management', icon: Store, label: 'Store Management' },
     { value: 'data-sources', icon: Database, label: 'Data Sources' },
     { value: 'external-sources', icon: Globe, label: 'External Sources' },
     { value: 'scraping', icon: Zap, label: 'Scraping' },

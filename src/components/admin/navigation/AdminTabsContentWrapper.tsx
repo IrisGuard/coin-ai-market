@@ -16,6 +16,8 @@ import AdminErrorMonitoringTab from '../tabs/AdminErrorMonitoringTab';
 import AdminErrorCoinsTab from '../tabs/AdminErrorCoinsTab';
 import AdminNotificationsTab from '../tabs/AdminNotificationsTab';
 import AdminTransactionsTab from '../tabs/AdminTransactionsTab';
+import AdminCategoriesTab from '../tabs/AdminCategoriesTab';
+import AdminStoreManagementTab from '../tabs/AdminStoreManagementTab';
 
 const AdminTabsContentWrapper = () => {
   return (
@@ -38,6 +40,14 @@ const AdminTabsContentWrapper = () => {
 
       <TabsContent value="error-coins" className="space-y-4">
         <AdminErrorCoinsTab />
+      </TabsContent>
+
+      <TabsContent value="categories" className="space-y-4">
+        <AdminCategoriesTab />
+      </TabsContent>
+
+      <TabsContent value="store-management" className="space-y-4">
+        <AdminStoreManagementTab />
       </TabsContent>
       
       <TabsContent value="data-sources" className="space-y-4">
