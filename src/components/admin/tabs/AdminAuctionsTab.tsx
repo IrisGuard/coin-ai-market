@@ -59,7 +59,7 @@ const AdminAuctionsTab = () => {
     },
   });
 
-  // Get recent bids
+  // Get recent bids - fix the relation
   const { data: recentBids, isLoading: bidsLoading } = useQuery({
     queryKey: ['recent-bids'],
     queryFn: async () => {
@@ -67,7 +67,6 @@ const AdminAuctionsTab = () => {
         .from('auction_bids')
         .select(`
           *,
-          profiles:bidder_id (name),
           coins!auction_bids_auction_id_fkey (name, year)
         `)
         .order('created_at', { ascending: false })
@@ -79,6 +78,31 @@ const AdminAuctionsTab = () => {
       }
       return data || [];
     },
+  });
+
+  // Get bidder profiles separately
+  const { data: bidderProfiles } = useQuery({
+    queryKey: ['bidder-profiles', recentBids],
+    queryFn: async () => {
+      if (!recentBids?.length) return {};
+      
+      const bidderIds = [...new Set(recentBids.map(bid => bid.bidder_id))];
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', bidderIds);
+      
+      if (error) {
+        console.error('Error fetching bidder profiles:', error);
+        return {};
+      }
+      
+      return (data || []).reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+    },
+    enabled: !!recentBids?.length,
   });
 
   return (
@@ -199,7 +223,7 @@ const AdminAuctionsTab = () => {
                   <div className="flex-1">
                     <div className="font-medium">€{bid.amount}</div>
                     <div className="text-sm text-muted-foreground">
-                      Bidder: {bid.profiles?.name || 'Anonymous'} • 
+                      Bidder: {bidderProfiles?.[bid.bidder_id]?.name || 'Anonymous'} • 
                       Coin: {bid.coins?.name || 'Unknown'} ({bid.coins?.year})
                     </div>
                     <div className="flex gap-2 mt-2">

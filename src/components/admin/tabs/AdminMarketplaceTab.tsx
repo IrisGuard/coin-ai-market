@@ -36,8 +36,7 @@ const AdminMarketplaceTab = () => {
             name,
             year,
             price,
-            user_id,
-            profiles!coins_user_id_fkey (name)
+            user_id
           )
         `)
         .order('created_at', { ascending: false })
@@ -48,6 +47,31 @@ const AdminMarketplaceTab = () => {
     },
   });
 
+  // Get coin owners separately for listings
+  const { data: coinOwners } = useQuery({
+    queryKey: ['coin-owners', listings],
+    queryFn: async () => {
+      if (!listings?.length) return {};
+      
+      const userIds = [...new Set(listings.map(listing => listing.coins?.user_id).filter(Boolean))];
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', userIds);
+      
+      if (error) {
+        console.error('Error fetching coin owners:', error);
+        return {};
+      }
+      
+      return (data || []).reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+    },
+    enabled: !!listings?.length,
+  });
+
   // Get stores
   const { data: stores, isLoading: storesLoading } = useQuery({
     queryKey: ['stores'],
@@ -55,14 +79,38 @@ const AdminMarketplaceTab = () => {
       const { data, error } = await supabase
         .from('stores')
         .select(`
-          *,
-          profiles!stores_user_id_fkey (name, verified_dealer)
+          *
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data || [];
     },
+  });
+
+  // Get store owners separately
+  const { data: storeOwners } = useQuery({
+    queryKey: ['store-owners', stores],
+    queryFn: async () => {
+      if (!stores?.length) return {};
+      
+      const userIds = [...new Set(stores.map(store => store.user_id))];
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, verified_dealer')
+        .in('id', userIds);
+      
+      if (error) {
+        console.error('Error fetching store owners:', error);
+        return {};
+      }
+      
+      return (data || []).reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+    },
+    enabled: !!stores?.length,
   });
 
   return (
@@ -148,7 +196,7 @@ const AdminMarketplaceTab = () => {
                   <div className="flex-1">
                     <div className="font-medium">{listing.coins?.name || 'Unknown Coin'}</div>
                     <div className="text-sm text-muted-foreground">
-                      Year: {listing.coins?.year} • Listed by: {listing.coins?.profiles?.name || 'Unknown'}
+                      Year: {listing.coins?.year} • Listed by: {coinOwners?.[listing.coins?.user_id]?.name || 'Unknown'}
                     </div>
                     <div className="flex gap-2 mt-2">
                       <Badge variant={listing.status === 'active' ? "default" : "secondary"}>
@@ -197,7 +245,7 @@ const AdminMarketplaceTab = () => {
                         {store.verified ? "Verified" : "Unverified"}
                       </Badge>
                       <Badge variant="outline">
-                        Owner: {store.profiles?.name || 'Unknown'}
+                        Owner: {storeOwners?.[store.user_id]?.name || 'Unknown'}
                       </Badge>
                     </div>
                   </div>
