@@ -17,7 +17,11 @@ import {
   Key,
   BarChart3,
   Store,
-  Gavel
+  Gavel,
+  FileText,
+  Settings,
+  ScrollText,
+  HardDrive
 } from 'lucide-react';
 import AdminSystemTab from './tabs/AdminSystemTab';
 import AdminUsersTab from './tabs/AdminUsersTab';
@@ -27,6 +31,10 @@ import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
 import AdminMarketplaceTab from './tabs/AdminMarketplaceTab';
 import AdminAuctionsTab from './tabs/AdminAuctionsTab';
 import AdminAnalyticsTab from './tabs/AdminAnalyticsTab';
+import AdminReportsTab from './tabs/AdminReportsTab';
+import AdminSettingsTab from './tabs/AdminSettingsTab';
+import AdminLogsTab from './tabs/AdminLogsTab';
+import AdminBackupTab from './tabs/AdminBackupTab';
 
 const ConsolidatedAdminPanel: React.FC = () => {
   const { isAdmin, isAdminAuthenticated, isLoading, sessionTimeLeft, logoutAdmin } = useAdmin();
@@ -102,7 +110,7 @@ const ConsolidatedAdminPanel: React.FC = () => {
 
         {/* Main Admin Tabs */}
         <Tabs defaultValue="system" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-12">
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               System
@@ -134,6 +142,22 @@ const ConsolidatedAdminPanel: React.FC = () => {
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Reports
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="flex items-center gap-2">
+              <ScrollText className="h-4 w-4" />
+              Logs
+            </TabsTrigger>
+            <TabsTrigger value="backup" className="flex items-center gap-2">
+              <HardDrive className="h-4 w-4" />
+              Backup
             </TabsTrigger>
           </TabsList>
 
@@ -167,6 +191,22 @@ const ConsolidatedAdminPanel: React.FC = () => {
 
           <TabsContent value="analytics">
             <AdminAnalyticsTab />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <AdminReportsTab />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <AdminSettingsTab />
+          </TabsContent>
+
+          <TabsContent value="logs">
+            <AdminLogsTab />
+          </TabsContent>
+
+          <TabsContent value="backup">
+            <AdminBackupTab />
           </TabsContent>
         </Tabs>
       </div>
