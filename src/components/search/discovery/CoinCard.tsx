@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +15,10 @@ interface CoinCardProps {
     rarity?: string;
     featured?: boolean;
   };
+  onClick?: () => void;
 }
 
-const CoinCard: React.FC<CoinCardProps> = ({ coin }) => {
+const CoinCard: React.FC<CoinCardProps> = ({ coin, onClick }) => {
   return (
     <motion.div
       key={coin.id}
@@ -26,7 +26,10 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300">
+      <Card 
+        className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300"
+        onClick={onClick}
+      >
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-semibold text-sm text-gray-900 truncate flex-1 mr-2">

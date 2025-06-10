@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,17 +33,16 @@ const Auctions = () => {
     return hoursRemaining <= 24 && hoursRemaining > 0;
   }).length;
 
-  // Handle missing bid_count and watchers properties
+  // For hot auctions, we'll use views as a proxy since bid_count/watchers don't exist
   const hotAuctionsCount = auctions.filter(auction => {
-    const bidCount = auction.bid_count || 0;
-    const watchers = auction.watchers || 0;
-    return bidCount >= 5 || watchers >= 10;
+    const views = auction.views || 0;
+    return views >= 100; // Consider coins with 100+ views as "hot"
   }).length;
 
-  // Handle missing current_bid property
+  // Calculate total value using price since current_bid doesn't exist
   const totalValue = auctions.reduce((sum, auction) => {
-    const currentBid = auction.current_bid || auction.starting_bid || auction.price || 0;
-    return sum + currentBid;
+    const value = auction.price || auction.starting_bid || 0;
+    return sum + value;
   }, 0);
   
   const userBidsCount = myBids.length;

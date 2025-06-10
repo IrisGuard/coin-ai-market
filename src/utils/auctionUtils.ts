@@ -1,4 +1,3 @@
-
 export const filterAndSortAuctions = (auctions: any[], searchTerm: string, filterStatus: string, sortBy: string) => {
   if (!auctions) return [];
   
@@ -21,8 +20,7 @@ export const filterAndSortAuctions = (auctions: any[], searchTerm: string, filte
     filtered = filtered.filter(auction => {
       const endTime = new Date(auction.auction_end).getTime();
       const hoursRemaining = (endTime - now) / (1000 * 60 * 60);
-      const bidCount = auction.bid_count || 0;
-      const watchers = auction.watchers || 0;
+      const views = auction.views || 0;
       
       switch (filterStatus) {
         case 'ending_soon':
@@ -30,7 +28,7 @@ export const filterAndSortAuctions = (auctions: any[], searchTerm: string, filte
         case 'just_started':
           return hoursRemaining > 120; // More than 5 days
         case 'hot':
-          return bidCount >= 5 || watchers >= 10;
+          return views >= 100; // Use views as proxy for popularity
         default:
           return true;
       }
@@ -43,13 +41,13 @@ export const filterAndSortAuctions = (auctions: any[], searchTerm: string, filte
       case 'ending_soon':
         return new Date(a.auction_end).getTime() - new Date(b.auction_end).getTime();
       case 'highest_bid':
-        const aBid = a.current_bid || a.starting_bid || a.price || 0;
-        const bBid = b.current_bid || b.starting_bid || b.price || 0;
-        return bBid - aBid;
+        const aValue = a.price || a.starting_bid || 0;
+        const bValue = b.price || b.starting_bid || 0;
+        return bValue - aValue;
       case 'most_bids':
-        const aBidCount = a.bid_count || 0;
-        const bBidCount = b.bid_count || 0;
-        return bBidCount - aBidCount;
+        const aViews = a.views || 0;
+        const bViews = b.views || 0;
+        return bViews - aViews; // Use views as proxy for bid activity
       case 'newest':
       default:
         return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();

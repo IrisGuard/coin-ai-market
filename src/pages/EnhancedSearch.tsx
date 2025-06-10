@@ -13,7 +13,7 @@ import Footer from '@/components/Footer';
 import AdvancedSearchInterface from '@/components/search/AdvancedSearchInterface';
 import SmartSearchSuggestions from '@/components/search/SmartSearchSuggestions';
 import SearchAnalytics from '@/components/search/SearchAnalytics';
-import DiscoveryFeed from '@/components/search/DiscoveryFeed';
+import DiscoveryFeed from '@/components/search/discovery/DiscoveryFeed';
 import MarketplaceGrid from '@/components/marketplace/MarketplaceGrid';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
