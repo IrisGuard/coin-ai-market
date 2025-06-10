@@ -6,57 +6,41 @@ import { supabase } from '@/integrations/supabase/client';
 import { BarChart3, TrendingUp, Users, Activity, Eye, Search } from 'lucide-react';
 
 interface AnalyticsData {
-  active_users_24h: number;
-  searches_24h: number;
-  avg_session_time: number;
-  new_listings_24h: number;
-  avg_data_quality: number;
-}
-
-interface PerformanceData {
-  avg_response_time: number;
-  active_sessions: number;
-  errors_last_hour: number;
+  analytics?: {
+    searches_24h: number;
+    total_page_views: number;
+    total_favorites: number;
+    notifications_24h: number;
+    messages_24h: number;
+  };
+  users?: {
+    active_15min: number;
+    new_24h: number;
+  };
+  coins?: {
+    new_24h: number;
+  };
+  integrations?: {
+    avg_data_quality: number;
+  };
+  system?: {
+    avg_response_time: number;
+    console_errors_1h: number;
+    errors_24h: number;
+  };
 }
 
 const AdminAnalyticsTab = () => {
-  // Get analytics data
+  // Get comprehensive analytics data
   const { data: analyticsDataRaw, isLoading } = useQuery({
-    queryKey: ['analytics-dashboard'],
+    queryKey: ['comprehensive-analytics'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_comprehensive_dashboard_stats');
       if (error) throw error;
-      return data;
+      return data as AnalyticsData;
     },
     refetchInterval: 60000,
   });
-
-  // Get performance metrics
-  const { data: performanceDataRaw, isLoading: perfLoading } = useQuery({
-    queryKey: ['performance-metrics'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Safely cast the data with fallbacks
-  const analyticsData: AnalyticsData = {
-    active_users_24h: 0,
-    searches_24h: 0,
-    avg_session_time: 0,
-    new_listings_24h: 0,
-    avg_data_quality: 0,
-    ...(analyticsDataRaw as Partial<AnalyticsData> || {})
-  };
-
-  const performanceData: PerformanceData = {
-    avg_response_time: 0,
-    active_sessions: 0,
-    errors_last_hour: 0,
-    ...(performanceDataRaw as Partial<PerformanceData> || {})
-  };
 
   // Get page views
   const { data: pageViews, isLoading: viewsLoading } = useQuery({
@@ -101,13 +85,13 @@ const AdminAnalyticsTab = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Users (15min)</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.active_users_24h}</div>
+            <div className="text-2xl font-bold">{analyticsDataRaw?.users?.active_15min || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(analyticsData.avg_session_time)} min avg session
+              {analyticsDataRaw?.users?.new_24h || 0} new users today
             </p>
           </CardContent>
         </Card>
@@ -118,7 +102,7 @@ const AdminAnalyticsTab = () => {
             <Search className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.searches_24h}</div>
+            <div className="text-2xl font-bold">{analyticsDataRaw?.analytics?.searches_24h || 0}</div>
             <p className="text-xs text-muted-foreground">search queries</p>
           </CardContent>
         </Card>
@@ -129,7 +113,7 @@ const AdminAnalyticsTab = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.new_listings_24h}</div>
+            <div className="text-2xl font-bold">{analyticsDataRaw?.coins?.new_24h || 0}</div>
             <p className="text-xs text-muted-foreground">new coin listings</p>
           </CardContent>
         </Card>
@@ -141,7 +125,7 @@ const AdminAnalyticsTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(analyticsData.avg_data_quality * 100)}%
+              {Math.round((analyticsDataRaw?.integrations?.avg_data_quality || 0) * 100)}%
             </div>
             <p className="text-xs text-muted-foreground">average quality score</p>
           </CardContent>
@@ -160,19 +144,19 @@ const AdminAnalyticsTab = () => {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {Math.round(performanceData.avg_response_time)}ms
+                {Math.round(analyticsDataRaw?.system?.avg_response_time || 0)}ms
               </div>
               <p className="text-sm text-muted-foreground">Avg Response Time</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {performanceData.active_sessions}
+                {analyticsDataRaw?.users?.active_15min || 0}
               </div>
               <p className="text-sm text-muted-foreground">Active Sessions</p>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
-                {performanceData.errors_last_hour}
+                {analyticsDataRaw?.system?.console_errors_1h || 0}
               </div>
               <p className="text-sm text-muted-foreground">Errors (Last Hour)</p>
             </div>

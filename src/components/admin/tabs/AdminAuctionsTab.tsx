@@ -11,17 +11,19 @@ interface AuctionData {
   auctions: {
     active: number;
     ended: number;
-    bids_today: number;
+    bids_24h: number;
     avg_bid_amount: number;
+    total_bids: number;
+    active_bidders_7d: number;
   };
 }
 
 const AdminAuctionsTab = () => {
-  // Get auction dashboard data
-  const { data: auctionDataRaw, isLoading } = useQuery({
-    queryKey: ['auction-dashboard'],
+  // Get comprehensive dashboard data
+  const { data: dashboardDataRaw, isLoading } = useQuery({
+    queryKey: ['comprehensive-dashboard'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_comprehensive_dashboard_stats');
       if (error) throw error;
       return data;
     },
@@ -31,11 +33,12 @@ const AdminAuctionsTab = () => {
   // Safely cast with fallback
   const auctionData: AuctionData = {
     auctions: {
-      active: 0,
+      active: dashboardDataRaw?.auctions?.active || 0,
       ended: 0,
-      bids_today: 0,
-      avg_bid_amount: 0,
-      ...(auctionDataRaw as any)?.auctions || {}
+      bids_24h: dashboardDataRaw?.auctions?.bids_24h || 0,
+      avg_bid_amount: dashboardDataRaw?.auctions?.avg_bid_amount || 0,
+      total_bids: dashboardDataRaw?.auctions?.total_bids || 0,
+      active_bidders_7d: dashboardDataRaw?.auctions?.active_bidders_7d || 0,
     }
   };
 
@@ -59,7 +62,7 @@ const AdminAuctionsTab = () => {
     },
   });
 
-  // Get recent bids - fix the relation
+  // Get recent bids
   const { data: recentBids, isLoading: bidsLoading } = useQuery({
     queryKey: ['recent-bids'],
     queryFn: async () => {
@@ -135,7 +138,7 @@ const AdminAuctionsTab = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{auctionData.auctions.bids_today}</div>
+            <div className="text-2xl font-bold">{auctionData.auctions.bids_24h}</div>
             <p className="text-xs text-muted-foreground">bidding activity</p>
           </CardContent>
         </Card>
@@ -157,7 +160,7 @@ const AdminAuctionsTab = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{recentBids?.length || 0}</div>
+            <div className="text-2xl font-bold">{auctionData.auctions.active_bidders_7d}</div>
             <p className="text-xs text-muted-foreground">unique participants</p>
           </CardContent>
         </Card>

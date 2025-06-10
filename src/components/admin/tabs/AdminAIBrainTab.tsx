@@ -10,13 +10,16 @@ import { toast } from '@/hooks/use-toast';
 import { Brain, Zap, Settings, Play, Pause, Plus, Search, Activity } from 'lucide-react';
 
 interface AIStatsData {
-  active_commands: number;
-  active_automation_rules: number;
-  active_prediction_models: number;
-  pending_commands: number;
-  executions_24h: number;
-  average_prediction_confidence: number;
-  automation_rules_executed_24h: number;
+  ai_automation?: {
+    commands: number;
+    rules: number;
+    models: number;
+    executions_24h: number;
+    avg_confidence: number;
+  };
+  operations?: {
+    pending_bulk_operations: number;
+  };
 }
 
 const AdminAIBrainTab = () => {
@@ -25,26 +28,14 @@ const AdminAIBrainTab = () => {
 
   // Get AI Brain dashboard stats
   const { data: aiStatsRaw, isLoading: statsLoading } = useQuery({
-    queryKey: ['ai-brain-stats'],
+    queryKey: ['comprehensive-ai-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_comprehensive_dashboard_stats');
       if (error) throw error;
-      return data;
+      return data as AIStatsData;
     },
     refetchInterval: 30000,
   });
-
-  // Safely cast the data with fallback
-  const aiStats: AIStatsData = {
-    active_commands: 0,
-    active_automation_rules: 0,
-    active_prediction_models: 0,
-    pending_commands: 0,
-    executions_24h: 0,
-    average_prediction_confidence: 0,
-    automation_rules_executed_24h: 0,
-    ...(aiStatsRaw as Partial<AIStatsData> || {})
-  };
 
   // Get AI Commands
   const { data: aiCommands, isLoading: commandsLoading } = useQuery({
@@ -107,7 +98,7 @@ const AdminAIBrainTab = () => {
         title: "Command Executed",
         description: "AI command has been executed successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['ai-brain-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['comprehensive-ai-stats'] });
     },
     onError: (error: Error) => {
       toast({
@@ -154,9 +145,9 @@ const AdminAIBrainTab = () => {
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats.active_commands}</div>
+            <div className="text-2xl font-bold">{aiStatsRaw?.ai_automation?.commands || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {aiStats.executions_24h} executions today
+              {aiStatsRaw?.ai_automation?.executions_24h || 0} executions today
             </p>
           </CardContent>
         </Card>
@@ -167,10 +158,8 @@ const AdminAIBrainTab = () => {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats.active_automation_rules}</div>
-            <p className="text-xs text-muted-foreground">
-              {aiStats.automation_rules_executed_24h} executed today
-            </p>
+            <div className="text-2xl font-bold">{aiStatsRaw?.ai_automation?.rules || 0}</div>
+            <p className="text-xs text-muted-foreground">active automation rules</p>
           </CardContent>
         </Card>
 
@@ -180,9 +169,9 @@ const AdminAIBrainTab = () => {
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats.active_prediction_models}</div>
+            <div className="text-2xl font-bold">{aiStatsRaw?.ai_automation?.models || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round(aiStats.average_prediction_confidence * 100)}% avg confidence
+              {Math.round((aiStatsRaw?.ai_automation?.avg_confidence || 0) * 100)}% avg confidence
             </p>
           </CardContent>
         </Card>
@@ -193,8 +182,8 @@ const AdminAIBrainTab = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{aiStats.pending_commands}</div>
-            <p className="text-xs text-muted-foreground">commands waiting</p>
+            <div className="text-2xl font-bold">{aiStatsRaw?.operations?.pending_bulk_operations || 0}</div>
+            <p className="text-xs text-muted-foreground">operations waiting</p>
           </CardContent>
         </Card>
       </div>

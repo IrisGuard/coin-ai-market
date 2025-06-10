@@ -8,17 +8,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { Store, TrendingUp, Users, Package, DollarSign } from 'lucide-react';
 
 interface MarketplaceData {
-  earnings?: {
-    total: number;
+  marketplace?: {
+    total_stores: number;
+    verified_stores: number;
+    active_stores: number;
+    total_listings: number;
+    active_listings: number;
+  };
+  transactions?: {
+    total_revenue: number;
   };
 }
 
 const AdminMarketplaceTab = () => {
-  // Get marketplace stats
-  const { data: marketplaceStats, isLoading } = useQuery({
-    queryKey: ['marketplace-stats'],
+  // Get comprehensive dashboard stats
+  const { data: dashboardStats, isLoading } = useQuery({
+    queryKey: ['comprehensive-dashboard'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      const { data, error } = await supabase.rpc('get_comprehensive_dashboard_stats');
       if (error) throw error;
       return data as MarketplaceData;
     },
@@ -130,9 +137,9 @@ const AdminMarketplaceTab = () => {
             <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stores?.filter(store => store.is_active).length || 0}</div>
+            <div className="text-2xl font-bold">{dashboardStats?.marketplace?.active_stores || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {stores?.filter(store => store.verified).length || 0} verified
+              {dashboardStats?.marketplace?.verified_stores || 0} verified
             </p>
           </CardContent>
         </Card>
@@ -143,9 +150,9 @@ const AdminMarketplaceTab = () => {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{listings?.filter(listing => listing.status === 'active').length || 0}</div>
+            <div className="text-2xl font-bold">{dashboardStats?.marketplace?.active_listings || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {listings?.length || 0} total listings
+              {dashboardStats?.marketplace?.total_listings || 0} total listings
             </p>
           </CardContent>
         </Card>
@@ -157,7 +164,7 @@ const AdminMarketplaceTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{marketplaceStats?.earnings?.total?.toLocaleString() || '0'}
+              €{dashboardStats?.transactions?.total_revenue?.toLocaleString() || '0'}
             </div>
             <p className="text-xs text-muted-foreground">lifetime earnings</p>
           </CardContent>
