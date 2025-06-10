@@ -1,4 +1,3 @@
-
 // Admin hook exports
 export * from './useAdminUsers';
 export * from './useAdminCoins';
@@ -11,3 +10,4 @@ export * from './useAdminDataSources';
 export * from './useAdminStores';
 export * from './useCoinAnalytics';
 export * from './useBulkCoinOperations';
+export * from './useEnhancedCategories';

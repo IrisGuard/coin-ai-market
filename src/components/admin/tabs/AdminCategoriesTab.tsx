@@ -1,17 +1,21 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Grid3X3, Plus, BarChart3, Settings } from 'lucide-react';
+import EnhancedCategoryManager from '../enhanced/EnhancedCategoryManager';
+import CategoryAnalyticsDashboard from '../enhanced/CategoryAnalyticsDashboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useCategories';
-import { Grid3X3, Plus, Edit, Trash2, Upload, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-const AdminCategoriesTab = () => {
+// Keep the original category management form as a fallback
+const OriginalCategoryForm = () => {
   const { data: categories, isLoading } = useCategories();
   const createCategoryMutation = useCreateCategory();
   const updateCategoryMutation = useUpdateCategory();
@@ -99,16 +103,15 @@ const AdminCategoriesTab = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Grid3X3 className="w-5 h-5" />
-            Category Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Settings className="w-5 h-5" />
+          Basic Category Settings
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
             {/* Create New Category Form */}
             <div className="border rounded-lg p-4 bg-gray-50">
               <h3 className="text-lg font-medium mb-4">Create New Category</h3>
@@ -286,6 +289,50 @@ const AdminCategoriesTab = () => {
               )}
             </div>
           </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const AdminCategoriesTab = () => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Grid3X3 className="w-5 h-5" />
+            Enhanced Categories Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="manager" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="manager" className="flex items-center gap-2">
+                <Grid3X3 className="w-4 h-4" />
+                Category Manager
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Analytics Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="manager" className="mt-6">
+              <EnhancedCategoryManager />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="mt-6">
+              <CategoryAnalyticsDashboard />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-6">
+              <OriginalCategoryForm />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
