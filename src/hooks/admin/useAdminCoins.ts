@@ -1,7 +1,9 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+// Admin Coins Hook
 export const useAdminCoins = () => {
   return useQuery({
     queryKey: ['admin-coins'],
@@ -10,7 +12,7 @@ export const useAdminCoins = () => {
         .from('coins')
         .select(`
           *,
-          profiles(
+          profiles!coins_user_id_fkey (
             id,
             name,
             email
@@ -24,6 +26,7 @@ export const useAdminCoins = () => {
   });
 };
 
+// Update Coin Status Mutation
 export const useUpdateCoinStatus = () => {
   const queryClient = useQueryClient();
   
@@ -39,14 +42,14 @@ export const useUpdateCoinStatus = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
       toast({
-        title: "Status Updated",
-        description: "Coin status has been updated successfully.",
+        title: "Success",
+        description: "Coin status updated successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        description: error.message,
         variant: "destructive",
       });
     },

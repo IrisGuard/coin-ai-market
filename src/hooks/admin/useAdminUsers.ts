@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+// Admin Users Hook
 export const useAdminUsers = () => {
   return useQuery({
     queryKey: ['admin-users'],
@@ -18,6 +19,7 @@ export const useAdminUsers = () => {
   });
 };
 
+// Update User Status Mutation
 export const useUpdateUserStatus = () => {
   const queryClient = useQueryClient();
   
@@ -33,14 +35,14 @@ export const useUpdateUserStatus = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: "User Updated",
-        description: "User status has been updated successfully.",
+        title: "Success",
+        description: "User status updated successfully.",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || 'An error occurred',
+        description: error.message,
         variant: "destructive",
       });
     },

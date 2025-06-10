@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+// Transactions Hook
 export const useTransactions = () => {
   return useQuery({
     queryKey: ['admin-transactions'],
@@ -10,17 +11,18 @@ export const useTransactions = () => {
         .from('transactions')
         .select(`
           *,
-          seller:profiles!transactions_seller_id_fkey(
+          seller:profiles!transactions_seller_id_fkey (
             id,
             name,
             email
           ),
-          buyer:profiles!transactions_buyer_id_fkey(
+          buyer:profiles!transactions_buyer_id_fkey (
             id,
             name,
             email
           ),
-          coin:coins!transactions_coin_id_fkey(
+          coin:coins!transactions_coin_id_fkey (
+            id,
             name,
             image
           )
@@ -32,6 +34,3 @@ export const useTransactions = () => {
     },
   });
 };
-
-// Alias for backward compatibility
-export const useAdminTransactions = useTransactions;

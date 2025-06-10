@@ -3,9 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+// API Keys Hook
 export const useApiKeys = () => {
   return useQuery({
-    queryKey: ['api-keys'],
+    queryKey: ['admin-api-keys'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('api_keys')
@@ -18,6 +19,7 @@ export const useApiKeys = () => {
   });
 };
 
+// API Key Categories Hook
 export const useApiKeyCategories = () => {
   return useQuery({
     queryKey: ['api-key-categories'],
@@ -33,85 +35,68 @@ export const useApiKeyCategories = () => {
   });
 };
 
+// Create API Key Mutation
 export const useCreateApiKey = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (keyData: {
-      key_name: string;
-      encrypted_value: string;
-      description?: string;
-      category_id?: string | null;
+    mutationFn: async (keyData: { 
+      key_name: string; 
+      encrypted_value: string; 
+      description?: string; 
+      category_id?: string 
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('api_keys')
-        .insert([{ 
-          ...keyData,
-          created_by: user?.id
-        }])
-        .select()
-        .single();
+        .insert([keyData]);
       
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-api-keys'] });
       toast({
-        title: "API Key Created",
-        description: "API key has been created successfully.",
+        title: "Success",
+        description: "API key created successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error as string,
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 };
 
+// Bulk Create API Keys Mutation
 export const useBulkCreateApiKeys = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (keysData: Array<{
-      name: string;
-      value: string;
-      description?: string;
-      category_id?: string | null;
+    mutationFn: async (keysData: Array<{ 
+      key_name: string; 
+      encrypted_value: string; 
+      description?: string; 
+      category_id?: string 
     }>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const formattedKeys = keysData.map(key => ({
-        key_name: key.name,
-        encrypted_value: key.value,
-        description: key.description,
-        created_by: user?.id
-      }));
-      
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('api_keys')
-        .insert(formattedKeys)
-        .select();
+        .insert(keysData);
       
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-api-keys'] });
       toast({
-        title: "API Keys Imported",
-        description: "API keys have been imported successfully.",
+        title: "Success",
+        description: "API keys imported successfully.",
       });
     },
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error as string,
+        description: error.message,
         variant: "destructive",
       });
     },

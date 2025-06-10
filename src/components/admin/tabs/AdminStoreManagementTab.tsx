@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useDealerStores } from '@/hooks/useDealerStores';
-import { useAdminCoins } from '@/hooks/useAdminData';
+import { useAdminCoins } from '@/hooks/admin/useAdminCoins';
 import { Store, Eye, Edit, Trash2, Users, Package, TrendingUp, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 

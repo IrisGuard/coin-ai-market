@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAdminData } from '@/hooks/useAdminData';
+import { useAdminData } from '@/hooks/admin/useAdminSystem';
 import { Activity, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
 const AdminSystemSection = () => {
