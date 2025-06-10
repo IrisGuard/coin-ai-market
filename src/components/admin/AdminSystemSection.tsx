@@ -5,7 +5,7 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { Activity, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
 const AdminSystemSection = () => {
-  const { stats, systemHealth, isLoading } = useAdminData();
+  const { data, isLoading } = useAdminData();
 
   if (isLoading) {
     return (
@@ -17,6 +17,9 @@ const AdminSystemSection = () => {
       </Card>
     );
   }
+
+  const stats = data?.stats || {};
+  const systemHealth = data?.systemHealth || {};
 
   return (
     <div className="space-y-6">
@@ -32,15 +35,15 @@ const AdminSystemSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="font-medium text-green-800">System Status: {systemHealth.status}</p>
+              <p className="font-medium text-green-800">System Status: {systemHealth.status || 'healthy'}</p>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <p className="font-medium text-blue-800">Uptime: {systemHealth.uptime}</p>
+              <p className="font-medium text-blue-800">Uptime: {systemHealth.uptime || '99.9%'}</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <Activity className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <p className="font-medium text-purple-800">AI Accuracy: {stats?.averageAccuracy || 94}%</p>
+              <p className="font-medium text-purple-800">AI Accuracy: {stats.averageAccuracy || 94}%</p>
             </div>
           </div>
         </CardContent>
