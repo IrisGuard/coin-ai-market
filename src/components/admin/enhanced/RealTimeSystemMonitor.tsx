@@ -9,16 +9,28 @@ import {
   Zap, Database, Server, TrendingUp, Bell
 } from 'lucide-react';
 import { useSystemPerformanceMetrics, useSystemAlerts, usePerformanceBenchmarks, useResolveAlert, useCreateSystemAlert } from '@/hooks/admin/useSystemMonitoring';
+import { useSystemHealth } from '@/hooks/admin/useRealTimeMonitoring';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area } from 'recharts';
+
+interface PerformanceMetrics {
+  avg_response_time: number;
+  errors_last_hour: number;
+  active_sessions: number;
+  system_health: string;
+}
 
 const RealTimeSystemMonitor = () => {
   const { data: performanceMetrics, isLoading: metricsLoading } = useSystemPerformanceMetrics();
   const { data: alerts } = useSystemAlerts();
   const { data: benchmarks } = usePerformanceBenchmarks();
+  const { data: health, isLoading: healthLoading } = useSystemHealth();
   const resolveAlert = useResolveAlert();
   const createAlert = useCreateSystemAlert();
 
   const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
+
+  // Type cast the performance metrics
+  const typedMetrics = performanceMetrics as PerformanceMetrics;
 
   const getSystemHealthColor = (health: string) => {
     switch (health) {
@@ -83,12 +95,12 @@ const RealTimeSystemMonitor = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">System Health</p>
-                <p className={`text-2xl font-bold ${getSystemHealthColor(performanceMetrics?.system_health || 'healthy')}`}>
-                  {performanceMetrics?.system_health || 'Healthy'}
+                <p className={`text-2xl font-bold ${getSystemHealthColor(typedMetrics?.system_health || 'healthy')}`}>
+                  {typedMetrics?.system_health || 'Healthy'}
                 </p>
               </div>
-              <div className={`p-3 rounded-lg ${getSystemHealthBg(performanceMetrics?.system_health || 'healthy')}`}>
-                <Activity className={`w-6 h-6 ${getSystemHealthColor(performanceMetrics?.system_health || 'healthy')}`} />
+              <div className={`p-3 rounded-lg ${getSystemHealthBg(typedMetrics?.system_health || 'healthy')}`}>
+                <Activity className={`w-6 h-6 ${getSystemHealthColor(typedMetrics?.system_health || 'healthy')}`} />
               </div>
             </div>
           </CardContent>
@@ -100,7 +112,7 @@ const RealTimeSystemMonitor = () => {
               <div>
                 <p className="text-sm text-gray-600">Avg Response Time</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {Math.round(performanceMetrics?.avg_response_time || 0)}ms
+                  {Math.round(typedMetrics?.avg_response_time || 0)}ms
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-blue-50">
@@ -116,7 +128,7 @@ const RealTimeSystemMonitor = () => {
               <div>
                 <p className="text-sm text-gray-600">Active Sessions</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {performanceMetrics?.active_sessions || 0}
+                  {typedMetrics?.active_sessions || 0}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-green-50">
@@ -132,7 +144,7 @@ const RealTimeSystemMonitor = () => {
               <div>
                 <p className="text-sm text-gray-600">Errors (1h)</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {performanceMetrics?.errors_last_hour || 0}
+                  {typedMetrics?.errors_last_hour || 0}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-red-50">

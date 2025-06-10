@@ -9,51 +9,63 @@ import {
 import { useAdvancedAnalyticsDashboard, useUserAnalytics, useMarketAnalytics, useRevenueForecasts } from '@/hooks/admin/useAdvancedAnalytics';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
+interface DashboardData {
+  active_users_24h: number;
+  searches_24h: number;
+  revenue_24h: number;
+  avg_session_time: number;
+  new_listings_24h: number;
+  avg_data_quality: number;
+}
+
 const AdvancedAnalyticsDashboard = () => {
   const { data: dashboardData, isLoading: dashboardLoading } = useAdvancedAnalyticsDashboard();
   const { data: userAnalytics } = useUserAnalytics();
   const { data: marketAnalytics } = useMarketAnalytics();
   const { data: revenueForecasts } = useRevenueForecasts();
 
+  // Type cast the dashboard data
+  const typedDashboardData = dashboardData as DashboardData;
+
   const dashboardMetrics = [
     {
       title: 'Active Users (24h)',
-      value: dashboardData?.active_users_24h || 0,
+      value: typedDashboardData?.active_users_24h || 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
       title: 'Searches (24h)',
-      value: dashboardData?.searches_24h || 0,
+      value: typedDashboardData?.searches_24h || 0,
       icon: Search,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
       title: 'Revenue (24h)',
-      value: `$${(dashboardData?.revenue_24h || 0).toLocaleString()}`,
+      value: `$${(typedDashboardData?.revenue_24h || 0).toLocaleString()}`,
       icon: DollarSign,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
     },
     {
       title: 'Avg Session Time',
-      value: `${Math.round(dashboardData?.avg_session_time || 0)}m`,
+      value: `${Math.round(typedDashboardData?.avg_session_time || 0)}m`,
       icon: Activity,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50'
     },
     {
       title: 'New Listings (24h)',
-      value: dashboardData?.new_listings_24h || 0,
+      value: typedDashboardData?.new_listings_24h || 0,
       icon: TrendingUp,
       color: 'text-teal-600',
       bgColor: 'bg-teal-50'
     },
     {
       title: 'Data Quality Score',
-      value: `${Math.round((dashboardData?.avg_data_quality || 0) * 100)}%`,
+      value: `${Math.round((typedDashboardData?.avg_data_quality || 0) * 100)}%`,
       icon: BarChart3,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50'

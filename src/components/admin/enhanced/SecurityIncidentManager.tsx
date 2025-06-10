@@ -157,7 +157,7 @@ const SecurityIncidentManager = () => {
                         <div>
                           <span className="text-gray-500">Affected Users:</span>
                           <div className="font-medium">
-                            {incident.affected_users?.length || 0}
+                            {Array.isArray(incident.affected_users) ? incident.affected_users.length : 0}
                           </div>
                         </div>
                         <div>
@@ -321,7 +321,7 @@ const SecurityIncidentManager = () => {
                         {incident.severity_level}
                       </Badge>
                       <div className="text-sm text-gray-600 mt-1">
-                        Affected: {incident.affected_users?.length || 0} users
+                        Affected: {Array.isArray(incident.affected_users) ? incident.affected_users.length : 0} users
                       </div>
                     </div>
                   </div>

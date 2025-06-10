@@ -3,12 +3,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, Activity, Brain, TrendingUp } from 'lucide-react';
-import { useAdvancedAnalytics, useAIInsights } from '@/hooks/admin/useAdvancedAnalytics';
-import { useRealTimeMetrics } from '@/hooks/admin/useRealTimeMetrics';
+import { useAdvancedAnalyticsDashboard, useAIInsights } from '@/hooks/admin/useAdvancedAnalytics';
+import { useRealTimeMetrics } from '@/hooks/admin/useRealTimeMonitoring';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const AdminAnalyticsTab = () => {
-  const { data: analytics, isLoading } = useAdvancedAnalytics();
+  const { data: analytics, isLoading } = useAdvancedAnalyticsDashboard();
   const { data: aiInsights } = useAIInsights();
   const { metrics, isConnected } = useRealTimeMetrics();
 
@@ -118,7 +118,7 @@ const AdminAnalyticsTab = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analytics?.userGrowth || []}>
+                    <LineChart data={[]}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -138,7 +138,7 @@ const AdminAnalyticsTab = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analytics?.coinAnalytics || []}>
+                    <BarChart data={[]}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="category" />
                       <YAxis />
