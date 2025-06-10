@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -22,23 +23,21 @@ const ActiveMarketplace = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Fixed Top-Right Button - Absolute top corner */}
-      <div className="fixed top-1 right-1 z-50">
-        <Button 
-          onClick={() => setIsDealerSignupOpen(true)}
-          size="sm"
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-medium border-2 border-green-700 shadow-lg"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Open Store
-        </Button>
-      </div>
-      
       <NavigationBreadcrumb />
       
-      {/* Back Button */}
+      {/* Back Button and Open Store Button Row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <BackButton to="/" label="Back to Home" />
+        <div className="flex justify-between items-center">
+          <BackButton to="/" label="Back to Home" />
+          <Button 
+            onClick={() => setIsDealerSignupOpen(true)}
+            size="sm"
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-medium border-2 border-green-700 shadow-lg"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Open Store
+          </Button>
+        </div>
       </div>
       
       {/* Simple Marketplace Header */}
