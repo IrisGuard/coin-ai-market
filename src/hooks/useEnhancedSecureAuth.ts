@@ -96,7 +96,7 @@ export const useEnhancedSecureAuth = () => {
         variant: "destructive",
       });
       
-      auth.signOut();
+      auth.logout();
     } else if (!storedFingerprint) {
       sessionStorage.setItem('sessionFingerprint', currentFingerprint);
     }
@@ -122,7 +122,7 @@ export const useEnhancedSecureAuth = () => {
       const lastActivity = localStorage.getItem('lastActivity');
       if (lastActivity && Date.now() - parseInt(lastActivity) > SESSION_TIMEOUT) {
         logSecurityEvent('session_timeout', { lastActivity });
-        auth.signOut();
+        auth.logout();
         toast({
           title: "Session Expired",
           description: "Your session has expired due to inactivity. Please log in again.",
@@ -306,7 +306,7 @@ export const useEnhancedSecureAuth = () => {
     sessionStorage.removeItem('csrfToken');
     sessionStorage.removeItem('csrfTokenTime');
     
-    await auth.signOut();
+    await auth.logout();
   }, [auth, logSecurityEvent]);
 
   return {
