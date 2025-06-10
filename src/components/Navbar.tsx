@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, User, LogOut, Upload, Gavel, Brain, Store, Home, Menu, X } from 'lucide-react';
+import { Gavel, Brain, Store, Home, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/hooks/useI18n';
@@ -25,11 +25,6 @@ const Navbar = () => {
     { to: "/ai-features", icon: Brain, label: "AI Features", color: "text-electric-purple hover:text-electric-pink" },
   ];
 
-  const userLinks = user ? [
-    { to: "/upload", icon: Upload, label: "Upload", color: "text-electric-cyan hover:text-electric-blue" },
-    { to: "/dashboard", icon: User, label: "Dashboard", color: "text-electric-green hover:text-electric-emerald" },
-  ] : [];
-
   return (
     <>
       <motion.nav
@@ -49,7 +44,7 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* Desktop Navigation Links */}
+            {/* Desktop Navigation Links - Only Public Links */}
             <div className="hidden lg:flex items-center space-x-6">
               {navLinks.map((link) => (
                 <Link
@@ -61,36 +56,6 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              {userLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`flex items-center gap-2 ${link.color} transition-colors font-medium`}
-                >
-                  <link.icon className="w-4 h-4" />
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Desktop User Actions - Only show if user is authenticated */}
-            <div className="hidden lg:flex items-center space-x-3">
-              {user && (
-                <>
-                  <span className="text-sm text-gray-600">
-                    Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 text-electric-red hover:text-electric-orange"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </Button>
-                </>
-              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -108,7 +73,7 @@ const Navbar = () => {
         </div>
       </motion.nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Only Public Links */}
       {isMobileMenuOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -117,7 +82,7 @@ const Navbar = () => {
           className="lg:hidden bg-white border-b border-gray-200 shadow-lg"
         >
           <div className="container mx-auto px-4 py-4 space-y-4">
-            {/* Mobile Navigation Links */}
+            {/* Mobile Navigation Links - Only Public Links */}
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -129,37 +94,6 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            
-            {userLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center gap-3 p-2 rounded-lg ${link.color} transition-colors font-medium`}
-              >
-                <link.icon className="w-5 h-5" />
-                {link.label}
-              </Link>
-            ))}
-
-            {/* Mobile User Actions - Only show if user is authenticated */}
-            {user && (
-              <div className="pt-4 border-t border-gray-200">
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600 p-2">
-                    Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    onClick={handleLogout}
-                    className="w-full justify-start gap-2 text-electric-red hover:text-electric-orange"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         </motion.div>
       )}
