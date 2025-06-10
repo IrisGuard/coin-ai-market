@@ -1,340 +1,154 @@
 
 import React, { useState } from 'react';
+import { useAdmin } from '@/contexts/AdminContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Shield, Crown, User, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2, AtSign } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import AdminSetupForm from './AdminSetupForm';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, Eye, EyeOff, Clock } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface AdminLoginFormProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
-  const [showSetupForm, setShowSetupForm] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
+const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { isAdmin, authenticateAdmin, sessionTimeLeft } = useAdmin();
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { isAdmin, isAdminAuthenticated } = useAdmin();
-  const { user, isAuthenticated, login, signup } = useAuth();
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleClose = () => {
-    setShowSetupForm(false);
-    setEmail('');
-    setPassword('');
-    setName('');
-    setUsername('');
-    setIsSubmitting(false);
-    onClose();
-  };
-
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    setError('');
+    setIsAuthenticating(true);
 
-    setIsSubmitting(true);
     try {
-      if (isLogin) {
-        await login(email, password);
+      const success = await authenticateAdmin(password);
+      
+      if (success) {
+        toast({
+          title: "Admin Access Granted",
+          description: "Welcome to the admin panel. Session expires in 10 minutes.",
+        });
+        setPassword('');
+        onSuccess?.();
       } else {
-        await signup(email, password, { fullName: name, username });
+        setError('Invalid admin password. Password must be at least 12 characters.');
       }
-      // Don't close here - let the useEffect handle the flow
-    } catch (error: any) {
-      console.error('Auth error:', error);
-      setIsSubmitting(false);
+    } catch (error) {
+      setError('Authentication failed. Please try again.');
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
-  const handleBecomeAdmin = () => {
-    setShowSetupForm(true);
-  };
-
-  const handleAdminSetupComplete = () => {
-    console.log('✅ Admin setup completed, setting up session');
-    setShowSetupForm(false);
-    
-    // Set admin session με ΑΚΡΙΒΗ timestamp
-    const now = Date.now();
-    localStorage.setItem('adminSession', 'true');
-    sessionStorage.setItem('adminSessionTime', now.toString());
-    sessionStorage.setItem('adminAuthenticated', 'true');
-    sessionStorage.setItem('adminLastActivity', now.toString());
-    
-    onClose();
-    // Navigate to admin panel after a short delay
-    setTimeout(() => {
-      navigate('/admin');
-    }, 100);
-  };
-
-  // Handle automatic flow progression
-  React.useEffect(() => {
-    if (isAuthenticated && !isAdmin && !showSetupForm) {
-      setIsSubmitting(false);
-    }
-  }, [isAuthenticated, isAdmin, showSetupForm]);
-
-  // Handle navigation when user becomes admin
-  React.useEffect(() => {
-    if (isAdminAuthenticated && !showSetupForm) {
-      console.log('✅ User is now admin authenticated, closing modal and navigating');
-      handleClose();
-      setTimeout(() => {
-        navigate('/admin');
-      }, 100);
-    }
-  }, [isAdminAuthenticated, showSetupForm, navigate]);
-
-  if (showSetupForm) {
+  if (!isAdmin) {
     return (
-      <AdminSetupForm 
-        isOpen={true} 
-        onClose={handleAdminSetupComplete}
-      />
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-red-500" />
+              Access Denied
+            </DialogTitle>
+          </DialogHeader>
+          <Alert variant="destructive">
+            <AlertDescription>
+              You do not have administrative privileges to access this panel.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={onClose} variant="outline" className="w-full">
+            Close
+          </Button>
+        </DialogContent>
+      </Dialog>
     );
   }
 
+  const formatTimeLeft = (ms: number) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-br from-white to-gray-50 border-0 shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-center justify-center text-xl">
-            <Shield className="h-6 w-6 text-blue-600" />
-            Admin Panel Access
+          <DialogTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-blue-600" />
+            Admin Authentication Required
           </DialogTitle>
         </DialogHeader>
         
-        <AnimatePresence mode="wait">
-          {isAdmin ? (
-            <motion.div
-              key="admin-access"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="text-center space-y-6"
-            >
-              <Crown className="h-16 w-16 mx-auto text-yellow-600" />
-              <div>
-                <h3 className="text-lg font-semibold text-green-600 mb-2">
-                  You already have Admin access!
-                </h3>
-                <p className="text-sm text-gray-600">
-                  You can proceed to the admin panel
-                </p>
-                <p className="text-xs text-red-500 mt-2 font-medium">
-                  ⏰ Session expires after EXACTLY 10 minutes of inactivity
-                </p>
-              </div>
-              <Button 
-                onClick={() => {
-                  // Set admin session με ΑΚΡΙΒΗ timestamp
-                  const now = Date.now();
-                  localStorage.setItem('adminSession', 'true');
-                  sessionStorage.setItem('adminSessionTime', now.toString());
-                  sessionStorage.setItem('adminAuthenticated', 'true');
-                  sessionStorage.setItem('adminLastActivity', now.toString());
-                  
-                  handleClose();
-                  navigate('/admin');
-                }}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium"
-              >
-                Continue to Admin Panel
-              </Button>
-            </motion.div>
-          ) : isAuthenticated ? (
-            <motion.div
-              key="become-admin"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="text-center space-y-6"
-            >
-              <User className="h-16 w-16 mx-auto text-blue-600" />
-              <div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Become Administrator
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Click below to gain administrator access
-                </p>
-                <p className="text-xs text-red-500 mt-2 font-medium">
-                  ⏰ Admin sessions expire after EXACTLY 10 minutes of inactivity
-                </p>
-              </div>
-              
-              <Button 
-                onClick={handleBecomeAdmin}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium flex items-center justify-center gap-2"
-              >
-                <Crown className="h-4 w-4" />
-                Become Admin
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="login-form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className="text-center mb-6">
-                <Shield className="h-12 w-12 mx-auto text-blue-600 mb-3" />
-                <div className="flex justify-center mb-4">
-                  <div className="bg-gray-100 p-1 rounded-lg flex">
-                    <button
-                      type="button"
-                      onClick={() => setIsLogin(true)}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        isLogin 
-                          ? 'bg-white text-blue-600 shadow-sm' 
-                          : 'text-gray-600 hover:text-blue-600'
-                      }`}
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsLogin(false)}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        !isLogin 
-                          ? 'bg-white text-blue-600 shadow-sm' 
-                          : 'text-gray-600 hover:text-blue-600'
-                      }`}
-                    >
-                      Sign Up
-                    </button>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">
-                  {isLogin ? 'Sign in to access admin panel' : 'Create account to become admin'}
-                </p>
-                <p className="text-xs text-red-500 mt-2 font-medium">
-                  🔑 Admin access ONLY via Ctrl+Alt+A
-                </p>
-              </div>
-              
-              <form onSubmit={handleAuth} className="space-y-4">
-                {!isLogin && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="name"
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Enter your full name"
-                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required={!isLogin}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
-                      <div className="relative">
-                        <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="username"
-                          type="text"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          placeholder="Enter username"
-                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required={!isLogin}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin@example.com"
-                      className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pl-10 pr-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleClose}
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting || !email || !password || (!isLogin && (!name || !username))}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {isLogin ? 'Signing In...' : 'Creating Account...'}
-                      </>
-                    ) : (
-                      <>
-                        {isLogin ? 'Sign In' : 'Create Account'}
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
+        <div className="space-y-4">
+          {sessionTimeLeft > 0 && (
+            <Alert>
+              <Clock className="h-4 w-4" />
+              <AlertDescription>
+                Current session expires in: {formatTimeLeft(sessionTimeLeft)}
+              </AlertDescription>
+            </Alert>
           )}
-        </AnimatePresence>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter admin password (min 12 chars)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pr-10"
+                required
+                minLength={12}
+                disabled={isAuthenticating}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+              </button>
+            </div>
+            
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                className="flex-1"
+                disabled={isAuthenticating || password.length < 12}
+              >
+                {isAuthenticating ? 'Authenticating...' : 'Access Admin Panel'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                disabled={isAuthenticating}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+          
+          <p className="text-xs text-gray-500 text-center">
+            Admin session will timeout after exactly 10 minutes of authentication.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

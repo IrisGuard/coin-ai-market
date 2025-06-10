@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import EnhancedAdminPanel from "@/components/admin/EnhancedAdminPanel";
+import ConsolidatedAdminPanel from "@/components/admin/ConsolidatedAdminPanel";
 
 const AdminPanelPage = () => {
   usePageView();
 
-  return <EnhancedAdminPanel />;
+  return <ConsolidatedAdminPanel />;
 };
 
 export default AdminPanelPage;

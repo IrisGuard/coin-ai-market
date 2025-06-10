@@ -1,167 +1,18 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { checkAdminStatus } from '@/utils/adminUtils';
-import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminContextType {
   isAdmin: boolean;
   isAdminAuthenticated: boolean;
   isLoading: boolean;
-  checkAdminStatus: () => Promise<void>;
-  updateAdminProfile: (data: { fullName: string; email: string }) => Promise<boolean>;
-  clearAdminSession: () => void;
+  authenticateAdmin: (password: string) => Promise<boolean>;
+  logoutAdmin: () => void;
+  sessionTimeLeft: number;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
-
-export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, isAuthenticated } = useAuth();
-
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes
-
-  const clearAdminSession = () => {
-    console.log('🧹 Clearing admin session completely');
-    localStorage.removeItem('adminSession');
-    sessionStorage.removeItem('adminSessionTime');
-    sessionStorage.removeItem('adminAuthenticated');
-    sessionStorage.removeItem('adminLastActivity');
-    sessionStorage.removeItem('adminFingerprint');
-    setIsAdminAuthenticated(false);
-  };
-
-  const checkAdminStatusInternal = async () => {
-    if (!user || !isAuthenticated) {
-      setIsAdmin(false);
-      setIsAdminAuthenticated(false);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      
-      // Check if user has admin privileges using updated function
-      const adminStatus = await checkAdminStatus();
-      setIsAdmin(adminStatus);
-
-      // EXACT session validity check
-      const adminSession = localStorage.getItem('adminSession');
-      const sessionTime = sessionStorage.getItem('adminSessionTime');
-      const lastActivity = sessionStorage.getItem('adminLastActivity');
-      
-      if (adminStatus && adminSession && sessionTime) {
-        const sessionStart = parseInt(sessionTime);
-        const lastActivityTime = lastActivity ? parseInt(lastActivity) : sessionStart;
-        const now = Date.now();
-        
-        // Check both session start AND last activity
-        const sessionAge = now - sessionStart;
-        const inactivityTime = now - lastActivityTime;
-        
-        if (sessionAge < SESSION_TIMEOUT && inactivityTime < SESSION_TIMEOUT) {
-          setIsAdminAuthenticated(true);
-          // Update last activity
-          sessionStorage.setItem('adminLastActivity', now.toString());
-          console.log('✅ Admin session restored and valid');
-        } else {
-          console.log('⏰ Admin session expired - clearing all session data');
-          clearAdminSession();
-        }
-      } else {
-        setIsAdminAuthenticated(false);
-      }
-    } catch (error) {
-      console.error('❌ Error checking admin status:', error);
-      setIsAdmin(false);
-      setIsAdminAuthenticated(false);
-      clearAdminSession();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateAdminProfile = async (data: { fullName: string; email: string }): Promise<boolean> => {
-    try {
-      // For now, just simulate a successful update
-      console.log('Updating admin profile:', data);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Profile Updated",
-        description: "Admin profile has been updated successfully.",
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error updating admin profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update admin profile. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    checkAdminStatusInternal();
-  }, [user, isAuthenticated]);
-
-  // Enhanced session monitoring with exact timing
-  useEffect(() => {
-    if (!isAdminAuthenticated) return;
-
-    const checkSessionTimeout = () => {
-      const sessionTime = sessionStorage.getItem('adminSessionTime');
-      const lastActivity = sessionStorage.getItem('adminLastActivity');
-      
-      if (sessionTime) {
-        const sessionStart = parseInt(sessionTime);
-        const lastActivityTime = lastActivity ? parseInt(lastActivity) : sessionStart;
-        const now = Date.now();
-        
-        const sessionAge = now - sessionStart;
-        const inactivityTime = now - lastActivityTime;
-        
-        if (sessionAge >= SESSION_TIMEOUT || inactivityTime >= SESSION_TIMEOUT) {
-          console.log('⏰ Admin session timeout detected - EXACTLY 10 minutes');
-          clearAdminSession();
-          
-          toast({
-            title: "Session Expired",
-            description: "Your admin session has expired after 10 minutes of inactivity.",
-            variant: "destructive",
-          });
-          
-          // Force redirect to home
-          window.location.href = '/';
-        }
-      }
-    };
-
-    // Check every 30 seconds for more accurate monitoring
-    const interval = setInterval(checkSessionTimeout, 30000);
-    
-    return () => clearInterval(interval);
-  }, [isAdminAuthenticated]);
-
-  const value = {
-    isAdmin,
-    isAdminAuthenticated,
-    isLoading,
-    checkAdminStatus: checkAdminStatusInternal,
-    updateAdminProfile,
-    clearAdminSession,
-  };
-
-  return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
-};
 
 export const useAdmin = () => {
   const context = useContext(AdminContext);
@@ -169,4 +20,132 @@ export const useAdmin = () => {
     throw new Error('useAdmin must be used within an AdminProvider');
   }
   return context;
+};
+
+export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sessionTimeLeft, setSessionTimeLeft] = useState(0);
+
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes
+
+  // Check if user has admin role
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
+
+        setIsAdmin(!!data);
+      } catch (error) {
+        console.log('User is not admin');
+        setIsAdmin(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
+
+  // Check for existing admin session ONLY - no auto-authentication
+  useEffect(() => {
+    const checkExistingSession = () => {
+      const sessionData = sessionStorage.getItem('adminAuthenticated');
+      const sessionTime = sessionStorage.getItem('adminSessionTime');
+      
+      if (sessionData === 'true' && sessionTime) {
+        const elapsed = Date.now() - parseInt(sessionTime);
+        
+        if (elapsed < SESSION_TIMEOUT) {
+          setIsAdminAuthenticated(true);
+          setSessionTimeLeft(SESSION_TIMEOUT - elapsed);
+        } else {
+          // Session expired - clear it
+          clearAdminSession();
+        }
+      }
+    };
+
+    checkExistingSession();
+  }, []);
+
+  // Session timeout management
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const interval = setInterval(() => {
+      const sessionTime = sessionStorage.getItem('adminSessionTime');
+      if (!sessionTime) {
+        clearAdminSession();
+        return;
+      }
+
+      const elapsed = Date.now() - parseInt(sessionTime);
+      const timeLeft = SESSION_TIMEOUT - elapsed;
+
+      if (timeLeft <= 0) {
+        console.log('🔒 Admin session expired - EXACTLY 10 minutes');
+        clearAdminSession();
+      } else {
+        setSessionTimeLeft(timeLeft);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isAdminAuthenticated]);
+
+  const clearAdminSession = () => {
+    sessionStorage.removeItem('adminAuthenticated');
+    sessionStorage.removeItem('adminSessionTime');
+    sessionStorage.removeItem('adminLastActivity');
+    sessionStorage.removeItem('adminFingerprint');
+    setIsAdminAuthenticated(false);
+    setSessionTimeLeft(0);
+  };
+
+  const authenticateAdmin = async (password: string): Promise<boolean> => {
+    if (!isAdmin) return false;
+
+    // Simple admin password check - minimum 12 characters
+    if (password.length >= 12) {
+      const now = Date.now();
+      sessionStorage.setItem('adminAuthenticated', 'true');
+      sessionStorage.setItem('adminSessionTime', now.toString());
+      sessionStorage.setItem('adminLastActivity', now.toString());
+      
+      setIsAdminAuthenticated(true);
+      setSessionTimeLeft(SESSION_TIMEOUT);
+      return true;
+    }
+
+    return false;
+  };
+
+  const logoutAdmin = () => {
+    clearAdminSession();
+  };
+
+  const value = {
+    isAdmin,
+    isAdminAuthenticated,
+    isLoading,
+    authenticateAdmin,
+    logoutAdmin,
+    sessionTimeLeft
+  };
+
+  return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 };

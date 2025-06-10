@@ -1,190 +1,227 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BarChart3, Users, Coins, TrendingUp, Activity, Monitor, Zap } from 'lucide-react';
-import AdvancedAnalyticsDashboard from '../enhanced/AdvancedAnalyticsDashboard';
-import PerformanceAnalytics from '../enhanced/PerformanceAnalytics';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { BarChart3, TrendingUp, Users, Activity, Eye, Search } from 'lucide-react';
 
 const AdminAnalyticsTab = () => {
-  // Basic analytics without charts
-  const basicStats = [
-    {
-      title: "Total Users",
-      value: "1,247",
-      icon: Users,
-      color: "blue",
-      change: "+12%"
+  // Get analytics data
+  const { data: analyticsData, isLoading } = useQuery({
+    queryKey: ['analytics-dashboard'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_advanced_analytics_dashboard');
+      if (error) throw error;
+      return data;
     },
-    {
-      title: "Total Coins",
-      value: "8,943", 
-      icon: Coins,
-      color: "green",
-      change: "+8%"
-    },
-    {
-      title: "Active Sources",
-      value: "24",
-      icon: Activity,
-      color: "purple", 
-      change: "+3%"
-    },
-    {
-      title: "Data Quality",
-      value: "94.2%",
-      icon: BarChart3,
-      color: "orange",
-      change: "+2%"
-    }
-  ];
+    refetchInterval: 60000,
+  });
 
-  const getColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'text-blue-600 bg-blue-50',
-      green: 'text-green-600 bg-green-50',
-      purple: 'text-purple-600 bg-purple-50',
-      orange: 'text-orange-600 bg-orange-50'
-    };
-    return colorMap[color as keyof typeof colorMap] || 'text-gray-600 bg-gray-50';
-  };
+  // Get performance metrics
+  const { data: performanceData, isLoading: perfLoading } = useQuery({
+    queryKey: ['performance-metrics'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_system_performance_metrics');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Get page views
+  const { data: pageViews, isLoading: viewsLoading } = useQuery({
+    queryKey: ['page-views'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('page_views')
+        .select('*')
+        .order('view_count', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Get search analytics
+  const { data: searchAnalytics, isLoading: searchLoading } = useQuery({
+    queryKey: ['search-analytics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('search_analytics')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">Advanced Analytics Dashboard</h3>
-        <p className="text-sm text-muted-foreground">
-          Comprehensive performance metrics, real-time monitoring, and system insights
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Analytics Dashboard</h3>
+          <p className="text-sm text-muted-foreground">Track user behavior, performance metrics, and system analytics</p>
+        </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="real-time" className="flex items-center gap-2">
-            <Monitor className="w-4 h-4" />
-            Real-time
-          </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center gap-2">
-            <Zap className="w-4 h-4" />
-            Performance
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Insights
-          </TabsTrigger>
-        </TabsList>
+      {/* Analytics Overview */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users (24h)</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analyticsData?.active_users_24h || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round(analyticsData?.avg_session_time || 0)} min avg session
+            </p>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {basicStats.map((stat, index) => {
-              const IconComponent = stat.icon;
-              return (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2 rounded-lg ${getColorClasses(stat.color)}`}>
-                        <IconComponent className="h-5 w-5" />
-                      </div>
-                      <TrendingUp className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div className="mt-4">
-                      <div className="text-2xl font-bold">{stat.value}</div>
-                      <div className="text-sm text-muted-foreground">{stat.title}</div>
-                    </div>
-                    <div className="mt-2">
-                      <Badge variant="outline" className="text-xs">
-                        {stat.change} vs last month
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Searches (24h)</CardTitle>
+            <Search className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analyticsData?.searches_24h || 0}</div>
+            <p className="text-xs text-muted-foreground">search queries</p>
+          </CardContent>
+        </Card>
 
-          {/* Placeholder for future charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Activity Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  Chart integration coming soon
-                </div>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">New Listings (24h)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analyticsData?.new_listings_24h || 0}</div>
+            <p className="text-xs text-muted-foreground">new coin listings</p>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Data Source Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  Chart integration coming soon
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Data Quality</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.round(analyticsData?.avg_data_quality || 0)}%
+            </div>
+            <p className="text-xs text-muted-foreground">average quality score</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="real-time">
-          <AdvancedAnalyticsDashboard />
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <PerformanceAnalytics />
-        </TabsContent>
-
-        <TabsContent value="insights" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI-Powered Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">Performance Optimization</h4>
-                  <p className="text-sm text-blue-700">
-                    System performance has improved by 23% this month. Database optimization 
-                    contributed to 65% of this improvement.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-800 mb-2">User Engagement</h4>
-                  <p className="text-sm text-green-700">
-                    User session duration increased by 18%. The new AI-powered search features 
-                    are driving higher engagement rates.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <h4 className="font-medium text-purple-800 mb-2">Data Quality</h4>
-                  <p className="text-sm text-purple-700">
-                    Data accuracy has reached 94.2%. Automated validation processes have 
-                    reduced manual intervention by 40%.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <h4 className="font-medium text-orange-800 mb-2">Resource Utilization</h4>
-                  <p className="text-sm text-orange-700">
-                    Server resources are optimally utilized. Consider scaling up during 
-                    peak hours (12-4 PM) for better performance.
-                  </p>
-                </div>
+      {/* Performance Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            System Performance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {Math.round(performanceData?.avg_response_time || 0)}ms
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <p className="text-sm text-muted-foreground">Avg Response Time</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {performanceData?.active_sessions || 0}
+              </div>
+              <p className="text-sm text-muted-foreground">Active Sessions</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">
+                {performanceData?.errors_last_hour || 0}
+              </div>
+              <p className="text-sm text-muted-foreground">Errors (Last Hour)</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Popular Pages */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Popular Pages
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {viewsLoading ? (
+              <div className="text-center py-8">Loading page views...</div>
+            ) : pageViews?.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No page view data found
+              </div>
+            ) : (
+              pageViews?.map((page) => (
+                <div key={page.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{page.page_path}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Last viewed: {new Date(page.last_viewed).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold">{page.view_count}</div>
+                    <div className="text-xs text-muted-foreground">views</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Search Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Recent Search Queries
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {searchLoading ? (
+              <div className="text-center py-8">Loading search analytics...</div>
+            ) : searchAnalytics?.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No search data found
+              </div>
+            ) : (
+              searchAnalytics?.map((search) => (
+                <div key={search.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">"{search.search_query}"</div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(search.created_at).toLocaleString()}
+                      {search.search_duration_ms && ` • ${search.search_duration_ms}ms`}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">
+                      {search.results_count || 0} results
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

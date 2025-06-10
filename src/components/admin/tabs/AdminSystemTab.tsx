@@ -17,7 +17,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-// TypeScript interfaces for the comprehensive stats
 interface SystemStatsData {
   users: {
     total: number;
@@ -41,6 +40,7 @@ interface SystemStatsData {
     errors_24h: number;
     active_alerts: number;
     health_status: 'healthy' | 'warning' | 'critical';
+    avg_response_time: number;
   };
   ai_automation: {
     commands: number;
@@ -51,32 +51,22 @@ interface SystemStatsData {
     data_sources: number;
     api_keys: number;
   };
+  marketplace: {
+    active_listings: number;
+    bids_24h: number;
+  };
   last_updated: string;
-}
-
-interface SystemAlert {
-  id: string;
-  alert_type: string;
-  severity: string;
-  title: string;
-  description: string;
-  created_at: string;
-  alert_data: any;
-  is_resolved: boolean;
-  current_value: number;
-  metric_threshold: number;
-  resolved_at: string;
 }
 
 const AdminSystemTab = () => {
   const { data: systemStatsRaw, isLoading, refetch } = useQuery({
     queryKey: ['admin-system-comprehensive'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
+      const { data, error } = await supabase.rpc('get_comprehensive_admin_dashboard');
       if (error) throw error;
       return data;
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   const { data: systemAlerts } = useQuery({
@@ -115,10 +105,8 @@ const AdminSystemTab = () => {
 
   const handleClearCache = async () => {
     try {
-      // Clear AI recognition cache
       await supabase.from('ai_recognition_cache').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
-      // Record system metric
       await supabase.rpc('record_system_metric', {
         p_metric_name: 'cache_cleared',
         p_metric_value: 1,
@@ -136,24 +124,6 @@ const AdminSystemTab = () => {
         description: "Failed to clear cache.",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleCreateAlert = async () => {
-    try {
-      await supabase.from('system_alerts').insert({
-        alert_type: 'manual',
-        severity: 'info',
-        title: 'System Check',
-        description: 'Manual system check performed by admin'
-      });
-      
-      toast({
-        title: "Alert Created",
-        description: "System alert has been created.",
-      });
-    } catch (error) {
-      console.error('Error creating alert:', error);
     }
   };
 
@@ -187,7 +157,9 @@ const AdminSystemTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">Online</div>
-            <p className="text-xs text-muted-foreground">99.9% uptime</p>
+            <p className="text-xs text-muted-foreground">
+              {Math.round(systemStats?.system?.avg_response_time || 0)}ms response
+            </p>
           </CardContent>
         </Card>
 
@@ -198,7 +170,7 @@ const AdminSystemTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">Connected</div>
-            <p className="text-xs text-muted-foreground">Response time: &lt;50ms</p>
+            <p className="text-xs text-muted-foreground">Real-time data sync</p>
           </CardContent>
         </Card>
 
@@ -329,17 +301,13 @@ const AdminSystemTab = () => {
               <Database className="h-4 w-4" />
               Clear Cache
             </Button>
-            <Button variant="outline" className="flex items-center gap-2" onClick={handleCreateAlert}>
-              <AlertTriangle className="h-4 w-4" />
-              Create Alert
-            </Button>
           </div>
         </CardContent>
       </Card>
 
       {isLoading && (
         <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-b-2 border-coin-purple mx-auto mb-4"></div>
+          <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p>Loading system status...</p>
         </div>
       )}
