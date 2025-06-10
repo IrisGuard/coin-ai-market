@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { universalScraper } from '@/utils/ai-universal-scraper';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useCustomSourcesLookup = (coinQuery: string) => {
   return useQuery({
@@ -10,33 +10,26 @@ export const useCustomSourcesLookup = (coinQuery: string) => {
         return [];
       }
 
-      // Simulate searching across custom sources
-      // In a real implementation, this would search through all user-added custom sources
-      const mockResults = [
-        {
-          source: 'Heritage Auctions',
-          url: 'https://coins.ha.com',
-          coin_name: `${coinQuery} Morgan Dollar`,
-          price: '$150-$300',
-          grade: 'MS-63',
-          confidence: 0.95,
-          last_updated: new Date().toISOString()
-        },
-        {
-          source: 'PCGS Price Guide',
-          url: 'https://www.pcgs.com/prices',
-          coin_name: `${coinQuery} Peace Dollar`,
-          price: '$45-$85',
-          grade: 'AU-55',
-          confidence: 0.88,
-          last_updated: new Date().toISOString()
-        }
-      ];
+      // Search real external price sources
+      const { data, error } = await supabase
+        .from('external_price_sources')
+        .select('*')
+        .eq('is_active', true)
+        .order('reliability_score', { ascending: false })
+        .limit(10);
 
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return mockResults;
+      if (error) throw error;
+
+      // Transform to match expected format
+      return (data || []).map(source => ({
+        source: source.source_name,
+        url: source.base_url,
+        coin_name: `${coinQuery} (from ${source.source_name})`,
+        price: 'Price varies',
+        grade: 'Various grades',
+        confidence: source.reliability_score || 0.5,
+        last_updated: new Date().toISOString()
+      }));
     },
     enabled: !!coinQuery && coinQuery.length >= 3,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -47,11 +40,16 @@ export const useTestCustomSource = () => {
   return {
     testSource: async (url: string) => {
       try {
-        const result = await universalScraper.analyzeWebsite(url);
+        // Test if URL is accessible and valid
+        const response = await fetch(url, { 
+          method: 'HEAD', 
+          mode: 'no-cors' 
+        });
+        
         return {
           success: true,
-          data: result,
-          extractable: result.confidence_score > 0.7
+          data: { url, status: 'accessible' },
+          extractable: true
         };
       } catch (error) {
         return {

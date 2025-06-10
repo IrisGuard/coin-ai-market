@@ -48,40 +48,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Handle authentication redirects
+        // REMOVED: Automatic admin redirect - users can manually navigate to admin
+        // No automatic redirects - let users choose where to go
         if (event === 'SIGNED_IN' && session?.user) {
-          // Check user role and redirect accordingly
-          setTimeout(async () => {
-            try {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', session.user.id)
-                .single();
-              
-              const userRole = profile?.role;
-              
-              // Check if user is admin
-              if (session.user.email === 'admin@coinai.com' || userRole === 'admin') {
-                // Admin goes to admin panel
-                navigate('/admin');
-                return;
-              }
-              
-              // Route based on role
-              if (userRole === 'dealer') {
-                navigate('/marketplace');
-              } else if (userRole === 'user') {
-                navigate('/');
-              } else {
-                // Default fallback
-                navigate('/');
-              }
-            } catch (error) {
-              console.error('Error checking user role:', error);
-              navigate('/');
-            }
-          }, 1000);
+          // Simple redirect to home page for all users
+          setTimeout(() => {
+            navigate('/');
+          }, 100);
         }
       }
     );
@@ -108,7 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           full_name: userData.fullName,
           name: userData.fullName,
           username: userData.username,
-          role: 'user' // Changed from 'buyer' to 'user' which is allowed by the database constraint
+          role: 'user'
         }
       }
     });
