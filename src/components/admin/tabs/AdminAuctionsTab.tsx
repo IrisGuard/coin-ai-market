@@ -1,142 +1,31 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Gavel, TrendingUp, Users, DollarSign } from 'lucide-react';
-
-interface AuctionData {
-  total_users: number;
-  total_coins: number;
-  total_transactions: number;
-  errors_24h: number;
-  active_alerts: number;
-  health_status: string;
-}
+import AuctionStatsCards from '../auctions/AuctionStatsCards';
+import ActiveAuctionsCard from '../auctions/ActiveAuctionsCard';
+import RecentBidsCard from '../auctions/RecentBidsCard';
+import {
+  useAuctionDashboardData,
+  useAuctionStats,
+  useActiveAuctions,
+  useRecentBids,
+  useBidderProfiles
+} from '../auctions/useAuctionData';
 
 const AdminAuctionsTab = () => {
   // Get dashboard data for auction stats
-  const { data: dashboardDataRaw, isLoading } = useQuery({
-    queryKey: ['admin-dashboard-comprehensive'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
-      if (error) throw error;
-      return data as AuctionData;
-    },
-    refetchInterval: 30000,
-  });
+  const { data: dashboardDataRaw, isLoading } = useAuctionDashboardData();
 
   // Get auction-specific stats
-  const { data: auctionStats } = useQuery({
-    queryKey: ['auction-stats'],
-    queryFn: async () => {
-      // Get active auctions count
-      const { data: activeAuctions, error: auctionError } = await supabase
-        .from('coins')
-        .select('id')
-        .eq('is_auction', true)
-        .gt('auction_end', new Date().toISOString());
-      
-      if (auctionError) throw auctionError;
-
-      // Get bids count for last 24h
-      const { data: recentBids, error: bidError } = await supabase
-        .from('auction_bids')
-        .select('id, amount')
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-      
-      if (bidError) throw bidError;
-
-      // Get unique bidders in last 7 days
-      const { data: bidders, error: biddersError } = await supabase
-        .from('auction_bids')
-        .select('bidder_id')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-      
-      if (biddersError) throw biddersError;
-
-      const uniqueBidders = new Set(bidders?.map(b => b.bidder_id) || []).size;
-      const avgBidAmount = recentBids?.length 
-        ? recentBids.reduce((sum, bid) => sum + Number(bid.amount), 0) / recentBids.length 
-        : 0;
-
-      return {
-        active: activeAuctions?.length || 0,
-        bids_24h: recentBids?.length || 0,
-        avg_bid_amount: avgBidAmount,
-        active_bidders_7d: uniqueBidders,
-        total_bids: bidders?.length || 0
-      };
-    },
-  });
+  const { data: auctionStats } = useAuctionStats();
 
   // Get active auctions
-  const { data: activeAuctions, isLoading: auctionsLoading } = useQuery({
-    queryKey: ['active-auctions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('coins')
-        .select(`
-          *,
-          profiles!coins_user_id_fkey (name)
-        `)
-        .eq('is_auction', true)
-        .gt('auction_end', new Date().toISOString())
-        .order('auction_end', { ascending: true })
-        .limit(10);
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: activeAuctions, isLoading: auctionsLoading } = useActiveAuctions();
 
   // Get recent bids
-  const { data: recentBids, isLoading: bidsLoading } = useQuery({
-    queryKey: ['recent-bids'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('auction_bids')
-        .select(`
-          *,
-          coins!auction_bids_auction_id_fkey (name, year)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      
-      if (error) {
-        console.error('Error fetching bids:', error);
-        return [];
-      }
-      return data || [];
-    },
-  });
+  const { data: recentBids, isLoading: bidsLoading } = useRecentBids();
 
   // Get bidder profiles separately
-  const { data: bidderProfiles } = useQuery({
-    queryKey: ['bidder-profiles', recentBids],
-    queryFn: async () => {
-      if (!recentBids?.length) return {};
-      
-      const bidderIds = [...new Set(recentBids.map(bid => bid.bidder_id))];
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', bidderIds);
-      
-      if (error) {
-        console.error('Error fetching bidder profiles:', error);
-        return {};
-      }
-      
-      return (data || []).reduce((acc, profile) => {
-        acc[profile.id] = profile;
-        return acc;
-      }, {} as Record<string, any>);
-    },
-    enabled: !!recentBids?.length,
-  });
+  const { data: bidderProfiles } = useBidderProfiles(recentBids);
 
   return (
     <div className="space-y-6">
@@ -147,138 +36,16 @@ const AdminAuctionsTab = () => {
         </div>
       </div>
 
-      {/* Auction Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Auctions</CardTitle>
-            <Gavel className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{auctionStats?.active || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              live auctions
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bids Today</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{auctionStats?.bids_24h || 0}</div>
-            <p className="text-xs text-muted-foreground">bidding activity</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Bid Amount</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">€{Math.round(auctionStats?.avg_bid_amount || 0)}</div>
-            <p className="text-xs text-muted-foreground">average bid value</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Bidders</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{auctionStats?.active_bidders_7d || 0}</div>
-            <p className="text-xs text-muted-foreground">unique participants</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Active Auctions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Auctions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {auctionsLoading ? (
-              <div className="text-center py-8">Loading active auctions...</div>
-            ) : activeAuctions?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No active auctions found
-              </div>
-            ) : (
-              activeAuctions?.map((auction) => (
-                <div key={auction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{auction.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Year: {auction.year} • Owner: {auction.profiles?.name || 'Unknown'}
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant="default">Live Auction</Badge>
-                      <Badge variant="outline">Starting: €{auction.starting_bid}</Badge>
-                      <Badge variant="outline">
-                        Ends: {new Date(auction.auction_end).toLocaleDateString()}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline">
-                      View Auction
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Bids */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Bids</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {bidsLoading ? (
-              <div className="text-center py-8">Loading recent bids...</div>
-            ) : recentBids?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No recent bids found
-              </div>
-            ) : (
-              recentBids?.map((bid) => (
-                <div key={bid.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">€{bid.amount}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Bidder: {bidderProfiles?.[bid.bidder_id]?.name || 'Anonymous'} • 
-                      Coin: {bid.coins?.name || 'Unknown'} ({bid.coins?.year})
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant={bid.is_winning ? "default" : "secondary"}>
-                        {bid.is_winning ? "Winning Bid" : "Outbid"}
-                      </Badge>
-                      <Badge variant="outline">
-                        {new Date(bid.created_at).toLocaleString()}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline">
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <AuctionStatsCards auctionStats={auctionStats} />
+      <ActiveAuctionsCard 
+        activeAuctions={activeAuctions} 
+        auctionsLoading={auctionsLoading} 
+      />
+      <RecentBidsCard 
+        recentBids={recentBids} 
+        bidsLoading={bidsLoading} 
+        bidderProfiles={bidderProfiles} 
+      />
     </div>
   );
 };
