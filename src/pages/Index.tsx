@@ -77,20 +77,6 @@ const Index = () => {
                   onSearch={handleSearch}
                 />
               </motion.div>
-
-              {/* Marketplace link for sellers */}
-              {!isAuthenticated && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="text-center"
-                >
-                  <p className="text-gray-500 text-sm">
-                    Want to sell? Visit our <Link to="/marketplace" className="text-electric-green hover:underline font-medium">marketplace</Link> to open a store
-                  </p>
-                </motion.div>
-              )}
             </motion.div>
           </div>
         </div>
