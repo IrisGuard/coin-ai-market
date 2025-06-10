@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,6 +35,7 @@ import AdminReportsTab from './tabs/AdminReportsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminBackupTab from './tabs/AdminBackupTab';
+import AdminMobileResponsive from './enhanced/AdminMobileResponsive';
 
 const ConsolidatedAdminPanel: React.FC = () => {
   const { isAdmin, isAdminAuthenticated, isLoading, sessionTimeLeft, logoutAdmin } = useAdmin();
@@ -84,138 +86,142 @@ const ConsolidatedAdminPanel: React.FC = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Enhanced Header with session info */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              CoinVision Admin Dashboard
-            </h1>
-            <p className="text-gray-600">
-              Comprehensive administration and monitoring system
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Badge variant="outline" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Session: {formatTimeLeft(sessionTimeLeft)}
-            </Badge>
-            <Button variant="outline" onClick={logoutAdmin}>
-              Logout Admin
-            </Button>
-          </div>
-        </div>
-
-        {/* Enhanced Admin Tabs with responsive design */}
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
-          <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-12 min-w-max">
-              <TabsTrigger value="system" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">System</span>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Users</span>
-              </TabsTrigger>
-              <TabsTrigger value="ai-brain" className="flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                <span className="hidden sm:inline">AI Brain</span>
-              </TabsTrigger>
-              <TabsTrigger value="api-keys" className="flex items-center gap-2">
-                <Key className="h-4 w-4" />
-                <span className="hidden sm:inline">API Keys</span>
-              </TabsTrigger>
-              <TabsTrigger value="data-sources" className="flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                <span className="hidden sm:inline">Data Sources</span>
-              </TabsTrigger>
-              <TabsTrigger value="marketplace" className="flex items-center gap-2">
-                <Store className="h-4 w-4" />
-                <span className="hidden sm:inline">Marketplace</span>
-              </TabsTrigger>
-              <TabsTrigger value="auctions" className="flex items-center gap-2">
-                <Gavel className="h-4 w-4" />
-                <span className="hidden sm:inline">Auctions</span>
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Analytics</span>
-              </TabsTrigger>
-              <TabsTrigger value="reports" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Reports</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Settings</span>
-              </TabsTrigger>
-              <TabsTrigger value="logs" className="flex items-center gap-2">
-                <ScrollText className="h-4 w-4" />
-                <span className="hidden sm:inline">Logs</span>
-              </TabsTrigger>
-              <TabsTrigger value="backup" className="flex items-center gap-2">
-                <HardDrive className="h-4 w-4" />
-                <span className="hidden sm:inline">Backup</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* Enhanced Tab Content with improved responsive design */}
-          <div className="w-full">
-            <TabsContent value="system">
-              <AdminSystemTab />
-            </TabsContent>
-
-            <TabsContent value="users">
-              <AdminUsersTab />
-            </TabsContent>
-
-            <TabsContent value="ai-brain">
-              <AdminAIBrainTab />
-            </TabsContent>
-
-            <TabsContent value="api-keys">
-              <AdminAPIKeysTab />
-            </TabsContent>
-
-            <TabsContent value="data-sources">
-              <AdminDataSourcesTab />
-            </TabsContent>
-
-            <TabsContent value="marketplace">
-              <AdminMarketplaceTab />
-            </TabsContent>
-
-            <TabsContent value="auctions">
-              <AdminAuctionsTab />
-            </TabsContent>
-
-            <TabsContent value="analytics">
-              <AdminAnalyticsTab />
-            </TabsContent>
-
-            <TabsContent value="reports">
-              <AdminReportsTab />
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <AdminSettingsTab />
-            </TabsContent>
-
-            <TabsContent value="logs">
-              <AdminLogsTab />
-            </TabsContent>
-
-            <TabsContent value="backup">
-              <AdminBackupTab />
-            </TabsContent>
-          </div>
-        </Tabs>
+  const tabContent = (
+    <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+      <div className="overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-12 min-w-max">
+          <TabsTrigger value="system" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            <span className="hidden sm:inline">System</span>
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Users</span>
+          </TabsTrigger>
+          <TabsTrigger value="ai-brain" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            <span className="hidden sm:inline">AI Brain</span>
+          </TabsTrigger>
+          <TabsTrigger value="api-keys" className="flex items-center gap-2">
+            <Key className="h-4 w-4" />
+            <span className="hidden sm:inline">API Keys</span>
+          </TabsTrigger>
+          <TabsTrigger value="data-sources" className="flex items-center gap-2">
+            <Database className="h-4 w-4" />
+            <span className="hidden sm:inline">Data Sources</span>
+          </TabsTrigger>
+          <TabsTrigger value="marketplace" className="flex items-center gap-2">
+            <Store className="h-4 w-4" />
+            <span className="hidden sm:inline">Marketplace</span>
+          </TabsTrigger>
+          <TabsTrigger value="auctions" className="flex items-center gap-2">
+            <Gavel className="h-4 w-4" />
+            <span className="hidden sm:inline">Auctions</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Settings</span>
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="flex items-center gap-2">
+            <ScrollText className="h-4 w-4" />
+            <span className="hidden sm:inline">Logs</span>
+          </TabsTrigger>
+          <TabsTrigger value="backup" className="flex items-center gap-2">
+            <HardDrive className="h-4 w-4" />
+            <span className="hidden sm:inline">Backup</span>
+          </TabsTrigger>
+        </TabsList>
       </div>
-    </div>
+
+      <div className="w-full">
+        <TabsContent value="system">
+          <AdminSystemTab />
+        </TabsContent>
+
+        <TabsContent value="users">
+          <AdminUsersTab />
+        </TabsContent>
+
+        <TabsContent value="ai-brain">
+          <AdminAIBrainTab />
+        </TabsContent>
+
+        <TabsContent value="api-keys">
+          <AdminAPIKeysTab />
+        </TabsContent>
+
+        <TabsContent value="data-sources">
+          <AdminDataSourcesTab />
+        </TabsContent>
+
+        <TabsContent value="marketplace">
+          <AdminMarketplaceTab />
+        </TabsContent>
+
+        <TabsContent value="auctions">
+          <AdminAuctionsTab />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <AdminAnalyticsTab />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <AdminReportsTab />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <AdminSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="logs">
+          <AdminLogsTab />
+        </TabsContent>
+
+        <TabsContent value="backup">
+          <AdminBackupTab />
+        </TabsContent>
+      </div>
+    </Tabs>
+  );
+
+  return (
+    <AdminMobileResponsive currentTab={currentTab} onTabChange={setCurrentTab}>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          {/* Enhanced Header with session info */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                CoinVision Admin Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Comprehensive administration and monitoring system
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Session: {formatTimeLeft(sessionTimeLeft)}
+              </Badge>
+              <Button variant="outline" onClick={logoutAdmin}>
+                Logout Admin
+              </Button>
+            </div>
+          </div>
+
+          {tabContent}
+        </div>
+      </div>
+    </AdminMobileResponsive>
   );
 };
 
