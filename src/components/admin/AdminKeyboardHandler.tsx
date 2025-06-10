@@ -1,57 +1,47 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import AdminLoginForm from './AdminLoginForm';
-import AdminPanel from './AdminPanel';
-import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AdminKeyboardHandler = () => {
-  const [showLoginForm, setShowLoginForm] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const { isAdminAuthenticated } = useAdmin();
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const navigate = useNavigate();
+  const { isAdmin, isAdminAuthenticated } = useAdmin();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for CTRL + ALT + A (secure admin access)
-      if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'a') {
+      // Check for Ctrl+Alt+A
+      if (event.ctrlKey && event.altKey && event.key === 'a') {
         event.preventDefault();
         
-        // Security log - only in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Admin access attempt detected');
-        }
-        
         if (isAdminAuthenticated) {
-          setShowAdminPanel(true);
+          // User is already admin, go directly to admin panel
+          navigate('/admin');
         } else {
-          setShowLoginForm(true);
+          // Show admin login/setup form
+          setShowAdminLogin(true);
         }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isAdminAuthenticated]);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate, isAdminAuthenticated]);
 
-  // This component renders nothing visible on the main site
-  // Admin functions are completely hidden from regular users
+  const handleAdminLoginClose = () => {
+    setShowAdminLogin(false);
+    // If user became admin during the process, navigate to admin panel
+    if (isAdminAuthenticated) {
+      navigate('/admin');
+    }
+  };
+
   return (
-    <ErrorBoundary>
-      {/* Hidden admin login form - only shows when triggered by keyboard shortcut */}
-      <AdminLoginForm 
-        isOpen={showLoginForm} 
-        onClose={() => setShowLoginForm(false)} 
-      />
-      
-      {/* Hidden admin panel - only accessible after authentication */}
-      <AdminPanel 
-        isOpen={showAdminPanel} 
-        onClose={() => setShowAdminPanel(false)} 
-      />
-    </ErrorBoundary>
+    <AdminLoginForm 
+      isOpen={showAdminLogin} 
+      onClose={handleAdminLoginClose}
+    />
   );
 };
 

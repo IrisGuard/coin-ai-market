@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, Shield } from 'lucide-react';
+import { Shield, Crown, User, ArrowRight } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/contexts/AuthContext';
+import AdminSetupForm from './AdminSetupForm';
 
 interface AdminLoginFormProps {
   isOpen: boolean;
@@ -13,102 +13,104 @@ interface AdminLoginFormProps {
 }
 
 const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { adminLogin } = useAdmin();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
-
-    setIsLoading(true);
-    const success = await adminLogin(email, password);
-    setIsLoading(false);
-
-    if (success) {
-      setEmail('');
-      setPassword('');
-      onClose();
-    }
-  };
+  const [showSetupForm, setShowSetupForm] = useState(false);
+  const { isAdmin } = useAdmin();
+  const { user, isAuthenticated } = useAuth();
 
   const handleClose = () => {
-    setEmail('');
-    setPassword('');
-    setShowPassword(false);
+    setShowSetupForm(false);
     onClose();
   };
+
+  const handleBecomeAdmin = () => {
+    if (!isAuthenticated) {
+      alert('Πρέπει να είστε συνδεδεμένος για να γίνετε admin');
+      return;
+    }
+    setShowSetupForm(true);
+  };
+
+  if (showSetupForm) {
+    return (
+      <AdminSetupForm 
+        isOpen={true} 
+        onClose={() => {
+          setShowSetupForm(false);
+          onClose();
+        }} 
+      />
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-center justify-center">
-            <Shield className="h-6 w-6 text-red-600" />
-            Admin Access Required
+            <Shield className="h-6 w-6 text-blue-600" />
+            Admin Panel Access
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="admin-email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="admin-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@coinai.com"
-                className="pl-10"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="admin-password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="admin-password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
-                className="pl-10 pr-10"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+        <div className="text-center space-y-6">
+          {isAdmin ? (
+            <div className="space-y-4">
+              <Crown className="h-16 w-16 mx-auto text-yellow-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-green-600 mb-2">
+                  Έχετε ήδη πρόσβαση Admin!
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Μπορείτε να προχωρήσετε στο admin panel
+                </p>
+              </div>
+              <Button 
+                onClick={handleClose}
+                className="w-full bg-green-600 hover:bg-green-700"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+                Συνέχεια στο Admin Panel
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isLoading || !email || !password}
-              className="flex-1 bg-red-600 hover:bg-red-700"
-            >
-              {isLoading ? 'Authenticating...' : 'Login'}
-            </Button>
-          </div>
-        </form>
+          ) : (
+            <div className="space-y-4">
+              <User className="h-16 w-16 mx-auto text-blue-600" />
+              <div>
+                <h3 className="text-lg font-semibold mb-2">
+                  Γίνετε Διαχειριστής
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {isAuthenticated 
+                    ? 'Κάντε κλικ παρακάτω για να αποκτήσετε πρόσβαση διαχειριστή'
+                    : 'Πρέπει να συνδεθείτε πρώτα για να γίνετε admin'
+                  }
+                </p>
+              </div>
+              
+              {isAuthenticated ? (
+                <Button 
+                  onClick={handleBecomeAdmin}
+                  className="w-full bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <Crown className="h-4 w-4" />
+                  Γίνε Admin
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => window.location.href = '/auth'}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    Σύνδεση / Εγγραφή
+                  </Button>
+                  <p className="text-xs text-gray-500">
+                    Μετά τη σύνδεση, επιστρέψτε εδώ για να γίνετε admin
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

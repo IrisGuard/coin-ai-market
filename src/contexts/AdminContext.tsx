@@ -10,7 +10,8 @@ interface AdminContextType {
   isAdminAuthenticated: boolean;
   checkAdminStatus: () => Promise<void>;
   verifyAdminAccess: () => Promise<boolean>;
-  adminLogin: (email: string, password: string) => Promise<boolean>;
+  makeCurrentUserAdmin: (adminData: { fullName: string; email: string }) => Promise<boolean>;
+  updateAdminProfile: (updates: { fullName?: string; email?: string }) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -82,60 +83,99 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const adminLogin = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast({
-          title: "Authentication Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (data.user) {
-        // Check if user is admin
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .eq('role', 'admin')
-          .single();
-
-        if (roleError || !roleData) {
-          toast({
-            title: "Access Denied",
-            description: "Admin privileges required",
-            variant: "destructive",
-          });
-          await supabase.auth.signOut();
-          return false;
-        }
-
-        setIsAdminAuthenticated(true);
-        setIsAdmin(true);
-        
-        toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the admin panel",
-        });
-        return true;
-      }
-    } catch (error) {
-      console.error('Admin login failed:', error);
+  const makeCurrentUserAdmin = async (adminData: { fullName: string; email: string }): Promise<boolean> => {
+    if (!user) {
       toast({
-        title: "Login Error",
-        description: "An unexpected error occurred",
+        title: "Σφάλμα",
+        description: "Πρέπει να είστε συνδεδεμένος για να γίνετε admin",
         variant: "destructive",
       });
+      return false;
     }
 
-    return false;
+    try {
+      // Update user profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: adminData.fullName,
+          email: adminData.email,
+          role: 'admin'
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Add admin role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: user.id,
+          role: 'admin'
+        })
+        .single();
+
+      if (roleError && roleError.code !== '23505') { // Ignore duplicate key error
+        throw roleError;
+      }
+
+      setIsAdmin(true);
+      setIsAdminAuthenticated(true);
+      
+      toast({
+        title: "Επιτυχία!",
+        description: "Έχετε γίνει διαχειριστής του συστήματος",
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Failed to make user admin:', error);
+      toast({
+        title: "Σφάλμα",
+        description: error.message || 'Αποτυχία δημιουργίας admin',
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const updateAdminProfile = async (updates: { fullName?: string; email?: string }): Promise<boolean> => {
+    if (!user || !isAdmin) {
+      toast({
+        title: "Σφάλμα",
+        description: "Μόνο admin μπορούν να ενημερώσουν το προφίλ τους",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    try {
+      const updateData: any = {};
+      if (updates.fullName) updateData.full_name = updates.fullName;
+      if (updates.email) updateData.email = updates.email;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Επιτυχία!",
+        description: "Το προφίλ σας ενημερώθηκε επιτυχώς",
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Failed to update admin profile:', error);
+      toast({
+        title: "Σφάλμα",
+        description: error.message || 'Αποτυχία ενημέρωσης προφίλ',
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -150,7 +190,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     isAdminAuthenticated,
     checkAdminStatus,
     verifyAdminAccess,
-    adminLogin,
+    makeCurrentUserAdmin,
+    updateAdminProfile,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
