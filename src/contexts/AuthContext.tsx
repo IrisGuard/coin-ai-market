@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               // Route based on role
               if (userRole === 'dealer') {
                 navigate('/marketplace');
-              } else if (userRole === 'buyer') {
+              } else if (userRole === 'user') {
                 navigate('/marketplace');
               } else {
                 // Default fallback
@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           full_name: userData.fullName,
           name: userData.fullName,
           username: userData.username,
-          role: 'buyer' // Default role
+          role: 'user' // Changed from 'buyer' to 'user' which is allowed by the database constraint
         }
       }
     });
