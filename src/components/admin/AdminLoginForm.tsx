@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Crown, User, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Shield, Crown, User, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2, AtSign } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSetupForm from './AdminSetupForm';
@@ -22,6 +21,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isAdmin } = useAdmin();
   const { user, isAuthenticated, login, signup } = useAuth();
@@ -31,6 +31,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
     setEmail('');
     setPassword('');
     setName('');
+    setUsername('');
     setIsSubmitting(false);
     onClose();
   };
@@ -44,7 +45,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password, { fullName: name });
+        await signup(email, password, { fullName: name, username });
       }
       // Don't close here - let the useEffect handle the flow
     } catch (error: any) {
@@ -182,21 +183,39 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
               
               <form onSubmit={handleAuth} className="space-y-4">
                 {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your full name"
-                        className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                        required={!isLogin}
-                      />
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Enter your full name"
+                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          required={!isLogin}
+                        />
+                      </div>
                     </div>
-                  </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
+                      <div className="relative">
+                        <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="username"
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="Enter username"
+                          className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          required={!isLogin}
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
                 
                 <div className="space-y-2">
@@ -249,7 +268,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={isSubmitting || !email || !password || (!isLogin && !name)}
+                    disabled={isSubmitting || !email || !password || (!isLogin && (!name || !username))}
                     className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium"
                   >
                     {isSubmitting ? (
