@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { Tabs } from '@/components/ui/tabs';
-import EnhancedAdminTabsList from './navigation/EnhancedAdminTabsList';
-import AdminTabsContentWrapper from './navigation/AdminTabsContentWrapper';
+import CompleteAdminTabsList from './navigation/CompleteAdminTabsList';
+import CompleteAdminTabsContentWrapper from './navigation/CompleteAdminTabsContentWrapper';
 
 const AdminTabsContent = () => {
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="ai-brain" className="space-y-6">
-        <EnhancedAdminTabsList />
-        <AdminTabsContentWrapper />
+      <Tabs defaultValue="monitoring" className="space-y-6">
+        <CompleteAdminTabsList />
+        <CompleteAdminTabsContentWrapper />
       </Tabs>
     </div>
   );
