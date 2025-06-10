@@ -16,7 +16,7 @@ export class SecurityValidation {
   }
 
   // File Upload Validation
-  static validateFileUpload(file: File): { isValid: boolean; error?: string } {
+  static async validateFileUpload(file: File): Promise<{ isValid: boolean; error?: string }> {
     const maxSize = 10 * 1024 * 1024; // 10MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
@@ -38,7 +38,7 @@ export class SecurityValidation {
     }
 
     // Magic number validation for images
-    return this.validateImageMagicNumbers(file);
+    return await this.validateImageMagicNumbers(file);
   }
 
   private static async validateImageMagicNumbers(file: File): Promise<{ isValid: boolean; error?: string }> {
