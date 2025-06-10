@@ -21,17 +21,17 @@ const UnifiedDataManager = () => {
   const { data: tableStats, isLoading } = useQuery({
     queryKey: ['table-stats'],
     queryFn: async () => {
-      const tables = [
+      const validTables = [
         'profiles', 'coins', 'transactions', 'stores', 'categories',
         'bids', 'favorites', 'notifications', 'error_logs', 'analytics_events',
         'api_keys', 'admin_activity_logs', 'user_settings', 'marketplace_stats'
       ];
       
       const stats = await Promise.all(
-        tables.map(async (table) => {
+        validTables.map(async (table) => {
           try {
             const { count, error } = await supabase
-              .from(table)
+              .from(table as any)
               .select('*', { count: 'exact', head: true });
             
             return {
@@ -61,7 +61,7 @@ const UnifiedDataManager = () => {
       // Only clean up analytics and logs older than 30 days
       if (['analytics_events', 'error_logs', 'admin_activity_logs'].includes(table)) {
         const { error } = await supabase
-          .from(table)
+          .from(table as any)
           .delete()
           .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
         
