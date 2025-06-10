@@ -1,11 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Eye, EyeOff, Database, Key, Globe, Brain, CreditCard } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff, Trash2, Edit } from 'lucide-react';
 
 interface ApiKey {
   id: string;
@@ -29,130 +27,68 @@ interface CategorizedKeysDisplayProps {
   categories: Category[];
 }
 
-const CategorizedKeysDisplay: React.FC<CategorizedKeysDisplayProps> = ({
-  apiKeys,
-  categories
-}) => {
-  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
-
-  const categoryIcons = {
-    'Database': Database,
-    'Authentication': Key,
-    'External APIs': Globe,
-    'AI Services': Brain,
-    'Payment': CreditCard
+const CategorizedKeysDisplay = ({ apiKeys, categories }: CategorizedKeysDisplayProps) => {
+  const getCategoryName = (categoryId?: string) => {
+    if (!categoryId) return 'Uncategorized';
+    const category = categories.find(c => c.id === categoryId);
+    return category?.name || 'Unknown Category';
   };
 
-  const getCategoryIcon = (categoryName: string) => {
-    const IconComponent = categoryIcons[categoryName as keyof typeof categoryIcons] || Key;
-    return <IconComponent className="h-4 w-4" />;
-  };
-
-  const toggleKeyVisibility = (keyId: string) => {
-    const newVisible = new Set(visibleKeys);
-    if (newVisible.has(keyId)) {
-      newVisible.delete(keyId);
-    } else {
-      newVisible.add(keyId);
+  const groupedKeys = apiKeys.reduce((groups, key) => {
+    const categoryName = getCategoryName(key.category_id);
+    if (!groups[categoryName]) {
+      groups[categoryName] = [];
     }
-    setVisibleKeys(newVisible);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied to clipboard",
-      description: "API key has been copied to your clipboard.",
-    });
-  };
-
-  const groupedKeys = apiKeys.reduce((acc, key) => {
-    const categoryName = categories.find(c => c.id === key.category_id)?.name || 'Uncategorized';
-    if (!acc[categoryName]) {
-      acc[categoryName] = [];
-    }
-    acc[categoryName].push(key);
-    return acc;
+    groups[categoryName].push(key);
+    return groups;
   }, {} as Record<string, ApiKey[]>);
 
   return (
-    <>
+    <div className="space-y-6">
       {Object.entries(groupedKeys).map(([categoryName, keys]) => (
         <Card key={categoryName}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {getCategoryIcon(categoryName)}
-              {categoryName} ({keys.length})
+            <CardTitle className="flex items-center justify-between">
+              <span>{categoryName}</span>
+              <Badge variant="outline">{keys.length} keys</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {keys.map((key) => (
-                  <TableRow key={key.id}>
-                    <TableCell>
-                      <div className="font-medium">{key.key_name}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate" title={key.description || 'N/A'}>
-                        {key.description || 'No description'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <code className="text-sm bg-gray-100 px-2 py-1 rounded max-w-[200px] truncate">
-                          {visibleKeys.has(key.id) 
-                            ? key.encrypted_value 
-                            : '••••••••••••••••'
-                          }
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => toggleKeyVisibility(key.id)}
-                        >
-                          {visibleKeys.has(key.id) ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyToClipboard(key.encrypted_value)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={key.is_active ? "default" : "secondary"}>
-                        {key.is_active ? "Active" : "Inactive"}
+            <div className="space-y-4">
+              {keys.map((key) => (
+                <div key={key.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{key.key_name}</span>
+                      <Badge variant={key.is_active ? 'default' : 'secondary'}>
+                        {key.is_active ? 'Active' : 'Inactive'}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {key.created_at ? new Date(key.created_at).toLocaleDateString() : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline">
-                        Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                    {key.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{key.description}</p>
+                    )}
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Created: {key.created_at ? new Date(key.created_at).toLocaleDateString() : 'Unknown'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-red-600">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       ))}
-    </>
+    </div>
   );
 };
 

@@ -5,10 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database, Key, Globe, Brain, CreditCard } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useCreateApiKey } from '@/hooks/useAdminData';
-import { toast } from '@/hooks/use-toast';
 
 interface Category {
   id: string;
@@ -23,59 +21,21 @@ interface AddKeyFormProps {
   setShowForm: (show: boolean) => void;
 }
 
-const AddKeyForm: React.FC<AddKeyFormProps> = ({
-  categories,
-  showForm,
-  setShowForm
-}) => {
-  const createApiKey = useCreateApiKey();
+const AddKeyForm = ({ categories, showForm, setShowForm }: AddKeyFormProps) => {
   const [formData, setFormData] = useState({
-    name: '',
-    value: '',
+    key_name: '',
+    encrypted_value: '',
     description: '',
-    category_id: '',
+    category_id: ''
   });
 
-  const categoryIcons = {
-    'Database': Database,
-    'Authentication': Key,
-    'External APIs': Globe,
-    'AI Services': Brain,
-    'Payment': CreditCard
-  };
+  const createApiKey = useCreateApiKey();
 
-  const getCategoryIcon = (categoryName: string) => {
-    const IconComponent = categoryIcons[categoryName as keyof typeof categoryIcons] || Key;
-    return <IconComponent className="h-4 w-4" />;
-  };
-
-  const generateRandomKey = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = 'coinai_';
-    for (let i = 0; i < 32; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setFormData(prev => ({ ...prev, value: result }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedCategory = categories.find(c => c.id === formData.category_id);
-    createApiKey.mutate({
-      key_name: formData.name,
-      encrypted_value: formData.value,
-      description: formData.description,
-      category_id: formData.category_id || null
-    }, {
-      onSuccess: () => {
-        setFormData({ name: '', value: '', description: '', category_id: '' });
-        setShowForm(false);
-        toast({
-          title: "API Key created successfully",
-          description: `Added to ${selectedCategory?.name || 'Uncategorized'}`,
-        });
-      },
-    });
+    await createApiKey.mutateAsync(formData);
+    setFormData({ key_name: '', encrypted_value: '', description: '', category_id: '' });
+    setShowForm(false);
   };
 
   if (!showForm) return null;
@@ -83,68 +43,70 @@ const AddKeyForm: React.FC<AddKeyFormProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create New API Key</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Add New API Key</CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Key Name</Label>
+              <Label htmlFor="key_name">Key Name</Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., OpenAI API Key"
+                id="key_name"
+                value={formData.key_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, key_name: e.target.value }))}
+                placeholder="Enter key name"
                 required
               />
             </div>
             <div>
               <Label htmlFor="category">Category</Label>
-              <Select value={formData.category_id} onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center gap-2">
-                        {getCategoryIcon(category.name)}
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={formData.category_id}
+                onChange={(e) => setFormData(prev => ({ ...prev, category_id: e.target.value }))}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">Select Category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+          
           <div>
-            <Label htmlFor="value">API Key Value</Label>
-            <div className="flex gap-2">
-              <Input
-                id="value"
-                value={formData.value}
-                onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
-                placeholder="Enter the API key value"
-                type="password"
-                required
-              />
-              <Button type="button" variant="outline" onClick={generateRandomKey}>
-                Generate
-              </Button>
-            </div>
+            <Label htmlFor="encrypted_value">API Key Value</Label>
+            <Input
+              id="encrypted_value"
+              type="password"
+              value={formData.encrypted_value}
+              onChange={(e) => setFormData(prev => ({ ...prev, encrypted_value: e.target.value }))}
+              placeholder="Enter API key"
+              required
+            />
           </div>
+          
           <div>
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe what this API key is used for"
+              placeholder="Enter description"
+              rows={3}
             />
           </div>
+          
           <div className="flex gap-2">
             <Button type="submit" disabled={createApiKey.isPending}>
-              {createApiKey.isPending ? 'Creating...' : 'Create API Key'}
+              <Plus className="h-4 w-4 mr-2" />
+              {createApiKey.isPending ? 'Adding...' : 'Add API Key'}
             </Button>
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
               Cancel

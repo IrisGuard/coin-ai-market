@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -288,6 +287,105 @@ export const useErrorLogs = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('error_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};
+
+// Add missing exports for components that need them
+export const useAdminData = () => {
+  return useQuery({
+    queryKey: ['admin-data'],
+    queryFn: async () => {
+      // Basic admin data aggregation
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(10);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};
+
+export const useCreateApiKey = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (keyData: { 
+      key_name: string; 
+      encrypted_value: string; 
+      description?: string; 
+      category_id?: string 
+    }) => {
+      const { error } = await supabase
+        .from('api_keys')
+        .insert([keyData]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-api-keys'] });
+      toast({
+        title: "Success",
+        description: "API key created successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useBulkCreateApiKeys = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (keysData: Array<{ 
+      key_name: string; 
+      encrypted_value: string; 
+      description?: string; 
+      category_id?: string 
+    }>) => {
+      const { error } = await supabase
+        .from('api_keys')
+        .insert(keysData);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-api-keys'] });
+      toast({
+        title: "Success",
+        description: "API keys imported successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useConsoleErrors = () => {
+  return useQuery({
+    queryKey: ['admin-console-errors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('console_errors')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
