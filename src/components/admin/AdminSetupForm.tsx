@@ -31,8 +31,8 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
       if (success) {
         setIsSuccess(true);
         toast({
-          title: "Επιτυχία!",
-          description: "Έχετε πλέον διαχειριστικά δικαιώματα.",
+          title: "Success!",
+          description: "You now have administrator privileges.",
         });
         // Close after short delay to show success state
         setTimeout(() => {
@@ -42,8 +42,8 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
     } catch (error: any) {
       console.error('Admin setup error:', error);
       toast({
-        title: "Σφάλμα",
-        description: error.message || 'Αποτυχία δημιουργίας διαχειριστή',
+        title: "Error",
+        description: error.message || 'Failed to create administrator',
         variant: "destructive",
       });
     } finally {
@@ -57,7 +57,7 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-center justify-center text-xl">
             <Crown className="h-6 w-6 text-yellow-600" />
-            Δημιουργία Διαχειριστή
+            Create Administrator
           </DialogTitle>
         </DialogHeader>
         
@@ -70,10 +70,10 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
             <CheckCircle className="h-16 w-16 mx-auto text-green-600" />
             <div>
               <h3 className="text-lg font-semibold text-green-600 mb-2">
-                Επιτυχής Δημιουργία!
+                Successfully Created!
               </h3>
               <p className="text-sm text-gray-600">
-                Έχετε πλέον πλήρη διαχειριστικά δικαιώματα
+                You now have full administrator privileges
               </p>
             </div>
           </motion.div>
@@ -82,21 +82,21 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
             <div className="text-center mb-6">
               <Crown className="h-12 w-12 mx-auto text-yellow-600 mb-3" />
               <p className="text-sm text-gray-600">
-                Συμπληρώστε τα στοιχεία για να γίνετε διαχειριστής
+                Fill in the details to become an administrator
               </p>
             </div>
             
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                  Πλήρες Όνομα
+                  Full Name
                 </Label>
                 <Input
                   id="fullName"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Εισάγετε το πλήρες όνομά σας"
+                  placeholder="Enter your full name"
                   className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -104,7 +104,7 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
               
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Διαχειριστή
+                  Administrator Email
                 </Label>
                 <Input
                   id="email"
@@ -122,8 +122,8 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-yellow-800">
-                  <strong>Προσοχή:</strong> Αυτή η ενέργεια θα σας δώσει πλήρη διαχειριστικά δικαιώματα 
-                  συμπεριλαμβανομένης της πρόσβασης στο AI Brain.
+                  <strong>Warning:</strong> This action will give you full administrator privileges 
+                  including access to the AI Brain.
                 </div>
               </div>
             </div>
@@ -136,7 +136,7 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
                 className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
                 disabled={isSubmitting}
               >
-                Ακύρωση
+                Cancel
               </Button>
               <Button 
                 type="submit" 
@@ -146,12 +146,12 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Δημιουργία...
+                    Creating...
                   </>
                 ) : (
                   <>
                     <Crown className="h-4 w-4 mr-2" />
-                    Γίνε Διαχειριστής
+                    Become Administrator
                   </>
                 )}
               </Button>
