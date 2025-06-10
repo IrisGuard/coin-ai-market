@@ -26,7 +26,7 @@ const Auctions = () => {
     return filterAndSortAuctions(auctions, searchTerm, filterStatus, sortBy);
   }, [auctions, searchTerm, filterStatus, sortBy]);
 
-  // Calculate stats
+  // Calculate stats with proper handling of missing properties
   const endingSoonCount = auctions.filter(auction => {
     const now = new Date().getTime();
     const end = new Date(auction.auction_end).getTime();
@@ -34,11 +34,19 @@ const Auctions = () => {
     return hoursRemaining <= 24 && hoursRemaining > 0;
   }).length;
 
-  const hotAuctionsCount = auctions.filter(auction => 
-    auction.bid_count >= 5 || auction.watchers >= 10
-  ).length;
+  // Handle missing bid_count and watchers properties
+  const hotAuctionsCount = auctions.filter(auction => {
+    const bidCount = auction.bid_count || 0;
+    const watchers = auction.watchers || 0;
+    return bidCount >= 5 || watchers >= 10;
+  }).length;
 
-  const totalValue = auctions.reduce((sum, auction) => sum + auction.current_bid, 0);
+  // Handle missing current_bid property
+  const totalValue = auctions.reduce((sum, auction) => {
+    const currentBid = auction.current_bid || auction.starting_bid || auction.price || 0;
+    return sum + currentBid;
+  }, 0);
+  
   const userBidsCount = myBids.length;
 
   if (isLoading) {

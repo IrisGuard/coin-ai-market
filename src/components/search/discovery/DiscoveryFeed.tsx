@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import DiscoveryHeader from './discovery/DiscoveryHeader';
-import DiscoveryTabs from './discovery/DiscoveryTabs';
-import CoinCard from './discovery/CoinCard';
-import PersonalizedRecommendations from './discovery/PersonalizedRecommendations';
-import QuickActions from './discovery/QuickActions';
+import DiscoveryHeader from './DiscoveryHeader';
+import DiscoveryTabs from './DiscoveryTabs';
+import CoinCard from './CoinCard';
+import PersonalizedRecommendations from './PersonalizedRecommendations';
+import QuickActions from './QuickActions';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -82,6 +82,7 @@ const DiscoveryFeed: React.FC<DiscoveryFeedProps> = ({ onCoinClick }) => {
                   rarity: coin.rarity,
                   featured: coin.featured
                 }}
+                onClick={() => onCoinClick(coin.id)}
               />
             ))}
           </div>
