@@ -41,7 +41,7 @@ const SampleDataSetup = () => {
         return;
       }
 
-      // Create production-quality sample coins
+      // Create production-quality sample coins with proper types
       const productionCoins = [
         {
           name: '1921 Morgan Silver Dollar',
@@ -59,7 +59,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'american',
+          category: 'american' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -78,7 +78,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: false,
-          category: 'american',
+          category: 'american' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         },
         {
@@ -97,7 +97,7 @@ const SampleDataSetup = () => {
           image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop',
           authentication_status: 'verified',
           featured: true,
-          category: 'american',
+          category: 'american' as const,
           user_id: '00000000-0000-0000-0000-000000000000'
         }
       ];
