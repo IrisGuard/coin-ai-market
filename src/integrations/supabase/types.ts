@@ -120,6 +120,50 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_command_executions: {
+        Row: {
+          command_id: string | null
+          created_at: string | null
+          error_message: string | null
+          execution_status: string | null
+          execution_time_ms: number | null
+          id: string
+          input_data: Json | null
+          output_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          command_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_status?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          command_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_status?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_command_executions_command_id_fkey"
+            columns: ["command_id"]
+            isOneToOne: false
+            referencedRelation: "ai_commands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_commands: {
         Row: {
           category: string | null
@@ -1527,6 +1571,33 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          browser_info: Json | null
+          created_at: string | null
+          id: string
+          load_time_ms: number
+          page_url: string
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          created_at?: string | null
+          id?: string
+          load_time_ms: number
+          page_url: string
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          created_at?: string | null
+          id?: string
+          load_time_ms?: number
+          page_url?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: Json | null
@@ -2016,6 +2087,33 @@ export type Database = {
         }
         Relationships: []
       }
+      system_metrics: {
+        Row: {
+          id: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at: string | null
+          tags: Json | null
+        }
+        Insert: {
+          id?: string
+          metric_name: string
+          metric_type?: string
+          metric_value: number
+          recorded_at?: string | null
+          tags?: Json | null
+        }
+        Update: {
+          id?: string
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string | null
+          tags?: Json | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -2108,6 +2206,42 @@ export type Database = {
           scraped_at?: string | null
           title?: string | null
           url?: string
+        }
+        Relationships: []
+      }
+      user_activity: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          page_url: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -2424,6 +2558,10 @@ export type Database = {
         Args: { plain_key: string }
         Returns: string
       }
+      get_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_store_average_rating: {
         Args: { store_uuid: string }
         Returns: number
@@ -2451,6 +2589,15 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      log_admin_activity: {
+        Args: {
+          p_action: string
+          p_target_type: string
+          p_target_id?: string
+          p_details?: Json
+        }
+        Returns: undefined
+      }
       log_production_error: {
         Args: {
           error_type: string
@@ -2466,6 +2613,15 @@ export type Database = {
       monitor_auth_sessions: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      record_system_metric: {
+        Args: {
+          p_metric_name: string
+          p_metric_value: number
+          p_metric_type?: string
+          p_tags?: Json
+        }
+        Returns: undefined
       }
       set_tenant_context: {
         Args: { tenant_uuid: string }
