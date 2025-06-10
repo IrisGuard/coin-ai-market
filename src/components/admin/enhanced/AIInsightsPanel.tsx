@@ -70,7 +70,7 @@ const AIInsightsPanel = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {insights?.recommendations.map((rec, index) => (
+            {insights?.recommendations?.map((rec, index) => (
               <div key={index} className="p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -108,10 +108,10 @@ const AIInsightsPanel = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {insights?.predictions.map((pred, index) => (
+            {insights?.predictions?.map((pred, index) => (
               <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-blue-900">{pred.category.replace('_', ' ').toUpperCase()}</h4>
+                  <h4 className="font-medium text-blue-900">{pred.category}</h4>
                   <Badge variant="outline" className="text-blue-700">
                     {pred.timeframe}
                   </Badge>
