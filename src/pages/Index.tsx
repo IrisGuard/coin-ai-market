@@ -36,8 +36,22 @@ const Index = () => {
         <Navbar />
         
         {/* Enhanced Hero Section */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-white border-b border-gray-200 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            {/* Top-right Join as Buyer Button - Only show if not authenticated */}
+            {!isAuthenticated && (
+              <div className="absolute top-4 right-4">
+                <Button
+                  onClick={() => setShowBuyerSignup(true)}
+                  size="sm"
+                  className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white text-sm font-medium flex items-center gap-1"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Join as Buyer
+                </Button>
+              </div>
+            )}
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -64,24 +78,16 @@ const Index = () => {
                 />
               </motion.div>
 
-              {/* Join as Buyer Button - Only show if not authenticated */}
+              {/* Marketplace link for sellers */}
               {!isAuthenticated && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                  className="text-center"
                 >
-                  <Button
-                    onClick={() => setShowBuyerSignup(true)}
-                    className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white px-8 py-3 text-lg font-semibold flex items-center gap-2"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    Join as Buyer (for collectors)
-                  </Button>
-                  
                   <p className="text-gray-500 text-sm">
-                    or visit our <Link to="/marketplace" className="text-electric-green hover:underline font-medium">marketplace</Link> to open a store
+                    Want to sell? Visit our <Link to="/marketplace" className="text-electric-green hover:underline font-medium">marketplace</Link> to open a store
                   </p>
                 </motion.div>
               )}

@@ -77,9 +77,9 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Desktop User Actions */}
+            {/* Desktop User Actions - Only show if user is authenticated */}
             <div className="hidden lg:flex items-center space-x-3">
-              {user ? (
+              {user && (
                 <>
                   <span className="text-sm text-gray-600">
                     Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
@@ -95,12 +95,6 @@ const Navbar = () => {
                     Logout
                   </Button>
                 </>
-              ) : (
-                <Link to="/auth">
-                  <Button className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white">
-                    Login
-                  </Button>
-                </Link>
               )}
             </div>
 
@@ -153,9 +147,9 @@ const Navbar = () => {
               </Link>
             ))}
 
-            {/* Mobile User Actions */}
-            <div className="pt-4 border-t border-gray-200">
-              {user ? (
+            {/* Mobile User Actions - Only show if user is authenticated */}
+            {user && (
+              <div className="pt-4 border-t border-gray-200">
                 <div className="space-y-2">
                   <div className="text-sm text-gray-600 p-2">
                     Welcome, {user.user_metadata?.full_name || user.email?.split('@')[0]}
@@ -170,14 +164,8 @@ const Navbar = () => {
                     Logout
                   </Button>
                 </div>
-              ) : (
-                <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white">
-                    Login
-                  </Button>
-                </Link>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </motion.div>
       )}
