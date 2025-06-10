@@ -2,10 +2,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+interface SystemHealthData {
+  status: string;
+  uptime: string;
+  serverStatus: string;
+  databaseStatus: string;
+  apiResponseTime: number;
+  lastChecked: Date;
+  total_users?: number;
+  total_coins?: number;
+  total_transactions?: number;
+  errors_24h?: number;
+  active_users?: number;
+  live_auctions?: number;
+  featured_coins?: number;
+  total_value?: number;
+  error?: string;
+}
+
 export const useSystemHealth = () => {
   return useQuery({
     queryKey: ['system-health'],
-    queryFn: async () => {
+    queryFn: async (): Promise<SystemHealthData> => {
       try {
         // Test database connection
         const { data, error } = await supabase.rpc('get_dashboard_stats');
@@ -17,7 +35,7 @@ export const useSystemHealth = () => {
         await supabase.from('profiles').select('id').limit(1);
         const apiResponseTime = Date.now() - startTime;
 
-        const baseHealthData = {
+        const baseHealthData: SystemHealthData = {
           status: 'healthy',
           uptime: '99.9%',
           serverStatus: 'online',
