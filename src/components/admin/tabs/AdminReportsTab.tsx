@@ -19,6 +19,24 @@ import {
   Filter
 } from 'lucide-react';
 
+interface AdminDashboardData {
+  users?: {
+    total?: number;
+    active_15min?: number;
+  };
+  transactions?: {
+    revenue?: number;
+  };
+  coins?: {
+    total?: number;
+    featured?: number;
+  };
+  system?: {
+    health_status?: string;
+    errors_24h?: number;
+  };
+}
+
 const AdminReportsTab = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('30');
   const [selectedReport, setSelectedReport] = useState('overview');
@@ -29,7 +47,7 @@ const AdminReportsTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
       if (error) throw error;
-      return data;
+      return data as unknown as AdminDashboardData;
     },
   });
 
