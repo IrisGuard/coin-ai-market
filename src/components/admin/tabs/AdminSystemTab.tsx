@@ -17,8 +17,54 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+// TypeScript interfaces for the comprehensive stats
+interface SystemStatsData {
+  users: {
+    total: number;
+    dealers: number;
+    verified_dealers: number;
+    admins: number;
+    active_15min: number;
+  };
+  coins: {
+    total: number;
+    featured: number;
+    live_auctions: number;
+    sold: number;
+  };
+  transactions: {
+    total: number;
+    completed: number;
+    revenue: number;
+  };
+  system: {
+    errors_24h: number;
+    active_alerts: number;
+    health_status: 'healthy' | 'warning' | 'critical';
+  };
+  ai_automation: {
+    commands: number;
+    rules: number;
+    models: number;
+  };
+  integrations: {
+    data_sources: number;
+    api_keys: number;
+  };
+  last_updated: string;
+}
+
+interface SystemAlert {
+  id: string;
+  alert_type: string;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  description: string;
+  created_at: string;
+}
+
 const AdminSystemTab = () => {
-  const { data: systemStats, isLoading, refetch } = useQuery({
+  const { data: systemStatsRaw, isLoading, refetch } = useQuery({
     queryKey: ['admin-system-comprehensive'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
@@ -41,6 +87,9 @@ const AdminSystemTab = () => {
       return data || [];
     },
   });
+
+  // Type cast the raw data to our interface
+  const systemStats = systemStatsRaw as SystemStatsData | null;
 
   const getSystemStatus = () => {
     if (!systemStats?.system) return 'unknown';
@@ -245,7 +294,7 @@ const AdminSystemTab = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {systemAlerts.map((alert: any) => (
+              {systemAlerts.map((alert: SystemAlert) => (
                 <div key={alert.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <div className="font-medium">{alert.title}</div>
