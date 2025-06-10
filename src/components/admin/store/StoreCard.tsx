@@ -16,6 +16,13 @@ interface Store {
     avatar_url: string;
     verified_dealer: boolean;
     rating: number;
+  }[] | {
+    id: string;
+    full_name: string;
+    email: string;
+    avatar_url: string;
+    verified_dealer: boolean;
+    rating: number;
   } | null;
   coins: any[];
 }
@@ -25,6 +32,9 @@ interface StoreCardProps {
 }
 
 const StoreCard = ({ store }: StoreCardProps) => {
+  // Handle both array and single object cases for profiles
+  const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -43,7 +53,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">Owner:</span>
-            <span>{store.profiles?.full_name || 'Unknown'}</span>
+            <span>{profile?.full_name || 'Unknown'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Items:</span>
@@ -51,7 +61,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Rating:</span>
-            <span>{store.profiles?.rating || 'N/A'}</span>
+            <span>{profile?.rating || 'N/A'}</span>
           </div>
         </div>
 

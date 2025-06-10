@@ -15,6 +15,13 @@ interface Store {
     avatar_url: string;
     verified_dealer: boolean;
     rating: number;
+  }[] | {
+    id: string;
+    full_name: string;
+    email: string;
+    avatar_url: string;
+    verified_dealer: boolean;
+    rating: number;
   } | null;
   coins: any[];
 }
