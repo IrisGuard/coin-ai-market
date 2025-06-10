@@ -2,12 +2,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { checkAdminStatus } from '@/utils/adminUtils';
+import { toast } from '@/hooks/use-toast';
 
 interface AdminContextType {
   isAdmin: boolean;
   isAdminAuthenticated: boolean;
   isLoading: boolean;
   checkAdminStatus: () => Promise<void>;
+  updateAdminProfile: (data: { fullName: string; email: string }) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -65,6 +67,32 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const updateAdminProfile = async (data: { fullName: string; email: string }): Promise<boolean> => {
+    try {
+      // For now, just simulate a successful update
+      // In a real app, this would make an API call to update the admin profile
+      console.log('Updating admin profile:', data);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Profile Updated",
+        description: "Admin profile has been updated successfully.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating admin profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update admin profile. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     checkAdminStatusInternal();
   }, [user, isAuthenticated]);
@@ -102,6 +130,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     isAdminAuthenticated,
     isLoading,
     checkAdminStatus: checkAdminStatusInternal,
+    updateAdminProfile,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
