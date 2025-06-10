@@ -10,13 +10,12 @@ const AdminKeyboardHandler = () => {
   const navigate = useNavigate();
   const { isAdmin, isAdminAuthenticated } = useAdmin();
 
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // ΑΚΡΙΒΩΣ 10 λεπτά
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes
 
-  // Monitor user activity και timeout session
+  // Monitor user activity and timeout session
   useEffect(() => {
     const updateActivity = () => {
       setLastActivity(Date.now());
-      // Update στο sessionStorage επίσης για consistency
       sessionStorage.setItem('adminLastActivity', Date.now().toString());
     };
     
@@ -26,14 +25,14 @@ const AdminKeyboardHandler = () => {
       
       if (isAdminAuthenticated && Date.now() - lastActivityTime > SESSION_TIMEOUT) {
         console.log('🔒 Admin session expired due to inactivity - EXACTLY 10 minutes');
-        // ΚΑΘΑΡΙΣΜΟΣ όλων των admin session data
+        // CLEAR all admin session data
         localStorage.removeItem('adminSession');
         sessionStorage.removeItem('adminAuthenticated');
         sessionStorage.removeItem('adminSessionTime');
         sessionStorage.removeItem('adminLastActivity');
         sessionStorage.removeItem('adminFingerprint');
         
-        // FORCE redirect to home - ΚΑΝΕΝΑ admin panel access
+        // FORCE redirect to home - NO admin panel access
         window.location.href = '/';
       }
     };
@@ -44,7 +43,7 @@ const AdminKeyboardHandler = () => {
       document.addEventListener(event, updateActivity, { passive: true });
     });
 
-    // Check timeout κάθε λεπτό
+    // Check timeout every minute
     const timeoutInterval = setInterval(checkTimeout, 60000);
     
     return () => {
@@ -57,7 +56,7 @@ const AdminKeyboardHandler = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // ΜΟΝΟ Ctrl+Alt+A - ΤΙΠΟΤΑ ΑΛΛΟ
+      // ONLY Ctrl+Alt+A - NOTHING ELSE
       if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
         console.log('🔑 Admin keyboard shortcut detected: Ctrl+Alt+A');
         event.preventDefault();

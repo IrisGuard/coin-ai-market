@@ -8,7 +8,7 @@ export interface CreateAdminResult {
 }
 
 /**
- * Creates the first admin user by updating the admin_roles table directly
+ * Creates the first admin user by updating the user_roles table directly
  * This should be used only for initial setup
  */
 export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminResult> => {
@@ -27,7 +27,7 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
       };
     }
 
-    // Check if admin role already exists using the new function
+    // Check if admin role already exists using the updated function
     const { data: isAlreadyAdmin, error: adminCheckError } = await supabase
       .rpc('is_admin_user', { user_id: profile.id });
 
@@ -45,9 +45,9 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
       };
     }
 
-    // Create admin role
+    // Create admin role in user_roles table
     const { error: insertError } = await supabase
-      .from('admin_roles')
+      .from('user_roles')
       .insert([{
         user_id: profile.id,
         role: 'admin'
@@ -59,6 +59,14 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
         message: `Error creating admin: ${insertError.message}`
       };
     }
+
+    // Also add to admin_roles table for compatibility
+    await supabase
+      .from('admin_roles')
+      .insert([{
+        user_id: profile.id,
+        role: 'admin'
+      }]);
 
     return {
       success: true,
@@ -76,13 +84,26 @@ export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminR
 };
 
 /**
- * Checks if the current user is an admin using the new secure function
+ * Checks if the current user is an admin using the secure function
  */
 export const checkAdminStatus = async (): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
+    // First check user_roles table
+    const { data: userRole, error: userRoleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (!userRoleError && userRole) {
+      return true;
+    }
+
+    // Fallback to admin_roles table
     const { data, error } = await supabase
       .rpc('is_admin_user', { user_id: user.id });
 
@@ -100,7 +121,6 @@ export const checkAdminStatus = async (): Promise<boolean> => {
 
 /**
  * Development utility to help set up the first admin
- * This logs instructions for manual admin setup
  */
 export const logAdminSetupInstructions = () => {
   console.log(`
@@ -113,7 +133,7 @@ export const logAdminSetupInstructions = () => {
    const result = await window.createFirstAdmin('your-email@example.com');
    console.log(result);
 
-3. If successful, refresh the page and try accessing admin features
+3. If successful, refresh the page and try accessing admin features with Ctrl+Alt+A
 
 Note: The createFirstAdmin function is available in development console
 `);

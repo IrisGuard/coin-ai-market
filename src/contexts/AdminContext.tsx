@@ -21,7 +21,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
 
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // ΑΚΡΙΒΩΣ 10 λεπτά
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes
 
   const clearAdminSession = () => {
     console.log('🧹 Clearing admin session completely');
@@ -44,11 +44,11 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setIsLoading(true);
       
-      // Check if user has admin privileges
+      // Check if user has admin privileges using updated function
       const adminStatus = await checkAdminStatus();
       setIsAdmin(adminStatus);
 
-      // ΑΚΡΙΒΗ έλεγχος session validity
+      // EXACT session validity check
       const adminSession = localStorage.getItem('adminSession');
       const sessionTime = sessionStorage.getItem('adminSessionTime');
       const lastActivity = sessionStorage.getItem('adminLastActivity');
@@ -58,7 +58,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const lastActivityTime = lastActivity ? parseInt(lastActivity) : sessionStart;
         const now = Date.now();
         
-        // Έλεγχος και για session start ΚΑΙ για last activity
+        // Check both session start AND last activity
         const sessionAge = now - sessionStart;
         const inactivityTime = now - lastActivityTime;
         
@@ -87,7 +87,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateAdminProfile = async (data: { fullName: string; email: string }): Promise<boolean> => {
     try {
       // For now, just simulate a successful update
-      // In a real app, this would make an API call to update the admin profile
       console.log('Updating admin profile:', data);
       
       // Simulate API delay
@@ -114,7 +113,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     checkAdminStatusInternal();
   }, [user, isAuthenticated]);
 
-  // Enhanced session monitoring με ακριβή timing
+  // Enhanced session monitoring with exact timing
   useEffect(() => {
     if (!isAdminAuthenticated) return;
 
@@ -146,7 +145,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     };
 
-    // Check κάθε 30 δευτερόλεπτα για πιο ακριβή monitoring
+    // Check every 30 seconds for more accurate monitoring
     const interval = setInterval(checkSessionTimeout, 30000);
     
     return () => clearInterval(interval);

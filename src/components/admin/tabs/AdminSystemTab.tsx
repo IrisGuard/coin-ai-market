@@ -16,31 +16,21 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define the expected shape of system stats
-interface SystemStats {
-  active_users?: number;
-  errors_24h?: number;
-  total_users?: number;
-  total_coins?: number;
-  total_transactions?: number;
-  [key: string]: any;
-}
-
 const AdminSystemTab = () => {
-  const { data: systemStatsRaw, isLoading } = useQuery({
+  const { data: systemStats, isLoading, refetch } = useQuery({
     queryKey: ['admin-system-stats'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_dashboard_stats');
       if (error) throw error;
-      return data;
+      return data || {};
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Safely cast and provide defaults
-  const systemStats: SystemStats = (systemStatsRaw as SystemStats) || {};
-  const errors24h = systemStats.errors_24h || 0;
-  const activeUsers = systemStats.active_users || 0;
+  const errors24h = systemStats?.errors_24h || 0;
+  const activeUsers = systemStats?.active_users || 0;
+  const totalUsers = systemStats?.total_users || 0;
+  const totalCoins = systemStats?.total_coins || 0;
 
   const getSystemStatus = () => {
     if (errors24h > 10) return 'critical';
@@ -49,6 +39,20 @@ const AdminSystemTab = () => {
   };
 
   const systemStatus = getSystemStatus();
+
+  const handleRefreshStats = () => {
+    refetch();
+  };
+
+  const handleClearCache = async () => {
+    try {
+      // Clear AI recognition cache
+      await supabase.from('ai_recognition_cache').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      console.log('Cache cleared successfully');
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -97,25 +101,25 @@ const AdminSystemTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeUsers}</div>
-            <p className="text-xs text-muted-foreground">Currently online</p>
+            <div className="text-2xl font-bold">{totalUsers.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">{activeUsers} currently active</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Errors (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${errors24h > 5 ? 'text-red-600' : 'text-green-600'}`}>
-              {errors24h}
-            </div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
+            <div className="text-2xl font-bold">{totalCoins.toLocaleString()}</div>
+            <p className={`text-xs ${errors24h > 5 ? 'text-red-600' : 'text-green-600'}`}>
+              {errors24h} errors (24h)
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -182,11 +186,11 @@ const AdminSystemTab = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2" onClick={handleRefreshStats}>
               <RefreshCw className="h-4 w-4" />
               Refresh Stats
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2" onClick={handleClearCache}>
               <Database className="h-4 w-4" />
               Clear Cache
             </Button>

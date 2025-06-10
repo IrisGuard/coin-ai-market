@@ -46,16 +46,19 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // 🚨 ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: Admin routes ΔΕΝ κάνουν automatic redirects
-  // Admin access ΜΟΝΟ μέσω Ctrl+Alt+A
+  // 🚨 CRITICAL FIX: NEVER auto-redirect to admin - only manual access via Ctrl+Alt+A
   if (requireAdmin) {
-    // ΔΕΝ κάνουμε redirect εδώ - το AdminKeyboardHandler θα το χειριστεί
-    console.log('🔒 Admin route accessed - AdminKeyboardHandler will handle access');
+    // Block admin access unless explicitly requested via AdminKeyboardHandler
+    const adminAccess = sessionStorage.getItem('adminAuthenticated');
+    if (!adminAccess) {
+      console.log('🔒 Admin access denied - use Ctrl+Alt+A to access admin panel');
+      return <Navigate to="/" replace />;
+    }
     return <>{children}</>;
   }
 
-  // Regular auth check για non-admin routes
-  if (requireAuth && !isAuthenticated && !requireAdmin) {
+  // Regular auth check for non-admin routes
+  if (requireAuth && !isAuthenticated) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -66,15 +69,12 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
   }
 
-  // 🚨 ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: ΚΑΜΙΑ automatic redirect to admin panel
-  // ΜΟΝΟ για authenticated users από auth page -> marketplace
+  // 🚨 CRITICAL FIX: NO automatic redirects - users stay where they are
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
-    // Για όλους τους users (buyers και dealers), redirect στο marketplace
-    // Admin access ΜΟΝΟ μέσω Ctrl+Alt+A
+    // Only redirect from auth page to marketplace for authenticated users
     return <Navigate to="/marketplace" replace />;
   }
 
-  // Render children - NO automatic admin redirects
   return <>{children}</>;
 };
 

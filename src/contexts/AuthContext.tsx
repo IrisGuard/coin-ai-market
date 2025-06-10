@@ -48,10 +48,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // REMOVED: Automatic admin redirect - users can manually navigate to admin
-        // No automatic redirects - let users choose where to go
+        // 🚨 CRITICAL FIX: NO automatic admin redirects - users choose where to go
         if (event === 'SIGNED_IN' && session?.user) {
-          // Simple redirect to home page for all users
+          // Simple redirect to home page for all users - NO admin auto-redirect
           setTimeout(() => {
             navigate('/');
           }, 100);
@@ -81,7 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           full_name: userData.fullName,
           name: userData.fullName,
           username: userData.username,
-          role: 'user'
+          role: 'buyer'
         }
       }
     });
@@ -110,6 +109,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
+    // 🚨 CRITICAL: Clear ALL admin session data on logout
+    localStorage.removeItem('adminSession');
+    sessionStorage.removeItem('adminAuthenticated');
+    sessionStorage.removeItem('adminSessionTime');
+    sessionStorage.removeItem('adminLastActivity');
+    sessionStorage.removeItem('adminFingerprint');
+    
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     navigate('/');
