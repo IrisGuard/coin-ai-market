@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { SecurityValidation } from '@/utils/securityValidation';
 import { toast } from '@/hooks/use-toast';
@@ -32,13 +31,7 @@ const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   const [isValidating, setIsValidating] = useState(false);
 
   const validateFile = useCallback(async (file: File): Promise<{ isValid: boolean; error?: string }> => {
-    // Basic validation
-    const basicValidation = SecurityValidation.validateFileUpload(file);
-    if (!basicValidation.isValid) {
-      return basicValidation;
-    }
-
-    // Magic number validation (async)
+    // Use the async validateFileUpload method
     return await SecurityValidation.validateFileUpload(file);
   }, []);
 
