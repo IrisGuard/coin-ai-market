@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -29,8 +28,20 @@ const ActiveMarketplace = () => {
         <BackButton to="/" label="Back to Home" />
       </div>
       
-      {/* Simple Marketplace Header */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Simple Marketplace Header with Top-Right Button */}
+      <div className="bg-white border-b border-gray-200 relative">
+        {/* Open Your Store Button - Top Right Position */}
+        <div className="absolute top-4 right-4 z-10">
+          <Button 
+            onClick={() => setIsDealerSignupOpen(true)}
+            size="sm"
+            className="bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan text-white px-3 py-1.5 text-xs font-medium"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Open Store
+          </Button>
+        </div>
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
@@ -47,26 +58,14 @@ const ActiveMarketplace = () => {
         
         {/* Dealer Stores Section - USER STORES */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Store className="w-6 h-6 text-electric-orange" />
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-                User Stores
-              </h2>
-              <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-                {dealers?.length || 0} Active Stores
-              </Badge>
-            </div>
-            
-            {/* Open Your Store Button - Moved to header */}
-            <Button 
-              onClick={() => setIsDealerSignupOpen(true)}
-              size="sm"
-              className="bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan text-white px-4 py-2 text-sm font-medium"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Open Your Store
-            </Button>
+          <div className="flex items-center gap-3 mb-6">
+            <Store className="w-6 h-6 text-electric-orange" />
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
+              User Stores
+            </h2>
+            <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
+              {dealers?.length || 0} Active Stores
+            </Badge>
           </div>
           
           {dealersLoading ? (
