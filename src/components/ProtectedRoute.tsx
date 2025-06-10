@@ -16,7 +16,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
   const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
-  // Get user role if needed for dealer check
+  // Get user role if needed
   const { data: userRole, isLoading: roleLoading } = useQuery({
     queryKey: ['userRole', user?.id],
     queryFn: async () => {
@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
       if (error) throw error;
       return data?.role;
     },
-    enabled: !!user?.id && requireDealer,
+    enabled: !!user?.id && (requireAdmin || requireDealer),
   });
 
   // Show loading state if auth or role is still being determined
@@ -46,32 +46,16 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // 🚨 CRITICAL FIX: Admin routes NEVER auto-redirect
-  // Admin access ONLY through Ctrl+Alt+A + AdminKeyboardHandler
+  // 🚨 ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: Admin routes ΔΕΝ κάνουν automatic redirects
+  // Admin access ΜΟΝΟ μέσω Ctrl+Alt+A
   if (requireAdmin) {
-    // Block access if not admin-authenticated through AdminKeyboardHandler
-    const adminAuthenticated = sessionStorage.getItem('adminAuthenticated') === 'true';
-    const adminSessionTime = sessionStorage.getItem('adminSessionTime');
-    const currentTime = Date.now();
-    
-    // Check 10-minute timeout (600,000ms)
-    if (!adminAuthenticated || !adminSessionTime || currentTime - parseInt(adminSessionTime) > 600000) {
-      // Clear expired session
-      sessionStorage.removeItem('adminAuthenticated');
-      sessionStorage.removeItem('adminSessionTime');
-      sessionStorage.removeItem('adminLastActivity');
-      sessionStorage.removeItem('adminFingerprint');
-      
-      // Redirect to home, NOT to auth
-      return <Navigate to="/" replace />;
-    }
-    
-    // Admin access granted - render admin content
+    // ΔΕΝ κάνουμε redirect εδώ - το AdminKeyboardHandler θα το χειριστεί
+    console.log('🔒 Admin route accessed - AdminKeyboardHandler will handle access');
     return <>{children}</>;
   }
 
-  // Regular auth check for non-admin routes
-  if (requireAuth && !isAuthenticated) {
+  // Regular auth check για non-admin routes
+  if (requireAuth && !isAuthenticated && !requireAdmin) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -82,14 +66,15 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
   }
 
-  // 🚨 CRITICAL FIX: NO automatic redirects for authenticated users
-  // Let them stay where they are, NO forced navigation
+  // 🚨 ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: ΚΑΜΙΑ automatic redirect to admin panel
+  // ΜΟΝΟ για authenticated users από auth page -> marketplace
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
-    // Only redirect FROM auth page to marketplace
+    // Για όλους τους users (buyers και dealers), redirect στο marketplace
+    // Admin access ΜΟΝΟ μέσω Ctrl+Alt+A
     return <Navigate to="/marketplace" replace />;
   }
 
-  // Render children - NO other automatic redirects
+  // Render children - NO automatic admin redirects
   return <>{children}</>;
 };
 
