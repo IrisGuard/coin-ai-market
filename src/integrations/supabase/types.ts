@@ -168,34 +168,52 @@ export type Database = {
         Row: {
           category: string | null
           code: string
+          command_type: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
+          execution_timeout: number | null
           id: string
+          input_schema: Json | null
           is_active: boolean | null
           name: string
+          output_schema: Json | null
+          priority: number | null
+          required_permissions: string[] | null
           updated_at: string | null
         }
         Insert: {
           category?: string | null
           code: string
+          command_type?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          execution_timeout?: number | null
           id?: string
+          input_schema?: Json | null
           is_active?: boolean | null
           name: string
+          output_schema?: Json | null
+          priority?: number | null
+          required_permissions?: string[] | null
           updated_at?: string | null
         }
         Update: {
           category?: string | null
           code?: string
+          command_type?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          execution_timeout?: number | null
           id?: string
+          input_schema?: Json | null
           is_active?: boolean | null
           name?: string
+          output_schema?: Json | null
+          priority?: number | null
+          required_permissions?: string[] | null
           updated_at?: string | null
         }
         Relationships: [
@@ -228,6 +246,83 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      ai_performance_metrics: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at: string | null
+          related_id: string | null
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at?: string | null
+          related_id?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string | null
+          related_id?: string | null
+        }
+        Relationships: []
+      }
+      ai_predictions: {
+        Row: {
+          accuracy_check: string | null
+          actual_value: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          input_data: Json
+          model_id: string | null
+          predicted_value: Json
+          prediction_date: string | null
+          prediction_type: string
+        }
+        Insert: {
+          accuracy_check?: string | null
+          actual_value?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          input_data: Json
+          model_id?: string | null
+          predicted_value: Json
+          prediction_date?: string | null
+          prediction_type: string
+        }
+        Update: {
+          accuracy_check?: string | null
+          actual_value?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          input_data?: Json
+          model_id?: string | null
+          predicted_value?: Json
+          prediction_date?: string | null
+          prediction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_predictions_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "prediction_models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_recognition_cache: {
         Row: {
@@ -386,6 +481,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      automation_rules: {
+        Row: {
+          actions: Json
+          conditions: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          execution_count: number | null
+          id: string
+          is_active: boolean | null
+          last_executed: string | null
+          name: string
+          rule_type: string
+          success_count: number | null
+          trigger_config: Json
+          updated_at: string | null
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed?: string | null
+          name: string
+          rule_type?: string
+          success_count?: number | null
+          trigger_config?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed?: string | null
+          name?: string
+          rule_type?: string
+          success_count?: number | null
+          trigger_config?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       bids: {
         Row: {
@@ -807,6 +953,65 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      command_queue: {
+        Row: {
+          command_id: string | null
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          execution_completed: string | null
+          execution_started: string | null
+          id: string
+          input_data: Json | null
+          max_retries: number | null
+          priority: number | null
+          result_data: Json | null
+          retry_count: number | null
+          scheduled_at: string | null
+          status: string | null
+        }
+        Insert: {
+          command_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          execution_completed?: string | null
+          execution_started?: string | null
+          id?: string
+          input_data?: Json | null
+          max_retries?: number | null
+          priority?: number | null
+          result_data?: Json | null
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          command_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          execution_completed?: string | null
+          execution_started?: string | null
+          id?: string
+          input_data?: Json | null
+          max_retries?: number | null
+          priority?: number | null
+          result_data?: Json | null
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "command_queue_command_id_fkey"
+            columns: ["command_id"]
+            isOneToOne: false
+            referencedRelation: "ai_commands"
             referencedColumns: ["id"]
           },
         ]
@@ -1595,6 +1800,48 @@ export type Database = {
           load_time_ms?: number
           page_url?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      prediction_models: {
+        Row: {
+          accuracy_score: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_trained: string | null
+          model_parameters: Json | null
+          model_type: string
+          name: string
+          target_metric: string
+          training_data_config: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_trained?: string | null
+          model_parameters?: Json | null
+          model_type: string
+          name: string
+          target_metric: string
+          training_data_config?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_trained?: string | null
+          model_parameters?: Json | null
+          model_type?: string
+          name?: string
+          target_metric?: string
+          training_data_config?: Json | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2565,6 +2812,18 @@ export type Database = {
       encrypt_api_key_secure: {
         Args: { plain_key: string }
         Returns: string
+      }
+      execute_automation_rule: {
+        Args: { rule_id: string }
+        Returns: Json
+      }
+      generate_ai_prediction: {
+        Args: { model_id: string; input_data: Json }
+        Returns: Json
+      }
+      get_ai_brain_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_dashboard_stats: {
         Args: Record<PropertyKey, never>
