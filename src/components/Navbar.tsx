@@ -5,8 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Button } from '@/components/ui/button';
 import { 
-  Menu, X, Search, User, LogOut, Settings, 
-  Shield, Store, Brain, Home
+  Menu, X, User, LogOut, Settings, 
+  Shield, Store, Home, Search, Gavel, Brain
 } from 'lucide-react';
 import GlobalCoinsAIBranding from './GlobalCoinsAIBranding';
 
@@ -27,8 +27,9 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Search', href: '/search', icon: Search },
-    { name: 'AI Analysis', href: '/ai-analysis', icon: Brain },
+    { name: 'Marketplace', href: '/marketplace', icon: Search },
+    { name: 'Auctions', href: '/auctions', icon: Gavel },
+    { name: 'AI Features', href: '/ai-features', icon: Brain },
   ];
 
   const userMenuItems = [
@@ -50,6 +51,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">C</span>
+            </div>
             <GlobalCoinsAIBranding variant="header" />
           </Link>
 
@@ -61,7 +65,7 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 transition-colors"
+                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors"
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.name}</span>
@@ -110,7 +114,7 @@ const Navbar = () => {
                   <Button variant="outline">Sign In</Button>
                 </Link>
                 <Link to="/auth">
-                  <Button>Get Started</Button>
+                  <Button className="bg-orange-500 hover:bg-orange-600">Get Started</Button>
                 </Link>
               </div>
             )}
@@ -138,7 +142,7 @@ const Navbar = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 block px-3 py-2 text-base font-medium"
+                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium"
                     onClick={() => setIsOpen(false)}
                   >
                     <Icon className="w-4 h-4" />
@@ -155,7 +159,7 @@ const Navbar = () => {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 block px-3 py-2 text-base font-medium"
+                        className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium"
                         onClick={() => setIsOpen(false)}
                       >
                         <Icon className="w-4 h-4" />
@@ -168,7 +172,7 @@ const Navbar = () => {
                       handleSignOut();
                       setIsOpen(false);
                     }}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 block px-3 py-2 text-base font-medium w-full text-left"
+                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium w-full text-left"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Sign Out</span>
@@ -182,7 +186,7 @@ const Navbar = () => {
                     <Button variant="outline" className="w-full">Sign In</Button>
                   </Link>
                   <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full">Get Started</Button>
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600">Get Started</Button>
                   </Link>
                 </div>
               )}

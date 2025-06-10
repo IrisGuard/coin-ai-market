@@ -47,7 +47,7 @@ const Index = () => {
                 <Button
                   onClick={() => setShowBuyerSignup(true)}
                   size="sm"
-                  className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white text-sm font-medium flex items-center gap-1"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium flex items-center gap-1"
                 >
                   <ShoppingCart className="w-4 h-4" />
                   Join as Buyer
@@ -65,7 +65,7 @@ const Index = () => {
                 Find the perfect coin for you
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Discover authentic coins from <Link to="/marketplace" className="text-electric-blue hover:underline">verified dealers</Link> worldwide with advanced AI recognition
+                Discover authentic coins from <Link to="/marketplace" className="text-blue-600 hover:underline">verified dealers</Link> worldwide with advanced AI recognition
               </p>
               
               {/* Enhanced Search Bar with larger width */}

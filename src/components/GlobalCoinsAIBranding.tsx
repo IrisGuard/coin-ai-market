@@ -10,7 +10,7 @@ const GlobalCoinsAIBranding: React.FC<GlobalCoinsAIBrandingProps> = ({
   variant = 'inline', 
   className = '' 
 }) => {
-  const baseClasses = "font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent";
+  const baseClasses = "font-bold text-blue-600";
   
   const variants = {
     header: "text-2xl md:text-3xl",
@@ -20,7 +20,7 @@ const GlobalCoinsAIBranding: React.FC<GlobalCoinsAIBrandingProps> = ({
 
   return (
     <span className={`${baseClasses} ${variants[variant]} ${className}`}>
-      GlobalCoinsAI
+      CoinAI
     </span>
   );
 };
