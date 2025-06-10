@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ const AdminMarketplaceTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
       if (error) throw error;
-      return data as MarketplaceData;
+      return data as unknown as MarketplaceData;
     },
   });
 
