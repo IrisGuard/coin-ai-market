@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
@@ -32,9 +33,6 @@ const Index = () => {
     <ErrorBoundaryWrapper>
       <div className="min-h-screen bg-white">
         <Navbar />
-        
-        {/* Admin keyboard handler for Ctrl+Alt+A access */}
-        <AdminKeyboardHandler />
         
         {/* Enhanced Hero Section */}
         <div className="bg-white border-b border-gray-200 relative">
