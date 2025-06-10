@@ -68,13 +68,31 @@ export const useCategoryUsageStats = () => {
       
       if (categoriesError) throw categoriesError;
       
+      // Create a mapping of category names to valid coin category values
+      const categoryMapping: { [key: string]: string } = {
+        'Ancient Coins': 'ancient',
+        'Modern Coins': 'modern',
+        'Error Coins': 'error_coin',
+        'Greek Coins': 'greek',
+        'American Coins': 'american',
+        'British Coins': 'british',
+        'European Coins': 'european',
+        'Asian Coins': 'asian',
+        'Gold Coins': 'gold',
+        'Silver Coins': 'silver',
+        'Commemorative Coins': 'commemorative'
+      };
+      
       // Get coin counts for each category
       const categoriesWithStats = await Promise.all(
         (categories || []).map(async (category) => {
+          // Map category name to valid coin category enum value
+          const coinCategory = categoryMapping[category.name] || 'unclassified';
+          
           const { count } = await supabase
             .from('coins')
             .select('*', { count: 'exact', head: true })
-            .eq('category', category.name); // Fix: Use category name instead of trying to cast
+            .eq('category', coinCategory);
           
           return {
             id: category.id,
