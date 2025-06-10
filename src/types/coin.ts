@@ -1,4 +1,3 @@
-
 export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Legendary';
 
 export type CoinCondition = 'Poor' | 'Fair' | 'Good' | 'Very Good' | 'Fine' | 'Very Fine' | 'Extremely Fine' | 'About Uncirculated' | 'Uncirculated' | 'Proof';
@@ -7,7 +6,6 @@ export type CoinCategory =
   | 'ancient'
   | 'modern' 
   | 'error_coin'
-  | 'graded'
   | 'greek'
   | 'american'
   | 'british'
@@ -15,6 +13,7 @@ export type CoinCategory =
   | 'asian'
   | 'gold'
   | 'silver'
+  | 'commemorative'
   | 'unclassified';
 
 export interface CoinProfile {
