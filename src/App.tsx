@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { initializeSecurity } from "@/lib/securityInitializer";
+import { initializeEnhancedSecurity } from "@/lib/enhancedSecurityInitializer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NavigationBreadcrumb from "@/components/navigation/NavigationBreadcrumb";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
@@ -30,12 +30,17 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Initialize security systems
-    initializeSecurity().then((result) => {
-      console.log('Security initialization complete:', result);
-    }).catch((error) => {
-      console.error('Security initialization failed:', error);
-    });
+    // Initialize security systems after React is fully mounted
+    const initSecurity = async () => {
+      try {
+        const result = await initializeEnhancedSecurity();
+        console.log('Security initialization complete:', result);
+      } catch (error) {
+        console.error('Security initialization failed:', error);
+      }
+    };
+
+    initSecurity();
   }, []);
 
   return (
