@@ -11,3 +11,5 @@ export * from './useAdminStores';
 export * from './useCoinAnalytics';
 export * from './useBulkCoinOperations';
 export * from './useEnhancedCategories';
+// External Sources Management
+export * from './useExternalSourcesManagement';

@@ -2,90 +2,90 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Globe, Settings, Zap } from 'lucide-react';
-import { useExternalPriceSources } from '@/hooks/useEnhancedDataSources';
-import EnhancedSourcesManager from '../enhanced/EnhancedSourcesManager';
+import { Globe, Settings, Zap, BarChart3, Database } from 'lucide-react';
+import ExternalSourcesManager from '../enhanced/ExternalSourcesManager';
+import DataAggregationDashboard from '../enhanced/DataAggregationDashboard';
 
 const AdminExternalSourcesTab = () => {
-  const { data: sources = [], isLoading } = useExternalPriceSources();
-  const [viewMode, setViewMode] = useState<'enhanced' | 'legacy'>('enhanced');
+  const [activeTab, setActiveTab] = useState('sources');
 
   return (
     <div className="space-y-6">
-      {/* Header with Mode Toggle */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">External Sources Management</h3>
           <p className="text-sm text-muted-foreground">
-            Advanced global marketplace intelligence system
+            Enterprise-level external data integration and aggregation system
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === 'enhanced' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('enhanced')}
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Enhanced Mode
-          </Button>
-          <Button
-            variant={viewMode === 'legacy' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('legacy')}
-          >
+          <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
-            Legacy Mode
+            Settings
           </Button>
         </div>
       </div>
 
-      {/* Enhanced Mode */}
-      {viewMode === 'enhanced' && <EnhancedSourcesManager />}
+      {/* Main Content */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Data Sources & External APIs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="sources" className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                Sources Manager
+              </TabsTrigger>
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Data Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="monitoring" className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Real-time Monitoring
+              </TabsTrigger>
+            </TabsList>
 
-      {/* Legacy Mode - Simplified view */}
-      {viewMode === 'legacy' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              External Sources ({sources.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div>Loading external sources...</div>
-            ) : (
-              <div className="space-y-4">
-                {sources.map((source) => (
-                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <div className="font-medium">{source.source_name}</div>
-                      <div className="text-sm text-muted-foreground">{source.base_url}</div>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="outline">{source.source_type}</Badge>
-                        <Badge variant="outline">
-                          {Math.round((source.reliability_score || 0) * 100)}% reliable
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">
-                        {source.rate_limit_per_hour}/hour limit
-                      </div>
-                      <Badge variant={source.scraping_enabled ? 'default' : 'secondary'}>
-                        {source.scraping_enabled ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
+            <TabsContent value="sources" className="mt-6">
+              <ExternalSourcesManager />
+            </TabsContent>
+
+            <TabsContent value="dashboard" className="mt-6">
+              <DataAggregationDashboard />
+            </TabsContent>
+
+            <TabsContent value="monitoring" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Real-time Monitoring
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <Zap className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <h3 className="text-lg font-medium mb-2">Real-time Monitoring</h3>
+                    <p className="text-gray-600 mb-4">
+                      Advanced real-time monitoring dashboard for external sources
+                    </p>
+                    <Button variant="outline">
+                      Coming Soon
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
