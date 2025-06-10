@@ -10,3 +10,5 @@ export * from './useAdminTransactions';
 export * from './useAdminNotifications';
 export * from './useAdminStores';
 export * from './useAdminSystem';
+export * from './useCoinAnalytics';
+export * from './useBulkCoinOperations';
