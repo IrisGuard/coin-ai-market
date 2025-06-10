@@ -2519,6 +2519,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_security_configuration: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          issue: string
+          severity: string
+          resolved: boolean
+        }[]
+      }
       configure_enhanced_auth_security: {
         Args: Record<PropertyKey, never>
         Returns: undefined
