@@ -3,9 +3,11 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Users, Coins, TrendingUp, Activity, Monitor, Zap } from 'lucide-react';
+import { BarChart3, Users, Coins, TrendingUp, Activity, Monitor, Zap, Brain } from 'lucide-react';
 import AdvancedAnalyticsDashboard from '../enhanced/AdvancedAnalyticsDashboard';
 import PerformanceAnalytics from '../enhanced/PerformanceAnalytics';
+import AIInsightsPanel from '../enhanced/AIInsightsPanel';
+import UserBehaviorDashboard from '../enhanced/UserBehaviorDashboard';
 
 const AdminAnalyticsTab = () => {
   // Basic analytics without charts
@@ -55,12 +57,12 @@ const AdminAnalyticsTab = () => {
       <div>
         <h3 className="text-lg font-semibold">Advanced Analytics Dashboard</h3>
         <p className="text-sm text-muted-foreground">
-          Comprehensive performance metrics, real-time monitoring, and system insights
+          Comprehensive performance metrics, real-time monitoring, and AI-powered insights
         </p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Overview
@@ -73,9 +75,13 @@ const AdminAnalyticsTab = () => {
             <Zap className="w-4 h-4" />
             Performance
           </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Insights
+          <TabsTrigger value="ai-insights" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            AI Insights
+          </TabsTrigger>
+          <TabsTrigger value="user-behavior" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            User Behavior
           </TabsTrigger>
         </TabsList>
 
@@ -142,47 +148,12 @@ const AdminAnalyticsTab = () => {
           <PerformanceAnalytics />
         </TabsContent>
 
-        <TabsContent value="insights" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI-Powered Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">Performance Optimization</h4>
-                  <p className="text-sm text-blue-700">
-                    System performance has improved by 23% this month. Database optimization 
-                    contributed to 65% of this improvement.
-                  </p>
-                </div>
+        <TabsContent value="ai-insights">
+          <AIInsightsPanel />
+        </TabsContent>
 
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-800 mb-2">User Engagement</h4>
-                  <p className="text-sm text-green-700">
-                    User session duration increased by 18%. The new AI-powered search features 
-                    are driving higher engagement rates.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <h4 className="font-medium text-purple-800 mb-2">Data Quality</h4>
-                  <p className="text-sm text-purple-700">
-                    Data accuracy has reached 94.2%. Automated validation processes have 
-                    reduced manual intervention by 40%.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <h4 className="font-medium text-orange-800 mb-2">Resource Utilization</h4>
-                  <p className="text-sm text-orange-700">
-                    Server resources are optimally utilized. Consider scaling up during 
-                    peak hours (12-4 PM) for better performance.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="user-behavior">
+          <UserBehaviorDashboard />
         </TabsContent>
       </Tabs>
     </div>

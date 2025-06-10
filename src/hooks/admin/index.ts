@@ -13,3 +13,8 @@ export * from './useBulkCoinOperations';
 export * from './useEnhancedCategories';
 // External Sources Management
 export * from './useExternalSourcesManagement';
+// Advanced Analytics
+export * from './useAdvancedAnalytics';
+export * from './useRealTimeMetrics';
+export * from './usePerformanceMetrics';
+export * from './useUserBehaviorAnalytics';
