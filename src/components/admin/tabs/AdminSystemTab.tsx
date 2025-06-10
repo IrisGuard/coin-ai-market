@@ -16,8 +16,18 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define the expected shape of system stats
+interface SystemStats {
+  active_users?: number;
+  errors_24h?: number;
+  total_users?: number;
+  total_coins?: number;
+  total_transactions?: number;
+  [key: string]: any;
+}
+
 const AdminSystemTab = () => {
-  const { data: systemStats, isLoading } = useQuery({
+  const { data: systemStatsRaw, isLoading } = useQuery({
     queryKey: ['admin-system-stats'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_dashboard_stats');
@@ -27,10 +37,14 @@ const AdminSystemTab = () => {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Safely cast and provide defaults
+  const systemStats: SystemStats = (systemStatsRaw as SystemStats) || {};
+  const errors24h = systemStats.errors_24h || 0;
+  const activeUsers = systemStats.active_users || 0;
+
   const getSystemStatus = () => {
-    if (!systemStats) return 'unknown';
-    if (systemStats.errors_24h > 10) return 'critical';
-    if (systemStats.errors_24h > 5) return 'warning';
+    if (errors24h > 10) return 'critical';
+    if (errors24h > 5) return 'warning';
     return 'healthy';
   };
 
@@ -87,7 +101,7 @@ const AdminSystemTab = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemStats?.active_users || 0}</div>
+            <div className="text-2xl font-bold">{activeUsers}</div>
             <p className="text-xs text-muted-foreground">Currently online</p>
           </CardContent>
         </Card>
@@ -98,8 +112,8 @@ const AdminSystemTab = () => {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${systemStats?.errors_24h > 5 ? 'text-red-600' : 'text-green-600'}`}>
-              {systemStats?.errors_24h || 0}
+            <div className={`text-2xl font-bold ${errors24h > 5 ? 'text-red-600' : 'text-green-600'}`}>
+              {errors24h}
             </div>
             <p className="text-xs text-muted-foreground">Last 24 hours</p>
           </CardContent>
