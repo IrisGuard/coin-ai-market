@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,7 +21,7 @@ import {
 import AdminSystemTab from './tabs/AdminSystemTab';
 import AdminUsersTab from './tabs/AdminUsersTab';
 import AdminAIBrainTab from './tabs/AdminAIBrainTab';
-import AdminAPIKeysTab from './tabs/AdminAPIKeysTab';
+import AdminApiKeysTab from './tabs/AdminApiKeysTab';
 import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
 import AdminMarketplaceTab from './tabs/AdminMarketplaceTab';
 import AdminAuctionsTab from './tabs/AdminAuctionsTab';
@@ -151,7 +150,7 @@ const ConsolidatedAdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="api-keys">
-            <AdminAPIKeysTab />
+            <AdminApiKeysTab />
           </TabsContent>
 
           <TabsContent value="data-sources">
