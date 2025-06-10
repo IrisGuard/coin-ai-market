@@ -42,40 +42,31 @@ const ActiveMarketplace = () => {
           </div>
         </div>
       </div>
-
-      {/* Dealer CTA Section */}
-      <div className="bg-gradient-to-r from-electric-green/10 via-electric-blue/10 to-electric-purple/10 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Ready to Start Selling?
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Join thousands of dealers worldwide and showcase your coin collection to collectors everywhere
-            </p>
-            <Button 
-              onClick={() => setIsDealerSignupOpen(true)}
-              className="bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan text-white px-8 py-3 text-lg font-semibold"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Open Your Store (for sellers)
-            </Button>
-          </div>
-        </div>
-      </div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Dealer Stores Section - USER STORES */}
         <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <Store className="w-6 h-6 text-electric-orange" />
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-              User Stores
-            </h2>
-            <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-              {dealers?.length || 0} Active Stores
-            </Badge>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Store className="w-6 h-6 text-electric-orange" />
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
+                User Stores
+              </h2>
+              <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
+                {dealers?.length || 0} Active Stores
+              </Badge>
+            </div>
+            
+            {/* Open Your Store Button - Moved to header */}
+            <Button 
+              onClick={() => setIsDealerSignupOpen(true)}
+              size="sm"
+              className="bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan text-white px-4 py-2 text-sm font-medium"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Open Your Store
+            </Button>
           </div>
           
           {dealersLoading ? (
@@ -99,28 +90,9 @@ const ActiveMarketplace = () => {
             <div className="text-center py-16">
               <Store className="w-16 h-16 mx-auto mb-6 text-gray-300" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">No User Stores Yet</h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500">
                 User stores will appear here when dealers join and get verified.
               </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
-                <h4 className="font-medium text-blue-900 mb-2">💡 Getting Started</h4>
-                <p className="text-blue-700 text-sm">
-                  To see user stores here, users need to:
-                  <br />1. Sign up for an account
-                  <br />2. Get verified as a dealer
-                  <br />3. Create their store profile
-                </p>
-              </div>
-              <div className="mt-6">
-                <Button 
-                  onClick={() => setIsDealerSignupOpen(true)}
-                  variant="outline"
-                  className="border-electric-green text-electric-green hover:bg-electric-green hover:text-white"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Be the First to Open Your Store (for sellers)
-                </Button>
-              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
