@@ -12,6 +12,11 @@ interface ErrorAnalytics {
     lastWeek: number;
     percentageChange: number;
   };
+  // Add the properties that our mock data uses
+  critical_24h: number;
+  error_rate: number;
+  avg_resolution_time: number;
+  categories: { type: string; count: number }[];
 }
 
 export const useErrorAnalytics = () => {
@@ -85,6 +90,14 @@ export const useErrorAnalytics = () => {
         ? ((thisWeek - lastWeek) / lastWeek) * 100 
         : 0;
 
+      // Calculate critical errors from last 24h
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      const criticalErrors24h = errors.filter(err => 
+        new Date(err.created_at) >= oneDayAgo && 
+        (err.error_type === 'critical' || err.error_type === 'error')
+      ).length;
+
       return {
         totalErrors,
         errorsByType,
@@ -94,7 +107,11 @@ export const useErrorAnalytics = () => {
           thisWeek,
           lastWeek,
           percentageChange
-        }
+        },
+        critical_24h: criticalErrors24h,
+        error_rate: totalErrors > 0 ? (criticalErrors24h / totalErrors) * 100 : 0,
+        avg_resolution_time: 15, // Mock average resolution time in minutes
+        categories: errorsByType
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

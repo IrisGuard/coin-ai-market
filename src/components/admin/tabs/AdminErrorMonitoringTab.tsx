@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,31 +12,23 @@ const AdminErrorMonitoringTab = () => {
   const { data: errorAnalytics } = useErrorAnalytics();
   const { data: consoleErrors } = useConsoleErrors();
 
-  // Mock error analytics data with correct structure
-  const mockErrorAnalytics = errorAnalytics || {
-    critical_24h: 3,
-    error_rate: 2.1,
-    avg_resolution_time: 15,
-    categories: [
-      { type: 'Authentication', count: 12 },
-      { type: 'Database', count: 8 },
-      { type: 'API', count: 5 }
-    ]
-  };
-
   // Mock console errors with correct structure
   const mockConsoleErrors = consoleErrors || [
     {
-      type: 'TypeError',
+      error_level: 'error',
       message: 'Cannot read property of undefined',
-      timestamp: new Date().toISOString(),
-      stack: 'Error at line 42 in component.tsx'
+      created_at: new Date().toISOString(),
+      source_file: 'component.tsx',
+      line_number: 42,
+      user_id: 'test-user'
     },
     {
-      type: 'ReferenceError', 
+      error_level: 'warning', 
       message: 'Variable is not defined',
-      timestamp: new Date().toISOString(),
-      stack: 'Error at line 15 in utils.ts'
+      created_at: new Date().toISOString(),
+      source_file: 'utils.ts',
+      line_number: 15,
+      user_id: 'test-user'
     }
   ];
 
@@ -181,19 +172,19 @@ const AdminErrorMonitoringTab = () => {
                       <div className="flex justify-between items-center">
                         <span>Critical Errors (24h)</span>
                         <span className="font-bold text-red-600">
-                          {mockErrorAnalytics.critical_24h}
+                          {errorAnalytics?.critical_24h || 0}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span>Error Rate (%)</span>
                         <span className="font-bold text-orange-600">
-                          {mockErrorAnalytics.error_rate}%
+                          {errorAnalytics?.error_rate?.toFixed(1) || 0}%
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span>Resolution Time (avg)</span>
                         <span className="font-bold text-blue-600">
-                          {mockErrorAnalytics.avg_resolution_time}min
+                          {errorAnalytics?.avg_resolution_time || 0}min
                         </span>
                       </div>
                     </div>
@@ -206,7 +197,7 @@ const AdminErrorMonitoringTab = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {mockErrorAnalytics.categories?.map((category, index) => (
+                      {errorAnalytics?.categories?.map((category, index) => (
                         <div key={index} className="flex justify-between items-center">
                           <span>{category.type}</span>
                           <Badge variant="outline">{category.count}</Badge>
@@ -276,15 +267,15 @@ const AdminErrorMonitoringTab = () => {
                     {mockConsoleErrors.map((error, index) => (
                       <div key={index} className="p-3 border rounded-lg bg-red-50">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-red-800">{error.type}</span>
+                          <span className="font-medium text-red-800">{error.error_level}</span>
                           <span className="text-xs text-gray-500">
-                            {new Date(error.timestamp).toLocaleTimeString()}
+                            {new Date(error.created_at).toLocaleTimeString()}
                           </span>
                         </div>
                         <p className="text-sm text-red-700">{error.message}</p>
-                        {error.stack && (
+                        {error.source_file && (
                           <pre className="text-xs text-gray-600 mt-2 overflow-x-auto">
-                            {error.stack}
+                            {error.source_file}:{error.line_number}
                           </pre>
                         )}
                       </div>
