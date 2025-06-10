@@ -55,11 +55,14 @@ export const useUpdateUserRole = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+    mutationFn: async ({ userId, role }: { userId: string; role: 'admin' | 'moderator' | 'user' | 'dealer' | 'buyer' }) => {
       // Update user role in user_roles table
       const { error: roleError } = await supabase
         .from('user_roles')
-        .upsert({ user_id: userId, role });
+        .upsert({ 
+          user_id: userId, 
+          role: role as 'admin' | 'moderator' | 'user' | 'dealer' | 'buyer'
+        });
       
       if (roleError) throw roleError;
 

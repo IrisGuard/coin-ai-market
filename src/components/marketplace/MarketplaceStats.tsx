@@ -2,10 +2,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Target, Clock, Star, DollarSign, Users } from 'lucide-react';
-import { MarketplaceStats as StatsType } from '@/hooks/useMarketplaceStats';
+
+interface MarketplaceStatsType {
+  total: number;
+  auctions: number;
+  featured: number;
+  totalValue: number;
+  activeUsers: number;
+}
 
 interface MarketplaceStatsProps {
-  stats: StatsType;
+  stats: MarketplaceStatsType;
   loading: boolean;
 }
 
