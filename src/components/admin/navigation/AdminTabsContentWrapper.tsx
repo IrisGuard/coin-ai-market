@@ -18,6 +18,9 @@ import AdminNotificationsTab from '../tabs/AdminNotificationsTab';
 import AdminTransactionsTab from '../tabs/AdminTransactionsTab';
 import AdminCategoriesTab from '../tabs/AdminCategoriesTab';
 import AdminStoreManagementTab from '../tabs/AdminStoreManagementTab';
+import EnhancedCategoryManager from '../enhanced/EnhancedCategoryManager';
+import EnhancedStoreManager from '../enhanced/EnhancedStoreManager';
+import CategoryAnalyticsDashboard from '../enhanced/CategoryAnalyticsDashboard';
 
 const AdminTabsContentWrapper = () => {
   return (
@@ -46,8 +49,20 @@ const AdminTabsContentWrapper = () => {
         <AdminCategoriesTab />
       </TabsContent>
 
+      <TabsContent value="enhanced-categories" className="space-y-4">
+        <EnhancedCategoryManager />
+      </TabsContent>
+
       <TabsContent value="store-management" className="space-y-4">
         <AdminStoreManagementTab />
+      </TabsContent>
+
+      <TabsContent value="enhanced-stores" className="space-y-4">
+        <EnhancedStoreManager />
+      </TabsContent>
+
+      <TabsContent value="category-analytics" className="space-y-4">
+        <CategoryAnalyticsDashboard />
       </TabsContent>
       
       <TabsContent value="data-sources" className="space-y-4">
