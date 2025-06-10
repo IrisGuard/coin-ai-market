@@ -54,8 +54,8 @@ const SuperAdminDashboard = () => {
       trend: '+8%'
     },
     {
-      title: 'Total Transactions',
-      value: health?.total_transactions || 0,
+      title: 'Total Value',
+      value: health?.total_value || 0,
       icon: DollarSign,
       color: 'text-green-600',
       trend: '+15%'

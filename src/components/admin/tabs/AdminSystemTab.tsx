@@ -6,7 +6,6 @@ import { Settings, Database, Shield, Zap } from 'lucide-react';
 
 // Import enhanced components
 import SuperSystemIntegration from '../enhanced/SuperSystemIntegration';
-import MockDataCleaner from '../enhanced/MockDataCleaner';
 import UnifiedDataManager from '../enhanced/UnifiedDataManager';
 
 const AdminSystemTab = () => {
@@ -18,10 +17,9 @@ const AdminSystemTab = () => {
       </div>
 
       <Tabs defaultValue="integration" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="integration">System Integration</TabsTrigger>
           <TabsTrigger value="data-manager">Data Manager</TabsTrigger>
-          <TabsTrigger value="cleanup">Data Cleanup</TabsTrigger>
           <TabsTrigger value="config">Configuration</TabsTrigger>
         </TabsList>
 
@@ -31,10 +29,6 @@ const AdminSystemTab = () => {
 
         <TabsContent value="data-manager">
           <UnifiedDataManager />
-        </TabsContent>
-
-        <TabsContent value="cleanup">
-          <MockDataCleaner />
         </TabsContent>
 
         <TabsContent value="config">
