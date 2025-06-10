@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -61,16 +62,18 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
   };
 
   const handleAdminSetupComplete = () => {
-    console.log('Admin setup completed, navigating to admin panel');
+    console.log('✅ Admin setup completed, setting up session');
     setShowSetupForm(false);
     
-    // Set admin session with proper timestamp
+    // Set admin session με ΑΚΡΙΒΗ timestamp
+    const now = Date.now();
     localStorage.setItem('adminSession', 'true');
-    sessionStorage.setItem('adminSessionTime', Date.now().toString());
+    sessionStorage.setItem('adminSessionTime', now.toString());
     sessionStorage.setItem('adminAuthenticated', 'true');
+    sessionStorage.setItem('adminLastActivity', now.toString());
     
     onClose();
-    // Navigate to admin panel after a short delay to ensure modal closes
+    // Navigate to admin panel after a short delay
     setTimeout(() => {
       navigate('/admin');
     }, 100);
@@ -79,7 +82,6 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
   // Handle automatic flow progression
   React.useEffect(() => {
     if (isAuthenticated && !isAdmin && !showSetupForm) {
-      // User just logged in, show become admin option
       setIsSubmitting(false);
     }
   }, [isAuthenticated, isAdmin, showSetupForm]);
@@ -87,7 +89,7 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
   // Handle navigation when user becomes admin
   React.useEffect(() => {
     if (isAdminAuthenticated && !showSetupForm) {
-      console.log('User is now admin authenticated, closing modal and navigating');
+      console.log('✅ User is now admin authenticated, closing modal and navigating');
       handleClose();
       setTimeout(() => {
         navigate('/admin');
@@ -131,16 +133,18 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                 <p className="text-sm text-gray-600">
                   You can proceed to the admin panel
                 </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Session will expire after 10 minutes of inactivity
+                <p className="text-xs text-red-500 mt-2 font-medium">
+                  ⏰ Session expires after EXACTLY 10 minutes of inactivity
                 </p>
               </div>
               <Button 
                 onClick={() => {
-                  // Set admin session with proper timestamp
+                  // Set admin session με ΑΚΡΙΒΗ timestamp
+                  const now = Date.now();
                   localStorage.setItem('adminSession', 'true');
-                  sessionStorage.setItem('adminSessionTime', Date.now().toString());
+                  sessionStorage.setItem('adminSessionTime', now.toString());
                   sessionStorage.setItem('adminAuthenticated', 'true');
+                  sessionStorage.setItem('adminLastActivity', now.toString());
                   
                   handleClose();
                   navigate('/admin');
@@ -166,8 +170,8 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                 <p className="text-sm text-gray-600">
                   Click below to gain administrator access
                 </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Admin sessions expire after 10 minutes of inactivity
+                <p className="text-xs text-red-500 mt-2 font-medium">
+                  ⏰ Admin sessions expire after EXACTLY 10 minutes of inactivity
                 </p>
               </div>
               
@@ -218,6 +222,9 @@ const AdminLoginForm = ({ isOpen, onClose }: AdminLoginFormProps) => {
                 </div>
                 <p className="text-sm text-gray-600">
                   {isLogin ? 'Sign in to access admin panel' : 'Create account to become admin'}
+                </p>
+                <p className="text-xs text-red-500 mt-2 font-medium">
+                  🔑 Admin access ONLY via Ctrl+Alt+A
                 </p>
               </div>
               

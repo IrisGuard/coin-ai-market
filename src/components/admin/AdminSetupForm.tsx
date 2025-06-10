@@ -32,14 +32,16 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
       if (result.success) {
         setSuccess(true);
         
-        // Set admin session with proper timeout
+        // Set admin session με ΑΚΡΙΒΗ timestamp
+        const now = Date.now();
         localStorage.setItem('adminSession', 'true');
-        sessionStorage.setItem('adminSessionTime', Date.now().toString());
+        sessionStorage.setItem('adminSessionTime', now.toString());
         sessionStorage.setItem('adminAuthenticated', 'true');
+        sessionStorage.setItem('adminLastActivity', now.toString());
         
         toast({
           title: "Admin Setup Complete",
-          description: result.message,
+          description: `${result.message} Session expires in exactly 10 minutes of inactivity.`,
         });
         
         // Close after a short delay
@@ -80,9 +82,12 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
             <h3 className="text-lg font-semibold text-green-600 mb-2">
               Welcome, Administrator!
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mb-2">
               Your admin access has been successfully configured.
               You will be redirected to the admin panel.
+            </p>
+            <p className="text-xs text-red-500 font-medium">
+              ⏰ Remember: Session expires after EXACTLY 10 minutes of inactivity
             </p>
           </div>
         </DialogContent>
@@ -104,8 +109,11 @@ const AdminSetupForm = ({ isOpen, onClose }: AdminSetupFormProps) => {
           <div className="text-center">
             <Crown className="h-12 w-12 mx-auto text-blue-600 mb-3" />
             <h3 className="text-lg font-semibold mb-2">Create Admin Access</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mb-2">
               Enter your email to gain administrative privileges
+            </p>
+            <p className="text-xs text-red-500 font-medium">
+              🔑 Access only via Ctrl+Alt+A • ⏰ 10 min timeout
             </p>
           </div>
           

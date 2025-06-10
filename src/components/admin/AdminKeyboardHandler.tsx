@@ -10,75 +10,86 @@ const AdminKeyboardHandler = () => {
   const navigate = useNavigate();
   const { isAdmin, isAdminAuthenticated } = useAdmin();
 
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes as requested
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // ΑΚΡΙΒΩΣ 10 λεπτά
 
-  // Monitor user activity and implement session timeout
+  // Monitor user activity και timeout session
   useEffect(() => {
-    const updateActivity = () => setLastActivity(Date.now());
+    const updateActivity = () => {
+      setLastActivity(Date.now());
+      // Update στο sessionStorage επίσης για consistency
+      sessionStorage.setItem('adminLastActivity', Date.now().toString());
+    };
     
     const checkTimeout = () => {
-      if (isAdminAuthenticated && Date.now() - lastActivity > SESSION_TIMEOUT) {
-        console.log('Admin session expired due to inactivity');
-        // Clear admin session
+      const storedActivity = sessionStorage.getItem('adminLastActivity');
+      const lastActivityTime = storedActivity ? parseInt(storedActivity) : lastActivity;
+      
+      if (isAdminAuthenticated && Date.now() - lastActivityTime > SESSION_TIMEOUT) {
+        console.log('🔒 Admin session expired due to inactivity - EXACTLY 10 minutes');
+        // ΚΑΘΑΡΙΣΜΟΣ όλων των admin session data
         localStorage.removeItem('adminSession');
         sessionStorage.removeItem('adminAuthenticated');
-        window.location.href = '/'; // Force redirect to home
+        sessionStorage.removeItem('adminSessionTime');
+        sessionStorage.removeItem('adminLastActivity');
+        sessionStorage.removeItem('adminFingerprint');
+        
+        // FORCE redirect to home - ΚΑΝΕΝΑ admin panel access
+        window.location.href = '/';
       }
     };
 
     // Add activity listeners
-    document.addEventListener('mousedown', updateActivity);
-    document.addEventListener('keydown', updateActivity);
-    document.addEventListener('scroll', updateActivity);
-    document.addEventListener('touchstart', updateActivity);
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, { passive: true });
+    });
 
-    // Check timeout every minute
+    // Check timeout κάθε λεπτό
     const timeoutInterval = setInterval(checkTimeout, 60000);
     
     return () => {
-      document.removeEventListener('mousedown', updateActivity);
-      document.removeEventListener('keydown', updateActivity);
-      document.removeEventListener('scroll', updateActivity);
-      document.removeEventListener('touchstart', updateActivity);
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity);
+      });
       clearInterval(timeoutInterval);
     };
   }, [isAdminAuthenticated, lastActivity]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for Ctrl+Alt+A using event.code for better compatibility
+      // ΜΟΝΟ Ctrl+Alt+A - ΤΙΠΟΤΑ ΑΛΛΟ
       if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
-        console.log('Admin keyboard shortcut detected: Ctrl+Alt+A');
+        console.log('🔑 Admin keyboard shortcut detected: Ctrl+Alt+A');
         event.preventDefault();
         
         // Update activity when admin shortcut is used
         setLastActivity(Date.now());
+        sessionStorage.setItem('adminLastActivity', Date.now().toString());
         
         if (isAdminAuthenticated) {
-          console.log('User is already admin authenticated, navigating to admin panel');
-          // User is already admin, go directly to admin panel
+          console.log('✅ User is already admin authenticated, navigating to admin panel');
           navigate('/admin');
         } else {
-          console.log('User not admin authenticated, showing admin login form');
-          // Show admin login/setup form
+          console.log('🔐 User not admin authenticated, showing admin login form');
           setShowAdminLogin(true);
         }
       }
     };
 
-    console.log('AdminKeyboardHandler: Adding keyboard event listener');
+    console.log('🎯 AdminKeyboardHandler: Adding keyboard event listener for Ctrl+Alt+A ONLY');
     document.addEventListener('keydown', handleKeyDown);
     
     return () => {
-      console.log('AdminKeyboardHandler: Removing keyboard event listener');
+      console.log('🔌 AdminKeyboardHandler: Removing keyboard event listener');
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [navigate, isAdminAuthenticated]);
 
   const handleAdminLoginClose = () => {
-    console.log('Admin login form closing');
+    console.log('❌ Admin login form closing');
     setShowAdminLogin(false);
-    setLastActivity(Date.now()); // Reset activity timer
+    setLastActivity(Date.now());
+    sessionStorage.setItem('adminLastActivity', Date.now().toString());
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,39 +47,40 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // If the route requires admin access, show admin login form instead of redirecting
+  // ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: Για admin routes, ΔΕΝ κάνουμε automatic redirect
+  // Αν θέλει admin access, show το admin login form
   if (requireAdmin) {
     const isAdmin = user?.email === 'admin@coinai.com' || 
                    user?.email === 'pvc.laminate@gmail.com' || 
                    userRole === 'admin';
     
+    // ΔΕΝ ελέγχουμε για authentication εδώ - ΜΟΝΟ με Ctrl+Alt+A
     if (!isAuthenticated || !isAdmin) {
       return <AdminLoginForm isOpen={true} onClose={() => {}} />;
     }
   }
 
-  // If the route requires authentication and the user isn't authenticated,
-  // redirect to the login page
+  // Regular auth check για non-admin routes
   if (requireAuth && !isAuthenticated && !requireAdmin) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If the route requires dealer access, check for dealer role
+  // Dealer role check
   if (requireDealer && isAuthenticated) {
     if (userRole !== 'dealer') {
       return <Navigate to="/marketplace" replace />;
     }
   }
 
-  // CRITICAL FIX: Do NOT auto-redirect authenticated users to admin panel
-  // Only redirect from auth page to marketplace for regular users
+  // 🚨 ΚΡΙΣΙΜΗ ΔΙΟΡΘΩΣΗ: ΚΑΜΙΑ automatic redirect to admin panel
+  // ΜΟΝΟ για authenticated users από auth page -> marketplace
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
-    // For all users (buyers and dealers), redirect to marketplace
-    // Admin access should ONLY happen via Ctrl+Alt+A
+    // Για όλους τους users (buyers και dealers), redirect στο marketplace
+    // Admin access ΜΟΝΟ μέσω Ctrl+Alt+A
     return <Navigate to="/marketplace" replace />;
   }
 
-  // Otherwise, render the children
+  // Render children - NO automatic admin redirects
   return <>{children}</>;
 };
 

@@ -10,6 +10,7 @@ interface AdminContextType {
   isLoading: boolean;
   checkAdminStatus: () => Promise<void>;
   updateAdminProfile: (data: { fullName: string; email: string }) => Promise<boolean>;
+  clearAdminSession: () => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -20,7 +21,17 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
 
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+  const SESSION_TIMEOUT = 10 * 60 * 1000; // ΑΚΡΙΒΩΣ 10 λεπτά
+
+  const clearAdminSession = () => {
+    console.log('🧹 Clearing admin session completely');
+    localStorage.removeItem('adminSession');
+    sessionStorage.removeItem('adminSessionTime');
+    sessionStorage.removeItem('adminAuthenticated');
+    sessionStorage.removeItem('adminLastActivity');
+    sessionStorage.removeItem('adminFingerprint');
+    setIsAdminAuthenticated(false);
+  };
 
   const checkAdminStatusInternal = async () => {
     if (!user || !isAuthenticated) {
@@ -37,31 +48,37 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const adminStatus = await checkAdminStatus();
       setIsAdmin(adminStatus);
 
-      // Check if admin session is still valid
+      // ΑΚΡΙΒΗ έλεγχος session validity
       const adminSession = localStorage.getItem('adminSession');
       const sessionTime = sessionStorage.getItem('adminSessionTime');
+      const lastActivity = sessionStorage.getItem('adminLastActivity');
       
       if (adminStatus && adminSession && sessionTime) {
         const sessionStart = parseInt(sessionTime);
+        const lastActivityTime = lastActivity ? parseInt(lastActivity) : sessionStart;
         const now = Date.now();
         
-        if (now - sessionStart < SESSION_TIMEOUT) {
+        // Έλεγχος και για session start ΚΑΙ για last activity
+        const sessionAge = now - sessionStart;
+        const inactivityTime = now - lastActivityTime;
+        
+        if (sessionAge < SESSION_TIMEOUT && inactivityTime < SESSION_TIMEOUT) {
           setIsAdminAuthenticated(true);
-          console.log('Admin session restored and valid');
+          // Update last activity
+          sessionStorage.setItem('adminLastActivity', now.toString());
+          console.log('✅ Admin session restored and valid');
         } else {
-          console.log('Admin session expired, clearing...');
-          localStorage.removeItem('adminSession');
-          sessionStorage.removeItem('adminSessionTime');
-          sessionStorage.removeItem('adminAuthenticated');
-          setIsAdminAuthenticated(false);
+          console.log('⏰ Admin session expired - clearing all session data');
+          clearAdminSession();
         }
       } else {
         setIsAdminAuthenticated(false);
       }
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('❌ Error checking admin status:', error);
       setIsAdmin(false);
       setIsAdminAuthenticated(false);
+      clearAdminSession();
     } finally {
       setIsLoading(false);
     }
@@ -97,22 +114,31 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     checkAdminStatusInternal();
   }, [user, isAuthenticated]);
 
-  // Monitor admin session timeout
+  // Enhanced session monitoring με ακριβή timing
   useEffect(() => {
     if (!isAdminAuthenticated) return;
 
     const checkSessionTimeout = () => {
       const sessionTime = sessionStorage.getItem('adminSessionTime');
+      const lastActivity = sessionStorage.getItem('adminLastActivity');
+      
       if (sessionTime) {
         const sessionStart = parseInt(sessionTime);
+        const lastActivityTime = lastActivity ? parseInt(lastActivity) : sessionStart;
         const now = Date.now();
         
-        if (now - sessionStart >= SESSION_TIMEOUT) {
-          console.log('Admin session timeout detected');
-          localStorage.removeItem('adminSession');
-          sessionStorage.removeItem('adminSessionTime');
-          sessionStorage.removeItem('adminAuthenticated');
-          setIsAdminAuthenticated(false);
+        const sessionAge = now - sessionStart;
+        const inactivityTime = now - lastActivityTime;
+        
+        if (sessionAge >= SESSION_TIMEOUT || inactivityTime >= SESSION_TIMEOUT) {
+          console.log('⏰ Admin session timeout detected - EXACTLY 10 minutes');
+          clearAdminSession();
+          
+          toast({
+            title: "Session Expired",
+            description: "Your admin session has expired after 10 minutes of inactivity.",
+            variant: "destructive",
+          });
           
           // Force redirect to home
           window.location.href = '/';
@@ -120,7 +146,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     };
 
-    const interval = setInterval(checkSessionTimeout, 60000); // Check every minute
+    // Check κάθε 30 δευτερόλεπτα για πιο ακριβή monitoring
+    const interval = setInterval(checkSessionTimeout, 30000);
     
     return () => clearInterval(interval);
   }, [isAdminAuthenticated]);
@@ -131,6 +158,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     isLoading,
     checkAdminStatus: checkAdminStatusInternal,
     updateAdminProfile,
+    clearAdminSession,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
