@@ -3855,6 +3855,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_safe_query: {
+        Args: { query_type: string }
+        Returns: Json
+      }
       audit_security_configuration: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3869,6 +3873,10 @@ export type Database = {
           p_grade: string
           p_base_coin_value?: number
         }
+        Returns: Json
+      }
+      configure_complete_auth_security: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       configure_enhanced_auth_security: {
@@ -3977,6 +3985,10 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      get_user_role: {
+        Args: { user_uuid?: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -4026,9 +4038,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      secure_admin_verification: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       set_tenant_context: {
         Args: { tenant_uuid: string }
         Returns: undefined
+      }
+      validate_all_security_warnings_resolved: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       validate_enhanced_security_config: {
         Args: Record<PropertyKey, never>
