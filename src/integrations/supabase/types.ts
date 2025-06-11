@@ -3339,6 +3339,10 @@ export type Database = {
         Args: { plain_key: string }
         Returns: string
       }
+      execute_ai_command: {
+        Args: { p_command_id: string; p_input_data?: Json }
+        Returns: string
+      }
       execute_automation_rule: {
         Args: { rule_id: string }
         Returns: Json

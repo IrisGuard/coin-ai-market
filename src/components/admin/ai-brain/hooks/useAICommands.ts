@@ -7,7 +7,7 @@ import { AICommand, NewCommandForm } from '../types';
 export const useAICommands = () => {
   const queryClient = useQueryClient();
 
-  const { data: commands = [], isLoading, error } = useQuery({
+  const { data: commands = [], isLoading, error, refetch } = useQuery({
     queryKey: ['ai-commands'],
     queryFn: async () => {
       console.log('Fetching AI commands...');
@@ -23,7 +23,7 @@ export const useAICommands = () => {
       
       console.log('AI Commands fetched successfully:', data?.length || 0, 'commands');
       console.log('Commands data:', data);
-      return data as AICommand[] || [];
+      return (data as AICommand[]) || [];
     },
     retry: 3,
     retryDelay: 1000,
@@ -112,13 +112,41 @@ export const useAICommands = () => {
     }
   });
 
+  const executeCommandMutation = useMutation({
+    mutationFn: async ({ commandId, inputData = {} }: { commandId: string; inputData?: any }) => {
+      const { data, error } = await supabase.rpc('execute_ai_command', {
+        p_command_id: commandId,
+        p_input_data: inputData
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-commands'] });
+      toast({
+        title: "Command Executed",
+        description: "AI command has been executed successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Execution Failed",
+        description: `Failed to execute command: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+
   return {
     commands,
     isLoading,
     error,
+    refetch,
     createCommandMutation,
     updateCommandMutation,
     deleteCommandMutation,
+    executeCommandMutation,
     queryClient
   };
 };

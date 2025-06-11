@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 import { useAICommands } from './hooks/useAICommands';
 import AddCommandForm from './components/AddCommandForm';
 import CommandCard from './components/CommandCard';
+import { AICommand } from './types';
 
 interface AICommandsSectionProps {
   searchTerm: string;
@@ -19,11 +20,19 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
     commands,
     isLoading,
     error,
+    refetch,
     createCommandMutation,
     updateCommandMutation,
     deleteCommandMutation,
-    queryClient
+    executeCommandMutation
   } = useAICommands();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('AICommandsSection - commands state:', commands);
+    console.log('AICommandsSection - isLoading:', isLoading);
+    console.log('AICommandsSection - error:', error);
+  }, [commands, isLoading, error]);
 
   const filteredCommands = commands.filter(command =>
     command.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,15 +40,23 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
     command.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleToggleActive = (command: any) => {
+  const handleToggleActive = (command: AICommand) => {
     updateCommandMutation.mutate({
       id: command.id,
       updates: { is_active: !command.is_active }
     });
   };
 
+  const handleUpdateCommand = (id: string, updates: Partial<AICommand>) => {
+    updateCommandMutation.mutate({ id, updates });
+  };
+
   const handleCreateCommand = (commandData: any) => {
     createCommandMutation.mutate(commandData);
+  };
+
+  const handleExecuteCommand = (commandId: string) => {
+    executeCommandMutation.mutate({ commandId });
   };
 
   if (error) {
@@ -54,9 +71,10 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
             Error loading commands: {error.message}
             <div className="mt-4">
               <Button 
-                onClick={() => queryClient.invalidateQueries({ queryKey: ['ai-commands'] })}
+                onClick={() => refetch()}
                 variant="outline"
               >
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Retry Loading
               </Button>
             </div>
@@ -97,10 +115,21 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
               Manage AI commands that control the brain's behavior
             </p>
           </div>
-          <AddCommandForm
-            onCreateCommand={handleCreateCommand}
-            isCreating={createCommandMutation.isPending}
-          />
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => refetch()}
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <AddCommandForm
+              onCreateCommand={handleCreateCommand}
+              isCreating={createCommandMutation.isPending}
+            />
+          </div>
         </div>
         
         <div className="flex items-center space-x-2 mt-4">
@@ -118,14 +147,27 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
         <div className="space-y-4">
           {filteredCommands.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? 'No commands found matching your search' : 'No AI commands configured yet'}
-              {!searchTerm && (
-                <div className="mt-2">
-                  <AddCommandForm
-                    onCreateCommand={handleCreateCommand}
-                    isCreating={createCommandMutation.isPending}
-                  />
-                </div>
+              {searchTerm ? (
+                <>
+                  <p>No commands found matching your search: "{searchTerm}"</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSearchTerm('')}
+                    className="mt-2"
+                  >
+                    Clear Search
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p>No AI commands configured yet</p>
+                  <div className="mt-4">
+                    <AddCommandForm
+                      onCreateCommand={handleCreateCommand}
+                      isCreating={createCommandMutation.isPending}
+                    />
+                  </div>
+                </>
               )}
             </div>
           ) : (
@@ -134,9 +176,12 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
                 key={command.id}
                 command={command}
                 onToggleActive={handleToggleActive}
+                onUpdate={handleUpdateCommand}
                 onDelete={deleteCommandMutation.mutate}
+                onExecute={handleExecuteCommand}
                 isUpdating={updateCommandMutation.isPending}
                 isDeleting={deleteCommandMutation.isPending}
+                isExecuting={executeCommandMutation.isPending}
               />
             ))
           )}
