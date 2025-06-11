@@ -15,6 +15,7 @@ export interface AICommand {
   required_permissions?: string[];
   input_schema?: any;
   output_schema?: any;
+  site_url?: string; // NEW: For website parsing
 }
 
 export interface NewCommandForm {
@@ -25,4 +26,5 @@ export interface NewCommandForm {
   command_type: string;
   priority: number;
   execution_timeout: number;
+  site_url?: string; // NEW: For website parsing
 }

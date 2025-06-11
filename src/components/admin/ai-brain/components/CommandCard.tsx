@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Edit, Settings, Play, Pause, Trash2, History, MoreVertical, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Settings, Play, Pause, Trash2, History, MoreVertical, Clock, CheckCircle, XCircle, Globe } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { AICommand } from '../types';
@@ -94,10 +94,28 @@ const CommandCard: React.FC<CommandCardProps> = ({
             <Badge variant="outline" className="text-xs">
               Priority: {command.priority}
             </Badge>
+            {command.site_url && (
+              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                <Globe className="w-3 h-3 mr-1" />
+                Website Parsing
+              </Badge>
+            )}
           </div>
           
           {command.description && (
             <p className="text-sm text-muted-foreground mb-3">{command.description}</p>
+          )}
+
+          {command.site_url && (
+            <div className="bg-blue-50 p-2 rounded border text-xs mb-3">
+              <div className="text-blue-600 mb-1 font-medium flex items-center gap-1">
+                <Globe className="w-3 h-3" />
+                Target Website:
+              </div>
+              <a href={command.site_url} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline break-all">
+                {command.site_url}
+              </a>
+            </div>
           )}
           
           <div className="bg-slate-50 p-3 rounded border text-xs font-mono mb-3 max-h-24 overflow-y-auto">

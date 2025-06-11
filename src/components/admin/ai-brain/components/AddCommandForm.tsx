@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Brain, RefreshCw } from 'lucide-react';
+import { Plus, Brain, RefreshCw, Globe } from 'lucide-react';
 import { NewCommandForm } from '../types';
 import { toast } from '@/hooks/use-toast';
 
@@ -23,7 +23,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
     category: 'general',
     command_type: 'manual',
     priority: 1,
-    execution_timeout: 30000
+    execution_timeout: 30000,
+    site_url: ''
   });
 
   const handleCreateCommand = () => {
@@ -56,7 +57,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
       category: 'general',
       command_type: 'manual',
       priority: 1,
-      execution_timeout: 30000
+      execution_timeout: 30000,
+      site_url: ''
     });
     setShowAddForm(false);
   };
@@ -69,7 +71,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
       category: 'general',
       command_type: 'manual',
       priority: 1,
-      execution_timeout: 30000
+      execution_timeout: 30000,
+      site_url: ''
     });
   };
 
@@ -84,7 +87,7 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
           Add Command
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-green-600" />
@@ -132,18 +135,40 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
               className="w-full"
             />
           </div>
+
+          <div>
+            <label className="text-sm font-medium block mb-1 flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Site URL (Optional - for website parsing)
+            </label>
+            <Input
+              value={newCommand.site_url}
+              onChange={(e) => setNewCommand({...newCommand, site_url: e.target.value})}
+              placeholder="https://example.com/coin-page"
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              If provided, the AI will parse this website for coin information during execution
+            </p>
+          </div>
           
           <div>
             <label className="text-sm font-medium block mb-1">Command Code/Instructions *</label>
             <Textarea
               value={newCommand.code}
               onChange={(e) => setNewCommand({...newCommand, code: e.target.value})}
-              placeholder="Enter the command logic, instructions, or code that the AI should execute..."
-              rows={8}
+              placeholder={newCommand.site_url ? 
+                "Instructions for analyzing the website content:\n\n- Look for coin metal composition\n- Identify any errors or defects\n- Extract grade/condition information\n- Find year and mint mark\n- Determine if coin is gold/silver\n- Focus on authenticity markers" :
+                "Enter the command logic, instructions, or code that the AI should execute..."
+              }
+              rows={10}
               className="w-full font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              This can be JavaScript code, AI prompts, API calls, or any instructions for the AI brain.
+              {newCommand.site_url ? 
+                "Describe what specific information to extract from the website and how to analyze it." :
+                "This can be JavaScript code, AI prompts, API calls, or any instructions for the AI brain."
+              }
             </p>
           </div>
           

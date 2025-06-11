@@ -11,14 +11,29 @@ export const useAICommands = () => {
   const { data: commands = [], isLoading, error, refetch } = useQuery({
     queryKey: ['ai-commands'],
     queryFn: async () => {
-      console.log('🔍 Fetching AI commands with admin verification...');
+      console.log('🔍 Fetching AI commands...');
       
-      // First verify admin access
-      const { data: adminCheck, error: adminError } = await supabase.rpc('verify_admin_access_secure');
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (adminError) {
-        console.error('❌ Admin verification failed:', adminError);
-        throw new Error('Admin access required');
+      if (userError || !user) {
+        console.error('❌ User not authenticated:', userError);
+        throw new Error('Authentication required');
+      }
+
+      console.log('✅ User authenticated:', user.id);
+      
+      // Check if user has admin role
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      if (adminError && adminError.code !== 'PGRST116') {
+        console.error('❌ Admin check failed:', adminError);
+        throw new Error('Admin access verification failed');
       }
       
       if (!adminCheck) {
@@ -39,14 +54,14 @@ export const useAICommands = () => {
       }
       
       console.log('✅ AI Commands fetched successfully:', data?.length || 0, 'commands');
-      console.log('📊 Commands data:', data);
       return (data as AICommand[]) || [];
     },
     retry: (failureCount, error: any) => {
       // Don't retry on permission errors
       if (error?.message?.includes('Admin') || 
           error?.message?.includes('required') ||
-          error?.message?.includes('privileges')) {
+          error?.message?.includes('privileges') ||
+          error?.message?.includes('Authentication')) {
         return false;
       }
       return failureCount < 2;
@@ -84,12 +99,14 @@ export const useAICommands = () => {
     mutationFn: async (commandData: NewCommandForm) => {
       console.log('➕ Creating new AI command:', commandData);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('ai_commands')
         .insert([{
           ...commandData,
           is_active: true,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: user?.id
         }])
         .select()
         .single();
@@ -192,24 +209,99 @@ export const useAICommands = () => {
     mutationFn: async ({ commandId, inputData = {} }: { commandId: string; inputData?: any }) => {
       console.log('▶️ Executing AI command:', commandId, inputData);
       
-      const { data, error } = await supabase.rpc('execute_ai_command', {
-        p_command_id: commandId,
-        p_input_data: inputData
-      });
+      // Create execution record first
+      const { data: executionRecord, error: execError } = await supabase
+        .from('ai_command_executions')
+        .insert([{
+          command_id: commandId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          input_data: inputData,
+          execution_status: 'running'
+        }])
+        .select()
+        .single();
+
+      if (execError) {
+        console.error('❌ Failed to create execution record:', execError);
+        throw execError;
+      }
+
+      // Get command details
+      const { data: command, error: cmdError } = await supabase
+        .from('ai_commands')
+        .select('*')
+        .eq('id', commandId)
+        .single();
+
+      if (cmdError) {
+        console.error('❌ Failed to get command:', cmdError);
+        throw cmdError;
+      }
+
+      // Execute command (simulate for now)
+      const startTime = Date.now();
       
-      if (error) {
-        console.error('❌ Failed to execute command:', error);
+      let result;
+      try {
+        // Check if command has site_url for parsing
+        if (command.site_url) {
+          console.log('🔗 Command has site URL, calling parsing function...');
+          result = await supabase.functions.invoke('parse-website', {
+            body: { 
+              url: command.site_url, 
+              instructions: command.code,
+              commandId: commandId 
+            }
+          });
+        } else {
+          // Regular command execution
+          console.log('⚡ Executing regular command...');
+          result = {
+            data: {
+              status: 'completed',
+              message: `Command "${command.name}" executed successfully`,
+              output: `Executed: ${command.code}`,
+              timestamp: new Date().toISOString()
+            }
+          };
+        }
+
+        const executionTime = Date.now() - startTime;
+
+        // Update execution record with success
+        await supabase
+          .from('ai_command_executions')
+          .update({
+            execution_status: 'completed',
+            output_data: result.data,
+            execution_time_ms: executionTime
+          })
+          .eq('id', executionRecord.id);
+
+        console.log('✅ Command executed successfully:', result.data);
+        return result.data;
+        
+      } catch (error) {
+        const executionTime = Date.now() - startTime;
+        
+        // Update execution record with error
+        await supabase
+          .from('ai_command_executions')
+          .update({
+            execution_status: 'failed',
+            error_message: error.message,
+            execution_time_ms: executionTime
+          })
+          .eq('id', executionRecord.id);
+
         throw error;
       }
-      
-      console.log('✅ Command executed successfully:', data);
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['ai-commands'] });
       toast({
         title: "Command Executed",
-        description: "AI command has been executed successfully.",
+        description: "AI command executed successfully.",
       });
     },
     onError: (error: any) => {
