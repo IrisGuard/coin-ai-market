@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -20,6 +19,12 @@ import AdminProfileTab from './tabs/AdminProfileTab';
 import AdminStoresTab from './tabs/AdminStoresTab';
 import AdminAIPerformanceTab from './tabs/AdminAIPerformanceTab';
 import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
+import AdminCategoriesTab from './tabs/AdminCategoriesTab';
+import AdminErrorCoinsTab from './tabs/AdminErrorCoinsTab';
+import AdminRevenueTab from './tabs/AdminRevenueTab';
+import AdminGeographyTab from './tabs/AdminGeographyTab';
+import AdminBulkOperationsTab from './tabs/AdminBulkOperationsTab';
+import AdminSystemMonitoringTab from './tabs/AdminSystemMonitoringTab';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isLoading } = useAdmin();
@@ -122,45 +127,27 @@ const ConsolidatedAdminPanel = () => {
             </TabsContent>
 
             <TabsContent value="system-monitoring" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">System Monitoring</h3>
-                <p className="text-muted-foreground">System monitoring dashboard coming soon...</p>
-              </div>
+              <AdminSystemMonitoringTab />
             </TabsContent>
 
             <TabsContent value="categories" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">Categories Management</h3>
-                <p className="text-muted-foreground">Categories management coming soon...</p>
-              </div>
+              <AdminCategoriesTab />
             </TabsContent>
 
             <TabsContent value="revenue" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">Revenue Analytics</h3>
-                <p className="text-muted-foreground">Revenue analytics coming soon...</p>
-              </div>
+              <AdminRevenueTab />
             </TabsContent>
 
             <TabsContent value="geography" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">Geographic Regions</h3>
-                <p className="text-muted-foreground">Geographic management coming soon...</p>
-              </div>
+              <AdminGeographyTab />
             </TabsContent>
 
             <TabsContent value="error-coins" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">Error Coins Knowledge</h3>
-                <p className="text-muted-foreground">Error coins database coming soon...</p>
-              </div>
+              <AdminErrorCoinsTab />
             </TabsContent>
 
             <TabsContent value="bulk-ops" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">Bulk Operations</h3>
-                <p className="text-muted-foreground">Bulk operations interface coming soon...</p>
-              </div>
+              <AdminBulkOperationsTab />
             </TabsContent>
             
             <TabsContent value="security" className="space-y-6">
