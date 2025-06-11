@@ -137,7 +137,7 @@ export const useEnhancedAIAnalysis = () => {
     });
 
     if (error) throw error;
-    if (!data?.status === 'completed') throw new Error('Site parsing failed');
+    if (!data?.success) throw new Error('Site parsing failed');
 
     setAnalysisProgress(100);
 
