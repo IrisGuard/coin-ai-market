@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Shield, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,34 +16,12 @@ interface AdminLoginFormProps {
 }
 
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState('');
-
-  // Direct admin role check from database
-  const checkAdminRoleDirectly = async (userId: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('❌ Error checking admin role:', error);
-        return false;
-      }
-
-      return !!data;
-    } catch (error) {
-      console.error('❌ Error in admin role check:', error);
-      return false;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +29,8 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
     setIsAuthenticating(true);
 
     try {
+      console.log('🔑 Starting admin login with email:', email);
+      
       // Login with email/password
       const { data: authData, error: loginError } = await supabase.auth.signInWithPassword({
         email,
@@ -65,26 +45,42 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
         throw new Error('Login failed - no user data returned');
       }
 
-      console.log('✅ User logged in, checking admin role...');
+      console.log('✅ User authenticated, checking admin role...');
       
       // Check admin role directly from database
-      const hasAdminRole = await checkAdminRoleDirectly(authData.user.id);
-      
-      if (hasAdminRole) {
-        console.log('✅ User has admin role, granting access...');
-        
-        toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the admin panel.",
-        });
-        
-        setEmail('');
-        setPassword('');
-        onSuccess?.();
-      } else {
+      const { data: adminData, error: adminError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (adminError && adminError.code !== 'PGRST116') {
+        console.error('❌ Error checking admin role:', adminError);
+        throw new Error('Failed to verify admin privileges');
+      }
+
+      if (!adminData) {
         console.log('❌ User does not have admin role');
         setError('Access denied. This account does not have administrative privileges.');
+        return;
       }
+
+      console.log('✅ Admin role confirmed, granting access');
+      
+      toast({
+        title: "Admin Access Granted",
+        description: `Welcome ${username || email}! Redirecting to admin panel...`,
+      });
+      
+      // Clear form
+      setEmail('');
+      setPassword('');
+      setUsername('');
+      
+      // Success callback will navigate to admin panel
+      onSuccess?.();
+      
     } catch (error: any) {
       console.error('Authentication error:', error);
       
@@ -94,8 +90,6 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
         errorMessage = 'Invalid email or password. Please check your credentials.';
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and confirm your account before signing in.';
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
       }
       
       setError(errorMessage);
@@ -107,6 +101,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
   const handleClose = () => {
     setEmail('');
     setPassword('');
+    setUsername('');
     setError('');
     onClose();
   };
@@ -132,7 +127,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
                 required
                 disabled={isAuthenticating}
               />
@@ -147,7 +142,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 pr-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
                 required
                 disabled={isAuthenticating}
               />
@@ -155,6 +150,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isAuthenticating}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4 text-gray-500" />
@@ -162,6 +158,20 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
                   <Eye className="h-4 w-4 text-gray-500" />
                 )}
               </button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User className="h-4 w-4 text-gray-400" />
+              </div>
+              <Input
+                type="text"
+                placeholder="Enter your username (optional)"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="pl-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
+                disabled={isAuthenticating}
+              />
             </div>
             
             {error && (
@@ -173,7 +183,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
             <div className="flex gap-2">
               <Button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
                 disabled={isAuthenticating}
               >
                 {isAuthenticating ? 'Authenticating...' : 'Access Admin Panel'}

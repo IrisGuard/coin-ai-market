@@ -5,12 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface AdminContextType {
   isAdmin: boolean;
-  isAdminAuthenticated: boolean;
   isLoading: boolean;
   checkAdminStatus: () => Promise<void>;
   updateAdminProfile: (data: { fullName: string; email: string }) => Promise<void>;
-  forceAdminStatusUpdate: (userId: string) => Promise<void>;
-  logoutAdmin: () => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -26,13 +23,11 @@ export const useAdmin = () => {
 export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAdminStatus = async () => {
     if (!user || !isAuthenticated) {
       setIsAdmin(false);
-      setIsAdminAuthenticated(false);
       setIsLoading(false);
       return;
     }
@@ -47,35 +42,12 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
       const hasAdminRole = !!adminData && !error;
       setIsAdmin(hasAdminRole);
-      
-      // Auto-authenticate if admin - no second step needed
-      if (hasAdminRole) {
-        setIsAdminAuthenticated(true);
-      }
+      console.log('✅ Admin status check:', { hasAdminRole, user: user.email });
     } catch (error) {
       console.error('Admin status check error:', error);
       setIsAdmin(false);
-      setIsAdminAuthenticated(false);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const forceAdminStatusUpdate = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .single();
-
-      if (!error && data) {
-        setIsAdmin(true);
-        setIsAdminAuthenticated(true);
-      }
-    } catch (error) {
-      console.error('Force admin update error:', error);
     }
   };
 
@@ -84,14 +56,9 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       checkAdminStatus();
     } else {
       setIsAdmin(false);
-      setIsAdminAuthenticated(false);
       setIsLoading(false);
     }
   }, [user, isAuthenticated]);
-
-  const logoutAdmin = () => {
-    setIsAdminAuthenticated(false);
-  };
 
   const updateAdminProfile = async (data: { fullName: string; email: string }) => {
     if (!user) throw new Error('No user found');
@@ -109,12 +76,9 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     isAdmin,
-    isAdminAuthenticated,
     isLoading,
     checkAdminStatus,
-    updateAdminProfile,
-    forceAdminStatusUpdate,
-    logoutAdmin
+    updateAdminProfile
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

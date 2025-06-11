@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -15,14 +16,14 @@ import AdminMarketplaceTab from './tabs/AdminMarketplaceTab';
 import AdminNotificationsTab from './tabs/AdminNotificationsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
+import AdminProfileTab from './tabs/AdminProfileTab';
 
 const ConsolidatedAdminPanel = () => {
-  const { isAdmin, isAdminAuthenticated, isLoading } = useAdmin();
+  const { isAdmin, isLoading } = useAdmin();
   const [searchTerm, setSearchTerm] = useState('');
 
   console.log('🎛️ ConsolidatedAdminPanel render:', {
     isAdmin,
-    isAdminAuthenticated,
     isLoading
   });
 
@@ -38,15 +39,15 @@ const ConsolidatedAdminPanel = () => {
     );
   }
 
-  // Safety net - these should be handled by ProtectedRoute, but keep as backup
-  if (!isAdmin || !isAdminAuthenticated) {
+  // Safety net - should be handled by ProtectedRoute
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center space-y-4">
           <div className="text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
           <p className="text-muted-foreground">
-            Admin authentication required. Press Ctrl+Alt+A to authenticate.
+            Admin privileges required. Press Ctrl+Alt+A to authenticate.
           </p>
         </div>
       </div>
@@ -107,6 +108,10 @@ const ConsolidatedAdminPanel = () => {
           
           <TabsContent value="logs" className="space-y-6">
             <AdminLogsTab />
+          </TabsContent>
+          
+          <TabsContent value="profile" className="space-y-6">
+            <AdminProfileTab />
           </TabsContent>
           
           <TabsContent value="settings" className="space-y-6">

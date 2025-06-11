@@ -15,7 +15,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, requireDealer = false }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, user } = useAuth();
-  const { isAdmin, isAdminAuthenticated, isLoading: adminLoading } = useAdmin();
+  const { isAdmin, isLoading: adminLoading } = useAdmin();
   const location = useLocation();
 
   // Get user role if needed
@@ -36,10 +36,9 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     enabled: !!user?.id && (requireAdmin || requireDealer),
   });
 
-  console.log('🔐 ProtectedRoute - Admin check:', {
+  console.log('🔐 ProtectedRoute - Simple admin check:', {
     requireAdmin,
     isAdmin,
-    isAdminAuthenticated,
     loading,
     adminLoading,
     isAuthenticated,
@@ -58,7 +57,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // For admin routes - check admin role AND admin authentication
+  // For admin routes - simple check for admin role
   if (requireAdmin) {
     if (!isAuthenticated) {
       console.log('❌ User not authenticated, redirecting to auth');
@@ -66,25 +65,15 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
     
     if (!isAdmin) {
-      console.log('❌ User is not admin, redirecting to marketplace');
-      return <Navigate to="/marketplace" replace />;
-    }
-    
-    if (!isAdminAuthenticated) {
-      console.log('❌ Admin not authenticated, showing admin auth requirement');
+      console.log('❌ User is not admin, showing login requirement');
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-6">
           <div className="max-w-md w-full text-center space-y-4">
             <div className="text-6xl mb-4">🔐</div>
-            <h2 className="text-2xl font-bold text-foreground">Admin Authentication Required</h2>
+            <h2 className="text-2xl font-bold text-foreground">Admin Access Required</h2>
             <p className="text-muted-foreground">
               Press <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">Ctrl+Alt+A</kbd> to access the admin panel
             </p>
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-700">
-                💡 Use the keyboard shortcut to trigger admin authentication
-              </p>
-            </div>
           </div>
         </div>
       );
