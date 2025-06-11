@@ -7,12 +7,10 @@ interface AdminContextType {
   isAdmin: boolean;
   isAdminAuthenticated: boolean;
   isLoading: boolean;
-  authenticateAdmin: (password: string) => Promise<boolean>;
-  logoutAdmin: () => void;
-  sessionTimeLeft: number;
   checkAdminStatus: () => Promise<void>;
   updateAdminProfile: (data: { fullName: string; email: string }) => Promise<void>;
   forceAdminStatusUpdate: (userId: string) => Promise<void>;
+  logoutAdmin: () => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -30,13 +28,11 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [sessionTimeLeft, setSessionTimeLeft] = useState(0);
-
-  const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour
 
   const checkAdminStatus = async () => {
     if (!user || !isAuthenticated) {
       setIsAdmin(false);
+      setIsAdminAuthenticated(false);
       setIsLoading(false);
       return;
     }
@@ -51,18 +47,15 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
       const hasAdminRole = !!adminData && !error;
       setIsAdmin(hasAdminRole);
-
-      // Auto-authenticate if admin
+      
+      // Auto-authenticate if admin - no second step needed
       if (hasAdminRole) {
-        const sessionData = sessionStorage.getItem('adminAuthenticated');
-        if (sessionData === 'true') {
-          setIsAdminAuthenticated(true);
-          setSessionTimeLeft(SESSION_TIMEOUT);
-        }
+        setIsAdminAuthenticated(true);
       }
     } catch (error) {
       console.error('Admin status check error:', error);
       setIsAdmin(false);
+      setIsAdminAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
@@ -79,6 +72,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!error && data) {
         setIsAdmin(true);
+        setIsAdminAuthenticated(true);
       }
     } catch (error) {
       console.error('Force admin update error:', error);
@@ -95,26 +89,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user, isAuthenticated]);
 
-  const authenticateAdmin = async (password: string): Promise<boolean> => {
-    if (!isAdmin) return false;
-
-    // Simple password check - accept any password 8+ chars for quick access
-    if (password.length >= 8) {
-      sessionStorage.setItem('adminAuthenticated', 'true');
-      sessionStorage.setItem('adminSessionTime', Date.now().toString());
-      
-      setIsAdminAuthenticated(true);
-      setSessionTimeLeft(SESSION_TIMEOUT);
-      return true;
-    }
-    return false;
-  };
-
   const logoutAdmin = () => {
-    sessionStorage.removeItem('adminAuthenticated');
-    sessionStorage.removeItem('adminSessionTime');
     setIsAdminAuthenticated(false);
-    setSessionTimeLeft(0);
   };
 
   const updateAdminProfile = async (data: { fullName: string; email: string }) => {
@@ -135,12 +111,10 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     isAdmin,
     isAdminAuthenticated,
     isLoading,
-    authenticateAdmin,
-    logoutAdmin,
-    sessionTimeLeft,
     checkAdminStatus,
     updateAdminProfile,
-    forceAdminStatusUpdate
+    forceAdminStatusUpdate,
+    logoutAdmin
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

@@ -10,7 +10,7 @@ const AdminKeyboardHandler = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminAuthenticated, isAdmin, isLoading, authenticateAdmin } = useAdmin();
+  const { isAdminAuthenticated, isAdmin, isLoading } = useAdmin();
   const { isAuthenticated, user } = useAuth();
 
   // Quick admin role assignment for current user
@@ -67,19 +67,19 @@ const AdminKeyboardHandler = () => {
           return;
         }
 
-        // Quick admin assignment and access
+        // If already admin authenticated, go directly to admin
+        if (isAdmin && isAdminAuthenticated) {
+          console.log('✅ Already admin authenticated, navigating to admin panel');
+          navigate('/admin');
+          return;
+        }
+
+        // Check admin role and show login form
         const hasAdminRole = await assignAdminRole();
         
         if (hasAdminRole) {
-          // Auto-authenticate admin with minimal password
-          const success = await authenticateAdmin('adminpass123');
-          if (success) {
-            console.log('✅ Admin access granted, navigating to admin panel');
-            navigate('/admin');
-          } else {
-            console.log('🔐 Showing admin login form');
-            setShowAdminLogin(true);
-          }
+          console.log('🔐 Showing admin login form');
+          setShowAdminLogin(true);
         } else {
           console.log('❌ Could not assign admin role');
           alert('Could not access admin panel');
@@ -92,7 +92,7 @@ const AdminKeyboardHandler = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigate, isAuthenticated, user, authenticateAdmin]);
+  }, [navigate, isAuthenticated, user, isAdmin, isAdminAuthenticated]);
 
   const handleAdminLoginClose = () => {
     setShowAdminLogin(false);
