@@ -6,45 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Database, Edit, Trash2, Copy } from 'lucide-react';
-
-interface SourceTemplate {
-  id: string;
-  name: string;
-  description?: string;
-  supported_features?: string[];
-  default_config?: Record<string, unknown>;
-  template_config?: Record<string, unknown>;
-}
+import { Plus, Database, Edit, Trash2, Copy, Loader2 } from 'lucide-react';
+import { useRealSourceTemplates, useCreateRealSourceTemplate } from '@/hooks/useRealSourceTemplates';
 
 const SourceTemplateManager = () => {
-  // Mock data for now
-  const mockTemplates: SourceTemplate[] = [
-    {
-      id: '1',
-      name: 'eBay Auction Template',
-      description: 'Standard template for eBay auction houses',
-      supported_features: ['search', 'images', 'pricing', 'bidding'],
-      default_config: { rate_limit: 60, proxy_required: true }
-    },
-    {
-      id: '2', 
-      name: 'Heritage Auctions Template',
-      description: 'Template for Heritage Auctions platform',
-      supported_features: ['search', 'filters', 'high-res-images', 'authentication'],
-      default_config: { rate_limit: 30, proxy_required: false }
-    }
-  ];
-
+  const { data: templates, isLoading } = useRealSourceTemplates();
+  const createTemplate = useCreateRealSourceTemplate();
   const [showForm, setShowForm] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<SourceTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
 
-  const handleEdit = (template: SourceTemplate) => {
+  const handleEdit = (template: any) => {
     setEditingTemplate(template);
     setShowForm(true);
   };
 
-  const handleClone = (template: SourceTemplate) => {
+  const handleClone = (template: any) => {
     setEditingTemplate({
       ...template,
       id: '',
@@ -53,7 +29,7 @@ const SourceTemplateManager = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     const templateData = {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
@@ -62,20 +38,34 @@ const SourceTemplateManager = () => {
       template_config: JSON.parse(formData.get('config') as string || '{}')
     };
 
-    console.log('Template data:', templateData);
-    
-    setShowForm(false);
-    setEditingTemplate(null);
+    try {
+      await createTemplate.mutateAsync(templateData);
+      setShowForm(false);
+      setEditingTemplate(null);
+    } catch (error) {
+      console.error('Error creating template:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p>Loading source templates...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Source Templates</h3>
+          <h3 className="text-lg font-semibold">Production Source Templates</h3>
           <p className="text-sm text-muted-foreground">
-            Standardized configurations for different source types
+            Active templates for real data source integrations
           </p>
         </div>
         <Button onClick={() => setShowForm(true)}>
@@ -86,7 +76,7 @@ const SourceTemplateManager = () => {
 
       {/* Template Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockTemplates.map((template: SourceTemplate) => (
+        {templates?.map((template: any) => (
           <Card key={template.id}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -109,9 +99,6 @@ const SourceTemplateManager = () => {
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -122,7 +109,7 @@ const SourceTemplateManager = () => {
 
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs font-medium">Supported Features</Label>
+                  <Label className="text-xs font-medium">Features</Label>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {template.supported_features?.map((feature: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
@@ -133,13 +120,17 @@ const SourceTemplateManager = () => {
                 </div>
 
                 <div>
-                  <Label className="text-xs font-medium">Default Configuration</Label>
+                  <Label className="text-xs font-medium">Configuration</Label>
                   <div className="mt-1 p-2 bg-muted rounded text-xs font-mono">
                     <pre className="whitespace-pre-wrap overflow-hidden">
-                      {JSON.stringify(template.default_config || template.template_config, null, 2).substring(0, 200)}
-                      {JSON.stringify(template.default_config || template.template_config, null, 2).length > 200 && '...'}
+                      {JSON.stringify(template.default_config || template.template_config, null, 2).substring(0, 150)}
+                      {JSON.stringify(template.default_config || template.template_config, null, 2).length > 150 && '...'}
                     </pre>
                   </div>
+                </div>
+
+                <div className="text-xs text-muted-foreground">
+                  Created: {new Date(template.created_at).toLocaleDateString()}
                 </div>
               </div>
             </CardContent>
@@ -167,7 +158,7 @@ const SourceTemplateManager = () => {
                     id="name"
                     name="name"
                     defaultValue={editingTemplate?.name || ''}
-                    placeholder="e.g., Modern Auction House"
+                    placeholder="e.g., Live Auction Integration"
                     required
                   />
                 </div>
@@ -188,24 +179,36 @@ const SourceTemplateManager = () => {
                   id="features"
                   name="features"
                   defaultValue={editingTemplate?.supported_features?.join(', ') || ''}
-                  placeholder="search, filters, images, pricing, authentication"
+                  placeholder="real-time-pricing, historical-data, authentication"
                 />
               </div>
 
               <div>
-                <Label htmlFor="config">Default Configuration (JSON)</Label>
+                <Label htmlFor="config">Configuration (JSON)</Label>
                 <Textarea
                   id="config"
                   name="config"
-                  defaultValue={JSON.stringify(editingTemplate?.default_config || editingTemplate?.template_config || {}, null, 2)}
+                  defaultValue={JSON.stringify(editingTemplate?.default_config || editingTemplate?.template_config || {
+                    rate_limit: 60,
+                    proxy_required: false,
+                    data_quality: "production",
+                    update_frequency: "hourly"
+                  }, null, 2)}
                   placeholder="JSON configuration object"
                   className="min-h-[200px] font-mono text-xs"
                 />
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit">
-                  {editingTemplate && editingTemplate.id ? 'Update Template' : 'Create Template'}
+                <Button type="submit" disabled={createTemplate.isPending}>
+                  {createTemplate.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    editingTemplate && editingTemplate.id ? 'Update Template' : 'Create Template'
+                  )}
                 </Button>
                 <Button 
                   type="button"

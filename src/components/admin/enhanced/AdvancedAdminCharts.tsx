@@ -3,42 +3,29 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
-
-const mockData = {
-  userGrowth: [
-    { month: 'Jan', users: 120, newUsers: 45 },
-    { month: 'Feb', users: 150, newUsers: 30 },
-    { month: 'Mar', users: 180, newUsers: 30 },
-    { month: 'Apr', users: 220, newUsers: 40 },
-    { month: 'May', users: 280, newUsers: 60 },
-    { month: 'Jun', users: 320, newUsers: 40 }
-  ],
-  revenue: [
-    { month: 'Jan', revenue: 15000, transactions: 45 },
-    { month: 'Feb', revenue: 18000, transactions: 52 },
-    { month: 'Mar', revenue: 22000, transactions: 61 },
-    { month: 'Apr', revenue: 25000, transactions: 70 },
-    { month: 'May', revenue: 28000, transactions: 78 },
-    { month: 'Jun', revenue: 32000, transactions: 85 }
-  ],
-  categories: [
-    { name: 'Ancient Coins', value: 35, color: '#8884d8' },
-    { name: 'Modern Coins', value: 25, color: '#82ca9d' },
-    { name: 'Rare Coins', value: 20, color: '#ffc658' },
-    { name: 'Error Coins', value: 15, color: '#ff7300' },
-    { name: 'Other', value: 5, color: '#0088fe' }
-  ],
-  performance: [
-    { time: '00:00', response: 120, errors: 2 },
-    { time: '04:00', response: 110, errors: 1 },
-    { time: '08:00', response: 180, errors: 5 },
-    { time: '12:00', response: 250, errors: 8 },
-    { time: '16:00', response: 200, errors: 3 },
-    { time: '20:00', response: 150, errors: 2 }
-  ]
-};
+import { useRealAnalyticsData } from '@/hooks/useRealAnalyticsData';
+import { useRealCategoryDistribution } from '@/hooks/useRealCategoryDistribution';
 
 const AdvancedAdminCharts = () => {
+  const { data: analyticsData, isLoading: analyticsLoading } = useRealAnalyticsData();
+  const { data: categoryData, isLoading: categoryLoading } = useRealCategoryDistribution();
+
+  if (analyticsLoading || categoryLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse h-64 bg-gray-200 rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* User Growth Chart */}
@@ -52,7 +39,7 @@ const AdvancedAdminCharts = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={mockData.userGrowth}>
+              <AreaChart data={analyticsData?.userGrowth || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -65,6 +52,7 @@ const AdvancedAdminCharts = () => {
                   stroke="#8884d8" 
                   fill="#8884d8" 
                   fillOpacity={0.6}
+                  name="Total Users"
                 />
                 <Area 
                   type="monotone" 
@@ -73,6 +61,7 @@ const AdvancedAdminCharts = () => {
                   stroke="#82ca9d" 
                   fill="#82ca9d" 
                   fillOpacity={0.6}
+                  name="New Users"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -88,11 +77,11 @@ const AdvancedAdminCharts = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mockData.revenue}>
+              <LineChart data={analyticsData?.revenue || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value, name) => [`€${value}`, name]} />
+                <Tooltip formatter={(value, name) => [`$${value}`, name]} />
                 <Legend />
                 <Line 
                   type="monotone" 
@@ -100,13 +89,14 @@ const AdvancedAdminCharts = () => {
                   stroke="#8884d8" 
                   strokeWidth={3}
                   dot={{ fill: '#8884d8', strokeWidth: 2, r: 6 }}
+                  name="Revenue"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="transactions" 
                   stroke="#82ca9d" 
                   strokeWidth={2}
-                  yAxisId="right"
+                  name="Transactions"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -127,7 +117,7 @@ const AdvancedAdminCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={mockData.categories}
+                  data={categoryData || []}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -136,7 +126,7 @@ const AdvancedAdminCharts = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {mockData.categories.map((entry, index) => (
+                  {categoryData?.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -155,7 +145,7 @@ const AdvancedAdminCharts = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockData.performance}>
+              <BarChart data={analyticsData?.performance || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="time" />
                 <YAxis />

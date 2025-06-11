@@ -12,6 +12,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRealSearchData } from '@/hooks/useRealSearchData';
 
 interface SmartSearchSuggestionsProps {
   searchQuery: string;
@@ -25,23 +26,14 @@ const SmartSearchSuggestions: React.FC<SmartSearchSuggestionsProps> = ({
   onTrendingClick
 }) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [trendingSearches] = useState([
-    'Morgan Silver Dollar',
-    'Mercury Dime',
-    'Buffalo Nickel',
-    'Walking Liberty Half',
-    'Peace Dollar',
-    'Indian Head Penny',
-    'Standing Liberty Quarter',
-    'Barber Dime'
-  ]);
+  const { data: searchData, isLoading } = useRealSearchData();
 
-  const [popularFilters] = useState([
+  const popularFilters = [
     { label: 'Graded Coins', filter: 'graded:true', icon: Star },
     { label: 'Under $100', filter: 'price:<100', icon: TrendingUp },
     { label: 'Rare Coins', filter: 'rarity:rare', icon: Zap },
     { label: 'Auction Items', filter: 'auction:true', icon: Clock }
-  ]);
+  ];
 
   const [recentSearches] = useState([
     '1921 Morgan Dollar',
@@ -52,21 +44,45 @@ const SmartSearchSuggestions: React.FC<SmartSearchSuggestionsProps> = ({
 
   useEffect(() => {
     if (searchQuery.length >= 2) {
-      // Simulate smart suggestions based on query
-      const mockSuggestions = [
+      // Generate smart suggestions based on query and real data
+      const baseSuggestions = [
         `${searchQuery} coin`,
         `${searchQuery} silver`,
         `${searchQuery} dollar`,
         `${searchQuery} cent`,
         `${searchQuery} rare`,
         `${searchQuery} graded`
-      ].filter(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      ];
       
-      setSuggestions(mockSuggestions.slice(0, 6));
+      // Add suggestions from trending searches that match the query
+      const trendingSuggestions = searchData?.trendingSearches
+        .filter(trend => trend.toLowerCase().includes(searchQuery.toLowerCase()))
+        .slice(0, 3) || [];
+      
+      const allSuggestions = [...baseSuggestions, ...trendingSuggestions]
+        .filter((suggestion, index, self) => self.indexOf(suggestion) === index)
+        .slice(0, 6);
+      
+      setSuggestions(allSuggestions);
     } else {
       setSuggestions([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, searchData?.trendingSearches]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-8 bg-gray-200 rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -129,7 +145,7 @@ const SmartSearchSuggestions: React.FC<SmartSearchSuggestionsProps> = ({
             Trending Searches
           </h4>
           <div className="grid grid-cols-2 gap-2">
-            {trendingSearches.slice(0, 6).map((trend, index) => (
+            {(searchData?.trendingSearches || []).slice(0, 6).map((trend, index) => (
               <button
                 key={trend}
                 onClick={() => onTrendingClick(trend)}
