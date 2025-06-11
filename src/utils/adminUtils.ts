@@ -139,7 +139,52 @@ export const setupAdminUser = async (userId: string): Promise<boolean> => {
   }
 };
 
-// Log admin activity
+// Create first admin user
+export const createFirstAdmin = async (email: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    console.log('🔧 Creating first admin for email:', email);
+    
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return { success: false, message: 'No authenticated user found' };
+    }
+
+    // Check if user's email matches the provided email
+    if (user.email !== email) {
+      return { success: false, message: 'Email does not match current user' };
+    }
+
+    // Use the RPC function to create the first admin safely
+    const { data, error } = await supabase.rpc('create_first_admin_safely', {
+      target_user_id: user.id,
+      admin_role: 'admin'
+    });
+
+    if (error) {
+      console.error('❌ Error creating first admin:', error);
+      return { success: false, message: error.message };
+    }
+
+    if (data) {
+      console.log('✅ First admin created successfully');
+      return { success: true, message: 'Admin user created successfully' };
+    } else {
+      return { success: false, message: 'Admin user already exists' };
+    }
+  } catch (error) {
+    console.error('❌ Failed to create first admin:', error);
+    return { success: false, message: 'Failed to create admin user' };
+  }
+};
+
+// Check admin status (alias for getCurrentUserAdminStatus)
+export const checkAdminStatus = async (): Promise<boolean> => {
+  return await getCurrentUserAdminStatus();
+};
+
+// Log admin activity with correct column names
 export const logAdminActivity = async (
   action: string, 
   details?: Record<string, any>
@@ -154,8 +199,8 @@ export const logAdminActivity = async (
       .insert({
         admin_user_id: user.id,
         action,
-        details: details || {},
-        timestamp: new Date().toISOString()
+        target_type: 'system',
+        details: details || {}
       });
 
     console.log('📝 Admin activity logged:', action);
