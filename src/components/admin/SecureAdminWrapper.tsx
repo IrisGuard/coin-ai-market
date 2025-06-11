@@ -19,7 +19,7 @@ const SecureAdminWrapper: React.FC<SecureAdminWrapperProps> = ({
   requireReauth = false,
   sensitiveAction = false
 }) => {
-  const { isAdmin, isLoading, isAdminAuthenticated } = useAdmin();
+  const { isAdmin, isLoading } = useAdmin();
   const [isAuthenticated, setIsAuthenticated] = useState(!requireReauth);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -172,8 +172,8 @@ const SecureAdminWrapper: React.FC<SecureAdminWrapperProps> = ({
     );
   }
 
-  // Check both isAdmin status AND admin authentication
-  if (!isAdmin || !isAdminAuthenticated) {
+  // Check only isAdmin status (removed isAdminAuthenticated check)
+  if (!isAdmin) {
     return (
       <div className="p-6">
         <Alert variant="destructive">
@@ -181,10 +181,8 @@ const SecureAdminWrapper: React.FC<SecureAdminWrapperProps> = ({
           <AlertDescription>
             <strong>Access Denied</strong>
             <p className="mt-1">
-              {!isAdmin 
-                ? "Administrative privileges required to access this content." 
-                : "Admin authentication required. Please use Ctrl+Alt+A to access the admin panel."
-              }
+              Administrative privileges required to access this content.
+              Please use Ctrl+Alt+A to access the admin panel.
             </p>
           </AlertDescription>
         </Alert>
