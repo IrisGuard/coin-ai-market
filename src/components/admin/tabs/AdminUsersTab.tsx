@@ -6,10 +6,53 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAdminUsers, useUpdateUserStatus, useUpdateUserRole } from '@/hooks/admin/useAdminUsers';
 import { Users, UserCheck, UserX, Shield, Search, Mail } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminUsersTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: users, isLoading } = useAdminUsers();
+  
+  // Fetch users with a simpler query structure
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['admin-users-simple'],
+    queryFn: async () => {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (profilesError) throw profilesError;
+
+      // Fetch user roles separately
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*');
+      
+      if (rolesError) throw rolesError;
+
+      // Fetch stores separately
+      const { data: storesData, error: storesError } = await supabase
+        .from('stores')
+        .select('id, name, verified, user_id');
+      
+      if (storesError) throw storesError;
+
+      // Combine the data
+      const combinedUsers = profilesData?.map(profile => {
+        const userRoles = rolesData?.filter(role => role.user_id === profile.id) || [];
+        const userStores = storesData?.filter(store => store.user_id === profile.id) || [];
+        
+        return {
+          ...profile,
+          user_roles: userRoles,
+          stores: userStores
+        };
+      }) || [];
+
+      return combinedUsers;
+    },
+  });
+
   const updateUserStatus = useUpdateUserStatus();
   const updateUserRole = useUpdateUserRole();
 
