@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,12 +21,17 @@ const AdminDataSourcesTab = () => {
   const { data: dataSources = [], isLoading: sourcesLoading } = useQuery({
     queryKey: ['admin-data-sources'],
     queryFn: async () => {
+      console.log('🔍 Fetching data sources...');
       const { data, error } = await supabase
         .from('data_sources')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching data sources:', error);
+        throw error;
+      }
+      console.log('✅ Data sources loaded:', data?.length || 0);
       return data || [];
     },
   });
@@ -35,12 +39,17 @@ const AdminDataSourcesTab = () => {
   const { data: externalSources = [] } = useQuery({
     queryKey: ['admin-external-sources'],
     queryFn: async () => {
+      console.log('🔍 Fetching external sources...');
       const { data, error } = await supabase
         .from('external_price_sources')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching external sources:', error);
+        throw error;
+      }
+      console.log('✅ External sources loaded:', data?.length || 0);
       return data || [];
     },
   });
@@ -48,13 +57,18 @@ const AdminDataSourcesTab = () => {
   const { data: scrapingJobs = [] } = useQuery({
     queryKey: ['admin-scraping-jobs'],
     queryFn: async () => {
+      console.log('🔍 Fetching scraping jobs...');
       const { data, error } = await supabase
         .from('scraping_jobs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching scraping jobs:', error);
+        throw error;
+      }
+      console.log('✅ Scraping jobs loaded:', data?.length || 0);
       return data || [];
     },
   });
@@ -62,50 +76,76 @@ const AdminDataSourcesTab = () => {
   const { data: sourceStats } = useQuery({
     queryKey: ['admin-source-stats'],
     queryFn: async () => {
-      const [
-        totalDataSources,
-        activeDataSources,
-        totalExternalSources,
-        activeExternalSources,
-        totalScrapingJobs,
-        recentJobs
-      ] = await Promise.all([
-        supabase.from('data_sources').select('id', { count: 'exact', head: true }),
-        supabase.from('data_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('external_price_sources').select('id', { count: 'exact', head: true }),
-        supabase.from('external_price_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('scraping_jobs').select('id', { count: 'exact', head: true }),
-        supabase.from('scraping_jobs')
-          .select('status')
-          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      ]);
+      console.log('🔍 Fetching source stats...');
+      try {
+        const [
+          totalDataSources,
+          activeDataSources,
+          totalExternalSources,
+          activeExternalSources,
+          totalScrapingJobs,
+          recentJobs
+        ] = await Promise.all([
+          supabase.from('data_sources').select('id', { count: 'exact', head: true }),
+          supabase.from('data_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
+          supabase.from('external_price_sources').select('id', { count: 'exact', head: true }),
+          supabase.from('external_price_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
+          supabase.from('scraping_jobs').select('id', { count: 'exact', head: true }),
+          supabase.from('scraping_jobs')
+            .select('status')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        ]);
 
-      return {
-        totalDataSources: totalDataSources.count || 0,
-        activeDataSources: activeDataSources.count || 0,
-        totalExternalSources: totalExternalSources.count || 0,
-        activeExternalSources: activeExternalSources.count || 0,
-        totalScrapingJobs: totalScrapingJobs.count || 0,
-        jobsLast24h: recentJobs.count || 0,
-      };
+        const stats = {
+          totalDataSources: totalDataSources.count || 0,
+          activeDataSources: activeDataSources.count || 0,
+          totalExternalSources: totalExternalSources.count || 0,
+          activeExternalSources: activeExternalSources.count || 0,
+          totalScrapingJobs: totalScrapingJobs.count || 0,
+          jobsLast24h: recentJobs.count || 0,
+        };
+        
+        console.log('✅ Source stats loaded:', stats);
+        return stats;
+      } catch (error) {
+        console.error('❌ Error fetching source stats:', error);
+        return {
+          totalDataSources: 0,
+          activeDataSources: 0,
+          totalExternalSources: 0,
+          activeExternalSources: 0,
+          totalScrapingJobs: 0,
+          jobsLast24h: 0,
+        };
+      }
     },
   });
 
   const updateDataSourceMutation = useMutation({
     mutationFn: async ({ sourceId, updates, tableType }: { sourceId: string; updates: Record<string, any>; tableType: 'data_sources' | 'external_price_sources' }) => {
+      console.log(`🔄 Updating ${tableType} with ID ${sourceId}:`, updates);
+      
       if (tableType === 'data_sources') {
         const { error } = await supabase
           .from('data_sources')
           .update(updates)
           .eq('id', sourceId);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error updating data source:', error);
+          throw error;
+        }
       } else if (tableType === 'external_price_sources') {
         const { error } = await supabase
           .from('external_price_sources')
           .update(updates)
           .eq('id', sourceId);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error updating external source:', error);
+          throw error;
+        }
       }
+      
+      console.log('✅ Source updated successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-data-sources'] });
@@ -117,9 +157,10 @@ const AdminDataSourcesTab = () => {
       });
     },
     onError: (error: any) => {
+      console.error('❌ Update failed:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update data source",
         variant: "destructive",
       });
     },
@@ -164,6 +205,7 @@ const AdminDataSourcesTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -212,12 +254,12 @@ const AdminDataSourcesTab = () => {
           <CardContent>
             <div className="text-2xl font-bold">
               {dataSources.length > 0 
-                ? ((dataSources.filter(s => s.success_rate > 0.8).length / dataSources.length) * 100).toFixed(1)
+                ? ((dataSources.filter(s => (s.success_rate || 0) > 0.8).length / dataSources.length) * 100).toFixed(1)
                 : 0}%
             </div>
             <Progress 
               value={dataSources.length > 0 
-                ? (dataSources.filter(s => s.success_rate > 0.8).length / dataSources.length) * 100 
+                ? (dataSources.filter(s => (s.success_rate || 0) > 0.8).length / dataSources.length) * 100 
                 : 0} 
               className="mt-2" 
             />
@@ -225,6 +267,7 @@ const AdminDataSourcesTab = () => {
         </Card>
       </div>
 
+      {/* Tabs for different sections */}
       <Tabs defaultValue="data-sources" className="space-y-4">
         <TabsList>
           <TabsTrigger value="data-sources">Data Sources</TabsTrigger>
@@ -249,110 +292,115 @@ const AdminDataSourcesTab = () => {
                 />
               </div>
               
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>URL</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Success Rate</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDataSources.map((source) => (
-                    <TableRow key={source.id}>
-                      <TableCell>
-                        <div className="font-medium">{source.name}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-blue-600 hover:underline">
-                          <a href={source.url} target="_blank" rel="noopener noreferrer">
-                            {source.url}
-                          </a>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{source.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(source.is_active)}>
-                          {source.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span>{(source.success_rate * 100).toFixed(1)}%</span>
-                          <Progress value={source.success_rate * 100} className="w-16" />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{source.priority}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Configure: {source.name}</DialogTitle>
-                                <DialogDescription>
-                                  Manage data source settings and status
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                  <Switch
-                                    checked={source.is_active}
-                                    onCheckedChange={(checked) => 
-                                      updateDataSourceMutation.mutate({
-                                        sourceId: source.id,
-                                        updates: { is_active: checked },
-                                        tableType: 'data_sources'
-                                      })
-                                    }
-                                  />
-                                  <Label>Active Status</Label>
-                                </div>
-                                <div>
-                                  <Label>Last Used</Label>
-                                  <p className="text-sm text-gray-600">
-                                    {source.last_used ? new Date(source.last_used).toLocaleString() : 'Never'}
-                                  </p>
-                                </div>
-                                <div>
-                                  <Label>Rate Limit</Label>
-                                  <p className="text-sm text-gray-600">{source.rate_limit} requests/hour</p>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                          
-                          <Button
-                            variant={source.is_active ? "destructive" : "default"}
-                            size="sm"
-                            onClick={() => 
-                              updateDataSourceMutation.mutate({
-                                sourceId: source.id,
-                                updates: { is_active: !source.is_active },
-                                tableType: 'data_sources'
-                              })
-                            }
-                          >
-                            {source.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </TableCell>
+              {sourcesLoading ? (
+                <div className="text-center py-8">Loading data sources...</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Success Rate</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDataSources.map((source) => (
+                      <TableRow key={source.id}>
+                        <TableCell>
+                          <div className="font-medium">{source.name}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-blue-600 hover:underline">
+                            <a href={source.url} target="_blank" rel="noopener noreferrer">
+                              {source.url}
+                            </a>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{source.type}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(source.is_active)}>
+                            {source.is_active ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <span>{((source.success_rate || 0) * 100).toFixed(1)}%</span>
+                            <Progress value={(source.success_rate || 0) * 100} className="w-16" />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{source.priority}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Settings className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Configure: {source.name}</DialogTitle>
+                                  <DialogDescription>
+                                    Manage data source settings and status
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Switch
+                                      checked={source.is_active}
+                                      onCheckedChange={(checked) => 
+                                        updateDataSourceMutation.mutate({
+                                          sourceId: source.id,
+                                          updates: { is_active: checked },
+                                          tableType: 'data_sources'
+                                        })
+                                      }
+                                    />
+                                    <Label>Active Status</Label>
+                                  </div>
+                                  <div>
+                                    <Label>Last Used</Label>
+                                    <p className="text-sm text-gray-600">
+                                      {source.last_used ? new Date(source.last_used).toLocaleString() : 'Never'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <Label>Rate Limit</Label>
+                                    <p className="text-sm text-gray-600">{source.rate_limit} requests/hour</p>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            
+                            <Button
+                              variant={source.is_active ? "destructive" : "default"}
+                              size="sm"
+                              onClick={() => 
+                                updateDataSourceMutation.mutate({
+                                  sourceId: source.id,
+                                  updates: { is_active: !source.is_active },
+                                  tableType: 'data_sources'
+                                })
+                              }
+                              disabled={updateDataSourceMutation.isPending}
+                            >
+                              {source.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -401,8 +449,8 @@ const AdminDataSourcesTab = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <span>{(source.reliability_score * 100).toFixed(1)}%</span>
-                          <Progress value={source.reliability_score * 100} className="w-16" />
+                          <span>{((source.reliability_score || 0) * 100).toFixed(1)}%</span>
+                          <Progress value={(source.reliability_score || 0) * 100} className="w-16" />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -478,3 +526,5 @@ const AdminDataSourcesTab = () => {
 };
 
 export default AdminDataSourcesTab;
+
+</edits_to_apply>

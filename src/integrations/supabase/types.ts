@@ -123,6 +123,7 @@ export type Database = {
       ai_command_executions: {
         Row: {
           command_id: string | null
+          completed_at: string | null
           created_at: string | null
           error_message: string | null
           execution_status: string | null
@@ -134,6 +135,7 @@ export type Database = {
         }
         Insert: {
           command_id?: string | null
+          completed_at?: string | null
           created_at?: string | null
           error_message?: string | null
           execution_status?: string | null
@@ -145,6 +147,7 @@ export type Database = {
         }
         Update: {
           command_id?: string | null
+          completed_at?: string | null
           created_at?: string | null
           error_message?: string | null
           execution_status?: string | null
@@ -3401,14 +3404,6 @@ export type Database = {
       increment_page_view: {
         Args: { page_path_param: string }
         Returns: undefined
-      }
-      is_admin: {
-        Args: { _user_id?: string }
-        Returns: boolean
-      }
-      is_admin_user: {
-        Args: { user_id?: string }
-        Returns: boolean
       }
       log_admin_activity: {
         Args: {
