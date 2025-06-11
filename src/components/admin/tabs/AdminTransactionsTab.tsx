@@ -16,97 +16,137 @@ const AdminTransactionsTab = () => {
 
   const queryClient = useQueryClient();
 
-  // Payment Transactions Query with proper joins
-  const { data: transactions = [], isLoading } = useQuery({
+  // Enhanced Payment Transactions Query with RLS-optimized approach
+  const { data: transactions = [], isLoading, error } = useQuery({
     queryKey: ['admin-payment-transactions'],
     queryFn: async () => {
-      // First get transactions
-      const { data: transactionData, error: transactionError } = await supabase
-        .from('payment_transactions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (transactionError) throw transactionError;
-      
-      // Then get profiles for each transaction
-      const userIds = [...new Set(transactionData?.map(t => t.user_id).filter(Boolean))];
-      const coinIds = [...new Set(transactionData?.map(t => t.coin_id).filter(Boolean))];
-      
-      let profilesData = [];
-      let coinsData = [];
-      
-      if (userIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name, email, verified_dealer')
-          .in('id', userIds);
+      try {
+        // With the new RLS policies, admin can access everything directly
+        const { data: transactionData, error: transactionError } = await supabase
+          .from('payment_transactions')
+          .select('*')
+          .order('created_at', { ascending: false });
         
-        if (profilesError) throw profilesError;
-        profilesData = profiles || [];
-      }
-      
-      if (coinIds.length > 0) {
-        const { data: coins, error: coinsError } = await supabase
-          .from('coins')
-          .select('id, name, image, price')
-          .in('id', coinIds);
+        if (transactionError) {
+          console.error('Transaction fetch error:', transactionError);
+          throw transactionError;
+        }
+
+        if (!transactionData || transactionData.length === 0) {
+          return [];
+        }
         
-        if (coinsError) throw coinsError;
-        coinsData = coins || [];
+        // Get unique IDs for batch fetching
+        const userIds = [...new Set(transactionData.map(t => t.user_id).filter(Boolean))];
+        const coinIds = [...new Set(transactionData.map(t => t.coin_id).filter(Boolean))];
+        
+        let profilesData = [];
+        let coinsData = [];
+        
+        // Fetch profiles if we have user IDs
+        if (userIds.length > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, name, email, verified_dealer')
+            .in('id', userIds);
+          
+          if (profilesError) {
+            console.error('Profiles fetch error:', profilesError);
+          } else {
+            profilesData = profiles || [];
+          }
+        }
+        
+        // Fetch coins if we have coin IDs
+        if (coinIds.length > 0) {
+          const { data: coins, error: coinsError } = await supabase
+            .from('coins')
+            .select('id, name, image, price')
+            .in('id', coinIds);
+          
+          if (coinsError) {
+            console.error('Coins fetch error:', coinsError);
+          } else {
+            coinsData = coins || [];
+          }
+        }
+        
+        // Combine the data with null safety
+        const enrichedTransactions = transactionData.map(transaction => ({
+          ...transaction,
+          profiles: profilesData.find(p => p.id === transaction.user_id) || null,
+          coins: coinsData.find(c => c.id === transaction.coin_id) || null
+        }));
+        
+        console.log(`✅ Successfully loaded ${enrichedTransactions.length} transactions`);
+        return enrichedTransactions;
+        
+      } catch (error) {
+        console.error('❌ Failed to load transactions:', error);
+        throw error;
       }
-      
-      // Combine the data
-      const enrichedTransactions = transactionData?.map(transaction => ({
-        ...transaction,
-        profiles: profilesData.find(p => p.id === transaction.user_id) || null,
-        coins: coinsData.find(c => c.id === transaction.coin_id) || null
-      }));
-      
-      return enrichedTransactions || [];
-    }
+    },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Transaction Statistics
+  // Transaction Statistics with enhanced error handling
   const { data: transactionStats } = useQuery({
-    queryKey: ['admin-transaction-stats'],
+    queryKey: ['admin-transaction-stats', transactions.length],
     queryFn: async () => {
-      const totalTransactions = transactions.length;
-      const completedTransactions = transactions.filter(tx => tx.status === 'completed').length;
-      const pendingTransactions = transactions.filter(tx => tx.status === 'pending').length;
-      const failedTransactions = transactions.filter(tx => tx.status === 'failed').length;
-      const totalRevenue = transactions
-        .filter(tx => tx.status === 'completed')
-        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
-      const avgTransactionValue = completedTransactions > 0 
-        ? totalRevenue / completedTransactions 
-        : 0;
-      
-      // Today's stats
-      const today = new Date().toDateString();
-      const todaysTransactions = transactions.filter(tx => 
-        new Date(tx.created_at).toDateString() === today
-      );
-      const todaysRevenue = todaysTransactions
-        .filter(tx => tx.status === 'completed')
-        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
-      
-      return {
-        totalTransactions,
-        completedTransactions,
-        pendingTransactions,
-        failedTransactions,
-        totalRevenue,
-        avgTransactionValue,
-        todaysTransactions: todaysTransactions.length,
-        todaysRevenue
-      };
+      try {
+        const totalTransactions = transactions.length;
+        const completedTransactions = transactions.filter(tx => tx.status === 'completed').length;
+        const pendingTransactions = transactions.filter(tx => tx.status === 'pending').length;
+        const failedTransactions = transactions.filter(tx => tx.status === 'failed').length;
+        const totalRevenue = transactions
+          .filter(tx => tx.status === 'completed')
+          .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+        const avgTransactionValue = completedTransactions > 0 
+          ? totalRevenue / completedTransactions 
+          : 0;
+        
+        // Today's stats
+        const today = new Date().toDateString();
+        const todaysTransactions = transactions.filter(tx => 
+          new Date(tx.created_at).toDateString() === today
+        );
+        const todaysRevenue = todaysTransactions
+          .filter(tx => tx.status === 'completed')
+          .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+        
+        return {
+          totalTransactions,
+          completedTransactions,
+          pendingTransactions,
+          failedTransactions,
+          totalRevenue,
+          avgTransactionValue,
+          todaysTransactions: todaysTransactions.length,
+          todaysRevenue
+        };
+      } catch (error) {
+        console.error('Stats calculation error:', error);
+        return {
+          totalTransactions: 0,
+          completedTransactions: 0,
+          pendingTransactions: 0,
+          failedTransactions: 0,
+          totalRevenue: 0,
+          avgTransactionValue: 0,
+          todaysTransactions: 0,
+          todaysRevenue: 0
+        };
+      }
     },
     enabled: transactions.length > 0
   });
 
-  // Update Transaction Status Mutation
+  // Enhanced Update Transaction Status Mutation
   const updateTransactionMutation = useMutation({
     mutationFn: async ({ transactionId, status }: { transactionId: string; status: string }) => {
+      console.log(`🔄 Updating transaction ${transactionId} to status: ${status}`);
+      
       const { error } = await supabase
         .from('payment_transactions')
         .update({ 
@@ -115,24 +155,31 @@ const AdminTransactionsTab = () => {
         })
         .eq('id', transactionId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Transaction update failed:', error);
+        throw error;
+      }
+      
+      console.log(`✅ Transaction ${transactionId} updated successfully`);
     },
-    onSuccess: () => {
+    onSuccess: (_, { transactionId, status }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-payment-transactions'] });
       toast({
         title: "Success",
-        description: "Transaction status updated successfully.",
+        description: `Transaction status updated to ${status}.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('❌ Transaction update mutation failed:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'Failed to update transaction status',
         variant: "destructive",
       });
     }
   });
 
+  // Helper functions remain the same
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
@@ -162,6 +209,7 @@ const AdminTransactionsTab = () => {
     }
   };
 
+  // Enhanced filtering with null safety
   const filteredTransactions = transactions.filter(transaction => {
     const user = transaction.profiles;
     const coin = transaction.coins;
@@ -178,6 +226,31 @@ const AdminTransactionsTab = () => {
     
     return matchesSearch && matchesStatus && matchesMethod;
   });
+
+  // Show error state
+  if (error) {
+    console.error('❌ AdminTransactionsTab error:', error);
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-red-700 mb-2">Failed to Load Transactions</h3>
+              <p className="text-red-600 mb-4">{error.message}</p>
+              <Button 
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-payment-transactions'] })}
+                variant="outline"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -301,7 +374,9 @@ const AdminTransactionsTab = () => {
       <Card>
         <CardHeader>
           <CardTitle>Payment Transactions</CardTitle>
-          <CardDescription>Monitor and manage all payment transactions</CardDescription>
+          <CardDescription>
+            Monitor and manage all payment transactions ({filteredTransactions.length} shown)
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
@@ -339,14 +414,22 @@ const AdminTransactionsTab = () => {
               onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-payment-transactions'] })}
               variant="outline"
               size="sm"
+              disabled={isLoading}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           </div>
           
           {isLoading ? (
-            <div className="text-center py-8">Loading transactions...</div>
+            <div className="text-center py-8">
+              <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p>Loading transactions...</p>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No transactions found matching your criteria.</p>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -373,7 +456,7 @@ const AdminTransactionsTab = () => {
                           {transaction.profiles?.name || 'Unknown User'}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {transaction.profiles?.email}
+                          {transaction.profiles?.email || 'No email'}
                         </div>
                         {transaction.profiles?.verified_dealer && (
                           <Badge variant="outline" className="text-xs">Verified Dealer</Badge>
@@ -398,7 +481,7 @@ const AdminTransactionsTab = () => {
                           </div>
                         </div>
                       ) : (
-                        'Unknown Coin'
+                        <span className="text-muted-foreground">Unknown Coin</span>
                       )}
                     </TableCell>
                     <TableCell className="font-medium">
@@ -437,6 +520,7 @@ const AdminTransactionsTab = () => {
                                 status: 'completed' 
                               })}
                               disabled={updateTransactionMutation.isPending}
+                              title="Mark as Completed"
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
@@ -448,6 +532,7 @@ const AdminTransactionsTab = () => {
                                 status: 'failed' 
                               })}
                               disabled={updateTransactionMutation.isPending}
+                              title="Mark as Failed"
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>
@@ -456,6 +541,7 @@ const AdminTransactionsTab = () => {
                         <Button
                           variant="outline"
                           size="sm"
+                          title="View Details"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
