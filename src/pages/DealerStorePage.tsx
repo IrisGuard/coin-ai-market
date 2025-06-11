@@ -5,10 +5,12 @@ import { useDealerStores } from '@/hooks/useDealerStores';
 import { useDealerCoins } from '@/hooks/useDealerCoins';
 import Navbar from '@/components/Navbar';
 import OptimizedCoinCard from '@/components/OptimizedCoinCard';
+import StoreRatingSystem from '@/components/marketplace/StoreRatingSystem';
 import { Loader2, Store, Shield, Star, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mapSupabaseCoinToCoin } from '@/types/coin';
 
 const DealerStorePage = () => {
@@ -47,6 +49,13 @@ const DealerStorePage = () => {
     );
   }
 
+  // Mock rating data - in real app, this would come from database
+  const mockRatingData = {
+    averageRating: 4.7,
+    totalReviews: 143,
+    recentReviews: []
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       <Navbar />
@@ -84,12 +93,10 @@ const DealerStorePage = () => {
                         <span>{(dealer.address as any).city || 'Unknown Location'}</span>
                       </div>
                     )}
-                    {profile?.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span>{Number(profile.rating).toFixed(1)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span>{mockRatingData.averageRating} ({mockRatingData.totalReviews} reviews)</span>
+                    </div>
                   </div>
                   
                   {dealer.description && (
@@ -100,40 +107,56 @@ const DealerStorePage = () => {
             </CardContent>
           </Card>
 
-          {/* Coins Section */}
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <Store className="w-6 h-6 text-purple-600" />
-              <h2 className="text-2xl font-bold text-gray-800">Available Coins</h2>
-              <span className="text-gray-500">({coins?.length || 0} items)</span>
-            </div>
+          {/* Store Content Tabs */}
+          <Tabs defaultValue="coins" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="coins" className="flex items-center gap-2">
+                <Store className="w-4 h-4" />
+                Available Coins ({coins?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                Reviews & Ratings
+              </TabsTrigger>
+            </TabsList>
 
-            {coinsLoading ? (
-              <div className="flex justify-center items-center py-16">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                  <span className="text-gray-600">Loading coins...</span>
+            <TabsContent value="coins" className="mt-6">
+              {coinsLoading ? (
+                <div className="flex justify-center items-center py-16">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                    <span className="text-gray-600">Loading coins...</span>
+                  </div>
                 </div>
-              </div>
-            ) : coins && coins.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {coins.map((rawCoin, index) => {
-                  const coin = mapSupabaseCoinToCoin(rawCoin);
-                  return (
-                    <div key={coin.id} className="w-full">
-                      <OptimizedCoinCard coin={coin} index={index} />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-16 bg-white rounded-xl shadow-sm">
-                <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Coins Available</h3>
-                <p className="text-gray-600">This dealer hasn't listed any coins yet.</p>
-              </div>
-            )}
-          </div>
+              ) : coins && coins.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {coins.map((rawCoin, index) => {
+                    const coin = mapSupabaseCoinToCoin(rawCoin);
+                    return (
+                      <div key={coin.id} className="w-full">
+                        <OptimizedCoinCard coin={coin} index={index} />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+                  <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">No Coins Available</h3>
+                  <p className="text-gray-600">This dealer hasn't listed any coins yet.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="reviews" className="mt-6">
+              <StoreRatingSystem
+                storeId={dealerId || ''}
+                averageRating={mockRatingData.averageRating}
+                totalReviews={mockRatingData.totalReviews}
+                recentReviews={mockRatingData.recentReviews}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ import {
   Upload, 
   User, 
   LogOut,
-  Settings
+  Gavel
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -62,6 +62,10 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/marketplace" className="text-gray-700 hover:text-electric-blue transition-colors">
               Marketplace
+            </Link>
+            
+            <Link to="/auctions" className="text-gray-700 hover:text-electric-blue transition-colors">
+              Auctions
             </Link>
             
             {isAuthenticated && userRole === 'dealer' && (
@@ -118,6 +122,14 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
               >
                 Marketplace
+              </Link>
+              
+              <Link 
+                to="/auctions" 
+                className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Auctions
               </Link>
               
               {isAuthenticated && userRole === 'dealer' && (

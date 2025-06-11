@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
+import Auctions from "./pages/Auctions";
 import CoinUpload from "./pages/CoinUpload";
 import Profile from "./pages/Profile";
 import AdminPanelPage from "./pages/AdminPanelPage";
@@ -25,6 +26,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/marketplace" element={<ActiveMarketplace />} />
+              <Route path="/auctions" element={<Auctions />} />
               <Route path="/upload" element={<CoinUpload />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<AdminPanelPage />} />

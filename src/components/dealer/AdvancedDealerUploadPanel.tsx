@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Brain, TrendingUp, Package, Settings } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard } from 'lucide-react';
 import AdvancedImageUploadManager from './AdvancedImageUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
 import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
+import ShippingPaymentManager from './ShippingPaymentManager';
 
 const AdvancedDealerUploadPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('upload');
@@ -43,7 +44,7 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">Advanced Dealer Panel</h1>
           <p className="text-muted-foreground">
-            Professional coin listing management with AI-powered analysis and market intelligence
+            Professional coin listing management with AI-powered analysis and global commerce features
           </p>
         </div>
         <Badge variant="outline" className="flex items-center gap-2">
@@ -53,7 +54,7 @@ const AdvancedDealerUploadPanel: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="w-4 h-4" />
             Smart Upload
@@ -69,6 +70,10 @@ const AdvancedDealerUploadPanel: React.FC = () => {
           <TabsTrigger value="drafts" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Drafts & Templates
+          </TabsTrigger>
+          <TabsTrigger value="shipping" className="flex items-center gap-2">
+            <Truck className="w-4 h-4" />
+            Shipping & Payments
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <Brain className="w-4 h-4" />
@@ -102,6 +107,10 @@ const AdvancedDealerUploadPanel: React.FC = () => {
 
         <TabsContent value="drafts">
           <DraftManager />
+        </TabsContent>
+
+        <TabsContent value="shipping">
+          <ShippingPaymentManager />
         </TabsContent>
 
         <TabsContent value="analytics">
