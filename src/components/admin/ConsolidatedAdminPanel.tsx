@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -24,7 +25,7 @@ import AdminErrorCoinsTab from './tabs/AdminErrorCoinsTab';
 import AdminRevenueTab from './tabs/AdminRevenueTab';
 import AdminGeographyTab from './tabs/AdminGeographyTab';
 import AdminBulkOperationsTab from './tabs/AdminBulkOperationsTab';
-import AdminSystemMonitoringTab;
+import AdminSystemMonitoringTab from './tabs/AdminSystemMonitoringTab';
 import AdminAutomationTab from './tabs/AdminAutomationTab';
 import AdminPredictionsTab from './tabs/AdminPredictionsTab';
 import AdminTransactionsTab from './tabs/AdminTransactionsTab';
