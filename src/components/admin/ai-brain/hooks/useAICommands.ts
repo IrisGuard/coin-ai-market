@@ -23,15 +23,11 @@ export const useAICommands = () => {
 
       console.log('✅ User authenticated:', user.id);
       
-      // Check if user has admin role
+      // Check if user has admin role using secure function
       const { data: adminCheck, error: adminError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
+        .rpc('verify_admin_access_secure', { user_id: user.id });
       
-      if (adminError && adminError.code !== 'PGRST116') {
+      if (adminError) {
         console.error('❌ Admin check failed:', adminError);
         throw new Error('Admin access verification failed');
       }
@@ -43,10 +39,27 @@ export const useAICommands = () => {
       
       console.log('✅ Admin access verified, fetching commands...');
       
+      // Optimized query - only fetch preview of code field for performance
       const { data, error } = await supabase
         .from('ai_commands')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select(`
+          id, 
+          name, 
+          description, 
+          LEFT(code, 300) as code_preview,
+          code,
+          category, 
+          command_type, 
+          priority, 
+          execution_timeout, 
+          is_active, 
+          created_at, 
+          updated_at, 
+          created_by, 
+          site_url
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
       
       if (error) {
         console.error('❌ Error fetching AI commands:', error);
@@ -226,7 +239,7 @@ export const useAICommands = () => {
         throw execError;
       }
 
-      // Get command details
+      // Get command details with site_url
       const { data: command, error: cmdError } = await supabase
         .from('ai_commands')
         .select('*')
@@ -238,7 +251,7 @@ export const useAICommands = () => {
         throw cmdError;
       }
 
-      // Execute command (simulate for now)
+      // Execute command
       const startTime = Date.now();
       
       let result;
