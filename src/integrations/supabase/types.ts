@@ -120,6 +120,89 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_command_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      ai_command_execution_logs: {
+        Row: {
+          command_id: string | null
+          cost_usd: number | null
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_tokens: number | null
+          output_tokens: number | null
+          performance_score: number | null
+          success: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          command_id?: string | null
+          cost_usd?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          performance_score?: number | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          command_id?: string | null
+          cost_usd?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          performance_score?: number | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_command_execution_logs_command_id_fkey"
+            columns: ["command_id"]
+            isOneToOne: false
+            referencedRelation: "ai_commands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_command_executions: {
         Row: {
           command_id: string | null
@@ -166,6 +249,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_command_workflows: {
+        Row: {
+          command_sequence: Json
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          execution_count: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          success_rate: number | null
+          trigger_conditions: Json | null
+        }
+        Insert: {
+          command_sequence?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          success_rate?: number | null
+          trigger_conditions?: Json | null
+        }
+        Update: {
+          command_sequence?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          success_rate?: number | null
+          trigger_conditions?: Json | null
+        }
+        Relationships: []
       }
       ai_commands: {
         Row: {
@@ -252,6 +374,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      ai_performance_analytics: {
+        Row: {
+          command_id: string | null
+          execution_context: Json | null
+          id: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          command_id?: string | null
+          execution_context?: Json | null
+          id?: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          command_id?: string | null
+          execution_context?: Json | null
+          id?: string
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_performance_analytics_command_id_fkey"
+            columns: ["command_id"]
+            isOneToOne: false
+            referencedRelation: "ai_commands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_performance_metrics: {
         Row: {
