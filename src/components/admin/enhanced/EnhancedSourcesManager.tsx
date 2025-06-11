@@ -8,7 +8,9 @@ import {
   Upload,
   Search,
   Database,
-  Target
+  Target,
+  BookOpen,
+  TrendingUp
 } from 'lucide-react';
 import BulkSourceImporter from './BulkSourceImporter';
 import SourceTemplateManager from './SourceTemplateManager';
@@ -18,6 +20,8 @@ import GeographicSourceMap from './GeographicSourceMap';
 import CustomSourceManager from './CustomSourceManager';
 import SourcesOverviewTab from './sources/SourcesOverviewTab';
 import SourcesHeader from './sources/SourcesHeader';
+import EnhancedErrorKnowledgeManager from './EnhancedErrorKnowledgeManager';
+import EnhancedErrorMarketDataManager from './EnhancedErrorMarketDataManager';
 import { useRealExternalSources } from '@/hooks/useRealExternalSources';
 import { transformSourcesForGeographic } from './sources/utils';
 
@@ -40,7 +44,7 @@ const EnhancedSourcesManager = () => {
       <SourcesHeader sources={sources} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -48,6 +52,14 @@ const EnhancedSourcesManager = () => {
           <TabsTrigger value="custom-sources" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             Sources
+          </TabsTrigger>
+          <TabsTrigger value="error-knowledge" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Error Knowledge
+          </TabsTrigger>
+          <TabsTrigger value="market-data" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Market Data
           </TabsTrigger>
           <TabsTrigger value="bulk-import" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
@@ -77,6 +89,14 @@ const EnhancedSourcesManager = () => {
 
         <TabsContent value="custom-sources">
           <CustomSourceManager />
+        </TabsContent>
+
+        <TabsContent value="error-knowledge">
+          <EnhancedErrorKnowledgeManager />
+        </TabsContent>
+
+        <TabsContent value="market-data">
+          <EnhancedErrorMarketDataManager />
         </TabsContent>
 
         <TabsContent value="bulk-import">

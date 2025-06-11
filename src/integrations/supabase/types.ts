@@ -375,6 +375,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_error_detection_logs: {
+        Row: {
+          accuracy_verified: boolean | null
+          actual_errors: Json | null
+          confidence_scores: Json | null
+          created_at: string | null
+          detected_errors: Json | null
+          id: string
+          image_hash: string
+          processing_time_ms: number | null
+          session_id: string | null
+          user_feedback: Json | null
+        }
+        Insert: {
+          accuracy_verified?: boolean | null
+          actual_errors?: Json | null
+          confidence_scores?: Json | null
+          created_at?: string | null
+          detected_errors?: Json | null
+          id?: string
+          image_hash: string
+          processing_time_ms?: number | null
+          session_id?: string | null
+          user_feedback?: Json | null
+        }
+        Update: {
+          accuracy_verified?: boolean | null
+          actual_errors?: Json | null
+          confidence_scores?: Json | null
+          created_at?: string | null
+          detected_errors?: Json | null
+          id?: string
+          image_hash?: string
+          processing_time_ms?: number | null
+          session_id?: string | null
+          user_feedback?: Json | null
+        }
+        Relationships: []
+      }
       ai_performance_analytics: {
         Row: {
           command_id: string | null
@@ -556,6 +595,48 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           usage_count?: number | null
+        }
+        Relationships: []
+      }
+      ai_training_data: {
+        Row: {
+          coin_identification: Json
+          contributed_by: string | null
+          created_at: string | null
+          error_annotations: Json | null
+          id: string
+          image_hash: string
+          image_url: string
+          training_quality_score: number | null
+          updated_at: string | null
+          validated_by: string | null
+          validation_status: string | null
+        }
+        Insert: {
+          coin_identification: Json
+          contributed_by?: string | null
+          created_at?: string | null
+          error_annotations?: Json | null
+          id?: string
+          image_hash: string
+          image_url: string
+          training_quality_score?: number | null
+          updated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string | null
+        }
+        Update: {
+          coin_identification?: Json
+          contributed_by?: string | null
+          created_at?: string | null
+          error_annotations?: Json | null
+          id?: string
+          image_hash?: string
+          image_url?: string
+          training_quality_score?: number | null
+          updated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string | null
         }
         Relationships: []
       }
@@ -1437,57 +1518,78 @@ export type Database = {
           ai_detection_markers: Json | null
           common_mistakes: string[] | null
           created_at: string
+          cross_reference_coins: string[] | null
           description: string
+          detection_difficulty: number | null
+          detection_keywords: string[] | null
           error_category: string
           error_name: string
           error_type: string
+          historical_significance: string | null
           id: string
           identification_techniques: string[] | null
+          market_premium_multiplier: number | null
           rarity_score: number | null
           reference_links: string[] | null
           severity_level: number | null
           technical_specifications: Json | null
           updated_at: string
+          visual_markers: Json | null
         }
         Insert: {
           ai_detection_markers?: Json | null
           common_mistakes?: string[] | null
           created_at?: string
+          cross_reference_coins?: string[] | null
           description: string
+          detection_difficulty?: number | null
+          detection_keywords?: string[] | null
           error_category: string
           error_name: string
           error_type: string
+          historical_significance?: string | null
           id?: string
           identification_techniques?: string[] | null
+          market_premium_multiplier?: number | null
           rarity_score?: number | null
           reference_links?: string[] | null
           severity_level?: number | null
           technical_specifications?: Json | null
           updated_at?: string
+          visual_markers?: Json | null
         }
         Update: {
           ai_detection_markers?: Json | null
           common_mistakes?: string[] | null
           created_at?: string
+          cross_reference_coins?: string[] | null
           description?: string
+          detection_difficulty?: number | null
+          detection_keywords?: string[] | null
           error_category?: string
           error_name?: string
           error_type?: string
+          historical_significance?: string | null
           id?: string
           identification_techniques?: string[] | null
+          market_premium_multiplier?: number | null
           rarity_score?: number | null
           reference_links?: string[] | null
           severity_level?: number | null
           technical_specifications?: Json | null
           updated_at?: string
+          visual_markers?: Json | null
         }
         Relationships: []
       }
       error_coins_market_data: {
         Row: {
+          auction_vs_retail_ratio: number | null
+          condition_adjustments: Json | null
           created_at: string
           data_confidence: number | null
           grade: string
+          grade_impact_factor: number | null
           id: string
           knowledge_base_id: string | null
           last_sale_price: number | null
@@ -1496,14 +1598,18 @@ export type Database = {
           market_value_high: number | null
           market_value_low: number | null
           premium_percentage: number | null
+          regional_pricing: Json | null
           source_references: string[] | null
           static_coin_id: string | null
           updated_at: string
         }
         Insert: {
+          auction_vs_retail_ratio?: number | null
+          condition_adjustments?: Json | null
           created_at?: string
           data_confidence?: number | null
           grade: string
+          grade_impact_factor?: number | null
           id?: string
           knowledge_base_id?: string | null
           last_sale_price?: number | null
@@ -1512,14 +1618,18 @@ export type Database = {
           market_value_high?: number | null
           market_value_low?: number | null
           premium_percentage?: number | null
+          regional_pricing?: Json | null
           source_references?: string[] | null
           static_coin_id?: string | null
           updated_at?: string
         }
         Update: {
+          auction_vs_retail_ratio?: number | null
+          condition_adjustments?: Json | null
           created_at?: string
           data_confidence?: number | null
           grade?: string
+          grade_impact_factor?: number | null
           id?: string
           knowledge_base_id?: string | null
           last_sale_price?: number | null
@@ -1528,6 +1638,7 @@ export type Database = {
           market_value_high?: number | null
           market_value_low?: number | null
           premium_percentage?: number | null
+          regional_pricing?: Json | null
           source_references?: string[] | null
           static_coin_id?: string | null
           updated_at?: string
@@ -1637,9 +1748,11 @@ export type Database = {
           base_url: string
           category_id: string | null
           created_at: string
+          error_categories: string[] | null
           id: string
           is_active: boolean | null
           market_focus: string[] | null
+          pricing_methodology: string | null
           priority_score: number | null
           rate_limit_per_hour: number | null
           region_id: string | null
@@ -1648,16 +1761,20 @@ export type Database = {
           scraping_enabled: boolean | null
           source_name: string
           source_type: string
+          specializes_in_errors: boolean | null
           supported_currencies: string[] | null
           template_id: string | null
+          update_frequency_hours: number | null
         }
         Insert: {
           base_url: string
           category_id?: string | null
           created_at?: string
+          error_categories?: string[] | null
           id?: string
           is_active?: boolean | null
           market_focus?: string[] | null
+          pricing_methodology?: string | null
           priority_score?: number | null
           rate_limit_per_hour?: number | null
           region_id?: string | null
@@ -1666,16 +1783,20 @@ export type Database = {
           scraping_enabled?: boolean | null
           source_name: string
           source_type: string
+          specializes_in_errors?: boolean | null
           supported_currencies?: string[] | null
           template_id?: string | null
+          update_frequency_hours?: number | null
         }
         Update: {
           base_url?: string
           category_id?: string | null
           created_at?: string
+          error_categories?: string[] | null
           id?: string
           is_active?: boolean | null
           market_focus?: string[] | null
+          pricing_methodology?: string | null
           priority_score?: number | null
           rate_limit_per_hour?: number | null
           region_id?: string | null
@@ -1684,8 +1805,10 @@ export type Database = {
           scraping_enabled?: boolean | null
           source_name?: string
           source_type?: string
+          specializes_in_errors?: boolean | null
           supported_currencies?: string[] | null
           template_id?: string | null
+          update_frequency_hours?: number | null
         }
         Relationships: [
           {
@@ -2210,6 +2333,48 @@ export type Database = {
           load_time_ms?: number
           page_url?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      photo_quality_assessments: {
+        Row: {
+          angle_score: number | null
+          background_score: number | null
+          created_at: string | null
+          focus_score: number | null
+          id: string
+          ideal_for_error_detection: boolean | null
+          image_hash: string
+          lighting_score: number | null
+          quality_score: number | null
+          recommendations: string[] | null
+          resolution_score: number | null
+        }
+        Insert: {
+          angle_score?: number | null
+          background_score?: number | null
+          created_at?: string | null
+          focus_score?: number | null
+          id?: string
+          ideal_for_error_detection?: boolean | null
+          image_hash: string
+          lighting_score?: number | null
+          quality_score?: number | null
+          recommendations?: string[] | null
+          resolution_score?: number | null
+        }
+        Update: {
+          angle_score?: number | null
+          background_score?: number | null
+          created_at?: string | null
+          focus_score?: number | null
+          id?: string
+          ideal_for_error_detection?: boolean | null
+          image_hash?: string
+          lighting_score?: number | null
+          quality_score?: number | null
+          recommendations?: string[] | null
+          resolution_score?: number | null
         }
         Relationships: []
       }
@@ -3459,6 +3624,14 @@ export type Database = {
           resolved: boolean
         }[]
       }
+      calculate_error_coin_value: {
+        Args: {
+          p_error_id: string
+          p_grade: string
+          p_base_coin_value?: number
+        }
+        Returns: Json
+      }
       configure_enhanced_auth_security: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3499,6 +3672,14 @@ export type Database = {
           incident_data?: Json
         }
         Returns: string
+      }
+      detect_coin_errors: {
+        Args: {
+          p_image_hash: string
+          p_base_coin_info: Json
+          p_detection_config?: Json
+        }
+        Returns: Json
       }
       enable_password_protection: {
         Args: Record<PropertyKey, never>
