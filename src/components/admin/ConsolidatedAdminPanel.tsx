@@ -123,7 +123,7 @@ const ConsolidatedAdminPanel: React.FC = () => {
   const tabContent = (
     <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
       <div className="overflow-x-auto">
-        <TabsList className="grid w-full grid-cols-13 min-w-max">
+        <TabsList className="grid w-full grid-cols-13 min-w-max gap-1">
           <AdminTooltip content="System monitoring and health" shortcut="Ctrl+1">
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
