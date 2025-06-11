@@ -1,31 +1,28 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Clock, CheckCircle, XCircle, AlertCircle, Globe } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
-import { RefreshCw, Clock, CheckCircle, XCircle, AlertCircle, Play, User, Calendar } from 'lucide-react';
 
 interface ExecutionHistoryModalProps {
   commandId: string | null;
-  commandName: string;
+  commandName?: string;
   open: boolean;
   onClose: () => void;
 }
 
 interface ExecutionRecord {
   id: string;
-  command_id: string;
   execution_status: string;
-  execution_time_ms: number;
-  error_message: string | null;
-  created_at: string;
   input_data: any;
   output_data: any;
-  user_id: string | null;
-  completed_at?: string | null;
+  execution_time_ms: number | null;
+  error_message: string | null;
+  created_at: string;
+  user_id: string;
 }
 
 const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
@@ -34,15 +31,12 @@ const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
   open,
   onClose
 }) => {
-  const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchExecutions = async () => {
-    if (!commandId) return;
-    
-    setLoading(true);
-    try {
-      console.log('📜 Fetching execution history for command:', commandId);
+  const { data: executions = [], isLoading } = useQuery({
+    queryKey: ['ai-command-executions', commandId],
+    queryFn: async () => {
+      if (!commandId) return [];
+      
+      console.log('🔍 Fetching execution history for command:', commandId);
       
       const { data, error } = await supabase
         .from('ai_command_executions')
@@ -50,190 +44,129 @@ const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
         .eq('command_id', commandId)
         .order('created_at', { ascending: false })
         .limit(50);
-
+      
       if (error) {
         console.error('❌ Error fetching executions:', error);
         throw error;
       }
       
-      console.log('✅ Execution history fetched:', data?.length || 0, 'records');
-      // Map the data to ensure all required fields exist and handle optional completed_at
-      const mappedData = (data || []).map(item => ({
-        id: item.id,
-        command_id: item.command_id,
-        execution_status: item.execution_status,
-        execution_time_ms: item.execution_time_ms,
-        error_message: item.error_message,
-        created_at: item.created_at,
-        input_data: item.input_data,
-        output_data: item.output_data,
-        user_id: item.user_id,
-        completed_at: null // Set to null since it's not in the schema
-      }));
-      setExecutions(mappedData);
-    } catch (error) {
-      console.error('❌ Failed to fetch execution history:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open && commandId) {
-      fetchExecutions();
-    }
-  }, [open, commandId]);
+      console.log('✅ Executions fetched:', data?.length || 0);
+      return (data as ExecutionRecord[]) || [];
+    },
+    enabled: !!commandId && open,
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'failed':
-        return <XCircle className="w-4 h-4 text-red-600" />;
+        return <XCircle className="w-4 h-4 text-red-500" />;
       case 'running':
-        return <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />;
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-600" />;
+        return <AlertCircle className="w-4 h-4 text-yellow-500" />;
       default:
-        return <AlertCircle className="w-4 h-4 text-gray-600" />;
+        return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-      case 'running': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      case 'running':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const formatExecutionTime = (timeMs: number) => {
-    if (timeMs < 1000) return `${timeMs}ms`;
-    if (timeMs < 60000) return `${(timeMs / 1000).toFixed(1)}s`;
-    return `${(timeMs / 60000).toFixed(1)}m`;
+  const formatDuration = (ms: number | null) => {
+    if (!ms) return 'N/A';
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(2)}s`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[85vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Play className="w-5 h-5" />
-              Execution History: {commandName}
-              {executions.length > 0 && (
-                <Badge variant="secondary">{executions.length} executions</Badge>
-              )}
-            </DialogTitle>
-            <Button variant="outline" size="sm" onClick={fetchExecutions} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            Execution History: {commandName || 'AI Command'}
+          </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="h-[60vh] pr-4">
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="flex items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
-                <span className="text-muted-foreground">Loading execution history...</span>
-              </div>
+        <ScrollArea className="max-h-[70vh] pr-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2">Loading execution history...</span>
             </div>
           ) : executions.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No execution history found</p>
-              <p className="text-sm">This command hasn't been executed yet.</p>
+              <p>No execution history found for this command.</p>
+              <p className="text-sm">Execute the command to see its history here.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {executions.map((execution) => (
-                <div key={execution.id} className="border rounded-lg p-4 space-y-4 hover:bg-muted/30 transition-colors">
-                  {/* Header with status and timing */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div
+                  key={execution.id}
+                  className="border rounded-lg p-4 bg-card hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
                       {getStatusIcon(execution.execution_status)}
                       <Badge className={getStatusColor(execution.execution_status)}>
                         {execution.execution_status.toUpperCase()}
                       </Badge>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {formatDistanceToNow(new Date(execution.created_at), { addSuffix: true })}
-                      </div>
-                      {execution.user_id && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <User className="w-3 h-3" />
-                          <span className="font-mono text-xs">{execution.user_id.slice(0, 8)}...</span>
-                        </div>
-                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {formatDate(execution.created_at)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      {execution.execution_time_ms > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatExecutionTime(execution.execution_time_ms)}
-                        </div>
-                      )}
+                    <div className="text-sm text-muted-foreground">
+                      Duration: {formatDuration(execution.execution_time_ms)}
                     </div>
                   </div>
 
-                  {/* Error message */}
-                  {execution.error_message && (
-                    <div className="bg-red-50 border border-red-200 rounded p-3">
-                      <div className="flex items-center gap-2 font-medium text-red-800 mb-1">
-                        <XCircle className="w-4 h-4" />
-                        Error Details:
+                  {execution.input_data && Object.keys(execution.input_data).length > 0 && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        Input Data:
+                      </h4>
+                      <div className="bg-muted p-2 rounded text-xs font-mono max-h-20 overflow-auto">
+                        {JSON.stringify(execution.input_data, null, 2)}
                       </div>
-                      <div className="text-sm text-red-700 font-mono whitespace-pre-wrap">
+                    </div>
+                  )}
+
+                  {execution.output_data && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium mb-1">Output:</h4>
+                      <div className="bg-muted p-2 rounded text-xs font-mono max-h-32 overflow-auto">
+                        {typeof execution.output_data === 'string'
+                          ? execution.output_data
+                          : JSON.stringify(execution.output_data, null, 2)}
+                      </div>
+                    </div>
+                  )}
+
+                  {execution.error_message && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium mb-1 text-red-600">Error:</h4>
+                      <div className="bg-red-50 border border-red-200 p-2 rounded text-xs text-red-800">
                         {execution.error_message}
                       </div>
                     </div>
                   )}
-
-                  {/* Output data */}
-                  {execution.output_data && Object.keys(execution.output_data).length > 0 && (
-                    <div className="bg-green-50 border border-green-200 rounded p-3">
-                      <div className="flex items-center gap-2 font-medium text-green-800 mb-2">
-                        <CheckCircle className="w-4 h-4" />
-                        Execution Output:
-                      </div>
-                      <pre className="text-sm text-green-700 font-mono overflow-x-auto whitespace-pre-wrap bg-white p-2 rounded border">
-                        {JSON.stringify(execution.output_data, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-
-                  {/* Input data (collapsible) */}
-                  {execution.input_data && Object.keys(execution.input_data).length > 0 && (
-                    <details className="bg-blue-50 border border-blue-200 rounded p-3">
-                      <summary className="font-medium text-blue-800 cursor-pointer hover:text-blue-900">
-                        📥 Input Data (click to expand)
-                      </summary>
-                      <pre className="text-sm text-blue-700 font-mono mt-2 overflow-x-auto whitespace-pre-wrap bg-white p-2 rounded border">
-                        {JSON.stringify(execution.input_data, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-
-                  {/* Execution timeline */}
-                  <div className="text-xs text-muted-foreground pt-2 border-t bg-muted/20 p-2 rounded">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div>
-                        <strong>Started:</strong> {new Date(execution.created_at).toLocaleString()}
-                      </div>
-                      {execution.completed_at && (
-                        <div>
-                          <strong>Completed:</strong> {new Date(execution.completed_at).toLocaleString()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-1">
-                      <strong>Execution ID:</strong> <span className="font-mono">{execution.id}</span>
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>

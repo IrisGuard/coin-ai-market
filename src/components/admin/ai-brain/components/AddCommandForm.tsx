@@ -4,19 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Brain, RefreshCw, Globe } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, RefreshCw, Globe, Sparkles } from 'lucide-react';
 import { NewCommandForm } from '../types';
 import { toast } from '@/hooks/use-toast';
 
 interface AddCommandFormProps {
-  onCreateCommand: (command: NewCommandForm) => void;
-  isCreating: boolean;
+  onSubmit: (command: NewCommandForm) => void;
+  isSubmitting: boolean;
 }
 
-const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCreating }) => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newCommand, setNewCommand] = useState<NewCommandForm>({
+const AddCommandForm: React.FC<AddCommandFormProps> = ({ onSubmit, isSubmitting }) => {
+  const [formData, setFormData] = useState<NewCommandForm>({
     name: '',
     description: '',
     code: '',
@@ -27,8 +26,10 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
     site_url: ''
   });
 
-  const handleCreateCommand = () => {
-    if (!newCommand.name?.trim()) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
       toast({
         title: "Validation Error",
         description: "Command name is required.",
@@ -37,7 +38,7 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
       return;
     }
 
-    if (!newCommand.code?.trim()) {
+    if (!formData.code.trim()) {
       toast({
         title: "Validation Error",
         description: "Command code/instructions are required.",
@@ -45,26 +46,13 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
       });
       return;
     }
-    
-    console.log('➕ Creating new command with data:', newCommand);
-    onCreateCommand(newCommand);
-    
-    // Reset form
-    setNewCommand({
-      name: '',
-      description: '',
-      code: '',
-      category: 'general',
-      command_type: 'manual',
-      priority: 1,
-      execution_timeout: 30000,
-      site_url: ''
-    });
-    setShowAddForm(false);
+
+    console.log('➕ Submitting new AI command:', formData);
+    onSubmit(formData);
   };
 
-  const resetForm = () => {
-    setNewCommand({
+  const handleReset = () => {
+    setFormData({
       name: '',
       description: '',
       code: '',
@@ -77,37 +65,31 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
   };
 
   return (
-    <Dialog open={showAddForm} onOpenChange={(open) => {
-      setShowAddForm(open);
-      if (!open) resetForm();
-    }}>
-      <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Command
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-green-600" />
-            Create New AI Command
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-blue-600" />
+          Add New AI Command
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium block mb-1">Command Name *</label>
               <Input
-                value={newCommand.name}
-                onChange={(e) => setNewCommand({...newCommand, name: e.target.value})}
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
                 placeholder="e.g., Analyze Coin Image"
                 className="w-full"
               />
             </div>
             <div>
               <label className="text-sm font-medium block mb-1">Category</label>
-              <Select value={newCommand.category} onValueChange={(value) => setNewCommand({...newCommand, category: value})}>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => setFormData({...formData, category: value})}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -129,8 +111,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
           <div>
             <label className="text-sm font-medium block mb-1">Description</label>
             <Input
-              value={newCommand.description}
-              onChange={(e) => setNewCommand({...newCommand, description: e.target.value})}
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
               placeholder="Brief description of what this command does"
               className="w-full"
             />
@@ -142,8 +124,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
               Site URL (Optional - for website parsing)
             </label>
             <Input
-              value={newCommand.site_url}
-              onChange={(e) => setNewCommand({...newCommand, site_url: e.target.value})}
+              value={formData.site_url}
+              onChange={(e) => setFormData({...formData, site_url: e.target.value})}
               placeholder="https://example.com/coin-page"
               className="w-full"
             />
@@ -155,27 +137,24 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
           <div>
             <label className="text-sm font-medium block mb-1">Command Code/Instructions *</label>
             <Textarea
-              value={newCommand.code}
-              onChange={(e) => setNewCommand({...newCommand, code: e.target.value})}
-              placeholder={newCommand.site_url ? 
-                "Instructions for analyzing the website content:\n\n- Look for coin metal composition\n- Identify any errors or defects\n- Extract grade/condition information\n- Find year and mint mark\n- Determine if coin is gold/silver\n- Focus on authenticity markers" :
-                "Enter the command logic, instructions, or code that the AI should execute..."
+              value={formData.code}
+              onChange={(e) => setFormData({...formData, code: e.target.value})}
+              placeholder={formData.site_url ? 
+                "Instructions for analyzing the website content..." :
+                "Enter the command logic, instructions, or code..."
               }
-              rows={10}
+              rows={8}
               className="w-full font-mono text-sm"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              {newCommand.site_url ? 
-                "Describe what specific information to extract from the website and how to analyze it." :
-                "This can be JavaScript code, AI prompts, API calls, or any instructions for the AI brain."
-              }
-            </p>
           </div>
           
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium block mb-1">Command Type</label>
-              <Select value={newCommand.command_type} onValueChange={(value) => setNewCommand({...newCommand, command_type: value})}>
+              <Select 
+                value={formData.command_type} 
+                onValueChange={(value) => setFormData({...formData, command_type: value})}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -193,8 +172,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
                 type="number"
                 min={1}
                 max={10}
-                value={newCommand.priority}
-                onChange={(e) => setNewCommand({...newCommand, priority: parseInt(e.target.value) || 1})}
+                value={formData.priority}
+                onChange={(e) => setFormData({...formData, priority: parseInt(e.target.value) || 1})}
                 className="w-full"
               />
             </div>
@@ -205,8 +184,8 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
                 min={1000}
                 max={300000}
                 step={1000}
-                value={newCommand.execution_timeout}
-                onChange={(e) => setNewCommand({...newCommand, execution_timeout: parseInt(e.target.value) || 30000})}
+                value={formData.execution_timeout}
+                onChange={(e) => setFormData({...formData, execution_timeout: parseInt(e.target.value) || 30000})}
                 className="w-full"
               />
             </div>
@@ -214,18 +193,19 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
           
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button 
+              type="button" 
               variant="outline" 
-              onClick={() => setShowAddForm(false)}
-              disabled={isCreating}
+              onClick={handleReset}
+              disabled={isSubmitting}
             >
-              Cancel
+              Reset
             </Button>
             <Button 
-              onClick={handleCreateCommand} 
-              disabled={isCreating || !newCommand.name?.trim() || !newCommand.code?.trim()}
-              className="bg-green-600 hover:bg-green-700"
+              type="submit" 
+              disabled={isSubmitting || !formData.name.trim() || !formData.code.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              {isCreating ? (
+              {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                   Creating...
@@ -233,14 +213,14 @@ const AddCommandForm: React.FC<AddCommandFormProps> = ({ onCreateCommand, isCrea
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Command
+                  Add Command
                 </>
               )}
             </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

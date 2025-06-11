@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -220,12 +221,16 @@ export const useAICommands = () => {
     mutationFn: async ({ commandId, inputData = {} }: { commandId: string; inputData?: any }) => {
       console.log('▶️ Executing AI command:', commandId, inputData);
       
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       // Create execution record first
       const { data: executionRecord, error: execError } = await supabase
         .from('ai_command_executions')
         .insert([{
           command_id: commandId,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           input_data: inputData,
           execution_status: 'running'
         }])
@@ -236,6 +241,8 @@ export const useAICommands = () => {
         console.error('❌ Failed to create execution record:', execError);
         throw execError;
       }
+
+      console.log('✅ Execution record created:', executionRecord.id);
 
       // Get command details with site_url
       const { data: command, error: cmdError } = await supabase
@@ -256,14 +263,29 @@ export const useAICommands = () => {
       try {
         // Check if command has site_url for parsing
         if (command.site_url) {
-          console.log('🔗 Command has site URL, calling parsing function...');
-          result = await supabase.functions.invoke('parse-website', {
+          console.log('🔗 Command has site URL, calling parsing function:', command.site_url);
+          
+          const { data: parseResult, error: parseError } = await supabase.functions.invoke('parse-website', {
             body: { 
               url: command.site_url, 
               instructions: command.code,
               commandId: commandId 
             }
           });
+
+          if (parseError) {
+            console.error('❌ Parse website function error:', parseError);
+            throw parseError;
+          }
+
+          result = {
+            data: parseResult || {
+              status: 'completed',
+              message: `Command "${command.name}" executed with website parsing`,
+              url: command.site_url,
+              timestamp: new Date().toISOString()
+            }
+          };
         } else {
           // Regular command execution
           console.log('⚡ Executing regular command...');
@@ -271,7 +293,7 @@ export const useAICommands = () => {
             data: {
               status: 'completed',
               message: `Command "${command.name}" executed successfully`,
-              output: `Executed: ${command.code}`,
+              output: `Executed: ${command.code.substring(0, 200)}${command.code.length > 200 ? '...' : ''}`,
               timestamp: new Date().toISOString()
             }
           };
@@ -280,7 +302,7 @@ export const useAICommands = () => {
         const executionTime = Date.now() - startTime;
 
         // Update execution record with success
-        await supabase
+        const { error: updateError } = await supabase
           .from('ai_command_executions')
           .update({
             execution_status: 'completed',
@@ -289,21 +311,34 @@ export const useAICommands = () => {
           })
           .eq('id', executionRecord.id);
 
+        if (updateError) {
+          console.error('❌ Failed to update execution record:', updateError);
+        }
+
         console.log('✅ Command executed successfully:', result.data);
+        
+        // Invalidate execution history queries
+        queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
+        
         return result.data;
         
-      } catch (error) {
+      } catch (error: any) {
         const executionTime = Date.now() - startTime;
+        
+        console.error('❌ Command execution failed:', error);
         
         // Update execution record with error
         await supabase
           .from('ai_command_executions')
           .update({
             execution_status: 'failed',
-            error_message: error.message,
+            error_message: error.message || 'Unknown execution error',
             execution_time_ms: executionTime
           })
           .eq('id', executionRecord.id);
+
+        // Invalidate execution history queries
+        queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
 
         throw error;
       }
