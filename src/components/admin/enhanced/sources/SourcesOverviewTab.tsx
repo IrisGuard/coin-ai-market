@@ -30,8 +30,8 @@ const SourcesOverviewTab: React.FC<SourcesOverviewTabProps> = ({ sources }) => {
   const avgReliability = sources?.length ? 
     Math.round((sources.reduce((sum, s) => sum + (s.reliability_score || 0), 0) / sources.length) * 100) : 0;
 
-  // Group sources by type
-  const sourcesByType = sources?.reduce((acc, source) => {
+  // Group sources by type with proper typing
+  const sourcesByType = sources?.reduce((acc: Record<string, any[]>, source) => {
     const type = source.source_type || 'unknown';
     if (!acc[type]) acc[type] = [];
     acc[type].push(source);
@@ -167,40 +167,45 @@ const SourcesOverviewTab: React.FC<SourcesOverviewTabProps> = ({ sources }) => {
 
       {/* Sources by Type */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Object.entries(sourcesByType).map(([type, typeSources]) => (
-          <Card key={type}>
-            <CardHeader>
-              <CardTitle className="text-sm capitalize flex items-center justify-between">
-                {type.replace('_', ' ')}
-                <Badge variant="outline">{typeSources.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {typeSources.slice(0, 3).map((source, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="truncate">{source.source_name}</span>
-                    <div className="flex items-center gap-1">
-                      {source.is_active ? (
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <AlertCircle className="h-3 w-3 text-red-600" />
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        {Math.round((source.reliability_score || 0) * 100)}%
-                      </span>
+        {Object.entries(sourcesByType).map(([type, typeSources]) => {
+          // Ensure typeSources is treated as an array
+          const sourcesList = Array.isArray(typeSources) ? typeSources : [];
+          
+          return (
+            <Card key={type}>
+              <CardHeader>
+                <CardTitle className="text-sm capitalize flex items-center justify-between">
+                  {type.replace('_', ' ')}
+                  <Badge variant="outline">{sourcesList.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {sourcesList.slice(0, 3).map((source, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="truncate">{source.source_name}</span>
+                      <div className="flex items-center gap-1">
+                        {source.is_active ? (
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3 text-red-600" />
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {Math.round((source.reliability_score || 0) * 100)}%
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {typeSources.length > 3 && (
-                  <div className="text-xs text-muted-foreground text-center">
-                    +{typeSources.length - 3} more...
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  ))}
+                  {sourcesList.length > 3 && (
+                    <div className="text-xs text-muted-foreground text-center">
+                      +{sourcesList.length - 3} more...
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Recent Activity */}
