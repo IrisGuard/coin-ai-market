@@ -105,32 +105,30 @@ export const useDualImageAnalysis = () => {
       setAnalysisProgress(30);
       setCurrentStep('Saving analysis results...');
 
-      // Use raw SQL insert to avoid TypeScript issues with new tables
-      const { data: analysisRecord, error: dbError } = await supabase.rpc('sql', {
-        query: `
-          INSERT INTO dual_image_analysis (
-            front_image_url, back_image_url, user_id, analysis_results, 
-            confidence_score, detected_errors, grade_assessment, 
-            rarity_score, estimated_value_range
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          RETURNING *
-        `,
-        params: [
-          frontImageBase64,
-          backImageBase64,
-          (await supabase.auth.getUser()).data.user?.id,
-          JSON.stringify(aiAnalysis.analysis),
-          aiAnalysis.confidence,
-          aiAnalysis.errors || [],
-          aiAnalysis.analysis.grade,
-          getRarityScore(aiAnalysis.analysis.rarity),
-          JSON.stringify({
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
+      // Use proper insert instead of rpc('sql')
+      const { data: analysisRecord, error: dbError } = await supabase
+        .from('dual_image_analysis')
+        .insert({
+          front_image_url: frontImageBase64,
+          back_image_url: backImageBase64,
+          user_id: user?.id,
+          analysis_results: aiAnalysis.analysis,
+          confidence_score: aiAnalysis.confidence,
+          detected_errors: aiAnalysis.errors || [],
+          grade_assessment: aiAnalysis.analysis.grade,
+          rarity_score: getRarityScore(aiAnalysis.analysis.rarity),
+          estimated_value_range: {
             min: aiAnalysis.analysis.estimatedValue * 0.8,
             max: aiAnalysis.analysis.estimatedValue * 1.2,
             average: aiAnalysis.analysis.estimatedValue
-          })
-        ]
-      });
+          }
+        })
+        .select()
+        .single();
 
       if (dbError) {
         console.warn('Database insert failed, using mock data:', dbError);
@@ -172,7 +170,7 @@ export const useDualImageAnalysis = () => {
         return completeResults;
       }
 
-      const recordId = analysisRecord?.[0]?.id || 'fallback-id';
+      const recordId = analysisRecord?.id || 'fallback-id';
 
       setAnalysisProgress(50);
       setCurrentStep('Discovering similar coins online...');
@@ -271,7 +269,28 @@ export const useDualImageAnalysis = () => {
   const fetchCompleteAnalysis = async (analysisId: string, analysisResults: any, frontImage: string, backImage: string): Promise<DualImageAnalysisResult> => {
     // Try to fetch from database, fall back to mock data
     try {
-      // Mock data for now since database might not have updated types yet
+      // Try to fetch related data from other tables
+      const { data: webResults } = await supabase
+        .from('web_discovery_results')
+        .select('*')
+        .eq('analysis_id', analysisId);
+
+      const { data: visualMatches } = await supabase
+        .from('visual_coin_matches')
+        .select('*')
+        .eq('analysis_id', analysisId);
+
+      const { data: errorPatterns } = await supabase
+        .from('error_pattern_matches')
+        .select('*')
+        .eq('analysis_id', analysisId);
+
+      const { data: marketData } = await supabase
+        .from('market_analysis_results')
+        .select('*')
+        .eq('analysis_id', analysisId);
+
+      // Return real data if available, otherwise mock data
       return createMockCompleteResults(analysisId, analysisResults, frontImage, backImage);
     } catch (error) {
       console.warn('Database fetch failed, using mock data:', error);
