@@ -36,6 +36,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   // Check if user has admin role
   const checkAdminStatus = async () => {
     if (!user) {
+      console.log('🔍 No user found, setting isAdmin to false');
       setIsAdmin(false);
       setIsLoading(false);
       return;
@@ -52,7 +53,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error checking admin role:', error);
+        console.error('❌ Error checking admin role:', error);
         setIsAdmin(false);
       } else {
         const hasAdminRole = !!data;
@@ -60,13 +61,14 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAdmin(hasAdminRole);
       }
     } catch (error) {
-      console.log('User is not admin:', error);
+      console.log('❌ User is not admin:', error);
       setIsAdmin(false);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Check admin status when user changes
   useEffect(() => {
     checkAdminStatus();
   }, [user]);

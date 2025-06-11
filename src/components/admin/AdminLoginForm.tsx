@@ -16,7 +16,7 @@ interface AdminLoginFormProps {
 }
 
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { isAdmin, isAdminAuthenticated, authenticateAdmin, sessionTimeLeft } = useAdmin();
+  const { isAdmin, isAdminAuthenticated, authenticateAdmin, sessionTimeLeft, checkAdminStatus } = useAdmin();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,19 +36,27 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
         await login(email, password);
         console.log('✅ User logged in, checking admin status...');
         
-        // Check if user has admin role after login
-        // Give a moment for the context to update
+        // Check admin status immediately after login
+        await checkAdminStatus();
+        
+        // Wait a moment for state to update, then check admin role
         setTimeout(async () => {
-          const { checkAdminStatus } = useAdmin();
+          // Re-check admin status to ensure it's updated
           await checkAdminStatus();
           
+          // Now check if user has admin role from the context
           if (isAdmin) {
+            console.log('✅ User has admin role, proceeding to admin auth step');
             setStep('admin_auth');
             setPassword(''); // Clear password for admin auth step
           } else {
+            console.log('❌ User does not have admin role');
             setError('Access denied. This account does not have administrative privileges.');
           }
-        }, 500);
+          setIsAuthenticating(false);
+        }, 1000);
+        
+        return; // Don't set isAuthenticating to false here, let setTimeout handle it
       } else {
         // Second step: Admin authentication
         const success = await authenticateAdmin(password);
@@ -78,7 +86,9 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
       }
       
       setError(errorMessage);
-    } finally {
+    }
+    
+    if (step !== 'login') {
       setIsAuthenticating(false);
     }
   };
