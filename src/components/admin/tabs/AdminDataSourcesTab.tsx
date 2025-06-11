@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { useExternalSources } from '@/hooks/admin/useAdminDataSources';
 import { 
   Database, 
   Plus, 
@@ -19,83 +20,7 @@ import {
 
 const AdminDataSourcesTab = () => {
   const [showForm, setShowForm] = useState(false);
-
-  // Mock data sources
-  const mockDataSources = [
-    {
-      id: '1',
-      name: 'Heritage Auctions API',
-      url: 'https://api.ha.com',
-      type: 'auction_data',
-      is_active: true,
-      success_rate: 96.8,
-      last_used: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      total_requests: 15742,
-      priority: 1
-    },
-    {
-      id: '2',
-      name: 'PCGS Price Guide',
-      url: 'https://www.pcgs.com/prices',
-      type: 'price_data',
-      is_active: true,
-      success_rate: 94.2,
-      last_used: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      total_requests: 8934,
-      priority: 1
-    },
-    {
-      id: '3',
-      name: 'NGC Registry',
-      url: 'https://www.ngccoin.com',
-      type: 'certification_data',
-      is_active: true,
-      success_rate: 91.5,
-      last_used: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      total_requests: 6721,
-      priority: 2
-    },
-    {
-      id: '4',
-      name: 'CoinWorld Market Data',
-      url: 'https://www.coinworld.com/api',
-      type: 'market_data',
-      is_active: true,
-      success_rate: 89.7,
-      last_used: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      total_requests: 4532,
-      priority: 2
-    },
-    {
-      id: '5',
-      name: 'eBay Sold Listings',
-      url: 'https://api.ebay.com/ws/api.dll',
-      type: 'market_data',
-      is_active: true,
-      success_rate: 87.3,
-      last_used: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      total_requests: 12456,
-      priority: 3
-    },
-    {
-      id: '6',
-      name: 'Legacy Krause Data',
-      url: 'https://legacy.krause.com',
-      type: 'reference_data',
-      is_active: false,
-      success_rate: 45.2,
-      last_used: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      total_requests: 892,
-      priority: 5
-    }
-  ];
-
-  const dataSourceStats = {
-    total_sources: mockDataSources.length,
-    active_sources: mockDataSources.filter(s => s.is_active).length,
-    avg_success_rate: mockDataSources.reduce((sum, s) => sum + s.success_rate, 0) / mockDataSources.length,
-    total_requests_24h: 3421
-  };
+  const { data: dataSources, isLoading } = useExternalSources();
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -109,6 +34,7 @@ const AdminDataSourcesTab = () => {
   };
 
   const getTimeAgo = (timestamp: string) => {
+    if (!timestamp) return 'Never';
     const now = new Date();
     const time = new Date(timestamp);
     const diff = now.getTime() - time.getTime();
@@ -120,6 +46,22 @@ const AdminDataSourcesTab = () => {
     if (hours > 0) return `${hours}h ago`;
     return `${minutes}m ago`;
   };
+
+  const dataSourceStats = {
+    total_sources: dataSources?.length || 0,
+    active_sources: dataSources?.filter(s => s.is_active)?.length || 0,
+    avg_success_rate: dataSources?.length ? dataSources.reduce((sum, s) => sum + (s.reliability_score || 0), 0) / dataSources.length * 100 : 0,
+    total_requests_24h: 0
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin h-8 w-8 border-b-2 border-coin-purple mx-auto mb-4"></div>
+        <p>Loading data sources...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -143,7 +85,6 @@ const AdminDataSourcesTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dataSourceStats.total_sources}</div>
-            <p className="text-xs text-muted-foreground">configured sources</p>
           </CardContent>
         </Card>
 
@@ -154,18 +95,16 @@ const AdminDataSourcesTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dataSourceStats.active_sources}</div>
-            <p className="text-xs text-muted-foreground">currently active</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Success Rate</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dataSourceStats.avg_success_rate.toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground">average reliability</p>
           </CardContent>
         </Card>
 
@@ -175,8 +114,7 @@ const AdminDataSourcesTab = () => {
             <RefreshCw className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dataSourceStats.total_requests_24h.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">API calls</p>
+            <div className="text-2xl font-bold">{dataSourceStats.total_requests_24h}</div>
           </CardContent>
         </Card>
       </div>
@@ -184,53 +122,59 @@ const AdminDataSourcesTab = () => {
       {/* Data Sources List */}
       <Card>
         <CardHeader>
-          <CardTitle>External Data Sources</CardTitle>
+          <CardTitle>Data Sources</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockDataSources.map((source) => (
-              <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-muted rounded-lg">
-                    <Globe className="h-4 w-4" />
-                  </div>
+            {dataSources?.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No data sources configured yet
+              </div>
+            ) : (
+              dataSources?.map((source) => (
+                <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{source.name}</span>
-                      <Badge variant={source.is_active ? 'default' : 'secondary'}>
-                        {source.is_active ? 'Active' : 'Inactive'}
+                    <div className="font-medium">{source.source_name}</div>
+                    <div className="text-sm text-muted-foreground">{source.base_url}</div>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant={source.is_active ? "default" : "secondary"}>
+                        {source.is_active ? "Active" : "Inactive"}
                       </Badge>
-                      <Badge className={getTypeColor(source.type)}>
-                        {source.type.replace('_', ' ')}
+                      <Badge className={getTypeColor(source.source_type)}>
+                        {source.source_type}
                       </Badge>
                       <Badge variant="outline">
-                        Priority {source.priority}
+                        Priority: {source.priority_score || 50}
+                      </Badge>
+                      <Badge variant="outline">
+                        Rate: {source.rate_limit_per_hour || 60}/hr
+                      </Badge>
+                      <Badge variant="outline">
+                        Reliability: {Math.round((source.reliability_score || 0.5) * 100)}%
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{source.url}</p>
-                    <div className="text-xs text-muted-foreground mt-1 flex gap-4">
-                      <span>Success rate: {source.success_rate}%</span>
-                      <span>Last used: {getTimeAgo(source.last_used)}</span>
-                      <span>Total requests: {source.total_requests.toLocaleString()}</span>
-                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline">
+                      <Shield className="h-4 w-4" />
+                      Test
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Play className="h-4 w-4" />
+                      Run
+                    </Button>
+                    <Button size="sm" variant="destructive">
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Play className="h-4 w-4" />
-                    Test
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-red-600">
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
