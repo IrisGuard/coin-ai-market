@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,31 +16,53 @@ const AdminTransactionsTab = () => {
 
   const queryClient = useQueryClient();
 
-  // Payment Transactions Query
+  // Payment Transactions Query with proper joins
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['admin-payment-transactions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get transactions
+      const { data: transactionData, error: transactionError } = await supabase
         .from('payment_transactions')
-        .select(`
-          *,
-          profiles (
-            id,
-            name,
-            email,
-            verified_dealer
-          ),
-          coins (
-            id,
-            name,
-            image,
-            price
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (transactionError) throw transactionError;
+      
+      // Then get profiles for each transaction
+      const userIds = [...new Set(transactionData?.map(t => t.user_id).filter(Boolean))];
+      const coinIds = [...new Set(transactionData?.map(t => t.coin_id).filter(Boolean))];
+      
+      let profilesData = [];
+      let coinsData = [];
+      
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, email, verified_dealer')
+          .in('id', userIds);
+        
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+      }
+      
+      if (coinIds.length > 0) {
+        const { data: coins, error: coinsError } = await supabase
+          .from('coins')
+          .select('id, name, image, price')
+          .in('id', coinIds);
+        
+        if (coinsError) throw coinsError;
+        coinsData = coins || [];
+      }
+      
+      // Combine the data
+      const enrichedTransactions = transactionData?.map(transaction => ({
+        ...transaction,
+        profiles: profilesData.find(p => p.id === transaction.user_id) || null,
+        coins: coinsData.find(c => c.id === transaction.coin_id) || null
+      }));
+      
+      return enrichedTransactions || [];
     }
   });
 
