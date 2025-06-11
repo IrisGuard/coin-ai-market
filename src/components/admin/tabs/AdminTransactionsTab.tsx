@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,13 +24,13 @@ const AdminTransactionsTab = () => {
         .from('payment_transactions')
         .select(`
           *,
-          profiles:user_id (
+          profiles!payment_transactions_user_id_fkey (
             id,
             name,
             email,
             verified_dealer
           ),
-          coins:coin_id (
+          coins!payment_transactions_coin_id_fkey (
             id,
             name,
             image,
