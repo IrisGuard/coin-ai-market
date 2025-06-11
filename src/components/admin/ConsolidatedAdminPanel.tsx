@@ -17,20 +17,56 @@ import AdminNotificationsTab from './tabs/AdminNotificationsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import AdminKeyboardHandler from './AdminKeyboardHandler';
-import SecureAdminWrapper from './SecureAdminWrapper';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 const ConsolidatedAdminPanel = () => {
-  const { isAdminAuthenticated } = useAdmin();
+  const { isAdmin, isAdminAuthenticated, isLoading } = useAdmin();
   const [searchTerm, setSearchTerm] = useState('');
 
-  if (!isAdminAuthenticated) {
+  // Show loading state while checking admin status
+  if (isLoading) {
     return (
-      <SecureAdminWrapper>
-        <div />
-      </SecureAdminWrapper>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Validating admin access...</p>
+        </div>
+      </div>
     );
   }
 
+  // Check if user has admin role first
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Access Denied</strong>
+            <p className="mt-1">Administrative privileges required to access this content.</p>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Check if admin is authenticated with admin password
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Admin Authentication Required</strong>
+            <p className="mt-1">Please use Ctrl+Alt+A to access the admin panel.</p>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Both checks passed - render the full admin panel
   return (
     <div className="min-h-screen bg-background">
       <AdminKeyboardHandler />
