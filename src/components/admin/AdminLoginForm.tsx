@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +16,7 @@ interface AdminLoginFormProps {
 }
 
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { isAdminAuthenticated, authenticateAdmin, sessionTimeLeft } = useAdmin();
+  const { isAdminAuthenticated, authenticateAdmin, sessionTimeLeft, forceAdminStatusUpdate } = useAdmin();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,7 +74,11 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
         const hasAdminRole = await checkAdminRoleDirectly(authData.user.id);
         
         if (hasAdminRole) {
-          console.log('✅ User has admin role, proceeding to admin auth step');
+          console.log('✅ User has admin role, updating context and proceeding...');
+          
+          // Force update the AdminContext with the new admin status
+          await forceAdminStatusUpdate(authData.user.id);
+          
           setStep('admin_auth');
           setPassword(''); // Clear password for admin auth step
         } else {

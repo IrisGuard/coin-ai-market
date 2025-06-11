@@ -12,6 +12,7 @@ interface AdminContextType {
   sessionTimeLeft: number;
   checkAdminStatus: () => Promise<void>;
   updateAdminProfile: (data: { fullName: string; email: string }) => Promise<void>;
+  forceAdminStatusUpdate: (userId: string) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -65,6 +66,32 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAdmin(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Force update admin status for a specific user (used by AdminLoginForm)
+  const forceAdminStatusUpdate = async (userId: string) => {
+    try {
+      console.log('🔄 Force updating admin status for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ Error in force admin status update:', error);
+        setIsAdmin(false);
+      } else {
+        const hasAdminRole = !!data;
+        console.log('✅ Force admin status update result:', hasAdminRole);
+        setIsAdmin(hasAdminRole);
+      }
+    } catch (error) {
+      console.error('❌ Error in force admin status update:', error);
+      setIsAdmin(false);
     }
   };
 
@@ -178,7 +205,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     logoutAdmin,
     sessionTimeLeft,
     checkAdminStatus,
-    updateAdminProfile
+    updateAdminProfile,
+    forceAdminStatusUpdate
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
