@@ -42,7 +42,7 @@ const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
     try {
       const { data, error } = await supabase
         .from('ai_command_executions')
-        .select('*')
+        .select('id, execution_status, execution_time_ms, error_message, created_at, completed_at, input_data, output_data')
         .eq('command_id', commandId)
         .order('created_at', { ascending: false })
         .limit(50);
