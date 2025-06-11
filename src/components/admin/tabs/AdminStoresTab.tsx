@@ -14,9 +14,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+interface UpdateStoreParams {
+  storeId: string;
+  updates: Record<string, any>;
+}
+
 const AdminStoresTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStore, setSelectedStore] = useState(null);
+  const [selectedStore, setSelectedStore] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: stores = [], isLoading } = useQuery({
@@ -33,11 +38,6 @@ const AdminStoresTab = () => {
             avatar_url,
             verified_dealer,
             rating
-          ),
-          store_ratings (
-            rating,
-            review,
-            created_at
           )
         `)
         .order('created_at', { ascending: false });
@@ -65,7 +65,7 @@ const AdminStoresTab = () => {
   });
 
   const updateStoreMutation = useMutation({
-    mutationFn: async ({ storeId, updates }) => {
+    mutationFn: async ({ storeId, updates }: UpdateStoreParams) => {
       const { error } = await supabase
         .from('stores')
         .update(updates)
@@ -81,7 +81,7 @@ const AdminStoresTab = () => {
         description: "Store updated successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message,
@@ -90,24 +90,19 @@ const AdminStoresTab = () => {
     },
   });
 
-  const filteredStores = stores.filter(store =>
-    store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    store.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    store.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStores = stores.filter(store => {
+    const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+    return store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           profile?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
-  const handleVerifyStore = async (storeId, verified) => {
+  const handleVerifyStore = async (storeId: string, verified: boolean) => {
     updateStoreMutation.mutate({ storeId, updates: { verified } });
   };
 
-  const handleToggleActive = async (storeId, isActive) => {
+  const handleToggleActive = async (storeId: string, isActive: boolean) => {
     updateStoreMutation.mutate({ storeId, updates: { is_active: isActive } });
-  };
-
-  const getAverageRating = (ratings) => {
-    if (!ratings || ratings.length === 0) return 0;
-    const sum = ratings.reduce((acc, rating) => acc + rating.rating, 0);
-    return (sum / ratings.length).toFixed(1);
   };
 
   return (
@@ -181,165 +176,129 @@ const AdminStoresTab = () => {
                   <TableHead>Store Info</TableHead>
                   <TableHead>Owner</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Rating</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStores.map((store) => (
-                  <TableRow key={store.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{store.name}</div>
-                        <div className="text-sm text-gray-500">{store.description}</div>
-                        {store.location && (
-                          <div className="flex items-center text-xs text-gray-400 mt-1">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {store.location}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{store.profiles?.full_name || 'Unknown'}</div>
-                        <div className="text-sm text-gray-500">{store.profiles?.email}</div>
-                        {store.profiles?.verified_dealer && (
-                          <Badge variant="secondary" className="text-xs mt-1">Verified Dealer</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          {store.verified ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Verified
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                              <Clock className="w-3 h-3 mr-1" />
-                              Pending
-                            </Badge>
-                          )}
-                        </div>
+                {filteredStores.map((store) => {
+                  const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+                  
+                  return (
+                    <TableRow key={store.id}>
+                      <TableCell>
                         <div>
-                          {store.is_active ? (
-                            <Badge variant="outline" className="text-green-600">Active</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-red-600">Inactive</Badge>
+                          <div className="font-medium">{store.name}</div>
+                          <div className="text-sm text-gray-500">{store.description}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{profile?.full_name || 'Unknown'}</div>
+                          <div className="text-sm text-gray-500">{profile?.email}</div>
+                          {profile?.verified_dealer && (
+                            <Badge variant="secondary" className="text-xs mt-1">Verified Dealer</Badge>
                           )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                        <span>{getAverageRating(store.store_ratings)}</span>
-                        <span className="text-sm text-gray-400 ml-1">
-                          ({store.store_ratings?.length || 0})
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {new Date(store.created_at).toLocaleDateString()}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedStore(store)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Store Details: {store.name}</DialogTitle>
-                              <DialogDescription>
-                                Manage store verification and settings
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label>Verification Status</Label>
-                                  <div className="flex items-center space-x-2 mt-2">
-                                    <Switch
-                                      checked={store.verified}
-                                      onCheckedChange={(checked) => handleVerifyStore(store.id, checked)}
-                                    />
-                                    <span>{store.verified ? 'Verified' : 'Unverified'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {store.verified ? (
+                              <Badge variant="default" className="bg-green-100 text-green-800">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
+                          <div>
+                            {store.is_active ? (
+                              <Badge variant="outline" className="text-green-600">Active</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-red-600">Inactive</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {new Date(store.created_at).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedStore(store)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Store Details: {store.name}</DialogTitle>
+                                <DialogDescription>
+                                  Manage store verification and settings
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>Verification Status</Label>
+                                    <div className="flex items-center space-x-2 mt-2">
+                                      <Switch
+                                        checked={store.verified}
+                                        onCheckedChange={(checked) => handleVerifyStore(store.id, checked)}
+                                      />
+                                      <span>{store.verified ? 'Verified' : 'Unverified'}</span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label>Active Status</Label>
+                                    <div className="flex items-center space-x-2 mt-2">
+                                      <Switch
+                                        checked={store.is_active}
+                                        onCheckedChange={(checked) => handleToggleActive(store.id, checked)}
+                                      />
+                                      <span>{store.is_active ? 'Active' : 'Inactive'}</span>
+                                    </div>
                                   </div>
                                 </div>
+                                
                                 <div>
-                                  <Label>Active Status</Label>
-                                  <div className="flex items-center space-x-2 mt-2">
-                                    <Switch
-                                      checked={store.is_active}
-                                      onCheckedChange={(checked) => handleToggleActive(store.id, checked)}
-                                    />
-                                    <span>{store.is_active ? 'Active' : 'Inactive'}</span>
-                                  </div>
+                                  <Label>Store Description</Label>
+                                  <Textarea
+                                    value={store.description || ''}
+                                    className="mt-2"
+                                    rows={3}
+                                    readOnly
+                                  />
                                 </div>
                               </div>
-                              
-                              <div>
-                                <Label>Store Description</Label>
-                                <Textarea
-                                  value={store.description || ''}
-                                  className="mt-2"
-                                  rows={3}
-                                  readOnly
-                                />
-                              </div>
-                              
-                              {store.store_ratings && store.store_ratings.length > 0 && (
-                                <div>
-                                  <Label>Recent Reviews</Label>
-                                  <div className="mt-2 space-y-2">
-                                    {store.store_ratings.slice(0, 3).map((rating, idx) => (
-                                      <div key={idx} className="p-2 bg-gray-50 rounded">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center">
-                                            <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                                            <span>{rating.rating}/5</span>
-                                          </div>
-                                          <span className="text-xs text-gray-500">
-                                            {new Date(rating.created_at).toLocaleDateString()}
-                                          </span>
-                                        </div>
-                                        {rating.review && (
-                                          <p className="text-sm text-gray-600 mt-1">{rating.review}</p>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        
-                        <Button
-                          variant={store.verified ? "destructive" : "default"}
-                          size="sm"
-                          onClick={() => handleVerifyStore(store.id, !store.verified)}
-                          disabled={updateStoreMutation.isPending}
-                        >
-                          {store.verified ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                            </DialogContent>
+                          </Dialog>
+                          
+                          <Button
+                            variant={store.verified ? "destructive" : "default"}
+                            size="sm"
+                            onClick={() => handleVerifyStore(store.id, !store.verified)}
+                            disabled={updateStoreMutation.isPending}
+                          >
+                            {store.verified ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

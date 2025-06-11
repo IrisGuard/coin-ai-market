@@ -15,6 +15,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+interface UpdateDataSourceParams {
+  sourceId: string;
+  updates: Record<string, any>;
+  table: string;
+}
+
 const AdminDataSourcesTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
@@ -92,7 +98,7 @@ const AdminDataSourcesTab = () => {
   });
 
   const updateDataSourceMutation = useMutation({
-    mutationFn: async ({ sourceId, updates, table }) => {
+    mutationFn: async ({ sourceId, updates, table }: UpdateDataSourceParams) => {
       const { error } = await supabase
         .from(table)
         .update(updates)
@@ -109,7 +115,7 @@ const AdminDataSourcesTab = () => {
         description: "Data source updated successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message,
@@ -118,11 +124,11 @@ const AdminDataSourcesTab = () => {
     },
   });
 
-  const getStatusColor = (isActive) => {
+  const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
-  const getJobStatusColor = (status) => {
+  const getJobStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'running': return 'bg-blue-100 text-blue-800';
@@ -131,7 +137,7 @@ const AdminDataSourcesTab = () => {
     }
   };
 
-  const getJobStatusIcon = (status) => {
+  const getJobStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle className="h-4 w-4" />;
       case 'running': return <Activity className="h-4 w-4" />;
