@@ -40,9 +40,10 @@ export const useRealTimeCoins = (filters?: {
         .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false });
 
-      // Apply filters
+      // Apply filters with proper type casting
       if (filters?.category) {
-        query = query.eq('category', filters.category);
+        // Cast the category to the proper enum type
+        query = query.eq('category', filters.category as any);
       }
 
       if (filters?.priceRange) {

@@ -80,7 +80,7 @@ export const useRealTimeMarketplace = () => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
-      // Get recent activity (recent transactions and bids)
+      // Get recent activity with fixed query structure
       const [{ data: recentBids }, { data: recentTransactions }] = await Promise.all([
         supabase
           .from('bids')
@@ -88,7 +88,7 @@ export const useRealTimeMarketplace = () => {
             id,
             amount,
             created_at,
-            coins (name)
+            coin_id
           `)
           .order('created_at', { ascending: false })
           .limit(5),
@@ -98,25 +98,40 @@ export const useRealTimeMarketplace = () => {
             id,
             amount,
             created_at,
-            coins (name)
+            coin_id
           `)
           .eq('status', 'completed')
           .order('created_at', { ascending: false })
           .limit(5)
       ]);
 
+      // Get coin names separately to avoid relationship conflicts
+      const bidCoinIds = recentBids?.map(bid => bid.coin_id).filter(Boolean) || [];
+      const transactionCoinIds = recentTransactions?.map(tx => tx.coin_id).filter(Boolean) || [];
+      const allCoinIds = [...bidCoinIds, ...transactionCoinIds];
+
+      const { data: coinNames } = await supabase
+        .from('coins')
+        .select('id, name')
+        .in('id', allCoinIds);
+
+      const coinNameMap = coinNames?.reduce((acc: Record<string, string>, coin) => {
+        acc[coin.id] = coin.name;
+        return acc;
+      }, {}) || {};
+
       const recentActivity = [
         ...(recentBids?.map(bid => ({
           id: bid.id,
           type: 'bid' as const,
-          coinName: bid.coins?.name || 'Unknown Coin',
+          coinName: coinNameMap[bid.coin_id] || 'Unknown Coin',
           amount: bid.amount,
           timestamp: bid.created_at
         })) || []),
         ...(recentTransactions?.map(tx => ({
           id: tx.id,
           type: 'sale' as const,
-          coinName: tx.coins?.name || 'Unknown Coin',
+          coinName: coinNameMap[tx.coin_id] || 'Unknown Coin',
           amount: tx.amount,
           timestamp: tx.created_at
         })) || [])

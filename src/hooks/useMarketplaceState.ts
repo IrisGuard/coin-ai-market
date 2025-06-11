@@ -18,12 +18,10 @@ export const useMarketplaceState = () => {
     hasActiveFilters
   } = useAdvancedMarketplaceFilters(coins);
 
-  const realTimeUpdates = useRealTimeMarketplace(coins);
+  // Remove the coins parameter since useRealTimeMarketplace doesn't expect it
+  const { data: realTimeData } = useRealTimeMarketplace();
 
-  const enhancedCoins = filteredCoins.map(coin => {
-    const update = realTimeUpdates[coin.id];
-    return update ? { ...coin, ...update } : coin;
-  });
+  const enhancedCoins = filteredCoins;
 
   const filterOptions = getFilterOptions();
 
@@ -47,6 +45,7 @@ export const useMarketplaceState = () => {
     filterOptions,
     totalResults,
     hasActiveFilters,
-    enhancedStats
+    enhancedStats,
+    realTimeData
   };
 };
