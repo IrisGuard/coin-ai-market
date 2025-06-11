@@ -46,13 +46,10 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // 🚨 CRITICAL FIX: NEVER auto-redirect to admin - only manual access via Ctrl+Alt+A
+  // For admin routes, just check if user is authenticated - let ConsolidatedAdminPanel handle admin-specific checks
   if (requireAdmin) {
-    // Block admin access unless explicitly requested via AdminKeyboardHandler
-    const adminAccess = sessionStorage.getItem('adminAuthenticated');
-    if (!adminAccess) {
-      console.log('🔒 Admin access denied - use Ctrl+Alt+A to access admin panel');
-      return <Navigate to="/" replace />;
+    if (!isAuthenticated) {
+      return <Navigate to="/auth" state={{ from: location }} replace />;
     }
     return <>{children}</>;
   }
@@ -69,7 +66,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
   }
 
-  // 🚨 CRITICAL FIX: Only redirect from auth page if authenticated
+  // Only redirect from auth page if authenticated
   if (!requireAuth && isAuthenticated && location.pathname === '/auth') {
     return <Navigate to="/marketplace" replace />;
   }
