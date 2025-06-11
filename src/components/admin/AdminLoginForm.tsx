@@ -47,23 +47,34 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
 
       console.log('✅ User authenticated, checking admin role...');
       
-      // Check admin role directly from database
+      // Use maybeSingle instead of single to handle multiple roles properly
       const { data: adminData, error: adminError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', authData.user.id)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
 
       if (adminError && adminError.code !== 'PGRST116') {
         console.error('❌ Error checking admin role:', adminError);
         throw new Error('Failed to verify admin privileges');
       }
 
+      // Also check with RPC function as fallback
       if (!adminData) {
-        console.log('❌ User does not have admin role');
-        setError('Access denied. This account does not have administrative privileges.');
-        return;
+        console.log('🔄 Checking with RPC function...');
+        const { data: rpcResult, error: rpcError } = await supabase
+          .rpc('verify_admin_access_secure', { user_id: authData.user.id });
+
+        if (rpcError) {
+          console.error('❌ RPC verification failed:', rpcError);
+        }
+
+        if (!rpcResult) {
+          console.log('❌ User does not have admin role');
+          setError('Access denied. This account does not have administrative privileges.');
+          return;
+        }
       }
 
       console.log('✅ Admin role confirmed, granting access');
@@ -78,8 +89,10 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
       setPassword('');
       setUsername('');
       
-      // Success callback will navigate to admin panel
-      onSuccess?.();
+      // Force refresh admin context
+      setTimeout(() => {
+        onSuccess?.();
+      }, 100);
       
     } catch (error: any) {
       console.error('Authentication error:', error);

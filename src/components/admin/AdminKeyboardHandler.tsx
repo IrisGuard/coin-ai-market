@@ -1,57 +1,65 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from '@/contexts/AdminContext';
 import AdminLoginForm from './AdminLoginForm';
 
 const AdminKeyboardHandler = () => {
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const navigate = useNavigate();
-  const { isAdmin } = useAdmin();
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { isAdmin, isLoading, forceRefresh } = useAdmin();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleKeyDown = async (event: KeyboardEvent) => {
-      // ONLY Ctrl+Alt+A for admin access
-      if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
-        console.log('🔑 Admin keyboard shortcut detected: Ctrl+Alt+A');
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Ctrl+Alt+A combination
+      if (event.ctrlKey && event.altKey && event.key === 'a') {
         event.preventDefault();
+        console.log('🎹 Admin shortcut triggered');
         
-        // If already authenticated and admin, go directly to admin panel
-        if (isAuthenticated && isAdmin) {
-          console.log('✅ Already admin authenticated, navigating to admin panel');
-          navigate('/admin');
+        if (!isAuthenticated) {
+          console.log('📝 User not authenticated, showing login form');
+          setShowLoginForm(true);
+        } else if (isLoading) {
+          console.log('⏳ Admin status loading...');
           return;
+        } else if (isAdmin) {
+          console.log('🚀 Already admin, navigating to admin panel');
+          navigate('/admin');
+        } else {
+          console.log('🔐 User authenticated but not admin, showing login form');
+          setShowLoginForm(true);
         }
-
-        // Show admin login form
-        console.log('🔐 Showing admin login form');
-        setShowAdminLogin(true);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [navigate, isAuthenticated, isAdmin]);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isAuthenticated, isAdmin, isLoading, navigate]);
 
-  const handleAdminLoginClose = () => {
-    setShowAdminLogin(false);
+  const handleLoginSuccess = async () => {
+    console.log('✅ Login successful, refreshing admin status...');
+    setShowLoginForm(false);
+    
+    // Force refresh admin status
+    await forceRefresh();
+    
+    // Navigate to admin panel after a short delay
+    setTimeout(() => {
+      navigate('/admin');
+    }, 200);
   };
 
-  const handleAdminLoginSuccess = () => {
-    setShowAdminLogin(false);
-    navigate('/admin');
+  const handleLoginClose = () => {
+    setShowLoginForm(false);
   };
 
   return (
-    <AdminLoginForm 
-      isOpen={showAdminLogin} 
-      onClose={handleAdminLoginClose}
-      onSuccess={handleAdminLoginSuccess}
+    <AdminLoginForm
+      isOpen={showLoginForm}
+      onClose={handleLoginClose}
+      onSuccess={handleLoginSuccess}
     />
   );
 };

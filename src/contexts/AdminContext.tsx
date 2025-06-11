@@ -8,6 +8,7 @@ interface AdminContextType {
   isLoading: boolean;
   checkAdminStatus: () => Promise<void>;
   updateAdminProfile: (data: { fullName: string; email: string }) => Promise<void>;
+  forceRefresh: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -33,22 +34,61 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      const { data: adminData, error } = await supabase
+      console.log('🔍 Checking admin status for user:', user.id);
+
+      // Method 1: Check user_roles table with maybeSingle
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
 
-      const hasAdminRole = !!adminData && !error;
-      setIsAdmin(hasAdminRole);
-      console.log('✅ Admin status check:', { hasAdminRole, user: user.email });
+      if (!roleError && roleData) {
+        console.log('✅ Admin verified via user_roles table');
+        setIsAdmin(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Method 2: Check with RPC function
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('verify_admin_access_secure', { user_id: user.id });
+
+      if (!rpcError && rpcData) {
+        console.log('✅ Admin verified via RPC function');
+        setIsAdmin(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Method 3: Check if user has any admin role (fallback)
+      const { data: anyAdminRole, error: anyAdminError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin'])
+        .limit(1);
+
+      if (!anyAdminError && anyAdminRole && anyAdminRole.length > 0) {
+        console.log('✅ Admin verified via fallback check');
+        setIsAdmin(true);
+      } else {
+        console.log('❌ No admin privileges found');
+        setIsAdmin(false);
+      }
+
     } catch (error) {
-      console.error('Admin status check error:', error);
+      console.error('❌ Admin status check error:', error);
       setIsAdmin(false);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const forceRefresh = async () => {
+    setIsLoading(true);
+    await checkAdminStatus();
   };
 
   useEffect(() => {
@@ -78,7 +118,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     isAdmin,
     isLoading,
     checkAdminStatus,
-    updateAdminProfile
+    updateAdminProfile,
+    forceRefresh
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

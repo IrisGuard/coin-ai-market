@@ -36,13 +36,14 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     enabled: !!user?.id && (requireAdmin || requireDealer),
   });
 
-  console.log('🔐 ProtectedRoute - Simple admin check:', {
+  console.log('🔐 ProtectedRoute - Enhanced admin check:', {
     requireAdmin,
     isAdmin,
     loading,
     adminLoading,
     isAuthenticated,
-    location: location.pathname
+    location: location.pathname,
+    userId: user?.id
   });
 
   // Show loading state if auth or role is still being determined
@@ -57,7 +58,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // For admin routes - simple check for admin role
+  // For admin routes - enhanced check with better error handling
   if (requireAdmin) {
     if (!isAuthenticated) {
       console.log('❌ User not authenticated, redirecting to auth');
@@ -65,7 +66,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     }
     
     if (!isAdmin) {
-      console.log('❌ User is not admin, showing login requirement');
+      console.log('❌ User is not admin, showing access requirement');
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-6">
           <div className="max-w-md w-full text-center space-y-4">
@@ -74,12 +75,15 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
             <p className="text-muted-foreground">
               Press <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">Ctrl+Alt+A</kbd> to access the admin panel
             </p>
+            <p className="text-sm text-muted-foreground">
+              Current user: {user?.email}
+            </p>
           </div>
         </div>
       );
     }
     
-    console.log('✅ Admin access granted');
+    console.log('✅ Admin access granted for user:', user?.email);
     return <>{children}</>;
   }
 

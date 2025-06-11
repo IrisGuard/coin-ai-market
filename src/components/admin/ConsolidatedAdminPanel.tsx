@@ -29,6 +29,7 @@ import AdminSystemMonitoringTab from './tabs/AdminSystemMonitoringTab';
 import AdminAutomationTab from './tabs/AdminAutomationTab';
 import AdminPredictionsTab from './tabs/AdminPredictionsTab';
 import AdminTransactionsTab from './tabs/AdminTransactionsTab';
+import AdminStatusChecker from './AdminStatusChecker';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isLoading } = useAdmin();
@@ -54,17 +55,20 @@ const ConsolidatedAdminPanel = () => {
       );
     }
 
-    // Safety net - should be handled by ProtectedRoute
+    // Enhanced admin check with status checker for debugging
     if (!isAdmin) {
-      console.log('❌ Access denied - not admin');
+      console.log('❌ Access denied - not admin, showing debug info');
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-6">
-          <div className="max-w-md w-full text-center space-y-4">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
-            <p className="text-muted-foreground">
-              Admin privileges required. Press Ctrl+Alt+A to authenticate.
-            </p>
+          <div className="max-w-2xl w-full space-y-6">
+            <div className="text-center space-y-4">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
+              <p className="text-muted-foreground">
+                Admin privileges required. Press Ctrl+Alt+A to authenticate.
+              </p>
+            </div>
+            <AdminStatusChecker />
           </div>
         </div>
       );
@@ -175,13 +179,17 @@ const ConsolidatedAdminPanel = () => {
             <TabsContent value="logs" className="space-y-6">
               <AdminLogsTab />
             </TabsContent>
+
+            <TabsContent value="transactions" className="space-y-6">
+              <AdminTransactionsTab />
+            </TabsContent>
             
             <TabsContent value="settings" className="space-y-6">
               <AdminSettingsTab />
             </TabsContent>
 
-            <TabsContent value="transactions" className="space-y-6">
-              <AdminTransactionsTab />
+            <TabsContent value="profile" className="space-y-6">
+              <AdminProfileTab />
             </TabsContent>
           </Tabs>
         </div>
@@ -190,20 +198,19 @@ const ConsolidatedAdminPanel = () => {
   } catch (error) {
     console.error('💥 Error in ConsolidatedAdminPanel:', error);
     
-    // Fallback UI
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center space-y-4">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-foreground">Admin Panel Error</h2>
+          <div className="text-6xl mb-4">💥</div>
+          <h2 className="text-2xl font-bold text-foreground">Panel Error</h2>
           <p className="text-muted-foreground">
-            Something went wrong loading the admin panel. Please check the console for details.
+            Error loading admin panel. Check console for details.
           </p>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => window.location.href = '/'} 
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Refresh Page
+            Go Home
           </button>
         </div>
       </div>
