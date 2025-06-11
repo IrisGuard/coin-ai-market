@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -24,6 +25,7 @@ import MarketplacePanelPage from "./pages/MarketplacePanelPage";
 import CoinDetails from "./pages/CoinDetails";
 import Auctions from "./pages/Auctions";
 import AIFeatures from "./pages/AIFeatures";
+import DualAnalysis from "./pages/DualAnalysis";
 import QuickAdminAccess from "@/components/admin/QuickAdminAccess";
 
 const queryClient = new QueryClient();
@@ -71,6 +73,11 @@ const App = () => {
                     <Route path="/ai-features" element={
                       <ErrorBoundaryWrapper>
                         <AIFeatures />
+                      </ErrorBoundaryWrapper>
+                    } />
+                    <Route path="/dual-analysis" element={
+                      <ErrorBoundaryWrapper>
+                        <DualAnalysis />
                       </ErrorBoundaryWrapper>
                     } />
                     <Route 

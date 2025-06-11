@@ -1513,6 +1513,57 @@ export type Database = {
         }
         Relationships: []
       }
+      dual_image_analysis: {
+        Row: {
+          analysis_results: Json | null
+          back_image_hash: string | null
+          back_image_url: string
+          confidence_score: number | null
+          created_at: string | null
+          detected_errors: string[] | null
+          estimated_value_range: Json | null
+          front_image_hash: string | null
+          front_image_url: string
+          grade_assessment: string | null
+          id: string
+          rarity_score: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analysis_results?: Json | null
+          back_image_hash?: string | null
+          back_image_url: string
+          confidence_score?: number | null
+          created_at?: string | null
+          detected_errors?: string[] | null
+          estimated_value_range?: Json | null
+          front_image_hash?: string | null
+          front_image_url: string
+          grade_assessment?: string | null
+          id?: string
+          rarity_score?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analysis_results?: Json | null
+          back_image_hash?: string | null
+          back_image_url?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          detected_errors?: string[] | null
+          estimated_value_range?: Json | null
+          front_image_hash?: string | null
+          front_image_url?: string
+          grade_assessment?: string | null
+          id?: string
+          rarity_score?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       error_coins_knowledge: {
         Row: {
           ai_detection_markers: Json | null
@@ -1706,6 +1757,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      error_pattern_matches: {
+        Row: {
+          analysis_id: string | null
+          confidence_score: number | null
+          created_at: string | null
+          error_description: string | null
+          error_type: string
+          estimated_premium: number | null
+          id: string
+          rarity_multiplier: number | null
+          reference_images: string[] | null
+        }
+        Insert: {
+          analysis_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          error_description?: string | null
+          error_type: string
+          estimated_premium?: number | null
+          id?: string
+          rarity_multiplier?: number | null
+          reference_images?: string[] | null
+        }
+        Update: {
+          analysis_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          error_description?: string | null
+          error_type?: string
+          estimated_premium?: number | null
+          id?: string
+          rarity_multiplier?: number | null
+          reference_images?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_pattern_matches_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "dual_image_analysis"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       error_reference_sources: {
         Row: {
@@ -1917,6 +2012,53 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      market_analysis_results: {
+        Row: {
+          analysis_id: string | null
+          created_at: string | null
+          current_market_value: Json | null
+          id: string
+          investment_recommendation: string | null
+          market_outlook: string | null
+          population_data: Json | null
+          price_trends: Json | null
+          recent_sales: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          analysis_id?: string | null
+          created_at?: string | null
+          current_market_value?: Json | null
+          id?: string
+          investment_recommendation?: string | null
+          market_outlook?: string | null
+          population_data?: Json | null
+          price_trends?: Json | null
+          recent_sales?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          analysis_id?: string | null
+          created_at?: string | null
+          current_market_value?: Json | null
+          id?: string
+          investment_recommendation?: string | null
+          market_outlook?: string | null
+          population_data?: Json | null
+          price_trends?: Json | null
+          recent_sales?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_analysis_results_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "dual_image_analysis"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       market_analytics: {
         Row: {
@@ -3527,6 +3669,47 @@ export type Database = {
         }
         Relationships: []
       }
+      visual_coin_matches: {
+        Row: {
+          analysis_id: string | null
+          coin_details: Json | null
+          date_found: string | null
+          id: string
+          matched_image_url: string
+          price_info: Json | null
+          similarity_score: number
+          source_url: string | null
+        }
+        Insert: {
+          analysis_id?: string | null
+          coin_details?: Json | null
+          date_found?: string | null
+          id?: string
+          matched_image_url: string
+          price_info?: Json | null
+          similarity_score: number
+          source_url?: string | null
+        }
+        Update: {
+          analysis_id?: string | null
+          coin_details?: Json | null
+          date_found?: string | null
+          id?: string
+          matched_image_url?: string
+          price_info?: Json | null
+          similarity_score?: number
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visual_coin_matches_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "dual_image_analysis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vpn_proxies: {
         Row: {
           config: Json | null
@@ -3610,6 +3793,59 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      web_discovery_results: {
+        Row: {
+          analysis_id: string | null
+          auction_data: Json | null
+          coin_match_confidence: number | null
+          created_at: string | null
+          extracted_data: Json | null
+          id: string
+          image_urls: string[] | null
+          is_active: boolean | null
+          last_scraped: string | null
+          price_data: Json | null
+          source_type: string
+          source_url: string
+        }
+        Insert: {
+          analysis_id?: string | null
+          auction_data?: Json | null
+          coin_match_confidence?: number | null
+          created_at?: string | null
+          extracted_data?: Json | null
+          id?: string
+          image_urls?: string[] | null
+          is_active?: boolean | null
+          last_scraped?: string | null
+          price_data?: Json | null
+          source_type: string
+          source_url: string
+        }
+        Update: {
+          analysis_id?: string | null
+          auction_data?: Json | null
+          coin_match_confidence?: number | null
+          created_at?: string | null
+          extracted_data?: Json | null
+          id?: string
+          image_urls?: string[] | null
+          is_active?: boolean | null
+          last_scraped?: string | null
+          price_data?: Json | null
+          source_type?: string
+          source_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_discovery_results_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "dual_image_analysis"
             referencedColumns: ["id"]
           },
         ]
