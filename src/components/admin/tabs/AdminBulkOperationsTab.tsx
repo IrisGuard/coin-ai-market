@@ -52,12 +52,12 @@ const AdminBulkOperationsTab = () => {
 
   // Execute Bulk Operation Mutation
   const executeBulkOperationMutation = useMutation({
-    mutationFn: async ({ operationType, operationName, targetTable, parameters }) => {
+    mutationFn: async (params: { operationType: string; operationName: string; targetTable: string; parameters: any }) => {
       const { data, error } = await supabase.rpc('execute_bulk_operation', {
-        operation_type: operationType,
-        operation_name: operationName,
-        target_table: targetTable,
-        operation_parameters: parameters
+        operation_type: params.operationType,
+        operation_name: params.operationName,
+        target_table: params.targetTable,
+        operation_parameters: params.parameters
       });
       
       if (error) throw error;

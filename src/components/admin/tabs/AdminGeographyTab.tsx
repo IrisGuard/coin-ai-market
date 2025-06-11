@@ -12,11 +12,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+interface RegionData {
+  name: string;
+  code: string;
+  continent: string;
+}
+
+interface UpdateRegionParams {
+  id: string;
+  updates: Partial<RegionData>;
+}
+
 const AdminGeographyTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState(null);
-  const [newRegion, setNewRegion] = useState({
+  const [newRegion, setNewRegion] = useState<RegionData>({
     name: '',
     code: '',
     continent: ''
@@ -56,7 +67,7 @@ const AdminGeographyTab = () => {
 
   // Create Region Mutation
   const createRegionMutation = useMutation({
-    mutationFn: async (regionData) => {
+    mutationFn: async (regionData: RegionData) => {
       const { error } = await supabase
         .from('geographic_regions')
         .insert([regionData]);
@@ -83,11 +94,11 @@ const AdminGeographyTab = () => {
 
   // Update Region Mutation
   const updateRegionMutation = useMutation({
-    mutationFn: async ({ id, updates }) => {
+    mutationFn: async (params: UpdateRegionParams) => {
       const { error } = await supabase
         .from('geographic_regions')
-        .update(updates)
-        .eq('id', id);
+        .update(params.updates)
+        .eq('id', params.id);
       
       if (error) throw error;
     },
@@ -110,7 +121,7 @@ const AdminGeographyTab = () => {
 
   // Delete Region Mutation
   const deleteRegionMutation = useMutation({
-    mutationFn: async (regionId) => {
+    mutationFn: async (regionId: string) => {
       const { error } = await supabase
         .from('geographic_regions')
         .delete()
@@ -144,8 +155,10 @@ const AdminGeographyTab = () => {
     createRegionMutation.mutate(newRegion);
   };
 
-  const handleUpdateRegion = (updates) => {
-    updateRegionMutation.mutate({ id: editingRegion.id, updates });
+  const handleUpdateRegion = (updates: Partial<RegionData>) => {
+    if (editingRegion) {
+      updateRegionMutation.mutate({ id: editingRegion.id, updates });
+    }
   };
 
   return (

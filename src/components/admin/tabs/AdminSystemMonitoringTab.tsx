@@ -12,6 +12,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+interface MetricParams {
+  metricName: string;
+  metricValue: number;
+  metricType: string;
+  tags?: Record<string, any>;
+}
+
 const AdminSystemMonitoringTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [alertFilter, setAlertFilter] = useState('all');
@@ -90,12 +97,12 @@ const AdminSystemMonitoringTab = () => {
 
   // Record System Metric Mutation
   const recordMetricMutation = useMutation({
-    mutationFn: async ({ metricName, metricValue, metricType, tags }) => {
+    mutationFn: async (params: MetricParams) => {
       const { error } = await supabase.rpc('record_system_metric', {
-        p_metric_name: metricName,
-        p_metric_value: metricValue,
-        p_metric_type: metricType,
-        p_tags: tags || {}
+        p_metric_name: params.metricName,
+        p_metric_value: params.metricValue,
+        p_metric_type: params.metricType,
+        p_tags: params.tags || {}
       });
       
       if (error) throw error;
