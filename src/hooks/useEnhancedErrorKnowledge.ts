@@ -174,7 +174,7 @@ export const useDetectCoinErrors = () => {
       });
       
       if (error) throw error;
-      return data as AIDetectionResult;
+      return data as unknown as AIDetectionResult;
     },
     onError: (error: Error) => {
       toast({
