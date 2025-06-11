@@ -47,6 +47,19 @@ export interface ErrorMarketData {
   updated_at: string;
 }
 
+interface AIDetectionResult {
+  errors_detected: Array<{
+    error_id: string;
+    error_name: string;
+    error_type: string;
+    severity: number;
+    rarity: number;
+    confidence: number;
+  }>;
+  confidence_scores: Record<string, number>;
+  cross_references: string[];
+}
+
 export const useEnhancedErrorKnowledge = () => {
   return useQuery({
     queryKey: ['enhanced-error-knowledge'],
@@ -84,7 +97,7 @@ export const useAddEnhancedErrorKnowledge = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: Partial<EnhancedErrorKnowledge>) => {
+    mutationFn: async (data: Omit<EnhancedErrorKnowledge, 'id' | 'created_at' | 'updated_at'>) => {
       const { data: result, error } = await supabase
         .from('error_coins_knowledge')
         .insert(data)
@@ -161,7 +174,7 @@ export const useDetectCoinErrors = () => {
       });
       
       if (error) throw error;
-      return data;
+      return data as AIDetectionResult;
     },
     onError: (error: Error) => {
       toast({

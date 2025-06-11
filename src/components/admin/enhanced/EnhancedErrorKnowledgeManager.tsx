@@ -80,7 +80,7 @@ const EnhancedErrorKnowledgeManager = () => {
       
       toast({
         title: "AI Detection Test Complete",
-        description: `Detected ${result.errors_detected?.length || 0} potential errors`,
+        description: `Detected ${result?.errors_detected?.length || 0} potential errors`,
       });
     } catch (error) {
       console.error('Detection test failed:', error);
