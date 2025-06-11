@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,8 +8,16 @@ export const useAuctionData = (userId?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('coins')
-        .select('*')
+        .select(`
+          *,
+          profiles (
+            name,
+            username,
+            verified_dealer
+          )
+        `)
         .eq('is_auction', true)
+        .gt('auction_end', new Date().toISOString())
         .order('auction_end', { ascending: true });
       
       if (error) throw error;
@@ -23,7 +32,16 @@ export const useAuctionData = (userId?: string) => {
       
       const { data, error } = await supabase
         .from('bids')
-        .select('*, coins(*)')
+        .select(`
+          *,
+          coins (
+            id,
+            name,
+            image,
+            auction_end,
+            is_auction
+          )
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       

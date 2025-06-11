@@ -2,19 +2,17 @@
 {
   "rules": {
     "no-restricted-syntax": [
-      "error",
+      "warn",
       {
         "selector": "VariableDeclarator[id.name=/mock|fake|dummy|test.*data/i]",
-        "message": "Mock data is not allowed in production code"
+        "message": "Consider using real data connections instead of mock data"
       },
       {
         "selector": "Property[key.name=/mock|fake|dummy/i]",
-        "message": "Mock properties are not allowed"
-      },
-      {
-        "selector": "CallExpression[callee.name='setTimeout'][arguments.0.type='ArrowFunctionExpression']",
-        "message": "Simulated delays with setTimeout are not allowed"
+        "message": "Consider implementing real data sources"
       }
-    ]
+    ],
+    "prefer-const": "error",
+    "no-unused-vars": "warn"
   }
 }

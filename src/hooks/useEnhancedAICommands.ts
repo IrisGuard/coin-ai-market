@@ -1,179 +1,114 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export const useEnhancedAICommands = (category?: string) => {
   const queryClient = useQueryClient();
 
-  const commandsQuery = useQuery({
-    queryKey: ['enhanced-ai-commands', category],
+  const { data: commands = [], isLoading } = useQuery({
+    queryKey: ['ai-commands', category],
     queryFn: async () => {
-      console.log('🔍 Fetching enhanced AI commands...', category ? `Category: ${category}` : 'All categories');
-      
       let query = supabase
         .from('ai_commands')
-        .select(`
-          *,
-          ai_command_categories!inner(
-            name,
-            description,
-            icon,
-            color
-          )
-        `)
-        .eq('is_active', true);
+        .select('*')
+        .eq('is_active', true)
+        .order('priority', { ascending: false });
 
       if (category) {
         query = query.eq('category', category);
       }
 
-      const { data, error } = await query.order('priority', { ascending: false });
-
-      if (error) {
-        console.error('❌ Error fetching enhanced AI commands:', error);
-        throw error;
-      }
-
-      console.log('✅ Enhanced AI commands loaded:', data?.length || 0);
+      const { data, error } = await query;
+      if (error) throw error;
       return data || [];
-    },
-    retry: 2
-  });
-
-  const executeCommandMutation = useMutation({
-    mutationFn: async ({ commandId, inputData = {} }: { commandId: string; inputData?: any }) => {
-      console.log('🚀 Executing enhanced AI command:', commandId);
-      
-      const startTime = Date.now();
-      
-      // Get command details
-      const { data: command, error: cmdError } = await supabase
-        .from('ai_commands')
-        .select('*')
-        .eq('id', commandId)
-        .single();
-
-      if (cmdError) throw cmdError;
-
-      // Create execution log
-      const { data: executionLog, error: logError } = await supabase
-        .from('ai_command_execution_logs')
-        .insert([{
-          command_id: commandId,
-          success: false,
-          execution_time_ms: 0
-        }])
-        .select()
-        .single();
-
-      if (logError) throw logError;
-
-      try {
-        // Execute the command based on type
-        let result;
-        
-        if (command.site_url && command.site_url.trim()) {
-          // Web scraping command
-          const { data: parseResult, error: parseError } = await supabase.functions.invoke('parse-website', {
-            body: { 
-              url: command.site_url, 
-              instructions: command.code,
-              commandId: commandId,
-              inputData
-            }
-          });
-
-          if (parseError) throw parseError;
-          result = parseResult;
-        } else {
-          // Regular AI command execution
-          const { data: aiResult, error: aiError } = await supabase.functions.invoke('anthropic-coin-recognition', {
-            body: {
-              instructions: command.code,
-              inputData,
-              commandId,
-              commandType: command.command_type
-            }
-          });
-
-          if (aiError) throw aiError;
-          result = aiResult;
-        }
-
-        const executionTime = Date.now() - startTime;
-
-        // Update execution log with success
-        await supabase
-          .from('ai_command_execution_logs')
-          .update({
-            success: true,
-            execution_time_ms: executionTime,
-            performance_score: result?.confidence || 0.8
-          })
-          .eq('id', executionLog.id);
-
-        // Record performance analytics
-        await supabase
-          .from('ai_performance_analytics')
-          .insert([{
-            metric_type: 'command_execution',
-            metric_name: `${command.name}_performance`,
-            metric_value: executionTime,
-            command_id: commandId,
-            execution_context: {
-              success: true,
-              input_size: JSON.stringify(inputData).length,
-              output_size: JSON.stringify(result).length
-            }
-          }]);
-
-        console.log('✅ Enhanced AI command executed successfully');
-        return result;
-
-      } catch (error: any) {
-        const executionTime = Date.now() - startTime;
-        
-        // Update execution log with failure
-        await supabase
-          .from('ai_command_execution_logs')
-          .update({
-            success: false,
-            execution_time_ms: executionTime,
-            error_message: error.message
-          })
-          .eq('id', executionLog.id);
-
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ai-command-execution-logs'] });
-      queryClient.invalidateQueries({ queryKey: ['ai-performance-analytics'] });
-      toast({
-        title: "Command Executed",
-        description: "AI command executed successfully with enhanced tracking.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Execution Failed",
-        description: `Enhanced AI command failed: ${error.message}`,
-        variant: "destructive",
-      });
     }
   });
 
-  // Create a wrapper function that matches the expected signature
-  const executeCommand = async (commandId: string, inputData?: any) => {
-    return executeCommandMutation.mutateAsync({ commandId, inputData });
-  };
+  const executeCommandMutation = useMutation({
+    mutationFn: async ({ commandId, inputData }: { commandId: string; inputData: any }) => {
+      // Execute command using database function
+      const { data: executionData, error: executionError } = await supabase
+        .rpc('execute_ai_command', {
+          p_command_id: commandId,
+          p_input_data: inputData
+        });
+
+      if (executionError) throw executionError;
+
+      // Get the command details to determine which edge function to call
+      const command = commands.find(cmd => cmd.id === commandId);
+      if (!command) throw new Error('Command not found');
+
+      // Call appropriate edge function based on command category
+      let edgeFunction = '';
+      switch (command.category) {
+        case 'web_scraping':
+          edgeFunction = 'advanced-web-scraper';
+          break;
+        case 'expert_analysis':
+          edgeFunction = 'advanced-coin-analyzer';
+          break;
+        case 'market_intelligence':
+          edgeFunction = 'market-intelligence-engine';
+          break;
+        default:
+          edgeFunction = 'advanced-coin-analyzer';
+      }
+
+      // Execute the edge function
+      const { data: functionResult, error: functionError } = await supabase.functions.invoke(edgeFunction, {
+        body: {
+          commandType: command.command_type,
+          inputData,
+          commandId
+        }
+      });
+
+      if (functionError) {
+        console.warn('Edge function failed, using database execution result:', functionError);
+        return executionData;
+      }
+
+      return functionResult;
+    },
+    onSuccess: (data, variables) => {
+      toast.success('Command executed successfully');
+      queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
+      queryClient.invalidateQueries({ queryKey: ['ai-performance-metrics'] });
+    },
+    onError: (error) => {
+      console.error('Command execution error:', error);
+      toast.error(`Command execution failed: ${error.message}`);
+    }
+  });
+
+  const { data: executionHistory = [] } = useQuery({
+    queryKey: ['ai-command-executions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_command_executions')
+        .select(`
+          *,
+          ai_commands (
+            name,
+            category
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   return {
-    commands: commandsQuery.data || [],
-    isLoading: commandsQuery.isLoading,
-    error: commandsQuery.error,
-    executeCommand,
-    isExecuting: executeCommandMutation.isPending
+    commands,
+    isLoading,
+    executeCommand: (commandId: string, inputData: any = {}) => 
+      executeCommandMutation.mutate({ commandId, inputData }),
+    isExecuting: executeCommandMutation.isPending,
+    executionHistory
   };
 };

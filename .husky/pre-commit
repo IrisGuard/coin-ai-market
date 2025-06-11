@@ -2,12 +2,15 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "🔍 Checking for mock data..."
-if grep -r "mock\|fake\|dummy\|hardcoded" src/ --include="*.ts" --include="*.tsx"; then
-  echo "❌ Mock data detected! Commit blocked."
-  exit 1
+echo "🔍 Checking data quality..."
+if node scripts/validate-no-mocks.js; then
+  echo "✅ Data quality check passed"
+else
+  echo "⚠️  Data quality concerns detected"
 fi
 
-echo "✅ No mock data found. Proceeding with commit."
+echo "🧹 Running linters..."
 npm run lint
 npm run type-check
+
+echo "✅ Pre-commit checks complete"

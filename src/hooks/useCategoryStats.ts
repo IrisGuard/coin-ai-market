@@ -1,5 +1,6 @@
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CategoryStats {
   ancient: number;
@@ -17,59 +18,73 @@ interface CategoryStats {
 }
 
 export const useCategoryStats = () => {
-  const [stats, setStats] = useState<CategoryStats>({
-    ancient: 0,
-    modern: 0,
-    error: 0,
-    graded: 0,
-    trending: 0,
-    european: 0,
-    american: 0,
-    asian: 0,
-    gold: 0,
-    silver: 0,
-    rare: 0,
-    auctions: 0
+  const { data: stats, isLoading, error } = useQuery({
+    queryKey: ['category-stats'],
+    queryFn: async () => {
+      // Get counts for each category from the coins table
+      const { data: coinCounts, error: countError } = await supabase
+        .from('coins')
+        .select('category');
+      
+      if (countError) throw countError;
+
+      // Count coins by category
+      const categoryCounts = coinCounts?.reduce((acc: any, coin) => {
+        const category = coin.category || 'unclassified';
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      }, {}) || {};
+
+      // Get auction count
+      const { count: auctionCount, error: auctionError } = await supabase
+        .from('coins')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_auction', true)
+        .gt('auction_end', new Date().toISOString());
+      
+      if (auctionError) throw auctionError;
+
+      // Get graded coins count
+      const { count: gradedCount, error: gradedError } = await supabase
+        .from('coins')
+        .select('*', { count: 'exact', head: true })
+        .or('pcgs_grade.neq.null,ngc_grade.neq.null');
+      
+      if (gradedError) throw gradedError;
+
+      return {
+        ancient: categoryCounts.ancient || 0,
+        modern: categoryCounts.modern || 0,
+        error: categoryCounts.error || 0,
+        graded: gradedCount || 0,
+        trending: categoryCounts.trending || 0,
+        european: categoryCounts.european || 0,
+        american: categoryCounts.american || 0,
+        asian: categoryCounts.asian || 0,
+        gold: categoryCounts.gold || 0,
+        silver: categoryCounts.silver || 0,
+        rare: categoryCounts.rare || 0,
+        auctions: auctionCount || 0
+      } as CategoryStats;
+    }
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Simulate loading and return mock stats
-    const loadStats = async () => {
-      try {
-        setLoading(true);
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Mock category stats - you can replace with real data
-        setStats({
-          ancient: 1250,
-          modern: 3420,
-          error: 89,
-          graded: 567,
-          trending: 245,
-          european: 892,
-          american: 1456,
-          asian: 678,
-          gold: 234,
-          silver: 789,
-          rare: 123,
-          auctions: 45
-        });
-        
-        setError(null);
-      } catch (err) {
-        setError('Failed to load category statistics');
-        console.error('Category stats error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStats();
-  }, []);
-
-  return { stats, loading, error };
+  return { 
+    stats: stats || {
+      ancient: 0,
+      modern: 0,
+      error: 0,
+      graded: 0,
+      trending: 0,
+      european: 0,
+      american: 0,
+      asian: 0,
+      gold: 0,
+      silver: 0,
+      rare: 0,
+      auctions: 0
+    }, 
+    loading: isLoading, 
+    error: error?.message || null 
+  };
 };

@@ -16,27 +16,31 @@ import {
   Star
 } from 'lucide-react';
 import { useEnhancedDashboardStats } from '@/hooks/useEnhancedDashboardStats';
-import AIPortfolioInsights from './AIPortfolioInsights';
-import SmartRecommendations from './SmartRecommendations';
-import MarketPredictions from './MarketPredictions';
-import PersonalizedAlerts from './PersonalizedAlerts';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const SmartPortfolioAI = () => {
   const { stats, loading } = useEnhancedDashboardStats();
   const [aiAnalysisActive, setAiAnalysisActive] = useState(false);
+  const [realTimeMetrics, setRealTimeMetrics] = useState({
+    aiScore: 0,
+    marketTrend: 'neutral',
+    riskLevel: 'medium',
+    recommendations: 0
+  });
 
   const portfolioMetrics = [
     {
       title: "AI Portfolio Score",
-      value: "94.2/100",
-      change: "+2.4%",
-      trend: "up",
+      value: `${(stats.aiAccuracy * 100).toFixed(1)}/100`,
+      change: stats.profitPercentage > 0 ? `+${stats.profitPercentage.toFixed(1)}%` : `${stats.profitPercentage.toFixed(1)}%`,
+      trend: stats.profitPercentage > 0 ? "up" : "down",
       icon: <Brain className="w-6 h-6" />,
       color: "text-purple-600",
       bgColor: "bg-purple-50"
     },
     {
-      title: "Smart Value",
+      title: "Portfolio Value",
       value: `$${stats.totalValue.toLocaleString()}`,
       change: `${stats.profitPercentage > 0 ? '+' : ''}${stats.profitPercentage.toFixed(1)}%`,
       trend: stats.profitPercentage > 0 ? "up" : "down",
@@ -46,8 +50,8 @@ const SmartPortfolioAI = () => {
     },
     {
       title: "Growth Potential",
-      value: "High",
-      change: "+15.2%",
+      value: stats.marketTrend === 'bullish' ? "High" : stats.marketTrend === 'bearish' ? "Low" : "Medium",
+      change: `${(stats.aiAccuracy * 15).toFixed(1)}%`,
       trend: "up",
       icon: <TrendingUp className="w-6 h-6" />,
       color: "text-blue-600",
@@ -55,21 +59,56 @@ const SmartPortfolioAI = () => {
     },
     {
       title: "Risk Assessment",
-      value: "Low-Medium",
-      change: "Stable",
-      trend: "neutral",
+      value: stats.riskScore < 0.3 ? "Low" : stats.riskScore < 0.7 ? "Medium" : "High",
+      change: stats.riskScore < 0.5 ? "Stable" : "Monitor",
+      trend: stats.riskScore < 0.5 ? "neutral" : "up",
       icon: <Target className="w-6 h-6" />,
       color: "text-amber-600",
       bgColor: "bg-amber-50"
     }
   ];
 
-  const startAIAnalysis = () => {
+  const startAIAnalysis = async () => {
     setAiAnalysisActive(true);
-    // Simulate AI analysis
-    setTimeout(() => {
-      setAiAnalysisActive(false);
-    }, 3000);
+    try {
+      // Execute real AI analysis using our edge function
+      const { data, error } = await supabase.functions.invoke('market-intelligence-engine', {
+        body: {
+          commandType: 'coin_trend_analyzer',
+          analysisData: {
+            portfolioValue: stats.totalValue,
+            portfolioItems: stats.portfolioItems,
+            timeframe: '30d'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // Update real-time metrics with actual analysis results
+      setRealTimeMetrics({
+        aiScore: data.intelligence?.confidence || stats.aiAccuracy,
+        marketTrend: data.intelligence?.overallTrend?.toLowerCase() || 'neutral',
+        riskLevel: data.intelligence?.riskScore < 0.3 ? 'low' : 
+                   data.intelligence?.riskScore < 0.7 ? 'medium' : 'high',
+        recommendations: data.intelligence?.patterns?.length || 3
+      });
+
+      toast.success('AI analysis completed successfully!');
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast.error('AI analysis failed. Using cached data.');
+      
+      // Fallback to enhanced calculation
+      setRealTimeMetrics({
+        aiScore: stats.aiAccuracy,
+        marketTrend: stats.marketTrend,
+        riskLevel: stats.riskScore < 0.3 ? 'low' : stats.riskScore < 0.7 ? 'medium' : 'high',
+        recommendations: Math.floor(stats.portfolioItems.length / 2) + 1
+      });
+    } finally {
+      setTimeout(() => setAiAnalysisActive(false), 2000);
+    }
   };
 
   if (loading) {
@@ -100,7 +139,7 @@ const SmartPortfolioAI = () => {
             <Brain className="w-8 h-8 text-purple-600" />
             Smart Portfolio AI Dashboard
           </h2>
-          <p className="text-gray-600 mt-2">AI-powered insights for your coin collection</p>
+          <p className="text-gray-600 mt-2">Real-time AI insights for your coin collection</p>
         </div>
         <Button
           onClick={startAIAnalysis}
@@ -163,26 +202,58 @@ const SmartPortfolioAI = () => {
         ))}
       </div>
 
-      {/* AI Components Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <AIPortfolioInsights 
-          portfolioData={stats.portfolioItems} 
-          totalValue={stats.totalValue}
-          isAnalyzing={aiAnalysisActive}
-        />
-        <SmartRecommendations 
-          portfolioItems={stats.portfolioItems}
-          isAnalyzing={aiAnalysisActive}
-        />
-        <MarketPredictions 
-          portfolioValue={stats.totalValue}
-          isAnalyzing={aiAnalysisActive}
-        />
-        <PersonalizedAlerts 
-          portfolioItems={stats.portfolioItems}
-          isAnalyzing={aiAnalysisActive}
-        />
-      </div>
+      {/* Real-Time Analysis Results */}
+      {aiAnalysisActive && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
+          <Card className="border-purple-200 bg-purple-50">
+            <CardHeader>
+              <CardTitle className="text-purple-700 flex items-center gap-2">
+                <Brain className="w-5 h-5" />
+                AI Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-sm">Market Trend: <span className="font-semibold capitalize">{realTimeMetrics.marketTrend}</span></p>
+                <p className="text-sm">Risk Level: <span className="font-semibold capitalize">{realTimeMetrics.riskLevel}</span></p>
+                <p className="text-sm">AI Score: <span className="font-semibold">{(realTimeMetrics.aiScore * 100).toFixed(1)}%</span></p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="text-green-700 flex items-center gap-2">
+                <Star className="w-5 h-5" />
+                Recommendations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-green-700">
+                {realTimeMetrics.recommendations} opportunities identified based on current portfolio analysis.
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="text-blue-700 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-blue-700">
+                Portfolio tracking {stats.portfolioItems.length} items with ${stats.totalValue.toLocaleString()} total value.
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 };
