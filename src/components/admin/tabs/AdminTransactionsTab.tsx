@@ -25,13 +25,13 @@ const AdminTransactionsTab = () => {
         .from('payment_transactions')
         .select(`
           *,
-          profiles!payment_transactions_user_id_fkey (
+          profiles:user_id (
             id,
             name,
             email,
             verified_dealer
           ),
-          coins (
+          coins:coin_id (
             id,
             name,
             image,
