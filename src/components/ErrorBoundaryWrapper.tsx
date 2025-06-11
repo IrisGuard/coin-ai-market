@@ -68,9 +68,9 @@ class ErrorBoundaryWrapper extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <AlertDescription className="text-red-800">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">Κάτι πήγε στραβά</h3>
+                    <h3 className="font-semibold text-lg mb-2">Something went wrong</h3>
                     <p className="text-sm">
-                      Συνέβη ένα απροσδόκητο σφάλμα. Προσπαθήστε να ανανεώσετε τη σελίδα ή επιστρέψτε στην αρχική.
+                      An unexpected error occurred. Please try refreshing the page or return to the home page.
                     </p>
                   </div>
                   
@@ -88,7 +88,7 @@ class ErrorBoundaryWrapper extends Component<ErrorBoundaryProps, ErrorBoundarySt
                       className="flex items-center gap-2"
                     >
                       <RefreshCcw className="w-4 h-4" />
-                      Προσπάθεια Ξανά
+                      Try Again
                     </Button>
                     
                     <Button 
@@ -98,7 +98,7 @@ class ErrorBoundaryWrapper extends Component<ErrorBoundaryProps, ErrorBoundarySt
                       className="flex items-center gap-2"
                     >
                       <Home className="w-4 h-4" />
-                      Αρχική Σελίδα
+                      Home Page
                     </Button>
                   </div>
                 </div>
