@@ -10,7 +10,8 @@ import {
   Upload, 
   User, 
   LogOut,
-  Gavel
+  Gavel,
+  Home
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -60,6 +61,11 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="text-gray-700 hover:text-electric-blue transition-colors flex items-center gap-2">
+              <Home className="w-4 h-4" />
+              Home
+            </Link>
+            
             <Link to="/marketplace" className="text-gray-700 hover:text-electric-blue transition-colors">
               Marketplace
             </Link>
@@ -116,6 +122,15 @@ const Navbar = () => {
         {isOpen && (
           <div className="md:hidden pb-4">
             <div className="flex flex-col space-y-2">
+              <Link 
+                to="/" 
+                className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors flex items-center gap-2"
+                onClick={() => setIsOpen(false)}
+              >
+                <Home className="w-4 h-4" />
+                Home
+              </Link>
+              
               <Link 
                 to="/marketplace" 
                 className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
