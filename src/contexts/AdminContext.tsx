@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,16 +26,21 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAdminStatus = async () => {
+    // SECURITY: Start with false and strict loading state
+    setIsAdmin(false);
+    setIsLoading(true);
+
     if (!user || !isAuthenticated) {
+      console.log('❌ AdminContext: No user or not authenticated');
       setIsAdmin(false);
       setIsLoading(false);
       return;
     }
 
     try {
-      console.log('🔍 Checking admin status for user:', user.id);
+      console.log('🔍 AdminContext: Checking admin status for user:', user.id, user.email);
 
-      // Method 1: Check user_roles table with maybeSingle
+      // Method 1: Check user_roles table with maybeSingle (most reliable)
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
@@ -45,24 +49,24 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         .maybeSingle();
 
       if (!roleError && roleData) {
-        console.log('✅ Admin verified via user_roles table');
+        console.log('✅ AdminContext: Admin verified via user_roles table');
         setIsAdmin(true);
         setIsLoading(false);
         return;
       }
 
-      // Method 2: Check with RPC function
+      // Method 2: Check with RPC function as backup
       const { data: rpcData, error: rpcError } = await supabase
         .rpc('verify_admin_access_secure', { user_id: user.id });
 
-      if (!rpcError && rpcData) {
-        console.log('✅ Admin verified via RPC function');
+      if (!rpcError && rpcData === true) {
+        console.log('✅ AdminContext: Admin verified via RPC function');
         setIsAdmin(true);
         setIsLoading(false);
         return;
       }
 
-      // Method 3: Check if user has any admin role (fallback)
+      // Method 3: Fallback check for any admin role
       const { data: anyAdminRole, error: anyAdminError } = await supabase
         .from('user_roles')
         .select('role')
@@ -71,15 +75,15 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         .limit(1);
 
       if (!anyAdminError && anyAdminRole && anyAdminRole.length > 0) {
-        console.log('✅ Admin verified via fallback check');
+        console.log('✅ AdminContext: Admin verified via fallback check');
         setIsAdmin(true);
       } else {
-        console.log('❌ No admin privileges found');
+        console.log('❌ AdminContext: No admin privileges found');
         setIsAdmin(false);
       }
 
     } catch (error) {
-      console.error('❌ Admin status check error:', error);
+      console.error('❌ AdminContext: Admin status check error:', error);
       setIsAdmin(false);
     } finally {
       setIsLoading(false);
@@ -87,14 +91,17 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const forceRefresh = async () => {
+    console.log('🔄 AdminContext: Force refreshing admin status');
     setIsLoading(true);
     await checkAdminStatus();
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
+      console.log('🔄 AdminContext: User authenticated, checking admin status');
       checkAdminStatus();
     } else {
+      console.log('❌ AdminContext: User not authenticated, clearing admin status');
       setIsAdmin(false);
       setIsLoading(false);
     }

@@ -8,14 +8,40 @@ import { Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const QuickAdminAccess = () => {
-  const { isAuthenticated } = useAuth();
-  const { isAdmin } = useAdmin();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
+  const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
 
-  // Only show if user is authenticated and admin
-  if (!isAuthenticated || !isAdmin) {
+  // Enhanced security checks with detailed logging
+  console.log('🔐 QuickAdminAccess Security Check:', {
+    isAuthenticated,
+    authLoading,
+    isAdmin,
+    adminLoading,
+    userId: user?.id,
+    userEmail: user?.email
+  });
+
+  // CRITICAL: Hide button during ANY loading state or if not authenticated
+  if (authLoading || adminLoading || !isAuthenticated || !user) {
+    console.log('❌ QuickAdminAccess: Hidden due to loading or no auth');
     return null;
   }
+
+  // CRITICAL: Only show if user is definitively admin (no ambiguity)
+  if (!isAdmin) {
+    console.log('❌ QuickAdminAccess: Hidden - user is not admin');
+    return null;
+  }
+
+  // Additional safety check - only proceed if all conditions are explicitly true
+  const isSafeToShow = isAuthenticated && !authLoading && !adminLoading && isAdmin && user;
+  if (!isSafeToShow) {
+    console.log('❌ QuickAdminAccess: Hidden due to safety check failure');
+    return null;
+  }
+
+  console.log('✅ QuickAdminAccess: Showing button for admin user:', user.email);
 
   const handleAdminAccess = () => {
     toast({
