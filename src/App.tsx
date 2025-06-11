@@ -6,10 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Marketplace from "./pages/Marketplace";
+import ActiveMarketplace from "./pages/ActiveMarketplace";
 import CoinUpload from "./pages/CoinUpload";
 import Profile from "./pages/Profile";
-import AdminPanel from "./pages/AdminPanel";
+import AdminPanelPage from "./pages/AdminPanelPage";
 import CoinDetails from "./pages/CoinDetails";
 
 const queryClient = new QueryClient();
@@ -24,10 +24,10 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/marketplace" element={<ActiveMarketplace />} />
               <Route path="/upload" element={<CoinUpload />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin" element={<AdminPanelPage />} />
               <Route path="/coin/:id" element={<CoinDetails />} />
             </Routes>
           </AuthProvider>
