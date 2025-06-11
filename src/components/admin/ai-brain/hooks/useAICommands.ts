@@ -225,7 +225,21 @@ export const useAICommands = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Create execution record first
+      // Get command details first
+      const { data: command, error: cmdError } = await supabase
+        .from('ai_commands')
+        .select('*')
+        .eq('id', commandId)
+        .single();
+
+      if (cmdError) {
+        console.error('❌ Failed to get command:', cmdError);
+        throw cmdError;
+      }
+
+      console.log('📋 Command details:', { name: command.name, site_url: command.site_url });
+
+      // Create execution record FIRST
       const { data: executionRecord, error: execError } = await supabase
         .from('ai_command_executions')
         .insert([{
@@ -244,25 +258,13 @@ export const useAICommands = () => {
 
       console.log('✅ Execution record created:', executionRecord.id);
 
-      // Get command details with site_url
-      const { data: command, error: cmdError } = await supabase
-        .from('ai_commands')
-        .select('*')
-        .eq('id', commandId)
-        .single();
-
-      if (cmdError) {
-        console.error('❌ Failed to get command:', cmdError);
-        throw cmdError;
-      }
-
-      // Execute command
       const startTime = Date.now();
       
-      let result;
       try {
-        // Check if command has site_url for parsing
-        if (command.site_url) {
+        let result;
+        
+        // Execute command based on whether it has site_url
+        if (command.site_url && command.site_url.trim()) {
           console.log('🔗 Command has site URL, calling parsing function:', command.site_url);
           
           const { data: parseResult, error: parseError } = await supabase.functions.invoke('parse-website', {
@@ -278,24 +280,21 @@ export const useAICommands = () => {
             throw parseError;
           }
 
-          result = {
-            data: parseResult || {
-              status: 'completed',
-              message: `Command "${command.name}" executed with website parsing`,
-              url: command.site_url,
-              timestamp: new Date().toISOString()
-            }
+          result = parseResult || {
+            status: 'completed',
+            message: `Website parsing completed for ${command.site_url}`,
+            url: command.site_url,
+            timestamp: new Date().toISOString()
           };
         } else {
-          // Regular command execution
-          console.log('⚡ Executing regular command...');
+          // Regular command execution without website parsing
+          console.log('⚡ Executing regular command without website parsing...');
           result = {
-            data: {
-              status: 'completed',
-              message: `Command "${command.name}" executed successfully`,
-              output: `Executed: ${command.code.substring(0, 200)}${command.code.length > 200 ? '...' : ''}`,
-              timestamp: new Date().toISOString()
-            }
+            status: 'completed',
+            message: `Command "${command.name}" executed successfully`,
+            output: `Executed instructions: ${command.code.substring(0, 200)}${command.code.length > 200 ? '...' : ''}`,
+            timestamp: new Date().toISOString(),
+            executionType: 'standard'
           };
         }
 
@@ -306,21 +305,22 @@ export const useAICommands = () => {
           .from('ai_command_executions')
           .update({
             execution_status: 'completed',
-            output_data: result.data,
+            output_data: result,
             execution_time_ms: executionTime
           })
           .eq('id', executionRecord.id);
 
         if (updateError) {
           console.error('❌ Failed to update execution record:', updateError);
+          // Don't throw here, just log the error
         }
 
-        console.log('✅ Command executed successfully:', result.data);
+        console.log('✅ Command executed successfully, execution time:', executionTime + 'ms');
         
         // Invalidate execution history queries
         queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
         
-        return result.data;
+        return result;
         
       } catch (error: any) {
         const executionTime = Date.now() - startTime;
@@ -345,6 +345,7 @@ export const useAICommands = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['ai-commands'] });
+      queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
       toast({
         title: "Command Executed",
         description: "AI command executed successfully.",

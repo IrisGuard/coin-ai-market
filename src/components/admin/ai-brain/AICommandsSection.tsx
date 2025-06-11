@@ -73,9 +73,11 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
 
   const handleExecuteCommand = async (commandId: string, inputData?: any) => {
     try {
+      console.log('🎯 AICommandsSection: Executing command:', commandId);
       await executeCommandMutation.mutateAsync({ commandId, inputData });
+      console.log('✅ AICommandsSection: Command execution completed');
     } catch (error) {
-      console.error('Failed to execute command:', error);
+      console.error('❌ AICommandsSection: Failed to execute command:', error);
     }
   };
 
@@ -194,11 +196,11 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
                   command={command}
                   onToggleActive={handleToggleActive}
                   onDelete={handleDeleteCommand}
-                  onUpdate={handleUpdateCommand}
+                  onEdit={setEditingCommand}
                   onExecute={handleExecuteCommand}
-                  isUpdating={updateCommandMutation.isPending}
-                  isDeleting={deleteCommandMutation.isPending}
+                  onViewHistory={handleViewHistory}
                   isExecuting={executeCommandMutation.isPending}
+                  isDeleting={deleteCommandMutation.isPending}
                 />
               ))}
             </div>
