@@ -1,246 +1,92 @@
+
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BarChart3, 
   Users, 
   Coins, 
-  Brain, 
-  Shield, 
-  Key, 
-  Gavel, 
-  Store, 
-  Bell, 
-  FileText, 
+  Store,
+  Brain,
+  Database,
+  Zap,
+  Bot,
+  TrendingUp,
+  Shield,
+  Key,
+  Gavel,
+  ShoppingCart,
+  Bell,
+  FileText,
   Settings,
   User,
-  Database,
-  Activity,
   Globe,
-  Search,
-  TrendingUp,
+  Eye,
   AlertTriangle,
-  Zap,
-  Target,
+  Activity,
+  UserCheck,
   Monitor,
-  Layers,
-  HardDrive,
-  Cpu,
-  WifiOff,
-  Clock,
-  BarChart2,
-  DollarSign,
-  MapPin,
-  Tags,
-  Server,
-  Palette
+  Search
 } from 'lucide-react';
 
 const AdminTabsList = () => {
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'users', label: 'Users', icon: Users },
+    { id: 'coins', label: 'Coins', icon: Coins },
+    { id: 'stores', label: 'Stores', icon: Store },
+    
+    // AI & Analysis Group
+    { id: 'ai-brain', label: 'AI Brain', icon: Brain },
+    { id: 'dual-analysis', label: 'Dual Analysis', icon: Eye },
+    { id: 'web-discovery', label: 'Web Discovery', icon: Globe },
+    { id: 'visual-matching', label: 'Visual Matching', icon: Search },
+    { id: 'error-detection', label: 'Error Detection', icon: AlertTriangle },
+    { id: 'market-intelligence', label: 'Market Intel', icon: TrendingUp },
+    
+    // Data & Sources Group
+    { id: 'data-sources', label: 'Data Sources', icon: Database },
+    { id: 'ai-performance', label: 'AI Performance', icon: Zap },
+    { id: 'automation', label: 'Automation', icon: Bot },
+    { id: 'predictions', label: 'Predictions', icon: TrendingUp },
+    
+    // System & Monitoring Group
+    { id: 'real-time-monitoring', label: 'Real-Time Monitor', icon: Monitor },
+    { id: 'user-activity', label: 'User Activity', icon: UserCheck },
+    { id: 'system-monitoring', label: 'System Monitor', icon: Activity },
+    
+    // Business Group
+    { id: 'categories', label: 'Categories', icon: Coins },
+    { id: 'revenue', label: 'Revenue', icon: TrendingUp },
+    { id: 'geography', label: 'Geography', icon: Globe },
+    { id: 'error-coins', label: 'Error Coins', icon: AlertTriangle },
+    { id: 'bulk-ops', label: 'Bulk Ops', icon: Database },
+    
+    // Core Admin Group
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'api-keys', label: 'API Keys', icon: Key },
+    { id: 'auctions', label: 'Auctions', icon: Gavel },
+    { id: 'marketplace', label: 'Marketplace', icon: ShoppingCart },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'logs', label: 'Logs', icon: FileText },
+    { id: 'transactions', label: 'Transactions', icon: TrendingUp },
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'profile', label: 'Profile', icon: User }
+  ];
+
   return (
-    <div className="space-y-4">
-      <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12 gap-1">
-        <TabsTrigger 
-          value="overview" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span className="hidden sm:inline">Overview</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="users" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Users className="h-4 w-4" />
-          <span className="hidden sm:inline">Users</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="coins" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Coins className="h-4 w-4" />
-          <span className="hidden sm:inline">Coins</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="stores" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Store className="h-4 w-4" />
-          <span className="hidden sm:inline">Stores</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="ai-brain" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Brain className="h-4 w-4" />
-          <span className="hidden sm:inline">AI Brain</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="data-sources" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Database className="h-4 w-4" />
-          <span className="hidden sm:inline">Data Sources</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="ai-performance" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Target className="h-4 w-4" />
-          <span className="hidden sm:inline">AI Performance</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="scraping" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">Scraping</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="automation" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Zap className="h-4 w-4" />
-          <span className="hidden sm:inline">Automation</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="predictions" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <TrendingUp className="h-4 w-4" />
-          <span className="hidden sm:inline">Predictions</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="system-monitoring" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Monitor className="h-4 w-4" />
-          <span className="hidden sm:inline">System</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="categories" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Tags className="h-4 w-4" />
-          <span className="hidden sm:inline">Categories</span>
-        </TabsTrigger>
-      </TabsList>
-
-      {/* Second row for additional tabs */}
-      <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12 gap-1">
-        <TabsTrigger 
-          value="security" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Shield className="h-4 w-4" />
-          <span className="hidden sm:inline">Security</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="analytics" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <BarChart2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Analytics</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="api-keys" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Key className="h-4 w-4" />
-          <span className="hidden sm:inline">API Keys</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="auctions" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Gavel className="h-4 w-4" />
-          <span className="hidden sm:inline">Auctions</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="marketplace" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Store className="h-4 w-4" />
-          <span className="hidden sm:inline">Marketplace</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="notifications" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="hidden sm:inline">Notifications</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="revenue" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <DollarSign className="h-4 w-4" />
-          <span className="hidden sm:inline">Revenue</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="geography" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <MapPin className="h-4 w-4" />
-          <span className="hidden sm:inline">Geography</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="error-coins" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <span className="hidden sm:inline">Error Coins</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="bulk-ops" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Layers className="h-4 w-4" />
-          <span className="hidden sm:inline">Bulk Ops</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="transactions" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <DollarSign className="h-4 w-4" />
-          <span className="hidden sm:inline">Transactions</span>
-        </TabsTrigger>
-        
-        <TabsTrigger 
-          value="logs" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Logs</span>
-        </TabsTrigger>
-
-        <TabsTrigger 
-          value="settings" 
-          className="flex items-center gap-2 text-xs lg:text-sm"
-        >
-          <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">Settings</span>
-        </TabsTrigger>
+    <div className="w-full">
+      <TabsList className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 h-auto p-1 bg-muted rounded-lg">
+        {tabs.map((tab) => (
+          <TabsTrigger
+            key={tab.id}
+            value={tab.id}
+            className="flex flex-col items-center gap-1 p-2 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            <tab.icon className="h-4 w-4" />
+            <span className="hidden sm:block">{tab.label}</span>
+          </TabsTrigger>
+        ))}
       </TabsList>
     </div>
   );

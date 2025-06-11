@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -30,6 +29,14 @@ import AdminAutomationTab from './tabs/AdminAutomationTab';
 import AdminPredictionsTab from './tabs/AdminPredictionsTab';
 import AdminTransactionsTab from './tabs/AdminTransactionsTab';
 import AdminStatusChecker from './AdminStatusChecker';
+
+// New tabs for Dual Analysis System
+import AdminDualAnalysisTab from './tabs/AdminDualAnalysisTab';
+import AdminWebDiscoveryTab from './tabs/AdminWebDiscoveryTab';
+import AdminVisualMatchingTab from './tabs/AdminVisualMatchingTab';
+import AdminRealTimeMonitoringTab from './tabs/AdminRealTimeMonitoringTab';
+import AdminUserActivityTab from './tabs/AdminUserActivityTab';
+import AdminMarketIntelligenceTab from './tabs/AdminMarketIntelligenceTab';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isLoading } = useAdmin();
@@ -108,16 +115,41 @@ const ConsolidatedAdminPanel = () => {
               />
             </TabsContent>
 
+            {/* New Dual Analysis System Tabs */}
+            <TabsContent value="dual-analysis" className="space-y-6">
+              <AdminDualAnalysisTab />
+            </TabsContent>
+
+            <TabsContent value="web-discovery" className="space-y-6">
+              <AdminWebDiscoveryTab />
+            </TabsContent>
+
+            <TabsContent value="visual-matching" className="space-y-6">
+              <AdminVisualMatchingTab />
+            </TabsContent>
+
+            <TabsContent value="error-detection" className="space-y-6">
+              <AdminErrorCoinsTab />
+            </TabsContent>
+
+            <TabsContent value="market-intelligence" className="space-y-6">
+              <AdminMarketIntelligenceTab />
+            </TabsContent>
+
+            <TabsContent value="real-time-monitoring" className="space-y-6">
+              <AdminRealTimeMonitoringTab />
+            </TabsContent>
+
+            <TabsContent value="user-activity" className="space-y-6">
+              <AdminUserActivityTab />
+            </TabsContent>
+
             <TabsContent value="data-sources" className="space-y-6">
               <AdminDataSourcesTab />
             </TabsContent>
 
             <TabsContent value="ai-performance" className="space-y-6">
               <AdminAIPerformanceTab />
-            </TabsContent>
-
-            <TabsContent value="scraping" className="space-y-6">
-              <AdminDataSourcesTab />
             </TabsContent>
 
             <TabsContent value="automation" className="space-y-6">
