@@ -29,10 +29,13 @@ import CustomSourceManager from './CustomSourceManager';
 import { useRealExternalSources } from '@/hooks/useRealExternalSources';
 
 // Define proper Source interface for GeographicSourceMap
-interface Source {
+interface GeographicSource {
   id: string;
   name: string;
-  location: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
   type: string;
   reliability_score?: number;
 }
@@ -51,13 +54,16 @@ const EnhancedSourcesManager = () => {
 
   const activeSources = sources?.filter(s => s.is_active)?.length || 0;
   const avgReliability = sources?.length ? 
-    (sources.reduce((sum, s) => sum + (s.reliability_score || 0), 0) / sources.length * 100) : 0;
+    (sources.reduce((sum: number, s) => sum + (s.reliability_score || 0), 0) / sources.length * 100) : 0;
 
   // Transform sources for GeographicSourceMap component
-  const transformedSources: Source[] = sources?.map(source => ({
+  const transformedSources: GeographicSource[] = sources?.map(source => ({
     id: source.id,
     name: source.source_name,
-    location: 'Global', // Default location since we don't have specific locations
+    location: {
+      lat: 40.7128, // Default to NYC coordinates
+      lng: -74.0060
+    },
     type: source.source_type,
     reliability_score: source.reliability_score
   })) || [];

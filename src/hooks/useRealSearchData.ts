@@ -22,9 +22,13 @@ export const useRealSearchData = () => {
         .order('views', { ascending: false });
 
       // Process trending searches from analytics events
-      const searchTerms = searchEvents?.map(event => 
-        event.metadata?.search_term || event.metadata?.query
-      ).filter(Boolean) || [];
+      const searchTerms = searchEvents?.map(event => {
+        if (event.metadata && typeof event.metadata === 'object') {
+          const metadata = event.metadata as Record<string, any>;
+          return metadata.search_term || metadata.query;
+        }
+        return null;
+      }).filter((term): term is string => Boolean(term)) || [];
       
       const searchCounts = searchTerms.reduce((acc: Record<string, number>, term: string) => {
         acc[term] = (acc[term] || 0) + 1;
@@ -32,7 +36,7 @@ export const useRealSearchData = () => {
       }, {});
 
       const trendingSearches = Object.entries(searchCounts)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 8)
         .map(([term]) => term);
 
@@ -58,7 +62,7 @@ export const useRealSearchData = () => {
       }, {}) || {};
 
       const hotCategories = Object.entries(categoryViews)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 4)
         .map(([category]) => category);
 
@@ -67,7 +71,7 @@ export const useRealSearchData = () => {
         hotCategories,
         searchAnalytics: Object.entries(searchCounts).map(([term, count]) => ({
           search_term: term,
-          search_count: count
+          search_count: count as number
         }))
       };
     },
