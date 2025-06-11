@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,13 +55,16 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching commands:', error);
+        console.error('Error fetching AI commands:', error);
         throw error;
       }
       
-      console.log('Commands fetched:', data);
-      return data as AICommand[];
+      console.log('AI Commands fetched successfully:', data?.length || 0, 'commands');
+      console.log('Commands data:', data);
+      return data as AICommand[] || [];
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const createCommandMutation = useMutation({
@@ -198,6 +200,7 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
   };
 
   if (error) {
+    console.error('AI Commands error:', error);
     return (
       <Card>
         <CardHeader>
@@ -206,6 +209,14 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
         <CardContent>
           <div className="text-center py-8 text-red-600">
             Error loading commands: {error.message}
+            <div className="mt-4">
+              <Button 
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['ai-commands'] })}
+                variant="outline"
+              >
+                Retry Loading
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -227,6 +238,8 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
     );
   }
 
+  const activeCommandsCount = commands.filter(c => c.is_active).length;
+
   return (
     <Card>
       <CardHeader>
@@ -235,7 +248,7 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
             <CardTitle className="flex items-center gap-2">
               AI Commands
               <Badge variant="secondary">{commands.length} Total</Badge>
-              <Badge variant="default">{commands.filter(c => c.is_active).length} Active</Badge>
+              <Badge variant="default">{activeCommandsCount} Active</Badge>
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Manage AI commands that control the brain's behavior

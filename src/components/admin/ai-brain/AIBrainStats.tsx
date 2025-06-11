@@ -11,35 +11,64 @@ const AIBrainStats = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['ai-brain-stats'],
     queryFn: async () => {
+      console.log('Fetching AI Brain stats...');
+      
       // Get AI Commands stats
-      const { data: commands } = await supabase
+      const { data: commands, error: commandsError } = await supabase
         .from('ai_commands')
         .select('*');
       
+      if (commandsError) {
+        console.error('Error fetching commands:', commandsError);
+      }
+      
       // Get Automation Rules stats
-      const { data: rules } = await supabase
+      const { data: rules, error: rulesError } = await supabase
         .from('automation_rules')
         .select('*');
       
+      if (rulesError) {
+        console.error('Error fetching rules:', rulesError);
+      }
+      
       // Get Prediction Models stats
-      const { data: models } = await supabase
+      const { data: models, error: modelsError } = await supabase
         .from('prediction_models')
         .select('*');
       
+      if (modelsError) {
+        console.error('Error fetching models:', modelsError);
+      }
+      
       // Get recent executions
-      const { data: executions } = await supabase
+      const { data: executions, error: executionsError } = await supabase
         .from('ai_command_executions')
         .select('*')
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
       
-      return {
+      if (executionsError) {
+        console.error('Error fetching executions:', executionsError);
+      }
+      
+      const result = {
         commands: commands || [],
         rules: rules || [],
         models: models || [],
         executions: executions || []
       };
+      
+      console.log('AI Brain stats fetched:', {
+        commandsCount: result.commands.length,
+        rulesCount: result.rules.length,
+        modelsCount: result.models.length,
+        executionsCount: result.executions.length
+      });
+      
+      return result;
     },
     refetchInterval: 10000, // Refresh every 10 seconds
+    retry: 3,
+    retryDelay: 1000,
   });
 
   if (isLoading) {
