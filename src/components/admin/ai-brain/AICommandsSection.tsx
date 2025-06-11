@@ -96,14 +96,6 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
     }
   };
 
-  const handleUpdateCommand = async (id: string, updates: Partial<AICommand>) => {
-    try {
-      await updateCommandMutation.mutateAsync({ id, updates });
-    } catch (error) {
-      console.error('Failed to update command:', error);
-    }
-  };
-
   if (error) {
     return (
       <Card className="border-red-200">
