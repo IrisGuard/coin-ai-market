@@ -526,5 +526,3 @@ const AdminDataSourcesTab = () => {
 };
 
 export default AdminDataSourcesTab;
-
-</edits_to_apply>
