@@ -41,7 +41,22 @@ const AdminSecurityTab = () => {
       }
       
       console.log('✅ Security validation result:', data);
-      setSecurityStatus(data as SecurityValidation);
+      
+      // Safely convert the data with proper type checking
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        const validatedData = data as Record<string, any>;
+        const securityData: SecurityValidation = {
+          status: validatedData.status || 'unknown',
+          issues: Array.isArray(validatedData.issues) ? validatedData.issues : [],
+          warnings_resolved: Boolean(validatedData.warnings_resolved),
+          security_level: validatedData.security_level || undefined,
+          otp_config: validatedData.otp_config || undefined,
+          otp_expiry: validatedData.otp_expiry || undefined,
+          leaked_password_protection: Boolean(validatedData.leaked_password_protection),
+          validated_at: validatedData.validated_at || undefined
+        };
+        setSecurityStatus(securityData);
+      }
       
     } catch (error) {
       console.error('Security validation failed:', error);

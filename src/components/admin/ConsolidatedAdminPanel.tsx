@@ -24,7 +24,11 @@ const ConsolidatedAdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   if (!isAdminAuthenticated) {
-    return <SecureAdminWrapper />;
+    return (
+      <SecureAdminWrapper>
+        <div />
+      </SecureAdminWrapper>
+    );
   }
 
   return (
