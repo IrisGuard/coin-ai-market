@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -45,17 +44,22 @@ const Navbar = () => {
             </Link>
 
             {/* Desktop Navigation Links - Only Public Links */}
-            <div className="hidden lg:flex items-center space-x-6">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`flex items-center gap-2 ${link.color} transition-colors font-medium`}
-                >
-                  <link.icon className="w-4 h-4" />
-                  {link.label}
-                </Link>
-              ))}
+            <div className="hidden md:flex space-x-8">
+              <Link to="/" className="text-gray-700 hover:text-purple-600">Home</Link>
+              <Link to="/marketplace" className="text-gray-700 hover:text-purple-600">Marketplace</Link>
+              <Link to="/auctions" className="text-gray-700 hover:text-purple-600">Auctions</Link>
+              <Link to="/dual-analysis" className="text-gray-700 hover:text-purple-600 font-medium">
+                🔍 AI Analysis
+              </Link>
+              {user && (
+                <>
+                  <Link to="/upload" className="text-gray-700 hover:text-purple-600">Upload</Link>
+                  <Link to="/profile" className="text-gray-700 hover:text-purple-600">Profile</Link>
+                  {(user.user_metadata?.role === 'admin' || user.user_metadata?.role === 'dealer') && (
+                    <Link to="/admin" className="text-gray-700 hover:text-purple-600">Admin</Link>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
