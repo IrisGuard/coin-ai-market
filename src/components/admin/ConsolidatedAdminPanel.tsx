@@ -24,7 +24,10 @@ import AdminErrorCoinsTab from './tabs/AdminErrorCoinsTab';
 import AdminRevenueTab from './tabs/AdminRevenueTab';
 import AdminGeographyTab from './tabs/AdminGeographyTab';
 import AdminBulkOperationsTab from './tabs/AdminBulkOperationsTab';
-import AdminSystemMonitoringTab from './tabs/AdminSystemMonitoringTab';
+import AdminSystemMonitoringTab;
+import AdminAutomationTab from './tabs/AdminAutomationTab';
+import AdminPredictionsTab from './tabs/AdminPredictionsTab';
+import AdminTransactionsTab from './tabs/AdminTransactionsTab';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isLoading } = useAdmin();
@@ -113,17 +116,11 @@ const ConsolidatedAdminPanel = () => {
             </TabsContent>
 
             <TabsContent value="automation" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">Automation Rules</h3>
-                <p className="text-muted-foreground">Automation management coming soon...</p>
-              </div>
+              <AdminAutomationTab />
             </TabsContent>
 
             <TabsContent value="predictions" className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">AI Predictions</h3>
-                <p className="text-muted-foreground">Prediction management coming soon...</p>
-              </div>
+              <AdminPredictionsTab />
             </TabsContent>
 
             <TabsContent value="system-monitoring" className="space-y-6">
@@ -180,6 +177,10 @@ const ConsolidatedAdminPanel = () => {
             
             <TabsContent value="settings" className="space-y-6">
               <AdminSettingsTab />
+            </TabsContent>
+
+            <TabsContent value="transactions" className="space-y-6">
+              <AdminTransactionsTab />
             </TabsContent>
           </Tabs>
         </div>

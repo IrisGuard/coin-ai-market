@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -220,13 +219,21 @@ const AdminTabsList = () => {
         </TabsTrigger>
         
         <TabsTrigger 
+          value="transactions" 
+          className="flex items-center gap-2 text-xs lg:text-sm"
+        >
+          <DollarSign className="h-4 w-4" />
+          <span className="hidden sm:inline">Transactions</span>
+        </TabsTrigger>
+        
+        <TabsTrigger 
           value="logs" 
           className="flex items-center gap-2 text-xs lg:text-sm"
         >
           <FileText className="h-4 w-4" />
           <span className="hidden sm:inline">Logs</span>
         </TabsTrigger>
-        
+
         <TabsTrigger 
           value="settings" 
           className="flex items-center gap-2 text-xs lg:text-sm"
