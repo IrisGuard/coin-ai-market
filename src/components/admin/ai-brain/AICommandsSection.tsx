@@ -83,6 +83,25 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
     setHistoryCommand({ id: command.id, name: command.name });
   };
 
+  const handleToggleActive = async (command: AICommand) => {
+    try {
+      await updateCommandMutation.mutateAsync({
+        id: command.id,
+        updates: { is_active: !command.is_active }
+      });
+    } catch (error) {
+      console.error('Failed to toggle command active state:', error);
+    }
+  };
+
+  const handleUpdateCommand = async (id: string, updates: Partial<AICommand>) => {
+    try {
+      await updateCommandMutation.mutateAsync({ id, updates });
+    } catch (error) {
+      console.error('Failed to update command:', error);
+    }
+  };
+
   if (error) {
     return (
       <Card className="border-red-200">
@@ -173,12 +192,13 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
                 <CommandCard
                   key={command.id}
                   command={command}
-                  onEdit={setEditingCommand}
+                  onToggleActive={handleToggleActive}
                   onDelete={handleDeleteCommand}
+                  onUpdate={handleUpdateCommand}
                   onExecute={handleExecuteCommand}
-                  onViewHistory={handleViewHistory}
-                  isExecuting={executeCommandMutation.isPending}
+                  isUpdating={updateCommandMutation.isPending}
                   isDeleting={deleteCommandMutation.isPending}
+                  isExecuting={executeCommandMutation.isPending}
                 />
               ))}
             </div>
