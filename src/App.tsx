@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -25,6 +24,7 @@ import MarketplacePanelPage from "./pages/MarketplacePanelPage";
 import CoinDetails from "./pages/CoinDetails";
 import Auctions from "./pages/Auctions";
 import AIFeatures from "./pages/AIFeatures";
+import QuickAdminAccess from "@/components/admin/QuickAdminAccess";
 
 const queryClient = new QueryClient();
 
@@ -151,6 +151,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <AdminKeyboardHandler />
+                <QuickAdminAccess />
               </AdminProvider>
             </AuthProvider>
           </BrowserRouter>
