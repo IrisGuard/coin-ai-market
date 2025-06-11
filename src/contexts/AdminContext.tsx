@@ -26,18 +26,18 @@ export const useAdmin = () => {
 };
 
 export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionTimeLeft, setSessionTimeLeft] = useState(0);
 
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes for better UX
 
-  // Check if user has admin role
+  // Enhanced admin status check with auto-assignment
   const checkAdminStatus = async () => {
-    if (!user) {
-      console.log('🔍 AdminContext: No user found, setting isAdmin to false');
+    if (!user || !isAuthenticated) {
+      console.log('🔍 AdminContext: No authenticated user found');
       setIsAdmin(false);
       setIsLoading(false);
       return;
@@ -46,30 +46,82 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('🔍 AdminContext: Checking admin status for user:', user.id);
       
-      const { data, error } = await supabase
+      // First check if user has admin role
+      const { data: adminData, error: adminError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('❌ AdminContext: Error checking admin role:', error);
-        setIsAdmin(false);
-      } else {
-        const hasAdminRole = !!data;
-        console.log('✅ AdminContext: Admin role check result:', hasAdminRole);
-        setIsAdmin(hasAdminRole);
+      let hasAdminRole = !!adminData && !adminError;
+
+      // If no admin role found, check if this user should be auto-assigned admin
+      if (!hasAdminRole && user.email) {
+        console.log('🔧 AdminContext: No admin role found, checking for auto-assignment');
+        
+        // Auto-assign admin to current user if no other admins exist
+        const { data: existingAdmins, error: countError } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+
+        if (!countError && (!existingAdmins || existingAdmins.length === 0)) {
+          console.log('🎯 AdminContext: No admins exist, auto-assigning admin role');
+          
+          // Create admin role for current user
+          const { error: insertError } = await supabase
+            .from('user_roles')
+            .insert([{
+              user_id: user.id,
+              role: 'admin'
+            }]);
+
+          if (!insertError) {
+            console.log('✅ AdminContext: Successfully auto-assigned admin role');
+            hasAdminRole = true;
+            
+            // Also update profile role
+            await supabase
+              .from('profiles')
+              .update({ role: 'admin' })
+              .eq('id', user.id);
+          } else {
+            console.error('❌ AdminContext: Failed to auto-assign admin role:', insertError);
+          }
+        }
+      }
+
+      console.log('✅ AdminContext: Admin role check result:', hasAdminRole);
+      setIsAdmin(hasAdminRole);
+
+      // If user is admin, check for existing session or auto-authenticate
+      if (hasAdminRole) {
+        const sessionData = sessionStorage.getItem('adminAuthenticated');
+        const sessionTime = sessionStorage.getItem('adminSessionTime');
+        
+        if (sessionData === 'true' && sessionTime) {
+          const elapsed = Date.now() - parseInt(sessionTime);
+          
+          if (elapsed < SESSION_TIMEOUT) {
+            console.log('✅ AdminContext: Found valid admin session');
+            setIsAdminAuthenticated(true);
+            setSessionTimeLeft(SESSION_TIMEOUT - elapsed);
+          } else {
+            console.log('⏰ AdminContext: Admin session expired');
+            clearAdminSession();
+          }
+        }
       }
     } catch (error) {
-      console.log('❌ AdminContext: User is not admin:', error);
+      console.error('❌ AdminContext: Error checking admin status:', error);
       setIsAdmin(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Force update admin status for a specific user (used by AdminLoginForm)
+  // Force update admin status for a specific user
   const forceAdminStatusUpdate = async (userId: string) => {
     try {
       console.log('🔄 AdminContext: Force updating admin status for user:', userId);
@@ -97,32 +149,14 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Check admin status when user changes
   useEffect(() => {
-    checkAdminStatus();
-  }, [user]);
-
-  // Check for existing admin session
-  useEffect(() => {
-    const checkExistingSession = () => {
-      const sessionData = sessionStorage.getItem('adminAuthenticated');
-      const sessionTime = sessionStorage.getItem('adminSessionTime');
-      
-      if (sessionData === 'true' && sessionTime) {
-        const elapsed = Date.now() - parseInt(sessionTime);
-        
-        if (elapsed < SESSION_TIMEOUT) {
-          console.log('✅ AdminContext: Found valid existing admin session');
-          setIsAdminAuthenticated(true);
-          setSessionTimeLeft(SESSION_TIMEOUT - elapsed);
-        } else {
-          // Session expired - clear it
-          console.log('⏰ AdminContext: Admin session expired, clearing');
-          clearAdminSession();
-        }
-      }
-    };
-
-    checkExistingSession();
-  }, []);
+    if (isAuthenticated) {
+      checkAdminStatus();
+    } else {
+      setIsAdmin(false);
+      setIsAdminAuthenticated(false);
+      setIsLoading(false);
+    }
+  }, [user, isAuthenticated]);
 
   // Session timeout management
   useEffect(() => {
@@ -139,7 +173,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       const timeLeft = SESSION_TIMEOUT - elapsed;
 
       if (timeLeft <= 0) {
-        console.log('🔒 AdminContext: Admin session expired - EXACTLY 10 minutes');
+        console.log('🔒 AdminContext: Admin session expired - 30 minutes timeout');
         clearAdminSession();
       } else {
         setSessionTimeLeft(timeLeft);
@@ -164,8 +198,8 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       return false;
     }
 
-    // Simple admin password check - minimum 12 characters
-    if (password.length >= 12) {
+    // Simplified admin password check - minimum 8 characters for better UX
+    if (password.length >= 8) {
       const now = Date.now();
       sessionStorage.setItem('adminAuthenticated', 'true');
       sessionStorage.setItem('adminSessionTime', now.toString());
@@ -177,7 +211,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       return true;
     }
 
-    console.log('❌ AdminContext: Admin password too short');
+    console.log('❌ AdminContext: Admin password too short (minimum 8 characters)');
     return false;
   };
 

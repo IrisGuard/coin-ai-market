@@ -47,7 +47,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
   });
 
   // Show loading state if auth or role is still being determined
-  if (loading || adminLoading || (requireDealer && roleLoading)) {
+  if (loading || (requireAdmin && adminLoading) || (requireDealer && roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireAdmin = false, re
     );
   }
 
-  // For admin routes - check both admin role AND admin authentication
+  // For admin routes - check admin role AND admin authentication
   if (requireAdmin) {
     if (!isAuthenticated) {
       console.log('❌ User not authenticated, redirecting to auth');

@@ -1,39 +1,65 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/contexts/AuthContext';
 import AdminLoginForm from './AdminLoginForm';
 
 const AdminKeyboardHandler = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const navigate = useNavigate();
-  const { isAdminAuthenticated } = useAdmin();
+  const location = useLocation();
+  const { isAdminAuthenticated, isAdmin, isLoading } = useAdmin();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // ONLY Ctrl+Alt+A - NOTHING ELSE
+      // ONLY Ctrl+Alt+A for admin access
       if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
         console.log('🔑 Admin keyboard shortcut detected: Ctrl+Alt+A');
         event.preventDefault();
         
+        // Check if user is authenticated first
+        if (!isAuthenticated) {
+          console.log('❌ User not authenticated, redirecting to auth page');
+          navigate('/auth');
+          return;
+        }
+
+        // If loading, wait a moment
+        if (isLoading) {
+          console.log('⏳ Admin status loading, please wait...');
+          return;
+        }
+
+        // Check if user is admin
+        if (!isAdmin) {
+          console.log('❌ User is not admin');
+          alert('Access denied: Admin privileges required');
+          return;
+        }
+
+        // If admin and already authenticated, go to admin panel
         if (isAdminAuthenticated) {
-          console.log('✅ User is already admin authenticated, navigating to admin panel');
-          navigate('/admin');
+          console.log('✅ Admin already authenticated, navigating to admin panel');
+          if (location.pathname !== '/admin') {
+            navigate('/admin');
+          }
         } else {
-          console.log('🔐 User not admin authenticated, showing admin login form');
+          console.log('🔐 Admin needs authentication, showing login form');
           setShowAdminLogin(true);
         }
       }
     };
 
-    console.log('🎯 AdminKeyboardHandler: Adding keyboard event listener for Ctrl+Alt+A ONLY');
+    console.log('🎯 AdminKeyboardHandler: Adding keyboard event listener for Ctrl+Alt+A');
     document.addEventListener('keydown', handleKeyDown);
     
     return () => {
       console.log('🔌 AdminKeyboardHandler: Removing keyboard event listener');
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigate, isAdminAuthenticated]);
+  }, [navigate, isAdminAuthenticated, isAdmin, isLoading, isAuthenticated, location.pathname]);
 
   const handleAdminLoginClose = () => {
     console.log('❌ Admin login form closing');

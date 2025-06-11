@@ -15,7 +15,6 @@ import AdminMarketplaceTab from './tabs/AdminMarketplaceTab';
 import AdminNotificationsTab from './tabs/AdminNotificationsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
-import AdminKeyboardHandler from './AdminKeyboardHandler';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isAdminAuthenticated, isLoading } = useAdmin();
@@ -39,16 +38,15 @@ const ConsolidatedAdminPanel = () => {
     );
   }
 
-  // At this point, ProtectedRoute should have already handled these checks
-  // But we keep them as a safety net
+  // Safety net - these should be handled by ProtectedRoute, but keep as backup
   if (!isAdmin || !isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center space-y-4">
           <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-foreground">Unauthorized Access</h2>
+          <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
           <p className="text-muted-foreground">
-            This should not happen. Please contact support if you see this message.
+            Admin authentication required. Press Ctrl+Alt+A to authenticate.
           </p>
         </div>
       </div>
@@ -58,7 +56,6 @@ const ConsolidatedAdminPanel = () => {
   // Render the full admin panel
   return (
     <div className="min-h-screen bg-background">
-      <AdminKeyboardHandler />
       <div className="container mx-auto py-8 px-4">
         <AdminPanelHeader />
         
