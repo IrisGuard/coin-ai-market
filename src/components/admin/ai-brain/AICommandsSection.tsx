@@ -96,6 +96,11 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
     }
   };
 
+  // Fixed: Pass the command to the edit handler
+  const handleEditClick = (command: AICommand) => {
+    setEditingCommand(command);
+  };
+
   if (error) {
     return (
       <Card className="border-red-200">
@@ -188,7 +193,7 @@ const AICommandsSection: React.FC<AICommandsSectionProps> = ({ searchTerm, setSe
                   command={command}
                   onToggleActive={handleToggleActive}
                   onDelete={handleDeleteCommand}
-                  onEdit={setEditingCommand}
+                  onEdit={handleEditClick}
                   onExecute={handleExecuteCommand}
                   onViewHistory={handleViewHistory}
                   isExecuting={executeCommandMutation.isPending}
