@@ -1765,6 +1765,7 @@ export type Database = {
           supported_currencies: string[] | null
           template_id: string | null
           update_frequency_hours: number | null
+          updated_at: string | null
         }
         Insert: {
           base_url: string
@@ -1787,6 +1788,7 @@ export type Database = {
           supported_currencies?: string[] | null
           template_id?: string | null
           update_frequency_hours?: number | null
+          updated_at?: string | null
         }
         Update: {
           base_url?: string
@@ -1809,6 +1811,7 @@ export type Database = {
           supported_currencies?: string[] | null
           template_id?: string | null
           update_frequency_hours?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
