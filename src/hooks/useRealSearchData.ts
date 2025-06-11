@@ -6,12 +6,13 @@ export const useRealSearchData = () => {
   return useQuery({
     queryKey: ['real-search-data'],
     queryFn: async () => {
-      // Get trending searches from search analytics
-      const { data: searchAnalytics } = await supabase
-        .from('search_analytics')
-        .select('search_term, search_count')
-        .order('search_count', { ascending: false })
-        .limit(8);
+      // Get trending searches from analytics events instead of search_analytics table
+      const { data: searchEvents } = await supabase
+        .from('analytics_events')
+        .select('metadata')
+        .eq('event_type', 'search_performed')
+        .order('timestamp', { ascending: false })
+        .limit(100);
 
       // Get popular categories from coin views
       const { data: coinViews } = await supabase
@@ -20,8 +21,23 @@ export const useRealSearchData = () => {
         .gt('views', 0)
         .order('views', { ascending: false });
 
-      // Process trending searches
-      const trendingSearches = searchAnalytics?.map(item => item.search_term) || [
+      // Process trending searches from analytics events
+      const searchTerms = searchEvents?.map(event => 
+        event.metadata?.search_term || event.metadata?.query
+      ).filter(Boolean) || [];
+      
+      const searchCounts = searchTerms.reduce((acc: Record<string, number>, term: string) => {
+        acc[term] = (acc[term] || 0) + 1;
+        return acc;
+      }, {});
+
+      const trendingSearches = Object.entries(searchCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 8)
+        .map(([term]) => term);
+
+      // Fallback trending searches if no data
+      const fallbackSearches = [
         'Morgan Silver Dollar',
         'Mercury Dime',
         'Buffalo Nickel',
@@ -31,6 +47,8 @@ export const useRealSearchData = () => {
         'Standing Liberty Quarter',
         'Barber Dime'
       ];
+
+      const finalTrendingSearches = trendingSearches.length > 0 ? trendingSearches : fallbackSearches;
 
       // Get most viewed categories
       const categoryViews = coinViews?.reduce((acc: Record<string, number>, coin) => {
@@ -45,9 +63,12 @@ export const useRealSearchData = () => {
         .map(([category]) => category);
 
       return {
-        trendingSearches,
+        trendingSearches: finalTrendingSearches,
         hotCategories,
-        searchAnalytics: searchAnalytics || []
+        searchAnalytics: Object.entries(searchCounts).map(([term, count]) => ({
+          search_term: term,
+          search_count: count
+        }))
       };
     },
     refetchInterval: 300000 // Update every 5 minutes

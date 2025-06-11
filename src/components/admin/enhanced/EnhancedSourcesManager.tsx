@@ -28,6 +28,15 @@ import GeographicSourceMap from './GeographicSourceMap';
 import CustomSourceManager from './CustomSourceManager';
 import { useRealExternalSources } from '@/hooks/useRealExternalSources';
 
+// Define proper Source interface for GeographicSourceMap
+interface Source {
+  id: string;
+  name: string;
+  location: string;
+  type: string;
+  reliability_score?: number;
+}
+
 const EnhancedSourcesManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { data: sources, isLoading } = useRealExternalSources();
@@ -43,6 +52,15 @@ const EnhancedSourcesManager = () => {
   const activeSources = sources?.filter(s => s.is_active)?.length || 0;
   const avgReliability = sources?.length ? 
     (sources.reduce((sum, s) => sum + (s.reliability_score || 0), 0) / sources.length * 100) : 0;
+
+  // Transform sources for GeographicSourceMap component
+  const transformedSources: Source[] = sources?.map(source => ({
+    id: source.id,
+    name: source.source_name,
+    location: 'Global', // Default location since we don't have specific locations
+    type: source.source_type,
+    reliability_score: source.reliability_score
+  })) || [];
 
   return (
     <div className="space-y-6">
@@ -213,7 +231,7 @@ const EnhancedSourcesManager = () => {
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicSourceMap sources={sources || []} />
+          <GeographicSourceMap sources={transformedSources} />
         </TabsContent>
       </Tabs>
     </div>
