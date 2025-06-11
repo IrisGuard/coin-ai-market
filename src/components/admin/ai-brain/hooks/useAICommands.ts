@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -39,14 +38,13 @@ export const useAICommands = () => {
       
       console.log('✅ Admin access verified, fetching commands...');
       
-      // Optimized query - only fetch preview of code field for performance
+      // Optimized query - select specific fields for performance
       const { data, error } = await supabase
         .from('ai_commands')
         .select(`
           id, 
           name, 
           description, 
-          LEFT(code, 300) as code_preview,
           code,
           category, 
           command_type, 
