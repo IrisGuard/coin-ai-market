@@ -164,11 +164,16 @@ export const useEnhancedAICommands = (category?: string) => {
     }
   });
 
+  // Create a wrapper function that matches the expected signature
+  const executeCommand = async (commandId: string, inputData?: any) => {
+    return executeCommandMutation.mutateAsync({ commandId, inputData });
+  };
+
   return {
     commands: commandsQuery.data || [],
     isLoading: commandsQuery.isLoading,
     error: commandsQuery.error,
-    executeCommand: executeCommandMutation.mutateAsync,
+    executeCommand,
     isExecuting: executeCommandMutation.isPending
   };
 };
