@@ -1,107 +1,178 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Gavel, Brain, Store, Home, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { 
+  Menu, 
+  X, 
+  Coins, 
+  Store, 
+  Upload, 
+  User, 
+  LogOut,
+  Settings
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useI18n } from '@/hooks/useI18n';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
-  const { t } = useI18n();
+  const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Get user role
+  const { data: userRole } = useQuery({
+    queryKey: ['userRole', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data?.role;
+    },
+    enabled: !!user?.id,
+  });
 
   const handleLogout = async () => {
     await logout();
-    setIsMobileMenuOpen(false);
+    navigate('/');
   };
 
-  const navLinks = [
-    { to: "/", icon: Home, label: "Home", color: "text-electric-blue hover:text-electric-purple" },
-    { to: "/marketplace", icon: Store, label: "Marketplace", color: "text-electric-orange hover:text-electric-red" },
-    { to: "/auctions", icon: Gavel, label: "Auctions", color: "text-electric-green hover:text-electric-emerald" },
-    { to: "/ai-features", icon: Brain, label: "AI Features", color: "text-electric-purple hover:text-electric-pink" },
-  ];
-
   return (
-    <>
-      <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm"
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-electric-blue to-electric-purple rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-                CoinAI
-              </span>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-electric-blue to-cyber-purple rounded-lg flex items-center justify-center">
+              <Coins className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-electric-blue to-cyber-purple bg-clip-text text-transparent">
+              CoinVault
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/marketplace" className="text-gray-700 hover:text-electric-blue transition-colors">
+              Marketplace
             </Link>
-
-            {/* Desktop Navigation Links - Only Public Links */}
-            <div className="hidden md:flex space-x-8">
-              <Link to="/" className="text-gray-700 hover:text-purple-600">Home</Link>
-              <Link to="/marketplace" className="text-gray-700 hover:text-purple-600">Marketplace</Link>
-              <Link to="/auctions" className="text-gray-700 hover:text-purple-600">Auctions</Link>
-              <Link to="/dual-analysis" className="text-gray-700 hover:text-purple-600 font-medium">
-                🔍 AI Analysis
+            
+            {isAuthenticated && userRole === 'dealer' && (
+              <Link to="/upload" className="text-gray-700 hover:text-electric-blue transition-colors">
+                Upload Coins
               </Link>
-              {user && (
-                <>
-                  <Link to="/upload" className="text-gray-700 hover:text-purple-600">Upload</Link>
-                  <Link to="/profile" className="text-gray-700 hover:text-purple-600">Profile</Link>
-                  {(user.user_metadata?.role === 'admin' || user.user_metadata?.role === 'dealer') && (
-                    <Link to="/admin" className="text-gray-700 hover:text-purple-600">Admin</Link>
-                  )}
-                </>
-              )}
-            </div>
+            )}
 
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-electric-blue"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            </div>
+            {isAuthenticated && userRole === 'admin' && (
+              <Link to="/admin" className="text-gray-700 hover:text-electric-blue transition-colors">
+                Admin Panel
+              </Link>
+            )}
+
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Link to="/auth">
+                <Button>Sign In</Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
-      </motion.nav>
 
-      {/* Mobile Menu - Only Public Links */}
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="lg:hidden bg-white border-b border-gray-200 shadow-lg"
-        >
-          <div className="container mx-auto px-4 py-4 space-y-4">
-            {/* Mobile Navigation Links - Only Public Links */}
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center gap-3 p-2 rounded-lg ${link.color} transition-colors font-medium`}
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden pb-4">
+            <div className="flex flex-col space-y-2">
+              <Link 
+                to="/marketplace" 
+                className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
+                onClick={() => setIsOpen(false)}
               >
-                <link.icon className="w-5 h-5" />
-                {link.label}
+                Marketplace
               </Link>
-            ))}
+              
+              {isAuthenticated && userRole === 'dealer' && (
+                <Link 
+                  to="/upload" 
+                  className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Upload Coins
+                </Link>
+              )}
+
+              {isAuthenticated && userRole === 'admin' && (
+                <Link 
+                  to="/admin" 
+                  className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Admin Panel
+                </Link>
+              )}
+
+              {isAuthenticated ? (
+                <>
+                  <Link 
+                    to="/profile" 
+                    className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="px-3 py-2 text-left text-gray-700 hover:text-electric-blue transition-colors"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  to="/auth"
+                  className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
           </div>
-        </motion.div>
-      )}
-    </>
+        )}
+      </div>
+    </nav>
   );
 };
 

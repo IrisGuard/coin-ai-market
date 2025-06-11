@@ -6,10 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import CoinUploadHeader from '@/components/upload/CoinUploadHeader';
-import CoinUploadFeatures from '@/components/upload/CoinUploadFeatures';
-import BulkCoinUploadManager from '@/components/mobile/BulkCoinUploadManager';
-import CoinUploadTips from '@/components/upload/CoinUploadTips';
+import AdvancedDealerUploadPanel from '@/components/dealer/AdvancedDealerUploadPanel';
 
 const CoinUpload = () => {
   const { isAuthenticated, user } = useAuth();
@@ -60,17 +57,12 @@ const CoinUpload = () => {
         <div className="mesh-bg"></div>
         
         <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
-          <CoinUploadHeader />
-          <CoinUploadFeatures />
-
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="space-y-8"
+            transition={{ duration: 0.8 }}
           >
-            <BulkCoinUploadManager />
-            <CoinUploadTips />
+            <AdvancedDealerUploadPanel />
           </motion.div>
         </div>
       </div>
