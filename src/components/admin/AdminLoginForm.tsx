@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, Clock, Mail, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminLoginFormProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface AdminLoginFormProps {
 }
 
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { isAdmin, isAdminAuthenticated, authenticateAdmin, sessionTimeLeft, checkAdminStatus } = useAdmin();
+  const { isAdminAuthenticated, authenticateAdmin, sessionTimeLeft } = useAdmin();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,6 +25,28 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState<'login' | 'admin_auth'>('login');
+
+  // Direct admin role check from database
+  const checkAdminRoleDirectly = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ Error checking admin role:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('❌ Error in admin role check:', error);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,30 +56,32 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
     try {
       if (step === 'login') {
         // First step: Regular user login
-        await login(email, password);
-        console.log('✅ User logged in, checking admin status...');
+        const { data: authData, error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (loginError) {
+          throw loginError;
+        }
+
+        if (!authData.user) {
+          throw new Error('Login failed - no user data returned');
+        }
+
+        console.log('✅ User logged in, checking admin role...');
         
-        // Check admin status immediately after login
-        await checkAdminStatus();
+        // Check admin role directly from database
+        const hasAdminRole = await checkAdminRoleDirectly(authData.user.id);
         
-        // Wait a moment for state to update, then check admin role
-        setTimeout(async () => {
-          // Re-check admin status to ensure it's updated
-          await checkAdminStatus();
-          
-          // Now check if user has admin role from the context
-          if (isAdmin) {
-            console.log('✅ User has admin role, proceeding to admin auth step');
-            setStep('admin_auth');
-            setPassword(''); // Clear password for admin auth step
-          } else {
-            console.log('❌ User does not have admin role');
-            setError('Access denied. This account does not have administrative privileges.');
-          }
-          setIsAuthenticating(false);
-        }, 1000);
-        
-        return; // Don't set isAuthenticating to false here, let setTimeout handle it
+        if (hasAdminRole) {
+          console.log('✅ User has admin role, proceeding to admin auth step');
+          setStep('admin_auth');
+          setPassword(''); // Clear password for admin auth step
+        } else {
+          console.log('❌ User does not have admin role');
+          setError('Access denied. This account does not have administrative privileges.');
+        }
       } else {
         // Second step: Admin authentication
         const success = await authenticateAdmin(password);
@@ -83,12 +108,12 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
         errorMessage = 'Invalid email or password. Please check your credentials.';
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and confirm your account before signing in.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
       }
       
       setError(errorMessage);
-    }
-    
-    if (step !== 'login') {
+    } finally {
       setIsAuthenticating(false);
     }
   };
