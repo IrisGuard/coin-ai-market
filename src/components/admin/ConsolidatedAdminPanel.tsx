@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAdmin } from '@/contexts/AdminContext';
 import AdminPanelHeader from './AdminPanelHeader';
@@ -17,91 +16,46 @@ import AdminNotificationsTab from './tabs/AdminNotificationsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import AdminKeyboardHandler from './AdminKeyboardHandler';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isAdminAuthenticated, isLoading } = useAdmin();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [sessionStorageAuth, setSessionStorageAuth] = useState(false);
 
-  // Check sessionStorage for fallback authentication state
-  useEffect(() => {
-    const checkSessionAuth = () => {
-      const sessionAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
-      const sessionTime = sessionStorage.getItem('adminSessionTime');
-      
-      if (sessionAuth && sessionTime) {
-        const elapsed = Date.now() - parseInt(sessionTime);
-        const isSessionValid = elapsed < (10 * 60 * 1000); // 10 minutes
-        setSessionStorageAuth(isSessionValid);
-        
-        // If sessionStorage says we're authenticated but context doesn't, add sync delay
-        if (isSessionValid && !isAdminAuthenticated && !isSyncing) {
-          console.log('🔄 Detected timing mismatch - adding sync delay for context propagation');
-          setIsSyncing(true);
-          setTimeout(() => {
-            setIsSyncing(false);
-          }, 500);
-        }
-      } else {
-        setSessionStorageAuth(false);
-      }
-    };
-
-    checkSessionAuth();
-    
-    // Check periodically for session changes
-    const interval = setInterval(checkSessionAuth, 1000);
-    return () => clearInterval(interval);
-  }, [isAdminAuthenticated, isSyncing]);
+  console.log('🎛️ ConsolidatedAdminPanel render:', {
+    isAdmin,
+    isAdminAuthenticated,
+    isLoading
+  });
 
   // Show loading state while checking admin status
-  if (isLoading || isSyncing) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>{isSyncing ? 'Synchronizing admin session...' : 'Validating admin access...'}</p>
+          <p>Validating admin access...</p>
         </div>
       </div>
     );
   }
 
-  // Check if user has admin role first
-  if (!isAdmin) {
+  // At this point, ProtectedRoute should have already handled these checks
+  // But we keep them as a safety net
+  if (!isAdmin || !isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Access Denied</strong>
-            <p className="mt-1">Administrative privileges required to access this content.</p>
-          </AlertDescription>
-        </Alert>
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-foreground">Unauthorized Access</h2>
+          <p className="text-muted-foreground">
+            This should not happen. Please contact support if you see this message.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Check authentication with fallback to sessionStorage
-  const isAuthenticated = isAdminAuthenticated || sessionStorageAuth;
-  
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Admin Authentication Required</strong>
-            <p className="mt-1">Please use Ctrl+Alt+A to access the admin panel.</p>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  // Both checks passed - render the full admin panel
+  // Render the full admin panel
   return (
     <div className="min-h-screen bg-background">
       <AdminKeyboardHandler />

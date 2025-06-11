@@ -117,9 +117,7 @@ const App = () => {
                       path="/admin" 
                       element={
                         <ProtectedRoute requireAdmin={true}>
-                          <ErrorBoundaryWrapper>
-                            <AdminPanelPage />
-                          </ErrorBoundaryWrapper>
+                          <AdminPanelPage />
                         </ProtectedRoute>
                       } 
                     />

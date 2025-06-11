@@ -37,14 +37,14 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   // Check if user has admin role
   const checkAdminStatus = async () => {
     if (!user) {
-      console.log('🔍 No user found, setting isAdmin to false');
+      console.log('🔍 AdminContext: No user found, setting isAdmin to false');
       setIsAdmin(false);
       setIsLoading(false);
       return;
     }
 
     try {
-      console.log('🔍 Checking admin status for user:', user.id);
+      console.log('🔍 AdminContext: Checking admin status for user:', user.id);
       
       const { data, error } = await supabase
         .from('user_roles')
@@ -54,15 +54,15 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('❌ Error checking admin role:', error);
+        console.error('❌ AdminContext: Error checking admin role:', error);
         setIsAdmin(false);
       } else {
         const hasAdminRole = !!data;
-        console.log('✅ Admin role check result:', hasAdminRole);
+        console.log('✅ AdminContext: Admin role check result:', hasAdminRole);
         setIsAdmin(hasAdminRole);
       }
     } catch (error) {
-      console.log('❌ User is not admin:', error);
+      console.log('❌ AdminContext: User is not admin:', error);
       setIsAdmin(false);
     } finally {
       setIsLoading(false);
@@ -72,7 +72,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   // Force update admin status for a specific user (used by AdminLoginForm)
   const forceAdminStatusUpdate = async (userId: string) => {
     try {
-      console.log('🔄 Force updating admin status for user:', userId);
+      console.log('🔄 AdminContext: Force updating admin status for user:', userId);
       
       const { data, error } = await supabase
         .from('user_roles')
@@ -82,15 +82,15 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('❌ Error in force admin status update:', error);
+        console.error('❌ AdminContext: Error in force admin status update:', error);
         setIsAdmin(false);
       } else {
         const hasAdminRole = !!data;
-        console.log('✅ Force admin status update result:', hasAdminRole);
+        console.log('✅ AdminContext: Force admin status update result:', hasAdminRole);
         setIsAdmin(hasAdminRole);
       }
     } catch (error) {
-      console.error('❌ Error in force admin status update:', error);
+      console.error('❌ AdminContext: Error in force admin status update:', error);
       setIsAdmin(false);
     }
   };
@@ -100,7 +100,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     checkAdminStatus();
   }, [user]);
 
-  // Check for existing admin session ONLY - no auto-authentication
+  // Check for existing admin session
   useEffect(() => {
     const checkExistingSession = () => {
       const sessionData = sessionStorage.getItem('adminAuthenticated');
@@ -110,10 +110,12 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         const elapsed = Date.now() - parseInt(sessionTime);
         
         if (elapsed < SESSION_TIMEOUT) {
+          console.log('✅ AdminContext: Found valid existing admin session');
           setIsAdminAuthenticated(true);
           setSessionTimeLeft(SESSION_TIMEOUT - elapsed);
         } else {
           // Session expired - clear it
+          console.log('⏰ AdminContext: Admin session expired, clearing');
           clearAdminSession();
         }
       }
@@ -137,7 +139,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       const timeLeft = SESSION_TIMEOUT - elapsed;
 
       if (timeLeft <= 0) {
-        console.log('🔒 Admin session expired - EXACTLY 10 minutes');
+        console.log('🔒 AdminContext: Admin session expired - EXACTLY 10 minutes');
         clearAdminSession();
       } else {
         setSessionTimeLeft(timeLeft);
@@ -158,7 +160,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
   const authenticateAdmin = async (password: string): Promise<boolean> => {
     if (!isAdmin) {
-      console.log('❌ User is not admin, cannot authenticate');
+      console.log('❌ AdminContext: User is not admin, cannot authenticate');
       return false;
     }
 
@@ -169,17 +171,18 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       sessionStorage.setItem('adminSessionTime', now.toString());
       sessionStorage.setItem('adminLastActivity', now.toString());
       
-      console.log('✅ Admin authenticated successfully');
+      console.log('✅ AdminContext: Admin authenticated successfully');
       setIsAdminAuthenticated(true);
       setSessionTimeLeft(SESSION_TIMEOUT);
       return true;
     }
 
-    console.log('❌ Admin password too short');
+    console.log('❌ AdminContext: Admin password too short');
     return false;
   };
 
   const logoutAdmin = () => {
+    console.log('🚪 AdminContext: Admin logged out');
     clearAdminSession();
   };
 
