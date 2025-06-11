@@ -1,147 +1,165 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface CreateAdminResult {
-  success: boolean;
-  message: string;
-  userId?: string;
-}
-
-/**
- * Creates the first admin user by updating the user_roles table directly
- * This should be used only for initial setup
- */
-export const createFirstAdmin = async (adminEmail: string): Promise<CreateAdminResult> => {
+// Check if user has admin role
+export const checkAdminRole = async (userId: string): Promise<boolean> => {
   try {
-    // Find user by email in profiles table
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('email', adminEmail)
-      .single();
-
-    if (profileError || !profile) {
-      return {
-        success: false,
-        message: `User with email ${adminEmail} not found. Please create an account first.`
-      };
-    }
-
-    // Check if admin role already exists using the updated function
-    const { data: isAlreadyAdmin, error: adminCheckError } = await supabase
-      .rpc('is_admin_user', { user_id: profile.id });
-
-    if (adminCheckError) {
-      return {
-        success: false,
-        message: `Error checking existing admin status: ${adminCheckError.message}`
-      };
-    }
-
-    if (isAlreadyAdmin) {
-      return {
-        success: false,
-        message: `User ${adminEmail} is already an admin.`
-      };
-    }
-
-    // Create admin role in user_roles table
-    const { error: insertError } = await supabase
-      .from('user_roles')
-      .insert([{
-        user_id: profile.id,
-        role: 'admin'
-      }]);
-
-    if (insertError) {
-      return {
-        success: false,
-        message: `Error creating admin: ${insertError.message}`
-      };
-    }
-
-    // Also add to admin_roles table for compatibility
-    await supabase
-      .from('admin_roles')
-      .insert([{
-        user_id: profile.id,
-        role: 'admin'
-      }]);
-
-    return {
-      success: true,
-      message: `Successfully created admin user for ${adminEmail}`,
-      userId: profile.id
-    };
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return {
-      success: false,
-      message: `Unexpected error: ${errorMessage}`
-    };
-  }
-};
-
-/**
- * Checks if the current user is an admin using the secure function
- */
-export const checkAdminStatus = async (): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
+    console.log('🔍 Checking admin role for user:', userId);
+    
     // First check user_roles table
-    const { data: userRole, error: userRoleError } = await supabase
+    const { data: userRole, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('role', 'admin')
-      .single();
+      .maybeSingle();
 
-    if (!userRoleError && userRole) {
-      return true;
-    }
-
-    // Fallback to admin_roles table
-    const { data, error } = await supabase
-      .rpc('is_admin_user', { user_id: user.id });
-
-    if (error) {
-      console.error('Error checking admin status:', error);
+    if (roleError) {
+      console.error('❌ Error checking user role:', roleError);
       return false;
     }
 
-    return !!data;
+    if (userRole) {
+      console.log('✅ User has admin role in user_roles');
+      return true;
+    }
+
+    // Fallback: Check using the admin verification function
+    const { data, error } = await supabase.rpc('verify_admin_access_secure');
+    
+    if (error) {
+      console.error('❌ Error calling verify_admin_access_secure:', error);
+      return false;
+    }
+
+    console.log('✅ Admin verification result:', data);
+    return Boolean(data);
   } catch (error) {
-    console.error('Unexpected error checking admin status:', error);
+    console.error('❌ Admin role check failed:', error);
     return false;
   }
 };
 
-/**
- * Development utility to help set up the first admin
- */
-export const logAdminSetupInstructions = () => {
-  console.log(`
-🔧 ADMIN SETUP INSTRUCTIONS:
+// Get current user's admin status
+export const getCurrentUserAdminStatus = async (): Promise<boolean> => {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('❌ Error getting current user:', userError);
+      return false;
+    }
 
-1. Create a user account through the normal signup process
-2. Open browser console and run:
-   
-   // Replace with your email
-   const result = await window.createFirstAdmin('your-email@example.com');
-   console.log(result);
-
-3. If successful, refresh the page and try accessing admin features with Ctrl+Alt+A
-
-Note: The createFirstAdmin function is available in development console
-`);
+    return await checkAdminRole(user.id);
+  } catch (error) {
+    console.error('❌ Failed to get current user admin status:', error);
+    return false;
+  }
 };
 
-// Make function available in development console
-if (typeof window !== 'undefined') {
-  const windowAny = window as any;
-  windowAny.createFirstAdmin = createFirstAdmin;
-  windowAny.checkAdminStatus = checkAdminStatus;
-}
+// Enhanced admin check with multiple verification methods
+export const verifyAdminAccess = async (): Promise<boolean> => {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.log('❌ No authenticated user found');
+      return false;
+    }
+
+    // Method 1: Direct user_roles check
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (!roleError && roleData) {
+      console.log('✅ Admin verified via user_roles table');
+      return true;
+    }
+
+    // Method 2: RPC function check
+    const { data: rpcData, error: rpcError } = await supabase.rpc('verify_admin_access_secure');
+    
+    if (!rpcError && rpcData) {
+      console.log('✅ Admin verified via RPC function');
+      return true;
+    }
+
+    // Method 3: Manual admin_roles table check (if it exists)
+    try {
+      const { data: adminRoleData, error: adminRoleError } = await supabase
+        .from('admin_roles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!adminRoleError && adminRoleData) {
+        console.log('✅ Admin verified via admin_roles table');
+        return true;
+      }
+    } catch (adminTableError) {
+      console.log('ℹ️ admin_roles table check failed (table may not exist)');
+    }
+
+    console.log('❌ Admin verification failed - user is not admin');
+    return false;
+  } catch (error) {
+    console.error('❌ Admin verification error:', error);
+    return false;
+  }
+};
+
+// Setup admin user (for first-time setup)
+export const setupAdminUser = async (userId: string): Promise<boolean> => {
+  try {
+    console.log('🔧 Setting up admin user:', userId);
+    
+    // Insert or update user role
+    const { error } = await supabase
+      .from('user_roles')
+      .upsert({ 
+        user_id: userId, 
+        role: 'admin',
+        assigned_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('❌ Error setting up admin user:', error);
+      return false;
+    }
+
+    console.log('✅ Admin user setup completed');
+    return true;
+  } catch (error) {
+    console.error('❌ Admin setup failed:', error);
+    return false;
+  }
+};
+
+// Log admin activity
+export const logAdminActivity = async (
+  action: string, 
+  details?: Record<string, any>
+): Promise<void> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return;
+
+    await supabase
+      .from('admin_activity_logs')
+      .insert({
+        admin_user_id: user.id,
+        action,
+        details: details || {},
+        timestamp: new Date().toISOString()
+      });
+
+    console.log('📝 Admin activity logged:', action);
+  } catch (error) {
+    console.error('❌ Failed to log admin activity:', error);
+  }
+};
