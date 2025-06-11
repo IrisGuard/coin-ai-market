@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +23,7 @@ interface ExecutionRecord {
   input_data: any;
   output_data: any;
   user_id: string | null;
-  completed_at: string | null;
+  completed_at?: string | null;
 }
 
 const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
@@ -56,7 +55,12 @@ const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
       }
       
       console.log('✅ Execution history fetched:', data?.length || 0, 'records');
-      setExecutions(data || []);
+      // Map the data to ensure completed_at field exists
+      const mappedData = (data || []).map(item => ({
+        ...item,
+        completed_at: item.completed_at || null
+      }));
+      setExecutions(mappedData);
     } catch (error) {
       console.error('❌ Failed to fetch execution history:', error);
     } finally {
