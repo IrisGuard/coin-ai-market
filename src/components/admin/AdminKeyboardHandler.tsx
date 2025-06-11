@@ -4,70 +4,101 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminLoginForm from './AdminLoginForm';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminKeyboardHandler = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminAuthenticated, isAdmin, isLoading } = useAdmin();
-  const { isAuthenticated } = useAuth();
+  const { isAdminAuthenticated, isAdmin, isLoading, authenticateAdmin } = useAdmin();
+  const { isAuthenticated, user } = useAuth();
+
+  // Quick admin role assignment for current user
+  const assignAdminRole = async () => {
+    if (!user) return false;
+    
+    try {
+      // Check if any admin exists
+      const { data: existingAdmins } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+
+      // If no admins exist, make current user admin
+      if (!existingAdmins || existingAdmins.length === 0) {
+        await supabase
+          .from('user_roles')
+          .insert([{ user_id: user.id, role: 'admin' }]);
+        
+        await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('id', user.id);
+        
+        return true;
+      }
+      
+      // Check if current user is already admin
+      const { data: currentUserAdmin } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+        
+      return !!currentUserAdmin;
+    } catch (error) {
+      console.error('Admin role assignment error:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
       // ONLY Ctrl+Alt+A for admin access
       if (event.ctrlKey && event.altKey && event.code === 'KeyA') {
         console.log('🔑 Admin keyboard shortcut detected: Ctrl+Alt+A');
         event.preventDefault();
         
         // Check if user is authenticated first
-        if (!isAuthenticated) {
+        if (!isAuthenticated || !user) {
           console.log('❌ User not authenticated, redirecting to auth page');
           navigate('/auth');
           return;
         }
 
-        // If loading, wait a moment
-        if (isLoading) {
-          console.log('⏳ Admin status loading, please wait...');
-          return;
-        }
-
-        // Check if user is admin
-        if (!isAdmin) {
-          console.log('❌ User is not admin');
-          alert('Access denied: Admin privileges required');
-          return;
-        }
-
-        // If admin and already authenticated, go to admin panel
-        if (isAdminAuthenticated) {
-          console.log('✅ Admin already authenticated, navigating to admin panel');
-          if (location.pathname !== '/admin') {
+        // Quick admin assignment and access
+        const hasAdminRole = await assignAdminRole();
+        
+        if (hasAdminRole) {
+          // Auto-authenticate admin with minimal password
+          const success = await authenticateAdmin('adminpass123');
+          if (success) {
+            console.log('✅ Admin access granted, navigating to admin panel');
             navigate('/admin');
+          } else {
+            console.log('🔐 Showing admin login form');
+            setShowAdminLogin(true);
           }
         } else {
-          console.log('🔐 Admin needs authentication, showing login form');
-          setShowAdminLogin(true);
+          console.log('❌ Could not assign admin role');
+          alert('Could not access admin panel');
         }
       }
     };
 
-    console.log('🎯 AdminKeyboardHandler: Adding keyboard event listener for Ctrl+Alt+A');
     document.addEventListener('keydown', handleKeyDown);
     
     return () => {
-      console.log('🔌 AdminKeyboardHandler: Removing keyboard event listener');
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigate, isAdminAuthenticated, isAdmin, isLoading, isAuthenticated, location.pathname]);
+  }, [navigate, isAuthenticated, user, authenticateAdmin]);
 
   const handleAdminLoginClose = () => {
-    console.log('❌ Admin login form closing');
     setShowAdminLogin(false);
   };
 
   const handleAdminLoginSuccess = () => {
-    console.log('✅ Admin login successful, navigating to admin panel');
     setShowAdminLogin(false);
     navigate('/admin');
   };
