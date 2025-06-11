@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAdmin } from '@/contexts/AdminContext';
 import AdminPanelHeader from './AdminPanelHeader';
@@ -23,14 +23,47 @@ import { AlertTriangle } from 'lucide-react';
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isAdminAuthenticated, isLoading } = useAdmin();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [sessionStorageAuth, setSessionStorageAuth] = useState(false);
+
+  // Check sessionStorage for fallback authentication state
+  useEffect(() => {
+    const checkSessionAuth = () => {
+      const sessionAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
+      const sessionTime = sessionStorage.getItem('adminSessionTime');
+      
+      if (sessionAuth && sessionTime) {
+        const elapsed = Date.now() - parseInt(sessionTime);
+        const isSessionValid = elapsed < (10 * 60 * 1000); // 10 minutes
+        setSessionStorageAuth(isSessionValid);
+        
+        // If sessionStorage says we're authenticated but context doesn't, add sync delay
+        if (isSessionValid && !isAdminAuthenticated && !isSyncing) {
+          console.log('🔄 Detected timing mismatch - adding sync delay for context propagation');
+          setIsSyncing(true);
+          setTimeout(() => {
+            setIsSyncing(false);
+          }, 500);
+        }
+      } else {
+        setSessionStorageAuth(false);
+      }
+    };
+
+    checkSessionAuth();
+    
+    // Check periodically for session changes
+    const interval = setInterval(checkSessionAuth, 1000);
+    return () => clearInterval(interval);
+  }, [isAdminAuthenticated, isSyncing]);
 
   // Show loading state while checking admin status
-  if (isLoading) {
+  if (isLoading || isSyncing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Validating admin access...</p>
+          <p>{isSyncing ? 'Synchronizing admin session...' : 'Validating admin access...'}</p>
         </div>
       </div>
     );
@@ -51,8 +84,10 @@ const ConsolidatedAdminPanel = () => {
     );
   }
 
-  // Check if admin is authenticated with admin password
-  if (!isAdminAuthenticated) {
+  // Check authentication with fallback to sessionStorage
+  const isAuthenticated = isAdminAuthenticated || sessionStorageAuth;
+  
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <Alert variant="destructive" className="max-w-md">
