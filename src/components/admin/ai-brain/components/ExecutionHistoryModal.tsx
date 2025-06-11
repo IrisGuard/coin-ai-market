@@ -21,7 +21,6 @@ interface ExecutionRecord {
   execution_time_ms: number;
   error_message: string | null;
   created_at: string;
-  completed_at: string | null;
   input_data: any;
   output_data: any;
 }
@@ -42,7 +41,7 @@ const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
     try {
       const { data, error } = await supabase
         .from('ai_command_executions')
-        .select('id, execution_status, execution_time_ms, error_message, created_at, completed_at, input_data, output_data')
+        .select('id, execution_status, execution_time_ms, error_message, created_at, input_data, output_data')
         .eq('command_id', commandId)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -157,11 +156,6 @@ const ExecutionHistoryModal: React.FC<ExecutionHistoryModalProps> = ({
 
                   <div className="text-xs text-muted-foreground pt-2 border-t">
                     Started: {new Date(execution.created_at).toLocaleString()}
-                    {execution.completed_at && (
-                      <span className="ml-4">
-                        Completed: {new Date(execution.completed_at).toLocaleString()}
-                      </span>
-                    )}
                   </div>
                 </div>
               ))}
