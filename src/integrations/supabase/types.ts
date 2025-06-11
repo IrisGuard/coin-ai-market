@@ -3441,6 +3441,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      resolve_security_warnings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       set_tenant_context: {
         Args: { tenant_uuid: string }
         Returns: undefined
