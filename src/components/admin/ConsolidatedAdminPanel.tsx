@@ -17,6 +17,9 @@ import AdminNotificationsTab from './tabs/AdminNotificationsTab';
 import AdminLogsTab from './tabs/AdminLogsTab';
 import AdminSettingsTab from './tabs/AdminSettingsTab';
 import AdminProfileTab from './tabs/AdminProfileTab';
+import AdminStoresTab from './tabs/AdminStoresTab';
+import AdminAIPerformanceTab from './tabs/AdminAIPerformanceTab';
+import AdminDataSourcesTab from './tabs/AdminDataSourcesTab';
 
 const ConsolidatedAdminPanel = () => {
   const { isAdmin, isLoading } = useAdmin();
@@ -80,12 +83,84 @@ const ConsolidatedAdminPanel = () => {
             <TabsContent value="coins" className="space-y-6">
               <AdminCoinsSection />
             </TabsContent>
+
+            <TabsContent value="stores" className="space-y-6">
+              <AdminStoresTab />
+            </TabsContent>
             
             <TabsContent value="ai-brain" className="space-y-6">
               <AICommandsSection 
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
               />
+            </TabsContent>
+
+            <TabsContent value="data-sources" className="space-y-6">
+              <AdminDataSourcesTab />
+            </TabsContent>
+
+            <TabsContent value="ai-performance" className="space-y-6">
+              <AdminAIPerformanceTab />
+            </TabsContent>
+
+            <TabsContent value="scraping" className="space-y-6">
+              <AdminDataSourcesTab />
+            </TabsContent>
+
+            <TabsContent value="automation" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">Automation Rules</h3>
+                <p className="text-muted-foreground">Automation management coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="predictions" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">AI Predictions</h3>
+                <p className="text-muted-foreground">Prediction management coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="system-monitoring" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">System Monitoring</h3>
+                <p className="text-muted-foreground">System monitoring dashboard coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="categories" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">Categories Management</h3>
+                <p className="text-muted-foreground">Categories management coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="revenue" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">Revenue Analytics</h3>
+                <p className="text-muted-foreground">Revenue analytics coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="geography" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">Geographic Regions</h3>
+                <p className="text-muted-foreground">Geographic management coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="error-coins" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">Error Coins Knowledge</h3>
+                <p className="text-muted-foreground">Error coins database coming soon...</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="bulk-ops" className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold mb-2">Bulk Operations</h3>
+                <p className="text-muted-foreground">Bulk operations interface coming soon...</p>
+              </div>
             </TabsContent>
             
             <TabsContent value="security" className="space-y-6">
@@ -114,10 +189,6 @@ const ConsolidatedAdminPanel = () => {
             
             <TabsContent value="logs" className="space-y-6">
               <AdminLogsTab />
-            </TabsContent>
-            
-            <TabsContent value="profile" className="space-y-6">
-              <AdminProfileTab />
             </TabsContent>
             
             <TabsContent value="settings" className="space-y-6">
