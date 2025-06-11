@@ -1,12 +1,20 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const uploadImage = async (file: File, bucket: string = 'coin-images'): Promise<string> => {
   try {
-    // Generate unique filename
+    // Generate unique filename with dealer prefix
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = fileName;
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(7);
+    const fileName = `${timestamp}-${random}.${fileExt}`;
+    
+    // Create dealer-specific path
+    const { data: { user } } = await supabase.auth.getUser();
+    const filePath = bucket === 'dealer-uploads' 
+      ? `${user?.id}/${fileName}` 
+      : fileName;
+
+    console.log(`📁 Uploading to ${bucket}/${filePath}`);
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -20,6 +28,7 @@ export const uploadImage = async (file: File, bucket: string = 'coin-images'): P
       .from(bucket)
       .getPublicUrl(filePath);
 
+    console.log(`✅ Image uploaded successfully: ${publicUrl}`);
     return publicUrl;
   } catch (error) {
     console.error('Image upload failed:', error);
