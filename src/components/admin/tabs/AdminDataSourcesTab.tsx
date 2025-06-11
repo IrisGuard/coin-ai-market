@@ -15,12 +15,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-interface UpdateDataSourceParams {
-  sourceId: string;
-  updates: Record<string, any>;
-  table: string;
-}
-
 const AdminDataSourcesTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
@@ -98,13 +92,20 @@ const AdminDataSourcesTab = () => {
   });
 
   const updateDataSourceMutation = useMutation({
-    mutationFn: async ({ sourceId, updates, table }: UpdateDataSourceParams) => {
-      const { error } = await supabase
-        .from(table)
-        .update(updates)
-        .eq('id', sourceId);
-      
-      if (error) throw error;
+    mutationFn: async ({ sourceId, updates, tableType }: { sourceId: string; updates: Record<string, any>; tableType: 'data_sources' | 'external_price_sources' }) => {
+      if (tableType === 'data_sources') {
+        const { error } = await supabase
+          .from('data_sources')
+          .update(updates)
+          .eq('id', sourceId);
+        if (error) throw error;
+      } else if (tableType === 'external_price_sources') {
+        const { error } = await supabase
+          .from('external_price_sources')
+          .update(updates)
+          .eq('id', sourceId);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-data-sources'] });
@@ -313,7 +314,7 @@ const AdminDataSourcesTab = () => {
                                       updateDataSourceMutation.mutate({
                                         sourceId: source.id,
                                         updates: { is_active: checked },
-                                        table: 'data_sources'
+                                        tableType: 'data_sources'
                                       })
                                     }
                                   />
@@ -340,7 +341,7 @@ const AdminDataSourcesTab = () => {
                               updateDataSourceMutation.mutate({
                                 sourceId: source.id,
                                 updates: { is_active: !source.is_active },
-                                table: 'data_sources'
+                                tableType: 'data_sources'
                               })
                             }
                           >
