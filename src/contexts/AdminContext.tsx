@@ -34,32 +34,41 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   const SESSION_TIMEOUT = 10 * 60 * 1000; // EXACTLY 10 minutes
 
   // Check if user has admin role
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      console.log('🔍 Checking admin status for user:', user.id);
+      
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      } else {
+        const hasAdminRole = !!data;
+        console.log('✅ Admin role check result:', hasAdminRole);
+        setIsAdmin(hasAdminRole);
+      }
+    } catch (error) {
+      console.log('User is not admin:', error);
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user) {
-        setIsAdmin(false);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
-
-        setIsAdmin(!!data);
-      } catch (error) {
-        console.log('User is not admin');
-        setIsAdmin(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAdminRole();
+    checkAdminStatus();
   }, [user]);
 
   // Check for existing admin session ONLY - no auto-authentication
@@ -119,7 +128,10 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const authenticateAdmin = async (password: string): Promise<boolean> => {
-    if (!isAdmin) return false;
+    if (!isAdmin) {
+      console.log('❌ User is not admin, cannot authenticate');
+      return false;
+    }
 
     // Simple admin password check - minimum 12 characters
     if (password.length >= 12) {
@@ -128,33 +140,18 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
       sessionStorage.setItem('adminSessionTime', now.toString());
       sessionStorage.setItem('adminLastActivity', now.toString());
       
+      console.log('✅ Admin authenticated successfully');
       setIsAdminAuthenticated(true);
       setSessionTimeLeft(SESSION_TIMEOUT);
       return true;
     }
 
+    console.log('❌ Admin password too short');
     return false;
   };
 
   const logoutAdmin = () => {
     clearAdminSession();
-  };
-
-  const checkAdminStatus = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
-
-      setIsAdmin(!!data);
-    } catch (error) {
-      setIsAdmin(false);
-    }
   };
 
   const updateAdminProfile = async (data: { fullName: string; email: string }) => {

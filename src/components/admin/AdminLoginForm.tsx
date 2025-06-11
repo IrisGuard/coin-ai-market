@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Eye, EyeOff, Clock } from 'lucide-react';
+import { Shield, Eye, EyeOff, Clock, Mail, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface AdminLoginFormProps {
@@ -15,11 +16,14 @@ interface AdminLoginFormProps {
 }
 
 const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { isAdmin, authenticateAdmin, sessionTimeLeft } = useAdmin();
+  const { isAdmin, isAdminAuthenticated, authenticateAdmin, sessionTimeLeft } = useAdmin();
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState('');
+  const [step, setStep] = useState<'login' | 'admin_auth'>('login');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,47 +31,65 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
     setIsAuthenticating(true);
 
     try {
-      const success = await authenticateAdmin(password);
-      
-      if (success) {
-        toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the admin panel. Session expires in 10 minutes.",
-        });
-        setPassword('');
-        onSuccess?.();
+      if (step === 'login') {
+        // First step: Regular user login
+        await login(email, password);
+        console.log('✅ User logged in, checking admin status...');
+        
+        // Check if user has admin role after login
+        // Give a moment for the context to update
+        setTimeout(async () => {
+          const { checkAdminStatus } = useAdmin();
+          await checkAdminStatus();
+          
+          if (isAdmin) {
+            setStep('admin_auth');
+            setPassword(''); // Clear password for admin auth step
+          } else {
+            setError('Access denied. This account does not have administrative privileges.');
+          }
+        }, 500);
       } else {
-        setError('Invalid admin password. Password must be at least 12 characters.');
+        // Second step: Admin authentication
+        const success = await authenticateAdmin(password);
+        
+        if (success) {
+          toast({
+            title: "Admin Access Granted",
+            description: "Welcome to the admin panel. Session expires in 10 minutes.",
+          });
+          setEmail('');
+          setPassword('');
+          setStep('login');
+          onSuccess?.();
+        } else {
+          setError('Invalid admin password. Password must be at least 12 characters.');
+        }
       }
-    } catch (error) {
-      setError('Authentication failed. Please try again.');
+    } catch (error: any) {
+      console.error('Authentication error:', error);
+      
+      let errorMessage = 'Authentication failed. Please check your credentials.';
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and confirm your account before signing in.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsAuthenticating(false);
     }
   };
 
-  if (!isAdmin) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md bg-white text-gray-900">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-gray-900">
-              <Shield className="h-5 w-5 text-red-500" />
-              Access Denied
-            </DialogTitle>
-          </DialogHeader>
-          <Alert variant="destructive" className="bg-red-50 border-red-200">
-            <AlertDescription className="text-red-800">
-              You do not have administrative privileges to access this panel.
-            </AlertDescription>
-          </Alert>
-          <Button onClick={onClose} variant="outline" className="w-full bg-white text-gray-900 border-gray-300 hover:bg-gray-50">
-            Close
-          </Button>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const handleClose = () => {
+    setEmail('');
+    setPassword('');
+    setError('');
+    setStep('login');
+    onClose();
+  };
 
   const formatTimeLeft = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
@@ -76,17 +98,17 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md bg-white text-gray-900 border border-gray-200">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-gray-900">
             <Shield className="h-5 w-5 text-blue-600" />
-            Admin Authentication Required
+            {step === 'login' ? 'Admin Panel Access' : 'Admin Authentication Required'}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          {sessionTimeLeft > 0 && (
+          {sessionTimeLeft > 0 && step === 'admin_auth' && (
             <Alert className="bg-blue-50 border-blue-200">
               <Clock className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800">
@@ -96,29 +118,77 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
           )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter admin password (min 12 chars)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pr-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
-                required
-                minLength={12}
-                disabled={isAuthenticating}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <Eye className="h-4 w-4 text-gray-500" />
-                )}
-              </button>
-            </div>
+            {step === 'login' ? (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                    disabled={isAuthenticating}
+                  />
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                    disabled={isAuthenticating}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-500" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-4 w-4 text-gray-400" />
+                </div>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter admin password (min 12 chars)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                  required
+                  minLength={12}
+                  disabled={isAuthenticating}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  )}
+                </button>
+              </div>
+            )}
             
             {error && (
               <Alert variant="destructive" className="bg-red-50 border-red-200">
@@ -130,14 +200,14 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
               <Button 
                 type="submit" 
                 className="flex-1 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-                disabled={isAuthenticating || password.length < 12}
+                disabled={isAuthenticating || (step === 'admin_auth' && password.length < 12)}
               >
-                {isAuthenticating ? 'Authenticating...' : 'Access Admin Panel'}
+                {isAuthenticating ? 'Authenticating...' : (step === 'login' ? 'Sign In' : 'Access Admin Panel')}
               </Button>
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isAuthenticating}
                 className="bg-white text-gray-900 border-gray-300 hover:bg-gray-50"
               >
@@ -147,7 +217,10 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
           </form>
           
           <p className="text-xs text-gray-500 text-center">
-            Admin session will timeout after exactly 10 minutes of authentication.
+            {step === 'login' 
+              ? 'Sign in with your account to verify admin access.'
+              : 'Admin session will timeout after exactly 10 minutes of authentication.'
+            }
           </p>
         </div>
       </DialogContent>
