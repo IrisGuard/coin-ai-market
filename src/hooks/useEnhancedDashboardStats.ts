@@ -49,14 +49,20 @@ export const useEnhancedDashboardStats = () => {
       const portfolio = portfolioItems?.map(item => item.coins).filter(Boolean) || [];
       const totalValue = portfolio.reduce((sum, coin) => sum + (coin?.price || 0), 0);
       
+      // Fix: Type guard and proper handling of Json types
+      const aiStats = aiData as any;
+      const analyticsStats = analyticsData as any;
+      const dashboardStats = dashboardData as any;
+      
       return {
-        ...dashboardData,
+        // Spread only if dashboardStats is an object
+        ...(dashboardStats && typeof dashboardStats === 'object' ? dashboardStats : {}),
         aiAccuracy: avgConfidence,
-        analysisCount: aiData?.executions_24h || 0,
+        analysisCount: aiStats?.executions_24h || 0,
         marketTrend: totalValue > 1000 ? 'bullish' : 'neutral',
         riskScore: Math.max(0.1, Math.min(0.9, 1 - avgConfidence)),
-        profitPercentage: analyticsData?.revenue_24h ? 
-          ((analyticsData.revenue_24h - 1000) / 1000) * 100 : 0,
+        profitPercentage: analyticsStats?.revenue_24h ? 
+          ((analyticsStats.revenue_24h - 1000) / 1000) * 100 : 0,
         portfolioItems: portfolio
       };
     }

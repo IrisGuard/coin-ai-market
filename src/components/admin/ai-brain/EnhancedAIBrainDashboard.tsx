@@ -42,6 +42,11 @@ const EnhancedAIBrainDashboard = () => {
       : 0
   };
 
+  // Fix: Make executeCommand async to match the expected type
+  const handleExecuteCommand = async (commandId: string, inputData: any = {}) => {
+    return await executeCommand(commandId, inputData);
+  };
+
   return (
     <div className="space-y-6">
       {/* Enhanced Stats Overview */}
@@ -189,7 +194,7 @@ const EnhancedAIBrainDashboard = () => {
               <EnhancedCommandGrid
                 commands={filteredCommands}
                 categories={categories}
-                onExecute={executeCommand}
+                onExecute={handleExecuteCommand}
                 isExecuting={isExecuting}
                 isLoading={isLoading}
               />
