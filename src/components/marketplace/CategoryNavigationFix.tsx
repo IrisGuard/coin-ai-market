@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Coins, Clock, Star, Globe, TrendingUp, Shield, Crown, DollarSign, MapPin, AlertCircle, Gavel } from 'lucide-react';
@@ -140,23 +139,6 @@ const CategoryNavigationFix = () => {
         Shop by Category
       </h2>
       
-      {isEmpty && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <Coins className="h-6 w-6 text-blue-600" />
-            <div>
-              <h3 className="font-semibold text-blue-900">No coins yet - Add sample data!</h3>
-              <p className="text-sm text-blue-700">
-                Go to Admin Panel → Sample Data Setup to populate all categories with coins.
-              </p>
-            </div>
-            <Button asChild size="sm" className="ml-auto">
-              <Link to="/admin">Go to Admin</Link>
-            </Button>
-          </div>
-        </div>
-      )}
-      
       <div className="grid grid-cols-3 md:grid-cols-6 gap-6">
         {categories.map((category) => (
           <Link
@@ -179,19 +161,6 @@ const CategoryNavigationFix = () => {
           </Link>
         ))}
       </div>
-      
-      {isEmpty && (
-        <div className="text-center mt-8 py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 mb-4">
-            All 12 categories are ready - just waiting for coins to be added!
-          </p>
-          <Button asChild>
-            <Link to="/admin">
-              Add Sample Data Now
-            </Link>
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
