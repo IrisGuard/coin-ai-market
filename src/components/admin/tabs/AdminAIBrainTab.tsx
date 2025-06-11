@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Brain, Key, Settings, Activity } from 'lucide-react';
 import AIBrainStats from '../ai-brain/AIBrainStats';
 import AICommandsSection from '../ai-brain/AICommandsSection';
@@ -22,30 +20,18 @@ interface AIStatsData {
 const AdminAIBrainTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get AI Brain dashboard stats
-  const { data: aiStatsRaw, isLoading: statsLoading } = useQuery({
-    queryKey: ['ai-brain-dashboard-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_ai_brain_dashboard_stats');
-      if (error) throw error;
-      return data as unknown as AIStatsData;
-    },
-    refetchInterval: 30000,
-  });
+  // Mock AI Brain stats
+  const mockAiStats: AIStatsData = {
+    active_commands: 12,
+    active_automation_rules: 8,
+    active_prediction_models: 6,
+    pending_commands: 3,
+    executions_24h: 1247,
+    average_prediction_confidence: 0.89,
+    automation_rules_executed_24h: 156
+  };
 
-  // Get pending operations count
-  const { data: pendingOps } = useQuery({
-    queryKey: ['pending-operations'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bulk_operations')
-        .select('id')
-        .eq('status', 'pending');
-      
-      if (error) throw error;
-      return data?.length || 0;
-    },
-  });
+  const mockPendingOps = 3;
 
   return (
     <div className="space-y-6">
@@ -56,7 +42,7 @@ const AdminAIBrainTab = () => {
         </div>
       </div>
 
-      <AIBrainStats aiStatsRaw={aiStatsRaw} pendingOps={pendingOps} />
+      <AIBrainStats aiStatsRaw={mockAiStats} pendingOps={mockPendingOps} />
       <AICommandsSection searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <AutomationRulesSection />
       <PredictionModelsSection />

@@ -1,211 +1,173 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Store, TrendingUp, Users, Package, DollarSign } from 'lucide-react';
-
-interface MarketplaceData {
-  total_users: number;
-  total_coins: number;
-  total_transactions: number;
-  completed_transactions: number;
-  total_revenue: number;
-}
+import { 
+  Store, 
+  TrendingUp, 
+  Users, 
+  DollarSign,
+  Package,
+  Eye,
+  Edit,
+  Trash2
+} from 'lucide-react';
 
 const AdminMarketplaceTab = () => {
-  // Get comprehensive dashboard stats
-  const { data: dashboardStats, isLoading } = useQuery({
-    queryKey: ['admin-dashboard-comprehensive'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
-      if (error) throw error;
-      return data as unknown as MarketplaceData;
+  // Mock marketplace data
+  const marketplaceStats = {
+    total_listings: 15742,
+    active_listings: 12894,
+    total_stores: 234,
+    active_stores: 198,
+    transactions_24h: 156,
+    revenue_24h: 45789.32,
+    avg_listing_price: 127.45
+  };
+
+  const mockListings = [
+    {
+      id: '1',
+      title: '1921 Morgan Silver Dollar MS65',
+      seller: 'CoinDealer123',
+      price: 245.00,
+      listing_type: 'buy_now',
+      status: 'active',
+      views: 89,
+      watchers: 12,
+      created_at: '2024-06-10T10:30:00Z'
     },
-  });
-
-  // Get marketplace-specific stats
-  const { data: marketplaceStats } = useQuery({
-    queryKey: ['marketplace-specific-stats'],
-    queryFn: async () => {
-      // Get stores count
-      const { data: stores, error: storesError } = await supabase
-        .from('stores')
-        .select('id, is_active, verified');
-      
-      if (storesError) throw storesError;
-
-      // Get listings count
-      const { data: listings, error: listingsError } = await supabase
-        .from('marketplace_listings')
-        .select('id, status, starting_price');
-      
-      if (listingsError) throw listingsError;
-
-      const activeStores = stores?.filter(s => s.is_active).length || 0;
-      const verifiedStores = stores?.filter(s => s.verified).length || 0;
-      const activeListings = listings?.filter(l => l.status === 'active').length || 0;
-
-      return {
-        total_stores: stores?.length || 0,
-        active_stores: activeStores,
-        verified_stores: verifiedStores,
-        total_listings: listings?.length || 0,
-        active_listings: activeListings
-      };
+    {
+      id: '2',
+      title: '1943 Steel Penny Error - Double Strike',
+      seller: 'ErrorCoinExpert',
+      price: 1850.00,
+      listing_type: 'auction',
+      status: 'active',
+      views: 234,
+      watchers: 45,
+      created_at: '2024-06-09T15:20:00Z'
     },
-  });
+    {
+      id: '3',
+      title: '1909-S VDB Lincoln Cent XF40',
+      seller: 'VintageCoins',
+      price: 675.00,
+      listing_type: 'buy_now',
+      status: 'sold',
+      views: 156,
+      watchers: 8,
+      created_at: '2024-06-08T09:15:00Z'
+    }
+  ];
 
-  // Get marketplace listings
-  const { data: listings, isLoading: listingsLoading } = useQuery({
-    queryKey: ['marketplace-listings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('marketplace_listings')
-        .select(`
-          *,
-          coins (
-            name,
-            year,
-            price,
-            user_id
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      
-      if (error) throw error;
-      return data || [];
+  const mockStores = [
+    {
+      id: '1',
+      name: 'Premium Coin Gallery',
+      owner: 'John Smith',
+      verified: true,
+      rating: 4.9,
+      total_sales: 1247,
+      active_listings: 89,
+      revenue_30d: 15420.50
     },
-  });
+    {
+      id: '2',
+      name: 'Error Coin Specialists',
+      owner: 'Sarah Johnson',
+      verified: true,
+      rating: 4.8,
+      total_sales: 856,
+      active_listings: 67,
+      revenue_30d: 23890.75
+    },
+    {
+      id: '3',
+      name: 'Vintage Collectibles',
+      owner: 'Mike Chen',
+      verified: false,
+      rating: 4.6,
+      total_sales: 432,
+      active_listings: 34,
+      revenue_30d: 8756.20
+    }
+  ];
 
-  // Get coin owners separately for listings
-  const { data: coinOwners } = useQuery({
-    queryKey: ['coin-owners', listings],
-    queryFn: async () => {
-      if (!listings?.length) return {};
-      
-      const userIds = [...new Set(listings.map(listing => listing.coins?.user_id).filter(Boolean))];
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', userIds);
-      
-      if (error) {
-        console.error('Error fetching coin owners:', error);
-        return {};
-      }
-      
-      return (data || []).reduce((acc, profile) => {
-        acc[profile.id] = profile;
-        return acc;
-      }, {} as Record<string, any>);
-    },
-    enabled: !!listings?.length,
-  });
+  const getListingTypeBadge = (type: string) => {
+    switch (type) {
+      case 'auction': return <Badge className="bg-purple-100 text-purple-800">Auction</Badge>;
+      case 'buy_now': return <Badge className="bg-green-100 text-green-800">Buy Now</Badge>;
+      default: return <Badge variant="outline">{type}</Badge>;
+    }
+  };
 
-  // Get stores
-  const { data: stores, isLoading: storesLoading } = useQuery({
-    queryKey: ['stores'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('stores')
-        .select(`
-          *
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Get store owners separately
-  const { data: storeOwners } = useQuery({
-    queryKey: ['store-owners', stores],
-    queryFn: async () => {
-      if (!stores?.length) return {};
-      
-      const userIds = [...new Set(stores.map(store => store.user_id))];
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, verified_dealer')
-        .in('id', userIds);
-      
-      if (error) {
-        console.error('Error fetching store owners:', error);
-        return {};
-      }
-      
-      return (data || []).reduce((acc, profile) => {
-        acc[profile.id] = profile;
-        return acc;
-      }, {} as Record<string, any>);
-    },
-    enabled: !!stores?.length,
-  });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active': return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+      case 'sold': return <Badge className="bg-blue-100 text-blue-800">Sold</Badge>;
+      case 'pending': return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      default: return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Marketplace Management</h3>
-          <p className="text-sm text-muted-foreground">Monitor marketplace activity, listings, and dealer stores</p>
+          <p className="text-sm text-muted-foreground">Manage listings, stores, and marketplace activity</p>
         </div>
       </div>
 
-      {/* Marketplace Stats */}
+      {/* Marketplace Statistics */}
       <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Listings</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{marketplaceStats.total_listings.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {marketplaceStats.active_listings.toLocaleString()} active
+            </p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Stores</CardTitle>
             <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{marketplaceStats?.active_stores || 0}</div>
+            <div className="text-2xl font-bold">{marketplaceStats.active_stores}</div>
             <p className="text-xs text-muted-foreground">
-              {marketplaceStats?.verified_stores || 0} verified
+              of {marketplaceStats.total_stores} total
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{marketplaceStats?.active_listings || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {marketplaceStats?.total_listings || 0} total listings
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              €{dashboardStats?.total_revenue?.toLocaleString() || '0'}
-            </div>
-            <p className="text-xs text-muted-foreground">lifetime earnings</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Listing Price</CardTitle>
+            <CardTitle className="text-sm font-medium">Transactions (24h)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              €{Math.round((listings?.reduce((acc, listing) => acc + (listing.starting_price || 0), 0) || 0) / (listings?.length || 1))}
-            </div>
-            <p className="text-xs text-muted-foreground">across all listings</p>
+            <div className="text-2xl font-bold">{marketplaceStats.transactions_24h}</div>
+            <p className="text-xs text-muted-foreground">completed sales</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue (24h)</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${marketplaceStats.revenue_24h.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">gross sales</p>
           </CardContent>
         </Card>
       </div>
@@ -213,83 +175,78 @@ const AdminMarketplaceTab = () => {
       {/* Recent Listings */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Marketplace Listings</CardTitle>
+          <CardTitle>Recent Listings</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {listingsLoading ? (
-              <div className="text-center py-8">Loading listings...</div>
-            ) : listings?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No marketplace listings found
-              </div>
-            ) : (
-              listings?.map((listing) => (
-                <div key={listing.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{listing.coins?.name || 'Unknown Coin'}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Year: {listing.coins?.year} • Listed by: {coinOwners?.[listing.coins?.user_id]?.name || 'Unknown'}
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant={listing.status === 'active' ? "default" : "secondary"}>
-                        {listing.status}
-                      </Badge>
-                      <Badge variant="outline">{listing.listing_type}</Badge>
-                      <Badge variant="outline">€{listing.starting_price}</Badge>
-                    </div>
+            {mockListings.map((listing) => (
+              <div key={listing.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="font-medium">{listing.title}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Seller: {listing.seller} • Created: {new Date(listing.created_at).toLocaleDateString()}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex gap-2 mt-2">
+                    {getListingTypeBadge(listing.listing_type)}
+                    {getStatusBadge(listing.status)}
+                    <Badge variant="outline">Views: {listing.views}</Badge>
+                    <Badge variant="outline">Watchers: {listing.watchers}</Badge>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-lg font-bold">${listing.price.toLocaleString()}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline">
-                      View Details
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-red-600">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Dealer Stores */}
+      {/* Top Stores */}
       <Card>
         <CardHeader>
-          <CardTitle>Dealer Stores</CardTitle>
+          <CardTitle>Top Performing Stores</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {storesLoading ? (
-              <div className="text-center py-8">Loading stores...</div>
-            ) : stores?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No dealer stores found
-              </div>
-            ) : (
-              stores?.map((store) => (
-                <div key={store.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{store.name}</div>
-                    <div className="text-sm text-muted-foreground">{store.description}</div>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant={store.is_active ? "default" : "secondary"}>
-                        {store.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                      <Badge variant={store.verified ? "default" : "outline"}>
-                        {store.verified ? "Verified" : "Unverified"}
-                      </Badge>
-                      <Badge variant="outline">
-                        Owner: {storeOwners?.[store.user_id]?.name || 'Unknown'}
-                      </Badge>
+            {mockStores.map((store) => (
+              <div key={store.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                    {store.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{store.name}</span>
+                      {store.verified && <Badge className="bg-blue-100 text-blue-800">Verified</Badge>}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Owner: {store.owner} • Rating: {store.rating}/5.0
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {store.total_sales} total sales • {store.active_listings} active listings
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline">
-                      Manage Store
-                    </Button>
-                  </div>
                 </div>
-              ))
-            )}
+                <div className="text-right">
+                  <div className="font-medium">${store.revenue_30d.toLocaleString()}</div>
+                  <div className="text-xs text-muted-foreground">30-day revenue</div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

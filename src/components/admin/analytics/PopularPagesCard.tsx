@@ -1,24 +1,42 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Eye } from 'lucide-react';
 
 const PopularPagesCard: React.FC = () => {
-  const { data: pageViews, isLoading: viewsLoading } = useQuery({
-    queryKey: ['page-views'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('page_views')
-        .select('*')
-        .order('view_count', { ascending: false })
-        .limit(10);
-      
-      if (error) throw error;
-      return data || [];
+  // Mock page views data
+  const mockPageViews = [
+    {
+      id: '1',
+      page_path: '/coins/search',
+      view_count: 15742,
+      last_viewed: new Date(Date.now() - 30 * 60 * 1000).toISOString()
     },
-  });
+    {
+      id: '2',
+      page_path: '/marketplace',
+      view_count: 12894,
+      last_viewed: new Date(Date.now() - 45 * 60 * 1000).toISOString()
+    },
+    {
+      id: '3',
+      page_path: '/coin-recognition',
+      view_count: 8765,
+      last_viewed: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: '4',
+      page_path: '/auctions',
+      view_count: 6543,
+      last_viewed: new Date(Date.now() - 15 * 60 * 1000).toISOString()
+    },
+    {
+      id: '5',
+      page_path: '/coin/morgan-dollar',
+      view_count: 4321,
+      last_viewed: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
+    }
+  ];
 
   return (
     <Card>
@@ -30,28 +48,20 @@ const PopularPagesCard: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {viewsLoading ? (
-            <div className="text-center py-8">Loading page views...</div>
-          ) : pageViews?.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No page view data found
-            </div>
-          ) : (
-            pageViews?.map((page) => (
-              <div key={page.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="font-medium">{page.page_path}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Last viewed: {new Date(page.last_viewed).toLocaleString()}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold">{page.view_count}</div>
-                  <div className="text-xs text-muted-foreground">views</div>
+          {mockPageViews.map((page) => (
+            <div key={page.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex-1">
+                <div className="font-medium">{page.page_path}</div>
+                <div className="text-sm text-muted-foreground">
+                  Last viewed: {new Date(page.last_viewed).toLocaleString()}
                 </div>
               </div>
-            ))
-          )}
+              <div className="text-right">
+                <div className="text-lg font-bold">{page.view_count.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">views</div>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

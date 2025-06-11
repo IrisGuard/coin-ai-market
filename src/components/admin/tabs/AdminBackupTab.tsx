@@ -4,339 +4,342 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
 import { 
   HardDrive, 
   Download, 
   Upload, 
-  Database, 
-  Shield,
+  RefreshCw,
   Clock,
+  Database,
+  Shield,
   CheckCircle,
-  AlertCircle,
-  Settings,
-  Play,
-  RotateCcw
+  AlertCircle
 } from 'lucide-react';
 
 const AdminBackupTab = () => {
-  const [backupProgress, setBackupProgress] = useState(0);
-  const [isBackingUp, setIsBackingUp] = useState(false);
-  const [restoreProgress, setRestoreProgress] = useState(0);
-  const [isRestoring, setIsRestoring] = useState(false);
+  const [backupInProgress, setBackupInProgress] = useState(false);
 
   // Mock backup data
-  const backupHistory = [
+  const backupStats = {
+    last_backup: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    backup_size: '2.4 GB',
+    total_backups: 156,
+    success_rate: 98.7,
+    storage_used: 67.3,
+    storage_limit: 100
+  };
+
+  const mockBackups = [
     {
       id: '1',
-      name: 'Auto Backup - 2024-06-10',
+      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       type: 'automatic',
-      size: '256.3 MB',
-      created: '2024-06-10T08:00:00Z',
       status: 'completed',
-      tables: ['users', 'coins', 'transactions', 'settings']
+      size: '2.4 GB',
+      duration: '45 minutes',
+      tables_backed_up: 23,
+      compression_ratio: 0.68
     },
     {
       id: '2',
-      name: 'Manual Backup - 2024-06-09',
+      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       type: 'manual',
-      size: '248.7 MB',
-      created: '2024-06-09T15:30:00Z',
       status: 'completed',
-      tables: ['users', 'coins', 'transactions']
+      size: '2.3 GB',
+      duration: '42 minutes',
+      tables_backed_up: 23,
+      compression_ratio: 0.71
     },
     {
       id: '3',
-      name: 'Pre-Update Backup - 2024-06-08',
-      type: 'manual',
-      size: '245.1 MB',
-      created: '2024-06-08T12:00:00Z',
+      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      type: 'automatic',
       status: 'completed',
-      tables: ['users', 'coins', 'transactions', 'settings', 'logs']
+      size: '2.2 GB',
+      duration: '38 minutes',
+      tables_backed_up: 22,
+      compression_ratio: 0.69
+    },
+    {
+      id: '4',
+      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      type: 'automatic',
+      status: 'failed',
+      size: '0 GB',
+      duration: '5 minutes',
+      tables_backed_up: 0,
+      error: 'Storage quota exceeded'
+    },
+    {
+      id: '5',
+      created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+      type: 'automatic',
+      status: 'completed',
+      size: '2.1 GB',
+      duration: '41 minutes',
+      tables_backed_up: 22,
+      compression_ratio: 0.72
     }
   ];
 
-  const createBackup = async (type: 'full' | 'incremental' = 'full') => {
-    setIsBackingUp(true);
-    setBackupProgress(0);
-
-    try {
-      // Simulate backup progress
-      for (let i = 0; i <= 100; i += 10) {
-        setBackupProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-
-      toast({
-        title: "Backup Created",
-        description: `${type} backup completed successfully.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Backup Failed",
-        description: "Failed to create backup. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsBackingUp(false);
-      setBackupProgress(0);
-    }
-  };
-
-  const restoreBackup = async (backupId: string) => {
-    setIsRestoring(true);
-    setRestoreProgress(0);
-
-    try {
-      // Simulate restore progress
-      for (let i = 0; i <= 100; i += 5) {
-        setRestoreProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-
-      toast({
-        title: "Restore Completed",
-        description: "Database restored successfully from backup.",
-      });
-    } catch (error) {
-      toast({
-        title: "Restore Failed",
-        description: "Failed to restore from backup. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRestoring(false);
-      setRestoreProgress(0);
-    }
-  };
-
-  const downloadBackup = (backupId: string) => {
-    console.log(`Downloading backup ${backupId}`);
-    toast({
-      title: "Download Started",
-      description: "Backup download has started.",
-    });
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'failed':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-    }
+  const scheduleConfig = {
+    daily_backup: true,
+    weekly_full_backup: true,
+    monthly_archive: true,
+    retention_days: 30,
+    backup_time: '02:00'
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default">Completed</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'running':
+        return <Badge className="bg-blue-100 text-blue-800">Running</Badge>;
       case 'failed':
-        return <Badge variant="destructive">Failed</Badge>;
+        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
       default:
-        return <Badge variant="secondary">In Progress</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'automatic':
+        return <Badge variant="outline">Auto</Badge>;
+      case 'manual':
+        return <Badge className="bg-blue-100 text-blue-800">Manual</Badge>;
+      default:
+        return <Badge variant="outline">{type}</Badge>;
+    }
+  };
+
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diff = now.getTime() - time.getTime();
+    const hours = Math.floor(diff / (60 * 60 * 1000));
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    return `${hours}h ago`;
+  };
+
+  const startBackup = () => {
+    setBackupInProgress(true);
+    // Simulate backup process
+    setTimeout(() => {
+      setBackupInProgress(false);
+    }, 5000);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Backup & Restore</h3>
-          <p className="text-sm text-muted-foreground">Manage database backups and system recovery</p>
+          <h3 className="text-lg font-semibold">Backup Management</h3>
+          <p className="text-sm text-muted-foreground">Manage database backups and recovery</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Upload className="h-4 w-4 mr-2" />
+            Restore
+          </Button>
+          <Button onClick={startBackup} disabled={backupInProgress}>
+            {backupInProgress ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Creating Backup...
+              </>
+            ) : (
+              <>
+                <HardDrive className="h-4 w-4 mr-2" />
+                Create Backup
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
-      {/* Backup Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Backup Statistics */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Create Backup
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Last Backup</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <Button 
-                onClick={() => createBackup('full')} 
-                disabled={isBackingUp || isRestoring}
-                className="w-full"
-              >
-                <HardDrive className="h-4 w-4 mr-2" />
-                Create Full Backup
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => createBackup('incremental')} 
-                disabled={isBackingUp || isRestoring}
-                className="w-full"
-              >
-                <Database className="h-4 w-4 mr-2" />
-                Create Incremental Backup
-              </Button>
-            </div>
-            {isBackingUp && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Creating backup...</span>
-                  <span>{backupProgress}%</span>
-                </div>
-                <Progress value={backupProgress} className="w-full" />
-              </div>
-            )}
+          <CardContent>
+            <div className="text-2xl font-bold">{getTimeAgo(backupStats.last_backup)}</div>
+            <p className="text-xs text-muted-foreground">
+              Size: {backupStats.backup_size}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Backup Settings
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Backups</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Auto Backup</span>
-                <Badge variant="default">Enabled</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Frequency</span>
-                <span className="text-sm text-muted-foreground">Daily at 2:00 AM</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Retention</span>
-                <span className="text-sm text-muted-foreground">30 days</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Compression</span>
-                <Badge variant="outline">Enabled</Badge>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" className="w-full">
-              <Settings className="h-4 w-4 mr-2" />
-              Configure Settings
-            </Button>
+          <CardContent>
+            <div className="text-2xl font-bold">{backupStats.total_backups}</div>
+            <p className="text-xs text-muted-foreground">all time</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{backupStats.success_rate}%</div>
+            <p className="text-xs text-muted-foreground">reliability</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Storage Used</CardTitle>
+            <HardDrive className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{backupStats.storage_used}%</div>
+            <Progress value={backupStats.storage_used} className="h-2 mt-2" />
           </CardContent>
         </Card>
       </div>
 
-      {/* Backup History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Backup History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {backupHistory.map((backup) => (
-              <div key={backup.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    {getStatusIcon(backup.status)}
-                    <span className="font-medium">{backup.name}</span>
-                    {getStatusBadge(backup.status)}
-                    <Badge variant="outline" className="ml-2">
-                      {backup.type}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>Size: {backup.size}</span>
-                    <span>Created: {new Date(backup.created).toLocaleString()}</span>
-                    <span>Tables: {backup.tables.length}</span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-xs text-muted-foreground">
-                      Tables: {backup.tables.join(', ')}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => downloadBackup(backup.id)}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => restoreBackup(backup.id)}
-                    disabled={isBackingUp || isRestoring}
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </div>
+      {/* Backup Progress (shown when backup is running) */}
+      {backupInProgress && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <RefreshCw className="h-8 w-8 text-blue-600 animate-spin" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900">Backup in Progress</h3>
+                <p className="text-sm text-blue-700">Creating database backup...</p>
+                <Progress value={45} className="h-2 mt-2" />
+                <p className="text-xs text-blue-600 mt-1">Processing table: user_profiles (15/23)</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Restore Progress */}
-      {isRestoring && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <RotateCcw className="h-5 w-5" />
-              Restore in Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Restoring database...</span>
-                <span>{restoreProgress}%</span>
-              </div>
-              <Progress value={restoreProgress} className="w-full" />
-              <p className="text-xs text-muted-foreground">
-                Please do not close this page while the restore is in progress.
-              </p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Storage Usage */}
+      {/* Backup Schedule */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            Storage Usage
+            <Clock className="h-5 w-5" />
+            Backup Schedule
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Daily Incremental Backup</div>
+                  <div className="text-sm text-muted-foreground">Every day at {scheduleConfig.backup_time}</div>
+                </div>
+                <Badge className={scheduleConfig.daily_backup ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                  {scheduleConfig.daily_backup ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Weekly Full Backup</div>
+                  <div className="text-sm text-muted-foreground">Every Sunday at {scheduleConfig.backup_time}</div>
+                </div>
+                <Badge className={scheduleConfig.weekly_full_backup ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                  {scheduleConfig.weekly_full_backup ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Monthly Archive</div>
+                  <div className="text-sm text-muted-foreground">First day of each month</div>
+                </div>
+                <Badge className={scheduleConfig.monthly_archive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                  {scheduleConfig.monthly_archive ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="font-medium">Retention Policy</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Backups are kept for {scheduleConfig.retention_days} days
+                </div>
+              </div>
+              
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="font-medium">Next Scheduled Backup</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Tonight at {scheduleConfig.backup_time} (Daily Incremental)
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Backups */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Backups</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm">Backup Storage Used</span>
-              <span className="text-sm font-medium">750.1 MB / 5 GB</span>
-            </div>
-            <Progress value={15} className="w-full" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Total Backups</div>
-                <div className="text-2xl font-bold">3</div>
+            {mockBackups.map((backup) => (
+              <div key={backup.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-muted rounded-lg">
+                    {backup.status === 'completed' ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : backup.status === 'failed' ? (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    ) : (
+                      <HardDrive className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {new Date(backup.created_at).toLocaleDateString()} at {new Date(backup.created_at).toLocaleTimeString()}
+                      </span>
+                      {getStatusBadge(backup.status)}
+                      {getTypeBadge(backup.type)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Size: {backup.size} • Duration: {backup.duration} • Tables: {backup.tables_backed_up}
+                      {backup.compression_ratio && ` • Compression: ${(backup.compression_ratio * 100).toFixed(0)}%`}
+                      {backup.error && ` • Error: ${backup.error}`}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {backup.status === 'completed' && (
+                    <>
+                      <Button size="sm" variant="outline">
+                        <Download className="h-4 w-4" />
+                        Download
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Upload className="h-4 w-4" />
+                        Restore
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Auto Backups</div>
-                <div className="text-2xl font-bold">1</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Manual Backups</div>
-                <div className="text-2xl font-bold">2</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-sm font-medium">Avg Size</div>
-                <div className="text-2xl font-bold">250 MB</div>
-              </div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>

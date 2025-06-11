@@ -1,123 +1,290 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Shield, Download, Zap, Heart } from 'lucide-react';
-import AdminSecurityEnhancements from '../enhanced/AdminSecurityEnhancements';
-import AdminDarkModeToggle from '../enhanced/AdminDarkModeToggle';
-import AdminExportManager from '../enhanced/AdminExportManager';
-import AdminPerformanceOptimizer from '../enhanced/AdminPerformanceOptimizer';
-import AdminSystemHealth from '../enhanced/AdminSystemHealth';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { 
+  Settings, 
+  Database, 
+  Mail, 
+  Shield,
+  Bell,
+  Palette,
+  Globe,
+  Zap
+} from 'lucide-react';
 
 const AdminSettingsTab = () => {
+  const [settings, setSettings] = useState({
+    // System Settings
+    maintenance_mode: false,
+    debug_mode: false,
+    auto_backup: true,
+    
+    // Notifications
+    email_notifications: true,
+    sms_notifications: false,
+    push_notifications: true,
+    
+    // AI Settings
+    ai_recognition_enabled: true,
+    ai_auto_categorization: true,
+    ai_price_prediction: true,
+    
+    // Security
+    two_factor_required: false,
+    session_timeout: 30,
+    max_login_attempts: 5
+  });
+
+  const updateSetting = (key: string, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const systemInfo = {
+    version: '2.1.4',
+    uptime: '15 days, 8 hours',
+    database_size: '2.4 GB',
+    cache_size: '156 MB',
+    active_connections: 1247,
+    last_backup: '2 hours ago'
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">System Settings</h3>
-          <p className="text-sm text-muted-foreground">
-            Configure and manage system-wide settings
-          </p>
+          <p className="text-sm text-muted-foreground">Configure platform settings and preferences</p>
         </div>
-        <AdminDarkModeToggle />
       </div>
 
-      <Tabs defaultValue="security" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger value="export" className="flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center gap-2">
-            <Zap className="w-4 h-4" />
-            Performance
-          </TabsTrigger>
-          <TabsTrigger value="health" className="flex items-center gap-2">
-            <Heart className="w-4 h-4" />
-            Health
-          </TabsTrigger>
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            General
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="security">
-          <AdminSecurityEnhancements />
-        </TabsContent>
-
-        <TabsContent value="export">
-          <AdminExportManager />
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <AdminPerformanceOptimizer />
-        </TabsContent>
-
-        <TabsContent value="health">
-          <AdminSystemHealth />
-        </TabsContent>
-
-        <TabsContent value="general">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Application Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Application Name</label>
-                  <input 
-                    type="text" 
-                    defaultValue="CoinVision Admin" 
-                    className="w-full mt-1 px-3 py-2 border rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Timezone</label>
-                  <select className="w-full mt-1 px-3 py-2 border rounded-md">
-                    <option>UTC</option>
-                    <option>Europe/Athens</option>
-                    <option>America/New_York</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Language</label>
-                  <select className="w-full mt-1 px-3 py-2 border rounded-md">
-                    <option>English</option>
-                    <option>Ελληνικά</option>
-                    <option>Español</option>
-                  </select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Maintenance Mode</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Enable Maintenance Mode</span>
-                  <input type="checkbox" className="toggle" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Maintenance Message</label>
-                  <textarea 
-                    className="w-full mt-1 px-3 py-2 border rounded-md"
-                    rows={3}
-                    defaultValue="System is currently under maintenance. Please check back later."
-                  />
-                </div>
-              </CardContent>
-            </Card>
+      {/* System Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            System Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{systemInfo.version}</div>
+              <p className="text-sm text-muted-foreground">Platform Version</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{systemInfo.uptime}</div>
+              <p className="text-sm text-muted-foreground">System Uptime</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">{systemInfo.active_connections}</div>
+              <p className="text-sm text-muted-foreground">Active Connections</p>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+          <div className="grid gap-4 md:grid-cols-3 mt-4">
+            <div className="flex justify-between">
+              <span>Database Size:</span>
+              <span className="font-medium">{systemInfo.database_size}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Cache Size:</span>
+              <span className="font-medium">{systemInfo.cache_size}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Last Backup:</span>
+              <span className="font-medium">{systemInfo.last_backup}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* General Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            General Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Maintenance Mode</Label>
+              <p className="text-sm text-muted-foreground">Enable maintenance mode for system updates</p>
+            </div>
+            <Switch
+              checked={settings.maintenance_mode}
+              onCheckedChange={(checked) => updateSetting('maintenance_mode', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Debug Mode</Label>
+              <p className="text-sm text-muted-foreground">Enable detailed logging for troubleshooting</p>
+            </div>
+            <Switch
+              checked={settings.debug_mode}
+              onCheckedChange={(checked) => updateSetting('debug_mode', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Automatic Backups</Label>
+              <p className="text-sm text-muted-foreground">Enable automated daily backups</p>
+            </div>
+            <Switch
+              checked={settings.auto_backup}
+              onCheckedChange={(checked) => updateSetting('auto_backup', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AI & Recognition Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            AI & Recognition Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>AI Recognition</Label>
+              <p className="text-sm text-muted-foreground">Enable AI-powered coin recognition</p>
+            </div>
+            <Switch
+              checked={settings.ai_recognition_enabled}
+              onCheckedChange={(checked) => updateSetting('ai_recognition_enabled', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Auto Categorization</Label>
+              <p className="text-sm text-muted-foreground">Automatically categorize coins using AI</p>
+            </div>
+            <Switch
+              checked={settings.ai_auto_categorization}
+              onCheckedChange={(checked) => updateSetting('ai_auto_categorization', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Price Prediction</Label>
+              <p className="text-sm text-muted-foreground">Enable AI price prediction models</p>
+            </div>
+            <Switch
+              checked={settings.ai_price_prediction}
+              onCheckedChange={(checked) => updateSetting('ai_price_prediction', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Notification Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Email Notifications</Label>
+              <p className="text-sm text-muted-foreground">Send system alerts via email</p>
+            </div>
+            <Switch
+              checked={settings.email_notifications}
+              onCheckedChange={(checked) => updateSetting('email_notifications', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>SMS Notifications</Label>
+              <p className="text-sm text-muted-foreground">Send critical alerts via SMS</p>
+            </div>
+            <Switch
+              checked={settings.sms_notifications}
+              onCheckedChange={(checked) => updateSetting('sms_notifications', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Push Notifications</Label>
+              <p className="text-sm text-muted-foreground">Send notifications to admin dashboard</p>
+            </div>
+            <Switch
+              checked={settings.push_notifications}
+              onCheckedChange={(checked) => updateSetting('push_notifications', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Security Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Security Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Require Two-Factor Authentication</Label>
+              <p className="text-sm text-muted-foreground">Mandatory 2FA for all admin accounts</p>
+            </div>
+            <Switch
+              checked={settings.two_factor_required}
+              onCheckedChange={(checked) => updateSetting('two_factor_required', checked)}
+            />
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label htmlFor="session_timeout">Session Timeout (minutes)</Label>
+              <Input
+                id="session_timeout"
+                type="number"
+                value={settings.session_timeout}
+                onChange={(e) => updateSetting('session_timeout', parseInt(e.target.value))}
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="max_attempts">Max Login Attempts</Label>
+              <Input
+                id="max_attempts"
+                type="number"
+                value={settings.max_login_attempts}
+                onChange={(e) => updateSetting('max_login_attempts', parseInt(e.target.value))}
+                className="mt-1"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Settings */}
+      <div className="flex justify-end gap-4">
+        <Button variant="outline">Reset to Defaults</Button>
+        <Button>Save Settings</Button>
+      </div>
     </div>
   );
 };

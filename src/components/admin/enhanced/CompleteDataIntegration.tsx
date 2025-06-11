@@ -1,7 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -37,31 +35,20 @@ const CompleteDataIntegration: React.FC = () => {
 
   const [isLive, setIsLive] = useState(true);
 
-  // Real-time data integration monitoring
-  const { data: integrationStatus } = useQuery({
-    queryKey: ['data-integration-status'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('marketplace_stats')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) throw error;
-      return data;
-    },
-    refetchInterval: isLive ? 5000 : false,
-  });
-
+  // Simulate real-time updates
   useEffect(() => {
-    if (integrationStatus) {
+    if (!isLive) return;
+
+    const interval = setInterval(() => {
       setMetrics(prev => ({
         ...prev,
         lastSyncTime: new Date().toLocaleString(),
         dataQuality: Math.min(99.8, prev.dataQuality + Math.random() * 0.1)
       }));
-    }
-  }, [integrationStatus]);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isLive]);
 
   const getStatusColor = (percentage: number) => {
     if (percentage >= 95) return 'text-green-600';

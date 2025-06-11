@@ -4,268 +4,322 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { Key, Plus, Eye, EyeOff, Trash2, RotateCcw, Search } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Key, 
+  Plus, 
+  Eye, 
+  EyeOff, 
+  Trash2, 
+  Edit,
+  Shield,
+  Database,
+  Zap,
+  Globe
+} from 'lucide-react';
 
 const AdminAPIKeysTab = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newKeyName, setNewKeyName] = useState('');
-  const [newKeyValue, setNewKeyValue] = useState('');
-  const [newKeyDescription, setNewKeyDescription] = useState('');
-  const [showNewKeyDialog, setShowNewKeyDialog] = useState(false);
-  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
-  const queryClient = useQueryClient();
-
-  // Get API Keys
-  const { data: apiKeys, isLoading } = useQuery({
-    queryKey: ['api-keys', searchTerm],
-    queryFn: async () => {
-      let query = supabase
-        .from('api_keys')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (searchTerm) {
-        query = query.or(`key_name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    },
+  const [showForm, setShowForm] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [formData, setFormData] = useState({
+    key_name: '',
+    encrypted_value: '',
+    description: '',
+    category_id: ''
   });
 
-  // Create API Key
-  const createApiKey = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('secure-admin-operations', {
-        body: {
-          operation: 'create_api_key',
-          payload: {
-            name: newKeyName,
-            value: newKeyValue,
-            description: newKeyDescription
-          }
-        }
-      });
-
-      if (error) throw error;
-      return data;
+  // Mock API keys data
+  const mockApiKeys = [
+    {
+      id: '1',
+      key_name: 'OpenAI GPT-4 API',
+      description: 'AI recognition and analysis services',
+      is_active: true,
+      created_at: '2024-01-15T10:30:00Z',
+      category: 'AI Services',
+      last_used: '2024-06-11T05:20:00Z',
+      usage_count: 1247
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['api-keys'] });
-      setNewKeyName('');
-      setNewKeyValue('');
-      setNewKeyDescription('');
-      setShowNewKeyDialog(false);
-      toast({
-        title: "API Key Created",
-        description: "New API key has been created successfully.",
-      });
+    {
+      id: '2',
+      key_name: 'Google Vision API',
+      description: 'Image recognition and OCR services',
+      is_active: true,
+      created_at: '2024-01-20T14:15:00Z',
+      category: 'AI Services',
+      last_used: '2024-06-11T04:45:00Z',
+      usage_count: 856
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    {
+      id: '3',
+      key_name: 'AWS S3 Storage',
+      description: 'Image and file storage service',
+      is_active: true,
+      created_at: '2024-02-01T09:00:00Z',
+      category: 'Storage',
+      last_used: '2024-06-11T05:25:00Z',
+      usage_count: 2134
     },
-  });
-
-  // Toggle API Key Status
-  const toggleKeyStatus = useMutation({
-    mutationFn: async ({ keyId, isActive }: { keyId: string; isActive: boolean }) => {
-      const { error } = await supabase
-        .from('api_keys')
-        .update({ is_active: !isActive })
-        .eq('id', keyId);
-      
-      if (error) throw error;
+    {
+      id: '4',
+      key_name: 'Stripe Payment API',
+      description: 'Payment processing service',
+      is_active: true,
+      created_at: '2024-02-10T11:30:00Z',
+      category: 'Payments',
+      last_used: '2024-06-10T18:20:00Z',
+      usage_count: 432
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['api-keys'] });
-      toast({
-        title: "API Key Updated",
-        description: "API key status has been updated.",
-      });
+    {
+      id: '5',
+      key_name: 'SendGrid Email API',
+      description: 'Email notification service',
+      is_active: true,
+      created_at: '2024-02-15T16:45:00Z',
+      category: 'Communications',
+      last_used: '2024-06-11T03:15:00Z',
+      usage_count: 789
     },
-  });
-
-  // Delete API Key
-  const deleteApiKey = useMutation({
-    mutationFn: async (keyId: string) => {
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', keyId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['api-keys'] });
-      toast({
-        title: "API Key Deleted",
-        description: "API key has been deleted successfully.",
-      });
-    },
-  });
-
-  const toggleKeyVisibility = (keyId: string) => {
-    const newVisible = new Set(visibleKeys);
-    if (newVisible.has(keyId)) {
-      newVisible.delete(keyId);
-    } else {
-      newVisible.add(keyId);
+    {
+      id: '6',
+      key_name: 'Legacy CoinGecko API',
+      description: 'Cryptocurrency market data (deprecated)',
+      is_active: false,
+      created_at: '2024-01-01T00:00:00Z',
+      category: 'External Data',
+      last_used: '2024-05-15T12:00:00Z',
+      usage_count: 156
     }
-    setVisibleKeys(newVisible);
+  ];
+
+  const mockCategories = [
+    { id: '1', name: 'AI Services', icon: '🤖' },
+    { id: '2', name: 'Storage', icon: '💾' },
+    { id: '3', name: 'Payments', icon: '💳' },
+    { id: '4', name: 'Communications', icon: '📧' },
+    { id: '5', name: 'External Data', icon: '🌐' }
+  ];
+
+  const apiKeyStats = {
+    total_keys: mockApiKeys.length,
+    active_keys: mockApiKeys.filter(k => k.is_active).length,
+    total_usage_24h: 3421,
+    categories_count: mockCategories.length
   };
 
-  const maskKey = (key: string) => {
-    if (key.length <= 8) return '***';
-    return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'AI Services': return <Zap className="h-4 w-4" />;
+      case 'Storage': return <Database className="h-4 w-4" />;
+      case 'Payments': return <Shield className="h-4 w-4" />;
+      case 'Communications': return <Globe className="h-4 w-4" />;
+      case 'External Data': return <Globe className="h-4 w-4" />;
+      default: return <Key className="h-4 w-4" />;
+    }
+  };
+
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diff = now.getTime() - time.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return `${minutes}m ago`;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">API Keys Management</h3>
-          <p className="text-sm text-muted-foreground">Manage API keys for external services and integrations</p>
+          <h3 className="text-lg font-semibold">API Key Management</h3>
+          <p className="text-sm text-muted-foreground">Manage external service API keys and integrations</p>
         </div>
-        <Dialog open={showNewKeyDialog} onOpenChange={setShowNewKeyDialog}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add API Key
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New API Key</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Key Name</label>
-                <Input
-                  placeholder="e.g., OpenAI API Key"
-                  value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
-                />
+        <div className="flex gap-2">
+          <Button onClick={() => setShowBulkImport(true)} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add API Key
+          </Button>
+        </div>
+      </div>
+
+      {/* API Key Statistics */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Keys</CardTitle>
+            <Key className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiKeyStats.total_keys}</div>
+            <p className="text-xs text-muted-foreground">registered keys</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Keys</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiKeyStats.active_keys}</div>
+            <p className="text-xs text-muted-foreground">currently active</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Usage (24h)</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiKeyStats.total_usage_24h.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">API calls</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{apiKeyStats.categories_count}</div>
+            <p className="text-xs text-muted-foreground">service types</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Add Key Form */}
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Add New API Key</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
+                ×
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="key_name">Key Name</Label>
+                  <Input
+                    id="key_name"
+                    value={formData.key_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, key_name: e.target.value }))}
+                    placeholder="Enter key name"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    value={formData.category_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category_id: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value="">Select Category</option>
+                    {mockCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+              
               <div>
-                <label className="text-sm font-medium">API Key Value</label>
+                <Label htmlFor="encrypted_value">API Key Value</Label>
                 <Input
+                  id="encrypted_value"
                   type="password"
-                  placeholder="Enter the API key value"
-                  value={newKeyValue}
-                  onChange={(e) => setNewKeyValue(e.target.value)}
+                  value={formData.encrypted_value}
+                  onChange={(e) => setFormData(prev => ({ ...prev, encrypted_value: e.target.value }))}
+                  placeholder="Enter API key"
+                  required
                 />
               </div>
+              
               <div>
-                <label className="text-sm font-medium">Description</label>
-                <Input
-                  placeholder="Brief description of this API key"
-                  value={newKeyDescription}
-                  onChange={(e) => setNewKeyDescription(e.target.value)}
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter description"
+                  rows={3}
                 />
               </div>
+              
               <div className="flex gap-2">
-                <Button 
-                  onClick={() => createApiKey.mutate()}
-                  disabled={!newKeyName || !newKeyValue || createApiKey.isPending}
-                  className="flex-1"
-                >
-                  {createApiKey.isPending ? 'Creating...' : 'Create API Key'}
+                <Button type="submit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add API Key
                 </Button>
-                <Button variant="outline" onClick={() => setShowNewKeyDialog(false)}>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                   Cancel
                 </Button>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search API keys..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* API Keys List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            Active API Keys ({apiKeys?.filter(key => key.is_active).length || 0})
-          </CardTitle>
+          <CardTitle>API Keys</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p>Loading API keys...</p>
-              </div>
-            ) : apiKeys?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No API keys found
-              </div>
-            ) : (
-              apiKeys?.map((apiKey) => (
-                <div key={apiKey.id} className="flex items-center justify-between p-4 border rounded-lg">
+            {mockApiKeys.map((key) => (
+              <div key={key.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-muted rounded-lg">
+                    {getCategoryIcon(key.category)}
+                  </div>
                   <div className="flex-1">
-                    <div className="font-medium">{apiKey.key_name}</div>
-                    <div className="text-sm text-muted-foreground">{apiKey.description}</div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant={apiKey.is_active ? "default" : "secondary"}>
-                        {apiKey.is_active ? "Active" : "Inactive"}
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{key.key_name}</span>
+                      <Badge variant={key.is_active ? 'default' : 'secondary'}>
+                        {key.is_active ? 'Active' : 'Inactive'}
                       </Badge>
-                      <div className="text-xs text-muted-foreground font-mono">
-                        {visibleKeys.has(apiKey.id) ? apiKey.encrypted_value : maskKey(apiKey.encrypted_value)}
-                      </div>
+                      <Badge variant="outline">{key.category}</Badge>
+                    </div>
+                    {key.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{key.description}</p>
+                    )}
+                    <div className="text-xs text-muted-foreground mt-1 flex gap-4">
+                      <span>Created: {new Date(key.created_at).toLocaleDateString()}</span>
+                      <span>Last used: {getTimeAgo(key.last_used)}</span>
+                      <span>Usage: {key.usage_count} calls</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleKeyVisibility(apiKey.id)}
-                    >
-                      {visibleKeys.has(apiKey.id) ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleKeyStatus.mutate({ keyId: apiKey.id, isActive: apiKey.is_active })}
-                      disabled={toggleKeyStatus.isPending}
-                    >
-                      {apiKey.is_active ? 'Disable' : 'Enable'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => deleteApiKey.mutate(apiKey.id)}
-                      disabled={deleteApiKey.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
-              ))
-            )}
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
