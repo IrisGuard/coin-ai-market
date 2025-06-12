@@ -16,9 +16,16 @@ interface Store {
   name: string;
   description: string;
   logo_url: string;
-  address: string;
+  address: any; // Changed from string to any to match Json type
   is_active: boolean;
   created_at: string;
+  email: string;
+  phone: string;
+  shipping_options: any; // Added to match database schema
+  updated_at: string;
+  user_id: string;
+  verified: boolean;
+  website: string;
 }
 
 interface StoreManagerProps {
@@ -144,7 +151,9 @@ const StoreManager: React.FC<StoreManagerProps> = ({ onStoreSelect, selectedStor
                       <p className="text-sm text-gray-600">{store.description}</p>
                     )}
                     {store.address && (
-                      <p className="text-xs text-gray-500 mt-1">{store.address}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {typeof store.address === 'string' ? store.address : 'Address on file'}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
