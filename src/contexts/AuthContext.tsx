@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     if (error) {
       console.error('❌ Dealer signup error:', error);
-      throw error;
+      return { data: null, error };
     }
     
     console.log('✅ Dealer signup successful:', {
@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       role: data.user?.user_metadata?.role
     });
     
-    return data;
+    return { data, error: null };
   };
 
   const signUp = async (email: string, password: string, userData: { fullName: string; username: string }) => {

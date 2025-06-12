@@ -23,19 +23,19 @@ export const useDealerSignup = (onClose: () => void) => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await dealerSignup(signupData.email, signupData.password, {
+      const response = await dealerSignup(signupData.email, signupData.password, {
         fullName: signupData.fullName,
         username: signupData.username
       });
       
-      if (error) {
-        console.error('❌ Dealer signup error:', error);
-        throw error;
+      if (response.error) {
+        console.error('❌ Dealer signup error:', response.error);
+        throw response.error;
       }
       
       console.log('✅ Dealer signup successful:', {
-        userId: data.user?.id,
-        role: data.user?.user_metadata?.role
+        userId: response.data?.user?.id,
+        role: response.data?.user?.user_metadata?.role
       });
       
       toast({

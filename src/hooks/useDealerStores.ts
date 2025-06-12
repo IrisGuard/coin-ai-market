@@ -10,7 +10,7 @@ export const useDealerStores = () => {
         .from('stores')
         .select(`
           *,
-          profiles!stores_user_id_fkey (
+          profiles!user_id (
             id,
             full_name,
             email,
@@ -21,7 +21,10 @@ export const useDealerStores = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching dealer stores:', error);
+        throw error;
+      }
       return data || [];
     },
   });
