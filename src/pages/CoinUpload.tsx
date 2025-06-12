@@ -6,21 +6,47 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 import AdvancedDealerUploadPanel from '@/components/dealer/AdvancedDealerUploadPanel';
+import { Loader2 } from 'lucide-react';
 
 const CoinUpload = () => {
-  const { isAuthenticated, user } = useAuth();
-  const { data: userRole, isLoading } = useSmartUserRole();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
-  }
+  console.log('🚀 CoinUpload page render:', {
+    isAuthenticated,
+    userId: user?.id,
+    userRole,
+    authLoading,
+    roleLoading
+  });
 
-  if (isLoading) {
+  // Show loading while authentication is initializing
+  if (authLoading) {
+    console.log('⏳ Auth still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <div className="flex items-center gap-3">
-          <div className="animate-spin h-8 w-8 border-4 border-electric-blue border-t-transparent rounded-full"></div>
-          <span className="text-electric-blue font-medium">Loading...</span>
+          <Loader2 className="animate-spin h-8 w-8 text-electric-blue" />
+          <span className="text-electric-blue font-medium">Initializing...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to auth if not authenticated
+  if (!isAuthenticated) {
+    console.log('❌ Not authenticated, redirecting to /auth');
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading while role is being determined
+  if (roleLoading) {
+    console.log('⏳ Role still loading...');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <div className="flex items-center gap-3">
+          <Loader2 className="animate-spin h-8 w-8 text-electric-blue" />
+          <span className="text-electric-blue font-medium">Loading dealer panel...</span>
         </div>
       </div>
     );
@@ -28,8 +54,11 @@ const CoinUpload = () => {
 
   // Redirect non-dealers to marketplace
   if (userRole !== 'dealer') {
+    console.log('❌ User is not a dealer, redirecting to marketplace. Role:', userRole);
     return <Navigate to="/marketplace" replace />;
   }
+
+  console.log('✅ Dealer access granted, rendering upload panel');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">

@@ -40,38 +40,90 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('🔐 AuthProvider initializing...');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state changed:', event, session?.user?.id);
+        console.log('🔐 Auth state changed:', event, {
+          userId: session?.user?.id,
+          userRole: session?.user?.user_metadata?.role,
+          sessionValid: !!session
+        });
+        
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Only redirect from auth page to home - NO automatic redirects
+        // Handle successful authentication
         if (event === 'SIGNED_IN' && session?.user) {
+          const userRole = session.user.user_metadata?.role;
+          console.log('✅ User signed in with role:', userRole);
+          
+          // Only redirect from auth page
           if (window.location.pathname === '/auth') {
-            console.log('✅ Redirecting from auth page to home');
-            setTimeout(() => {
-              navigate('/');
-            }, 100);
+            if (userRole === 'dealer') {
+              console.log('📍 Redirecting dealer to /upload');
+              setTimeout(() => {
+                navigate('/upload');
+              }, 100);
+            } else {
+              console.log('📍 Redirecting buyer to home');
+              setTimeout(() => {
+                navigate('/');
+              }, 100);
+            }
           }
-          // Users stay on current page otherwise
+        }
+
+        // Handle sign out
+        if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
+          setSession(null);
+          setUser(null);
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // THEN check for existing session with retry mechanism
+    const initializeSession = async () => {
+      try {
+        console.log('🔍 Checking for existing session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Session error:', error);
+          setLoading(false);
+          return;
+        }
 
-    return () => subscription.unsubscribe();
+        if (session) {
+          console.log('✅ Found existing session:', {
+            userId: session.user.id,
+            userRole: session.user.user_metadata?.role
+          });
+          setSession(session);
+          setUser(session.user);
+        } else {
+          console.log('ℹ️ No existing session found');
+        }
+      } catch (error) {
+        console.error('❌ Failed to get session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeSession();
+
+    return () => {
+      console.log('🔐 AuthProvider cleanup');
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const signUp = async (email: string, password: string, userData: { fullName: string; username: string }) => {
+    console.log('📝 Attempting signup for:', email);
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -88,16 +140,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Signup error:', error);
+      throw error;
+    }
     
+    console.log('✅ Signup successful');
     return data;
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔑 Attempting signin for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
+    if (error) {
+      console.error('❌ Signin error:', error);
+    } else {
+      console.log('✅ Signin successful');
+    }
+    
     return { data, error };
   };
 
@@ -112,6 +176,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
+    console.log('👋 Logging out...');
+    
     // Clear ALL admin session data on logout
     localStorage.removeItem('adminSession');
     sessionStorage.removeItem('adminAuthenticated');
@@ -120,7 +186,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     sessionStorage.removeItem('adminFingerprint');
     
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Logout error:', error);
+      throw error;
+    }
+    
+    console.log('✅ Logout successful');
     navigate('/');
   };
 

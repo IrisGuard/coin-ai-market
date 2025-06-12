@@ -35,10 +35,13 @@ const DealerLoginForm: React.FC<DealerLoginFormProps> = ({ onClose }) => {
       return;
     }
 
+    console.log('🔑 Dealer login attempt for:', loginData.email);
     setIsLoading(true);
+    
     try {
       await secureLogin(loginData.email, loginData.password);
       
+      console.log('✅ Dealer login successful');
       toast({
         title: "Welcome back!",
         description: "Redirecting to your dealer panel...",
@@ -46,13 +49,14 @@ const DealerLoginForm: React.FC<DealerLoginFormProps> = ({ onClose }) => {
       
       onClose();
       
-      // Redirect to dealer panel
+      // The AuthContext will handle the redirect based on user role
+      // But we can also navigate directly to ensure it happens
       setTimeout(() => {
         navigate('/upload');
       }, 1000);
       
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Dealer login error:', error);
       setErrors({
         form: error.message || 'Login failed. Please check your credentials.'
       });

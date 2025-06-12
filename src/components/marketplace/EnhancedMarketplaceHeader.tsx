@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Store, TrendingUp, Users, ShoppingBag } from 'lucide-react';
+import { Store, TrendingUp, Users, ShoppingBag, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,31 +10,51 @@ import DealerAuthModal from '@/components/auth/DealerAuthModal';
 
 const EnhancedMarketplaceHeader = () => {
   const [showDealerModal, setShowDealerModal] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
   const navigate = useNavigate();
 
   const handleOpenStore = () => {
+    console.log('🏪 Open Store clicked:', {
+      isAuthenticated,
+      authLoading,
+      userRole,
+      roleLoading
+    });
+
+    // If authentication is still loading, wait a bit
+    if (authLoading) {
+      console.log('⏳ Authentication still loading, please wait...');
+      return;
+    }
+
     if (isAuthenticated) {
+      // If role is still loading, wait for it
       if (roleLoading) {
-        // Wait for role to load
+        console.log('⏳ Role still loading, please wait...');
         return;
       }
       
       if (userRole === 'dealer') {
         // Already a dealer, redirect to upload panel
+        console.log('✅ Authenticated dealer, redirecting to /upload');
         navigate('/upload');
         return;
       } else if (userRole === 'buyer') {
         // Show access denied for buyers
+        console.log('❌ Buyer trying to access dealer panel');
         alert('Access denied. This section is for dealers only.');
         return;
       }
     }
     
     // Not authenticated or no role - show auth modal
+    console.log('🔐 Not authenticated, showing dealer auth modal');
     setShowDealerModal(true);
   };
+
+  // Show loading state if authentication or role is loading
+  const isLoading = authLoading || (isAuthenticated && roleLoading);
 
   return (
     <>
@@ -67,10 +87,19 @@ const EnhancedMarketplaceHeader = () => {
                 size="lg"
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-electric-blue font-semibold px-8 py-3 rounded-full"
-                disabled={roleLoading}
+                disabled={isLoading}
               >
-                <Store className="w-5 h-5 mr-2" />
-                {roleLoading ? 'Loading...' : 'Open Store'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Store className="w-5 h-5 mr-2" />
+                    Open Store
+                  </>
+                )}
               </Button>
             </div>
           </motion.div>

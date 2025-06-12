@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface SignupData {
   email: string;
@@ -14,11 +15,14 @@ interface SignupData {
 export const useDealerSignup = (onClose: () => void) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignup = async (signupData: SignupData) => {
+    console.log('📝 Dealer signup initiated for:', signupData.email);
     setIsLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: {
@@ -32,22 +36,31 @@ export const useDealerSignup = (onClose: () => void) => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Dealer signup error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Dealer signup successful:', {
+        userId: data.user?.id,
+        role: data.user?.user_metadata?.role
+      });
       
       toast({
         title: "Welcome to CoinAI!",
-        description: "Please check your email to confirm your account. Redirecting to your dealer panel...",
+        description: "Account created successfully. Redirecting to your dealer panel...",
       });
       
       onClose();
       
       // Redirect to upload page immediately after successful signup
+      // The auth state change will handle the actual redirect
       setTimeout(() => {
-        window.location.href = '/upload';
+        navigate('/upload');
       }, 1000);
       
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('❌ Dealer signup error:', error);
       toast({
         title: "Signup Failed",
         description: error.message || 'An error occurred during signup',
