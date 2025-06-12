@@ -12,17 +12,13 @@ import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection"
 import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
-import BuyerSignupForm from "@/components/auth/BuyerSignupForm";
 import { motion } from 'framer-motion';
-import { ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
   const { isAuthenticated } = useAuth();
   const { performSearch } = useSearchEnhancement();
-  const [showBuyerSignup, setShowBuyerSignup] = useState(false);
 
   const handleSearch = (query: string) => {
     performSearch(query);
@@ -37,20 +33,6 @@ const Index = () => {
         {/* Enhanced Hero Section */}
         <div className="bg-white border-b border-gray-200 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            {/* Top-right Join as Buyer Button - Only show if not authenticated */}
-            {!isAuthenticated && (
-              <div className="absolute top-4 right-4">
-                <Button
-                  onClick={() => setShowBuyerSignup(true)}
-                  size="sm"
-                  className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-pink text-white text-sm font-medium flex items-center gap-1"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Join as Buyer
-                </Button>
-              </div>
-            )}
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -88,12 +70,6 @@ const Index = () => {
 
         <Footer />
         <VoiceInterface />
-
-        {/* Buyer Signup Modal */}
-        <BuyerSignupForm 
-          isOpen={showBuyerSignup} 
-          onClose={() => setShowBuyerSignup(false)} 
-        />
       </div>
     </ErrorBoundaryWrapper>
   );

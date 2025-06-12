@@ -23,7 +23,7 @@ const AuthForm = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger value="signup">Join as Buyer</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login" className="space-y-4">

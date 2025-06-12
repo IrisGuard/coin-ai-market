@@ -101,7 +101,7 @@ const Navbar = () => {
               </div>
             ) : (
               <Link to="/auth">
-                <Button>Sign In</Button>
+                <Button>Join as Buyer</Button>
               </Link>
             )}
           </div>
@@ -192,7 +192,7 @@ const Navbar = () => {
                   className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Sign In
+                  Join as Buyer
                 </Link>
               )}
             </div>
