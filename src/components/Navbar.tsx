@@ -22,7 +22,7 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Get user role with fallback for new users
+  // Get user role
   const { data: userRole } = useQuery({
     queryKey: ['userRole', user?.id],
     queryFn: async () => {
@@ -34,26 +34,11 @@ const Navbar = () => {
         .eq('id', user.id)
         .single();
       
-      if (error) {
-        // If profile doesn't exist yet, check metadata
-        if (error.code === 'PGRST116') {
-          return user.user_metadata?.role || null;
-        }
-        throw error;
-      }
+      if (error) throw error;
       return data?.role;
     },
     enabled: !!user?.id,
-    retry: (failureCount, error: any) => {
-      if (error?.code === 'PGRST116') return false;
-      return failureCount < 3;
-    }
   });
-
-  // Check if user is dealer (from profile or metadata)
-  const isDealerFromProfile = userRole === 'dealer';
-  const isDealerFromMetadata = user?.user_metadata?.role === 'dealer';
-  const isDealer = isDealerFromProfile || isDealerFromMetadata;
 
   const handleLogout = async () => {
     await logout();
@@ -89,7 +74,7 @@ const Navbar = () => {
               Auctions
             </Link>
             
-            {isAuthenticated && isDealer && (
+            {isAuthenticated && userRole === 'dealer' && (
               <Link to="/upload" className="text-gray-700 hover:text-electric-blue transition-colors">
                 Upload Coins
               </Link>
@@ -162,7 +147,7 @@ const Navbar = () => {
                 Auctions
               </Link>
               
-              {isAuthenticated && isDealer && (
+              {isAuthenticated && userRole === 'dealer' && (
                 <Link 
                   to="/upload" 
                   className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"

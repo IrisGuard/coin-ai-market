@@ -35,20 +35,22 @@ export const useDealerSignup = (onClose: () => void) => {
       if (error) throw error;
       
       toast({
-        title: "Welcome to CoinVault!",
-        description: "Please check your email to confirm your account. You can start uploading coins immediately.",
+        title: "Welcome to CoinAI!",
+        description: "Please check your email to confirm your account. Redirecting to your dealer panel...",
       });
       
       onClose();
       
-      // Navigate to upload page immediately for dealers
-      window.location.href = '/upload';
+      // Redirect to upload page immediately after successful signup
+      setTimeout(() => {
+        window.location.href = '/upload';
+      }, 1000);
       
     } catch (error: any) {
-      console.error('Dealer signup error:', error);
+      console.error('Signup error:', error);
       toast({
         title: "Signup Failed",
-        description: error.message || 'An error occurred during dealer signup',
+        description: error.message || 'An error occurred during signup',
         variant: "destructive",
       });
     } finally {

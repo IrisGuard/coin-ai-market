@@ -12,9 +12,6 @@ import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection"
 import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
-import DealerSignupForm from "@/components/auth/DealerSignupForm";
-import { Button } from '@/components/ui/button';
-import { Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Index = () => {
@@ -22,7 +19,6 @@ const Index = () => {
   usePerformanceMonitoring('IndexPage');
   const { isAuthenticated } = useAuth();
   const { performSearch } = useSearchEnhancement();
-  const [showDealerSignup, setShowDealerSignup] = useState(false);
 
   const handleSearch = (query: string) => {
     performSearch(query);
@@ -62,31 +58,6 @@ const Index = () => {
                   onSearch={handleSearch}
                 />
               </motion.div>
-
-              {/* Signup CTAs - Both buttons for different user types */}
-              {!isAuthenticated && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="flex justify-center gap-4 mt-8"
-                >
-                  <Link to="/auth">
-                    <Button size="lg">
-                      Join as Buyer
-                    </Button>
-                  </Link>
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    onClick={() => setShowDealerSignup(true)}
-                    className="bg-gradient-to-r from-electric-green to-electric-emerald text-white border-0 hover:from-electric-emerald hover:to-electric-cyan"
-                  >
-                    <Store className="w-4 h-4 mr-2" />
-                    Become a Dealer
-                  </Button>
-                </motion.div>
-              )}
             </motion.div>
           </div>
         </div>
@@ -99,12 +70,6 @@ const Index = () => {
 
         <Footer />
         <VoiceInterface />
-
-        {/* Dealer Signup Modal */}
-        <DealerSignupForm 
-          isOpen={showDealerSignup} 
-          onClose={() => setShowDealerSignup(false)} 
-        />
       </div>
     </ErrorBoundaryWrapper>
   );
