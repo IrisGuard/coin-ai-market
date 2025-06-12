@@ -63,7 +63,7 @@ const Index = () => {
                 />
               </motion.div>
 
-              {/* Dealer Signup CTA */}
+              {/* Signup CTAs - Both buttons for different user types */}
               {!isAuthenticated && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
