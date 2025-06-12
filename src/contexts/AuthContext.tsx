@@ -48,9 +48,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // 🚨 CRITICAL FIX: NO AUTOMATIC REDIRECTS - Users stay where they are
+        // Only redirect from auth page to home - NO automatic redirects
         if (event === 'SIGNED_IN' && session?.user) {
-          // Only redirect from auth page to home - NO admin redirects
           if (window.location.pathname === '/auth') {
             console.log('✅ Redirecting from auth page to home');
             setTimeout(() => {
@@ -84,7 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           full_name: userData.fullName,
           name: userData.fullName,
           username: userData.username,
-          role: 'buyer'
+          role: 'buyer' // Default role - will be overridden by dealer signup
         }
       }
     });
@@ -113,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
-    // 🚨 CRITICAL: Clear ALL admin session data on logout
+    // Clear ALL admin session data on logout
     localStorage.removeItem('adminSession');
     sessionStorage.removeItem('adminAuthenticated');
     sessionStorage.removeItem('adminSessionTime');

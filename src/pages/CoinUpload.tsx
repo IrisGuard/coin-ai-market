@@ -4,30 +4,12 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 import AdvancedDealerUploadPanel from '@/components/dealer/AdvancedDealerUploadPanel';
 
 const CoinUpload = () => {
   const { isAuthenticated, user } = useAuth();
-
-  // Check user role
-  const { data: userRole, isLoading } = useQuery({
-    queryKey: ['userRole', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data?.role;
-    },
-    enabled: !!user?.id,
-  });
+  const { data: userRole, isLoading } = useSmartUserRole();
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;

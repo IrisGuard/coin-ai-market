@@ -27,7 +27,7 @@ export const useDealerSignup = (onClose: () => void) => {
             full_name: signupData.fullName,
             name: signupData.fullName,
             username: signupData.username,
-            role: 'dealer'
+            role: 'dealer' // CRITICAL: Set role to dealer
           }
         }
       });
