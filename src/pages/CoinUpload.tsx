@@ -11,8 +11,8 @@ import AdvancedDealerUploadPanel from '@/components/dealer/AdvancedDealerUploadP
 const CoinUpload = () => {
   const { isAuthenticated, user } = useAuth();
 
-  // Check user role
-  const { data: userRole, isLoading } = useQuery({
+  // Check user role with fallback for new dealers
+  const { data: userRole, isLoading, error } = useQuery({
     queryKey: ['userRole', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -23,10 +23,21 @@ const CoinUpload = () => {
         .eq('id', user.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        // If profile doesn't exist yet (new user), check raw metadata
+        if (error.code === 'PGRST116') {
+          return user.user_metadata?.role || null;
+        }
+        throw error;
+      }
       return data?.role;
     },
     enabled: !!user?.id,
+    retry: (failureCount, error: any) => {
+      // Don't retry if it's a profile not found error for new users
+      if (error?.code === 'PGRST116') return false;
+      return failureCount < 3;
+    }
   });
 
   if (!isAuthenticated) {
@@ -38,14 +49,19 @@ const CoinUpload = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <div className="flex items-center gap-3">
           <div className="animate-spin h-8 w-8 border-4 border-electric-blue border-t-transparent rounded-full"></div>
-          <span className="text-electric-blue font-medium">Loading...</span>
+          <span className="text-electric-blue font-medium">Loading dealer panel...</span>
         </div>
       </div>
     );
   }
 
+  // Check if user is dealer (from profile or metadata)
+  const isDealerFromProfile = userRole === 'dealer';
+  const isDealerFromMetadata = user?.user_metadata?.role === 'dealer';
+  const isDealer = isDealerFromProfile || isDealerFromMetadata;
+
   // Redirect non-dealers to marketplace
-  if (userRole !== 'dealer') {
+  if (!isDealer && !error) {
     return <Navigate to="/marketplace" replace />;
   }
 
