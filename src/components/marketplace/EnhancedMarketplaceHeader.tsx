@@ -7,9 +7,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 import DealerAuthModal from '@/components/auth/DealerAuthModal';
+import DealerUpgradeModal from '@/components/auth/DealerUpgradeModal';
 
 const EnhancedMarketplaceHeader = () => {
   const [showDealerModal, setShowDealerModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
   const navigate = useNavigate();
@@ -40,15 +42,15 @@ const EnhancedMarketplaceHeader = () => {
         console.log('✅ Authenticated dealer, redirecting to /upload');
         navigate('/upload');
         return;
-      } else if (userRole === 'buyer') {
-        // Show access denied for buyers trying to become dealers
-        console.log('ℹ️ Buyer wanting to become dealer, showing dealer auth modal');
-        setShowDealerModal(true);
+      } else {
+        // Authenticated but not a dealer - show upgrade modal
+        console.log('🔄 Authenticated non-dealer, showing upgrade modal');
+        setShowUpgradeModal(true);
         return;
       }
     }
     
-    // Not authenticated or no role - show auth modal
+    // Not authenticated - show auth modal
     console.log('🔐 Not authenticated, showing dealer auth modal');
     setShowDealerModal(true);
   };
@@ -141,6 +143,11 @@ const EnhancedMarketplaceHeader = () => {
       <DealerAuthModal 
         isOpen={showDealerModal} 
         onClose={() => setShowDealerModal(false)} 
+      />
+      
+      <DealerUpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
       />
     </>
   );
