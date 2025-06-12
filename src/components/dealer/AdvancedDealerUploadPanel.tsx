@@ -3,16 +3,19 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard, Store, AlertCircle } from 'lucide-react';
 import AdvancedImageUploadManager from './AdvancedImageUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
 import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
 import ShippingPaymentManager from './ShippingPaymentManager';
+import StoreManager from './StoreManager';
 
 const AdvancedDealerUploadPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('upload');
+  const [activeTab, setActiveTab] = useState('stores');
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [aiAnalysisResults, setAiAnalysisResults] = useState<any>(null);
   const [coinData, setCoinData] = useState<any>({});
@@ -34,8 +37,14 @@ const AdvancedDealerUploadPanel: React.FC = () => {
       weight: results.analysis?.weight || '',
       estimatedValue: results.analysis?.estimated_value || '',
       errors: results.errors || [],
-      rarity: results.analysis?.rarity || 'Common'
+      rarity: results.analysis?.rarity || 'Common',
+      store_id: selectedStoreId // Connect to selected store
     }));
+  };
+
+  const handleStoreSelect = (storeId: string) => {
+    setSelectedStoreId(storeId);
+    setCoinData(prev => ({ ...prev, store_id: storeId }));
   };
 
   return (
@@ -53,13 +62,27 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         </Badge>
       </div>
 
+      {/* Store Selection Alert */}
+      {!selectedStoreId && activeTab !== 'stores' && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please select a store first to upload coins. Go to the "Store Management" tab to create or select a store.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="upload" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="stores" className="flex items-center gap-2">
+            <Store className="w-4 h-4" />
+            Store Management
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="flex items-center gap-2" disabled={!selectedStoreId}>
             <Upload className="w-4 h-4" />
             Smart Upload
           </TabsTrigger>
-          <TabsTrigger value="bulk" className="flex items-center gap-2">
+          <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={!selectedStoreId}>
             <Package className="w-4 h-4" />
             Bulk Operations
           </TabsTrigger>
@@ -81,24 +104,33 @@ const AdvancedDealerUploadPanel: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="stores" className="space-y-6">
+          <StoreManager 
+            onStoreSelect={handleStoreSelect}
+            selectedStoreId={selectedStoreId}
+          />
+        </TabsContent>
+
         <TabsContent value="upload" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AdvancedImageUploadManager
-              onImagesProcessed={handleImagesProcessed}
-              onAIAnalysisComplete={handleAIAnalysisComplete}
-              maxImages={10}
-            />
-            <CoinListingForm
-              images={uploadedImages}
-              aiResults={aiAnalysisResults}
-              coinData={coinData}
-              onCoinDataChange={setCoinData}
-            />
-          </div>
+          {selectedStoreId && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AdvancedImageUploadManager
+                onImagesProcessed={handleImagesProcessed}
+                onAIAnalysisComplete={handleAIAnalysisComplete}
+                maxImages={10}
+              />
+              <CoinListingForm
+                images={uploadedImages}
+                aiResults={aiAnalysisResults}
+                coinData={coinData}
+                onCoinDataChange={setCoinData}
+              />
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="bulk">
-          <BulkUploadManager />
+          {selectedStoreId && <BulkUploadManager />}
         </TabsContent>
 
         <TabsContent value="intelligence">

@@ -76,7 +76,7 @@ const SignupTab: React.FC = () => {
       
       toast({
         title: "Welcome to CoinAI!",
-        description: "Please check your email to confirm your account. Create your store, upload your first coin and start selling globally!",
+        description: "Please check your email to confirm your account. After confirmation, you can create your first store and start uploading coins!",
       });
       
       // Reset form
