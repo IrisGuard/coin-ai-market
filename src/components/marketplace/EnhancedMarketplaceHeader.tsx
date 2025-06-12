@@ -41,9 +41,9 @@ const EnhancedMarketplaceHeader = () => {
         navigate('/upload');
         return;
       } else if (userRole === 'buyer') {
-        // Show access denied for buyers
-        console.log('❌ Buyer trying to access dealer panel');
-        alert('Access denied. This section is for dealers only.');
+        // Show access denied for buyers trying to become dealers
+        console.log('ℹ️ Buyer wanting to become dealer, showing dealer auth modal');
+        setShowDealerModal(true);
         return;
       }
     }

@@ -16,7 +16,8 @@ interface DealerAuthModalProps {
 }
 
 const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
-  const [activeTab, setActiveTab] = useState('login');
+  // Default to signup for new dealers
+  const [activeTab, setActiveTab] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -55,20 +56,16 @@ const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
               Dealer Access
             </CardTitle>
             <p className="text-gray-600 text-sm">
-              Access your store or create a new one
+              Create your store or access existing one
             </p>
           </CardHeader>
           
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signup">Create Store</TabsTrigger>
                 <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Create Account</TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="login" className="mt-6">
-                <DealerLoginForm onClose={onClose} />
-              </TabsContent>
               
               <TabsContent value="signup" className="mt-6">
                 <DealerSignupFormFields
@@ -82,6 +79,10 @@ const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
                   isLoading={signupLoading}
                   onSubmit={onSignupSubmit}
                 />
+              </TabsContent>
+              
+              <TabsContent value="login" className="mt-6">
+                <DealerLoginForm onClose={onClose} />
               </TabsContent>
             </Tabs>
             

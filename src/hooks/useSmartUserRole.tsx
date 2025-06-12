@@ -37,7 +37,19 @@ export const useSmartUserRole = () => {
           return user.user_metadata.role;
         }
         
-        console.log('⚠️ No role found, defaulting to buyer');
+        // Check user_roles table as additional fallback
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (!roleError && roleData?.role) {
+          console.log('✅ Role found in user_roles table:', roleData.role);
+          return roleData.role;
+        }
+        
+        console.log('⚠️ No role found anywhere, defaulting to buyer');
         // Final fallback: default to buyer
         return 'buyer';
       } catch (error) {
@@ -49,8 +61,10 @@ export const useSmartUserRole = () => {
       }
     },
     enabled: !!user?.id && !!session,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 3,
     retryDelay: 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };

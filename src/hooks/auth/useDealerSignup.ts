@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface SignupData {
@@ -16,24 +16,16 @@ export const useDealerSignup = (onClose: () => void) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { dealerSignup } = useAuth();
 
   const handleSignup = async (signupData: SignupData) => {
-    console.log('📝 Dealer signup initiated for:', signupData.email);
+    console.log('🏪 Dealer signup initiated for:', signupData.email);
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/upload`,
-          data: {
-            full_name: signupData.fullName,
-            name: signupData.fullName,
-            username: signupData.username,
-            role: 'dealer' // CRITICAL: Set role to dealer
-          }
-        }
+      const { data, error } = await dealerSignup(signupData.email, signupData.password, {
+        fullName: signupData.fullName,
+        username: signupData.username
       });
       
       if (error) {
@@ -48,13 +40,13 @@ export const useDealerSignup = (onClose: () => void) => {
       
       toast({
         title: "Welcome to CoinAI!",
-        description: "Account created successfully. Redirecting to your dealer panel...",
+        description: "Dealer account created successfully. Redirecting to your panel...",
       });
       
       onClose();
       
-      // Redirect to upload page immediately after successful signup
-      // The auth state change will handle the actual redirect
+      // The AuthContext will handle the redirect automatically
+      // But we can also ensure it happens
       setTimeout(() => {
         navigate('/upload');
       }, 1000);

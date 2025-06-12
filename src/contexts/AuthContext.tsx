@@ -17,6 +17,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: { fullName: string; username: string }) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   resetPassword: (email: string) => Promise<any>;
+  dealerSignup: (email: string, password: string, userData: { fullName: string; username: string }) => Promise<any>;
 }
 
 interface AuthProviderProps {
@@ -60,8 +61,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const userRole = session.user.user_metadata?.role;
           console.log('✅ User signed in with role:', userRole);
           
-          // Only redirect from auth page
-          if (window.location.pathname === '/auth') {
+          // Only redirect from auth page or after dealer signup
+          if (window.location.pathname === '/auth' || (userRole === 'dealer' && event === 'SIGNED_IN')) {
             if (userRole === 'dealer') {
               console.log('📍 Redirecting dealer to /upload');
               setTimeout(() => {
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     );
 
-    // THEN check for existing session with retry mechanism
+    // THEN check for existing session
     const initializeSession = async () => {
       try {
         console.log('🔍 Checking for existing session...');
@@ -122,8 +123,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, [navigate]);
 
+  const dealerSignup = async (email: string, password: string, userData: { fullName: string; username: string }) => {
+    console.log('🏪 Dealer signup initiated for:', email);
+    const redirectUrl = `${window.location.origin}/upload`;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: userData.fullName,
+          name: userData.fullName,
+          username: userData.username,
+          role: 'dealer'
+        }
+      }
+    });
+    
+    if (error) {
+      console.error('❌ Dealer signup error:', error);
+      throw error;
+    }
+    
+    console.log('✅ Dealer signup successful:', {
+      userId: data.user?.id,
+      role: data.user?.user_metadata?.role
+    });
+    
+    return data;
+  };
+
   const signUp = async (email: string, password: string, userData: { fullName: string; username: string }) => {
-    console.log('📝 Attempting signup for:', email);
+    console.log('📝 Attempting buyer signup for:', email);
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -135,17 +167,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           full_name: userData.fullName,
           name: userData.fullName,
           username: userData.username,
-          role: 'buyer' // Default role - will be overridden by dealer signup
+          role: 'buyer'
         }
       }
     });
     
     if (error) {
-      console.error('❌ Signup error:', error);
+      console.error('❌ Buyer signup error:', error);
       throw error;
     }
     
-    console.log('✅ Signup successful');
+    console.log('✅ Buyer signup successful');
     return data;
   };
 
@@ -225,6 +257,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     logout,
     resetPassword,
     updateProfile,
+    dealerSignup,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
