@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -69,7 +68,7 @@ const DealerSignupForm = ({ isOpen, onClose }: DealerSignupFormProps) => {
         email: signupData.email,
         password: signupData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/marketplace`,
+          emailRedirectTo: `${window.location.origin}/upload`,
           data: {
             full_name: signupData.fullName,
             name: signupData.fullName,
@@ -106,7 +105,7 @@ const DealerSignupForm = ({ isOpen, onClose }: DealerSignupFormProps) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/marketplace`,
+          redirectTo: `${window.location.origin}/upload`,
           queryParams: {
             role: 'dealer'
           }
