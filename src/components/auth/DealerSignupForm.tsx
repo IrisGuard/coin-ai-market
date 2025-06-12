@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, Store } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { Store } from 'lucide-react';
+import { useDealerSignupValidation } from '@/hooks/auth/useDealerSignupValidation';
+import { useDealerSignup } from '@/hooks/auth/useDealerSignup';
+import DealerSignupFormFields from './DealerSignupFormFields';
 
 interface DealerSignupFormProps {
   isOpen: boolean;
@@ -15,8 +13,6 @@ interface DealerSignupFormProps {
 }
 
 const DealerSignupForm = ({ isOpen, onClose }: DealerSignupFormProps) => {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -28,81 +24,13 @@ const DealerSignupForm = ({ isOpen, onClose }: DealerSignupFormProps) => {
     username: ''
   });
   
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { errors, validateForm } = useDealerSignupValidation();
+  const { isLoading, handleSignup } = useDealerSignup(onClose);
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!signupData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
-    
-    if (!signupData.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
-
-    if (!signupData.email) {
-      newErrors.email = 'Email is required';
-    }
-
-    if (!signupData.password) {
-      newErrors.password = 'Password is required';
-    } else if (signupData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (signupData.password !== signupData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/upload`,
-          data: {
-            full_name: signupData.fullName,
-            name: signupData.fullName,
-            username: signupData.username,
-            role: 'dealer'
-          }
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Welcome to CoinAI!",
-        description: "Please check your email to confirm your account. Redirecting to your dealer panel...",
-      });
-      
-      onClose();
-      
-      // Redirect to upload page immediately after successful signup
-      setTimeout(() => {
-        window.location.href = '/upload';
-      }, 1000);
-      
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      toast({
-        title: "Signup Failed",
-        description: error.message || 'An error occurred during signup',
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    if (!validateForm(signupData)) return;
+    await handleSignup(signupData);
   };
 
   if (!isOpen) return null;
@@ -127,119 +55,17 @@ const DealerSignupForm = ({ isOpen, onClose }: DealerSignupFormProps) => {
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Input
-                    placeholder="Full Name"
-                    value={signupData.fullName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, fullName: e.target.value }))}
-                    className={errors.fullName ? 'border-red-300' : ''}
-                  />
-                  {errors.fullName && (
-                    <div className="flex items-center gap-1 text-sm text-red-600">
-                      <AlertCircle size={14} />
-                      <span>{errors.fullName}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <Input
-                    placeholder="Username"
-                    value={signupData.username}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, username: e.target.value }))}
-                    className={errors.username ? 'border-red-300' : ''}
-                  />
-                  {errors.username && (
-                    <div className="flex items-center gap-1 text-sm text-red-600">
-                      <AlertCircle size={14} />
-                      <span>{errors.username}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={signupData.email}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
-                  className={errors.email ? 'border-red-300' : ''}
-                />
-                {errors.email && (
-                  <div className="flex items-center gap-1 text-sm text-red-600">
-                    <AlertCircle size={14} />
-                    <span>{errors.email}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-1">
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={signupData.password}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
-                    className={errors.password ? 'border-red-300 pr-10' : 'pr-10'}
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <div className="flex items-center gap-1 text-sm text-red-600">
-                    <AlertCircle size={14} />
-                    <span>{errors.password}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-1">
-                <div className="relative">
-                  <Input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm password"
-                    value={signupData.confirmPassword}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className={errors.confirmPassword ? 'border-red-300 pr-10' : 'pr-10'}
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <div className="flex items-center gap-1 text-sm text-red-600">
-                    <AlertCircle size={14} />
-                    <span>{errors.confirmPassword}</span>
-                  </div>
-                )}
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-electric-green to-electric-emerald hover:from-electric-emerald hover:to-electric-cyan"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Store...
-                  </>
-                ) : (
-                  'Open My Store'
-                )}
-              </Button>
-            </form>
+            <DealerSignupFormFields
+              signupData={signupData}
+              onSignupDataChange={setSignupData}
+              errors={errors}
+              showPassword={showPassword}
+              showConfirmPassword={showConfirmPassword}
+              onTogglePassword={() => setShowPassword(!showPassword)}
+              onToggleConfirmPassword={() => setShowConfirmPassword(!showConfirmPassword)}
+              isLoading={isLoading}
+              onSubmit={onSubmit}
+            />
             
             <div className="mt-4 text-center">
               <button
