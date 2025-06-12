@@ -8,6 +8,7 @@ import DataSourcesStatsCards from './data-sources/DataSourcesStatsCards';
 import DataSourcesTable from './data-sources/DataSourcesTable';
 import ExternalSourcesTable from './data-sources/ExternalSourcesTable';
 import ScrapingJobsTable from './data-sources/ScrapingJobsTable';
+import SecurityTablesSection from './security/SecurityTablesSection';
 
 const AdminDataSourcesTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +36,7 @@ const AdminDataSourcesTab = () => {
           <TabsTrigger value="data-sources">Data Sources</TabsTrigger>
           <TabsTrigger value="external-sources">External Sources</TabsTrigger>
           <TabsTrigger value="scraping-jobs">Scraping Jobs</TabsTrigger>
+          <TabsTrigger value="security-tables">Security Tables</TabsTrigger>
         </TabsList>
 
         <TabsContent value="data-sources" className="space-y-4">
@@ -77,6 +79,10 @@ const AdminDataSourcesTab = () => {
             scrapingJobs={scrapingJobs}
             searchTerm={searchTerm}
           />
+        </TabsContent>
+
+        <TabsContent value="security-tables" className="space-y-4">
+          <SecurityTablesSection />
         </TabsContent>
       </Tabs>
     </div>
