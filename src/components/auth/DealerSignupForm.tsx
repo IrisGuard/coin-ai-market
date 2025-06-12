@@ -83,10 +83,15 @@ const DealerSignupForm = ({ isOpen, onClose }: DealerSignupFormProps) => {
       
       toast({
         title: "Welcome to CoinAI!",
-        description: "Please check your email to confirm your account. Your store will be ready after verification!",
+        description: "Please check your email to confirm your account. Redirecting to your dealer panel...",
       });
       
       onClose();
+      
+      // Redirect to upload page immediately after successful signup
+      setTimeout(() => {
+        window.location.href = '/upload';
+      }, 1000);
       
     } catch (error: any) {
       console.error('Signup error:', error);
