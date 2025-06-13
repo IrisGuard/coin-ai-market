@@ -4062,6 +4062,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      verify_admin_access_final: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       verify_admin_access_secure: {
         Args: { user_id?: string }
         Returns: boolean

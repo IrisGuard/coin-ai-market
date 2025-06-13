@@ -1,34 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Check if user has admin role
+// Check if user has admin role using the new secure function
 export const checkAdminRole = async (userId: string): Promise<boolean> => {
   try {
     console.log('🔍 Checking admin role for user:', userId);
     
-    // First check user_roles table
-    const { data: userRole, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (roleError) {
-      console.error('❌ Error checking user role:', roleError);
-      return false;
-    }
-
-    if (userRole) {
-      console.log('✅ User has admin role in user_roles');
-      return true;
-    }
-
-    // Fallback: Check using the admin verification function
-    const { data, error } = await supabase.rpc('verify_admin_access_secure');
+    // Use the new secure function that prevents infinite recursion
+    const { data, error } = await supabase.rpc('verify_admin_access_final', { 
+      user_uuid: userId 
+    });
     
     if (error) {
-      console.error('❌ Error calling verify_admin_access_secure:', error);
+      console.error('❌ Error calling verify_admin_access_final:', error);
       return false;
     }
 
@@ -57,7 +41,7 @@ export const getCurrentUserAdminStatus = async (): Promise<boolean> => {
   }
 };
 
-// Enhanced admin check with multiple verification methods
+// Enhanced admin check using the new secure function
 export const verifyAdminAccess = async (): Promise<boolean> => {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -67,41 +51,19 @@ export const verifyAdminAccess = async (): Promise<boolean> => {
       return false;
     }
 
-    // Method 1: Direct user_roles check
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (!roleError && roleData) {
-      console.log('✅ Admin verified via user_roles table');
-      return true;
-    }
-
-    // Method 2: RPC function check
-    const { data: rpcData, error: rpcError } = await supabase.rpc('verify_admin_access_secure');
+    // Use the new secure function
+    const { data, error } = await supabase.rpc('verify_admin_access_final', {
+      user_uuid: user.id
+    });
     
-    if (!rpcError && rpcData) {
-      console.log('✅ Admin verified via RPC function');
-      return true;
+    if (error) {
+      console.error('❌ Admin verification error:', error);
+      return false;
     }
 
-    // Method 3: Manual admin_roles table check (if it exists)
-    try {
-      const { data: adminRoleData, error: adminRoleError } = await supabase
-        .from('admin_roles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!adminRoleError && adminRoleData) {
-        console.log('✅ Admin verified via admin_roles table');
-        return true;
-      }
-    } catch (adminTableError) {
-      console.log('ℹ️ admin_roles table check failed (table may not exist)');
+    if (data) {
+      console.log('✅ Admin verified via secure function');
+      return true;
     }
 
     console.log('❌ Admin verification failed - user is not admin');
@@ -123,7 +85,6 @@ export const setupAdminUser = async (userId: string): Promise<boolean> => {
       .upsert({ 
         user_id: userId, 
         role: 'admin',
-        assigned_at: new Date().toISOString()
       });
 
     if (error) {

@@ -4,11 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { verifyAdminAccess, safeQuery, handleSupabaseError } from '@/utils/supabaseSecurityHelpers';
 
-// Clean Admin Users Hook με ενσωματωμένα policies
+// Clean Admin Users Hook using the new secure function
 export const useCleanAdminUsers = () => {
   return useQuery({
     queryKey: ['clean-admin-users'],
     queryFn: async () => {
+      // First verify admin access using the new secure function
       const isAdmin = await verifyAdminAccess();
       if (!isAdmin) {
         throw new Error('Admin access required');
@@ -26,6 +27,7 @@ export const useCleanAdminUsers = () => {
       });
     },
     retry: (failureCount, error: any) => {
+      // Don't retry on permission errors
       if (error?.message?.includes('Admin access required') || 
           error?.message?.includes('Access denied')) {
         return false;
@@ -35,7 +37,7 @@ export const useCleanAdminUsers = () => {
   });
 };
 
-// Clean Admin Coins Hook με ενσωματωμένα policies
+// Clean Admin Coins Hook using the new secure function
 export const useCleanAdminCoins = () => {
   return useQuery({
     queryKey: ['clean-admin-coins'],
@@ -66,7 +68,7 @@ export const useCleanAdminCoins = () => {
   });
 };
 
-// Clean API Keys Hook με ενσωματωμένα policies
+// Clean API Keys Hook using the new secure function
 export const useCleanApiKeys = () => {
   return useQuery({
     queryKey: ['clean-admin-api-keys'],
@@ -90,7 +92,7 @@ export const useCleanApiKeys = () => {
   });
 };
 
-// Enhanced mutation με καθαρά policies
+// Enhanced mutation with proper error handling using the new secure function
 export const useCleanUpdateUserStatus = () => {
   const queryClient = useQueryClient();
   
@@ -116,7 +118,7 @@ export const useCleanUpdateUserStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
         title: "Χρήστης Ενημερώθηκε",
-        description: "Το status του χρήστη ενημερώθηκε επιτυχώς με καθαρά policies.",
+        description: "Το status του χρήστη ενημερώθηκε επιτυχώς με ενιαία policies.",
       });
     },
     onError: (error: Error) => {

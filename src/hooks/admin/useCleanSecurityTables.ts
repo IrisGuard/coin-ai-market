@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { verifyAdminAccess } from '@/utils/supabaseSecurityHelpers';
 
-// Clean Error Reference Sources Hook με ενσωματωμένα policies
+// Clean Error Reference Sources Hook using the new secure function
 export const useCleanErrorReferenceSources = () => {
   return useQuery({
     queryKey: ['clean-error-reference-sources'],
@@ -35,7 +35,7 @@ export const useCleanErrorReferenceSources = () => {
   });
 };
 
-// Clean Source Performance Metrics Hook με ενσωματωμένα policies
+// Clean Source Performance Metrics Hook using the new secure function
 export const useCleanSourcePerformanceMetrics = () => {
   return useQuery({
     queryKey: ['clean-source-performance-metrics'],
@@ -67,7 +67,7 @@ export const useCleanSourcePerformanceMetrics = () => {
   });
 };
 
-// Clean VPN Proxies Hook με ενσωματωμένα policies
+// Clean VPN Proxies Hook using the new secure function
 export const useCleanVpnProxies = () => {
   return useQuery({
     queryKey: ['clean-vpn-proxies'],
