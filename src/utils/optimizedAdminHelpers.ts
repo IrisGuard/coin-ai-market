@@ -5,8 +5,8 @@ export const getOptimizedDashboardStats = async () => {
   try {
     console.log('🚀 Fetching optimized dashboard stats...');
     
-    // Try to use the new comprehensive function first
-    const { data, error } = await supabase.rpc('get_comprehensive_admin_dashboard');
+    // Use the existing admin dashboard function
+    const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
     
     if (error) {
       console.error('❌ Error fetching comprehensive dashboard:', error);
@@ -76,7 +76,8 @@ export const validateSecurityStatus = async () => {
   try {
     console.log('🔒 Validating security status...');
     
-    const { data, error } = await supabase.rpc('validate_complete_security');
+    // Use existing security validation function
+    const { data, error } = await supabase.rpc('validate_security_config');
     
     if (error) {
       console.error('❌ Security validation error:', error);
