@@ -30,7 +30,22 @@ export const useDealerSignup = (onClose: () => void) => {
       
       if (response.error) {
         console.error('❌ Dealer signup error:', response.error);
-        throw response.error;
+        
+        // Better error handling for common cases
+        if (response.error.message?.includes('already registered')) {
+          toast({
+            title: "Το email υπάρχει ήδη",
+            description: "Αυτό το email είναι ήδη εγγεγραμμένο. Δοκιμάστε να συνδεθείτε ή χρησιμοποιήστε άλλο email.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Αποτυχία Εγγραφής",
+            description: response.error.message || 'Παρουσιάστηκε σφάλμα κατά την εγγραφή',
+            variant: "destructive",
+          });
+        }
+        return;
       }
       
       console.log('✅ Dealer signup successful:', {
@@ -38,17 +53,12 @@ export const useDealerSignup = (onClose: () => void) => {
         role: response.data?.user?.user_metadata?.role
       });
       
-      toast({
-        title: "Καλώς ήρθατε στο CoinAI!",
-        description: "Το κατάστημά σας δημιουργήθηκε επιτυχώς. Μεταφορά στο dealer panel...",
-      });
-      
+      // Close modal first to prevent it from reopening
       onClose();
       
-      // Direct navigation to dealer panel - no email verification needed
-      setTimeout(() => {
-        navigate('/upload');
-      }, 500);
+      // Direct navigation immediately without showing success toast to avoid modal conflicts
+      console.log('📍 Navigating dealer to /upload after signup');
+      navigate('/upload');
       
     } catch (error: any) {
       console.error('❌ Dealer signup error:', error);

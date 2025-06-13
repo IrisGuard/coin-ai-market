@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useDealerSignupValidation } from '@/hooks/auth/useDealerSignupValidation';
 import { useDealerSignup } from '@/hooks/auth/useDealerSignup';
 import { useEnhancedSecureAuth } from '@/hooks/useEnhancedSecureAuth';
@@ -16,6 +18,9 @@ interface DealerAuthModalProps {
 }
 
 const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
+  const { user, session } = useAuth();
+  const navigate = useNavigate();
+  
   // Default to signup for new dealers
   const [activeTab, setActiveTab] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +38,15 @@ const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
   const { isLoading: signupLoading, handleSignup } = useDealerSignup(onClose);
   const { secureLogin } = useEnhancedSecureAuth();
 
+  // Auto-redirect if user is already authenticated as dealer
+  useEffect(() => {
+    if (session?.user && user?.user_metadata?.role === 'dealer') {
+      console.log('🔄 Dealer already authenticated, redirecting to /upload');
+      onClose();
+      navigate('/upload');
+    }
+  }, [session, user, onClose, navigate]);
+
   const onSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm(signupData)) return;
@@ -40,6 +54,11 @@ const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
   };
 
   if (!isOpen) return null;
+
+  // Don't render if user is already authenticated as dealer
+  if (session?.user && user?.user_metadata?.role === 'dealer') {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
