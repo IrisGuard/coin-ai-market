@@ -3961,6 +3961,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_admin_dashboard_optimized: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_advanced_analytics_dashboard: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4029,6 +4033,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      monitor_query_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       record_system_metric: {
         Args: {
           p_metric_name: string
@@ -4061,6 +4069,10 @@ export type Database = {
       validate_security_config: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      verify_admin_access_secure: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
