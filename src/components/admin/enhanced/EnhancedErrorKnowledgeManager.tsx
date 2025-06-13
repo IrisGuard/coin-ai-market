@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Table, 
   TableBody, 
@@ -117,7 +115,7 @@ const EnhancedErrorKnowledgeManager = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-b-2 border-coin-purple"></div>
+        <div className="animate-spin h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -129,7 +127,7 @@ const EnhancedErrorKnowledgeManager = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-coin-purple" />
+              <Brain className="h-6 w-6 text-purple-600" />
               Enhanced Error Coins Knowledge Base
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -161,7 +159,7 @@ const EnhancedErrorKnowledgeManager = () => {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-coin-purple">
+              <div className="text-2xl font-bold text-purple-600">
                 {knowledgeEntries?.length || 0}
               </div>
               <div className="text-sm text-muted-foreground">Total Entries</div>
@@ -281,7 +279,7 @@ const EnhancedErrorKnowledgeManager = () => {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       {entry.ai_detection_markers && Object.keys(entry.ai_detection_markers).length > 0 ? (
-                        <Brain className="h-4 w-4 text-coin-purple" />
+                        <Brain className="h-4 w-4 text-purple-600" />
                       ) : (
                         <AlertTriangle className="h-4 w-4 text-gray-400" />
                       )}
