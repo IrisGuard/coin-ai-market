@@ -5,14 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Brain, TrendingUp, Shield, Database, AlertTriangle, Store, Package, Bell } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Shield, Database, AlertTriangle, Store, Package, Bell, Bot } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 // Import existing dealer components
-import DealerUploadForm from './DealerUploadForm';
 import DealerCoinsList from './DealerCoinsList';
 import DealerAnalytics from './DealerAnalytics';
+
+// Import new enhanced components
+import EnhancedDealerUploadTriggers from './EnhancedDealerUploadTriggers';
+import MultiCategoryListingManager from './MultiCategoryListingManager';
 
 // Import connected AI components
 import ConnectedAIAnalysis from './ConnectedAIAnalysis';
@@ -80,60 +83,21 @@ const EnhancedDealerPanel = () => {
     }
   });
 
-  // Auto-trigger scraping jobs when uploading coins
-  const triggerScrapingForCoin = async (coinData: any) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('advanced-web-scraper', {
-        body: {
-          commandType: 'coin_market_research',
-          targetUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(coinData.name + ' ' + coinData.year)}`,
-          coinData: coinData,
-          scrapingConfig: {
-            autoTrigger: true,
-            dealerUpload: true,
-            analysisDepth: 'comprehensive'
-          }
-        }
-      });
+  // Real-time scraping jobs monitoring
+  const { data: activeScrapingJobs } = useQuery({
+    queryKey: ['dealer-scraping-jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('scraping_jobs')
+        .select('*')
+        .eq('status', 'running')
+        .order('created_at', { ascending: false });
       
-      if (!error) {
-        console.log('✅ Auto-scraping triggered for coin:', coinData.name);
-        setNotifications(prev => [...prev, {
-          type: 'scraping_started',
-          message: `Market research initiated for ${coinData.name}`,
-          timestamp: new Date()
-        }]);
-      }
-    } catch (error) {
-      console.error('❌ Error triggering auto-scraping:', error);
-    }
-  };
-
-  // Auto-trigger visual matching for coin uploads
-  const triggerVisualMatching = async (imageData: any) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('visual-matching-engine', {
-        body: {
-          analysisId: imageData.analysisId,
-          frontImage: imageData.frontImage,
-          backImage: imageData.backImage,
-          similarityThreshold: 0.7,
-          autoTrigger: true
-        }
-      });
-      
-      if (!error) {
-        console.log('✅ Visual matching triggered for analysis:', imageData.analysisId);
-        setNotifications(prev => [...prev, {
-          type: 'visual_matching_started',
-          message: `Visual matching analysis started`,
-          timestamp: new Date()
-        }]);
-      }
-    } catch (error) {
-      console.error('❌ Error triggering visual matching:', error);
-    }
-  };
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 15000 // Check every 15 seconds
+  });
 
   if (brainLoading || storeLoading || coinsLoading) {
     return (
@@ -154,10 +118,11 @@ const EnhancedDealerPanel = () => {
             <Badge className="bg-green-100 text-green-800 ml-2">✅ AI Brain Connected</Badge>
             <Badge className="bg-blue-100 text-blue-800 ml-2">Real-time Analytics</Badge>
             <Badge className="bg-purple-100 text-purple-800 ml-2">Auto-Scraping Active</Badge>
+            <Badge className="bg-orange-100 text-orange-800 ml-2">Commercial Features</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{brainStats?.active_commands || 0}</div>
               <div className="text-sm text-muted-foreground">AI Commands Active</div>
@@ -171,7 +136,11 @@ const EnhancedDealerPanel = () => {
               <div className="text-sm text-muted-foreground">Your Coins</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{notifications.length}</div>
+              <div className="text-2xl font-bold text-orange-600">{activeScrapingJobs?.length || 0}</div>
+              <div className="text-sm text-muted-foreground">Active Scraping</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{notifications.length}</div>
               <div className="text-sm text-muted-foreground">Real-time Alerts</div>
             </div>
           </div>
@@ -188,6 +157,16 @@ const EnhancedDealerPanel = () => {
               </AlertDescription>
             </Alert>
           )}
+
+          {/* Active Scraping Jobs Status */}
+          {activeScrapingJobs && activeScrapingJobs.length > 0 && (
+            <Alert className="mt-4 border-blue-200">
+              <Bot className="h-4 w-4" />
+              <AlertDescription>
+                {activeScrapingJobs.length} scraping jobs currently running for market research
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
 
@@ -197,9 +176,13 @@ const EnhancedDealerPanel = () => {
             <Database className="h-4 w-4" />
             Dashboard
           </TabsTrigger>
-          <TabsTrigger value="upload" className="flex items-center gap-2">
+          <TabsTrigger value="enhanced-upload" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
-            Upload
+            Smart Upload
+          </TabsTrigger>
+          <TabsTrigger value="multi-listing" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Multi-Listing
           </TabsTrigger>
           <TabsTrigger value="ai-brain" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
@@ -214,12 +197,8 @@ const EnhancedDealerPanel = () => {
             Error Detection
           </TabsTrigger>
           <TabsTrigger value="my-coins" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            My Coins
-          </TabsTrigger>
-          <TabsTrigger value="store" className="flex items-center gap-2">
             <Store className="h-4 w-4" />
-            Store
+            My Inventory
           </TabsTrigger>
         </TabsList>
 
@@ -287,20 +266,22 @@ const EnhancedDealerPanel = () => {
                       {dealerStore?.verified ? 'Verified' : 'Pending'}
                     </Badge>
                   </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => setActiveTab('store')}
-                  >
-                    Manage Store
-                  </Button>
+                  <div className="flex justify-between items-center">
+                    <span>Total Coins</span>
+                    <span className="font-medium">{dealerCoins?.length || 0}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="upload">
-          <DealerUploadForm />
+        <TabsContent value="enhanced-upload">
+          <EnhancedDealerUploadTriggers />
+        </TabsContent>
+
+        <TabsContent value="multi-listing">
+          <MultiCategoryListingManager />
         </TabsContent>
 
         <TabsContent value="ai-brain">
@@ -317,57 +298,6 @@ const EnhancedDealerPanel = () => {
 
         <TabsContent value="my-coins">
           <DealerCoinsList />
-        </TabsContent>
-
-        <TabsContent value="store">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="h-6 w-6 text-blue-600" />
-                Store Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Store Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Store Name</label>
-                      <div className="text-lg">{dealerStore?.name || 'Not Set'}</div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Description</label>
-                      <div className="text-sm text-muted-foreground">
-                        {dealerStore?.description || 'No description'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{dealerCoins?.length || 0}</div>
-                      <p className="text-xs text-muted-foreground">Total Listings</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{dealerCoins?.filter(c => c.sold).length || 0}</div>
-                      <p className="text-xs text-muted-foreground">Sold Items</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{dealerCoins?.filter(c => c.is_auction).length || 0}</div>
-                      <p className="text-xs text-muted-foreground">Active Auctions</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
