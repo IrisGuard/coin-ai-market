@@ -23,7 +23,6 @@ import SourcesHeader from './sources/SourcesHeader';
 import EnhancedErrorKnowledgeManager from './EnhancedErrorKnowledgeManager';
 import EnhancedErrorMarketDataManager from './EnhancedErrorMarketDataManager';
 import { useRealExternalSources } from '@/hooks/useRealExternalSources';
-import { transformSourcesForGeographic } from './sources/utils';
 
 const EnhancedSourcesManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -32,12 +31,10 @@ const EnhancedSourcesManager = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-b-2 border-coin-purple"></div>
+        <div className="animate-spin h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
-
-  const transformedSources = transformSourcesForGeographic(sources);
 
   return (
     <div className="space-y-6">
@@ -116,7 +113,7 @@ const EnhancedSourcesManager = () => {
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicSourceMap sources={transformedSources} />
+          <GeographicSourceMap sources={sources || []} />
         </TabsContent>
       </Tabs>
     </div>

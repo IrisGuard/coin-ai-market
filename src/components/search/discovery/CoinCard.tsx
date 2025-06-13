@@ -33,7 +33,7 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onClick }) => {
 
   return (
     <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
-      <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
+      <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden relative">
         {coin.image ? (
           <img 
             src={coin.image} 
@@ -41,12 +41,12 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onClick }) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             No Image
           </div>
         )}
         {coin.featured && (
-          <Badge className="absolute top-2 right-2 bg-yellow-500">
+          <Badge className="absolute top-2 right-2 bg-primary">
             <Star className="h-3 w-3 mr-1" />
             Featured
           </Badge>
@@ -56,7 +56,7 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onClick }) => {
       <h3 className="font-semibold text-sm mb-2 line-clamp-2">{coin.name}</h3>
       
       <div className="flex items-center justify-between mb-2">
-        <span className="text-lg font-bold text-purple-600">${coin.price?.toLocaleString()}</span>
+        <span className="text-lg font-bold text-primary">${coin.price?.toLocaleString()}</span>
         {coin.trend && (
           <div className="flex items-center gap-1 text-green-600 text-xs">
             <TrendingUp className="h-3 w-3" />

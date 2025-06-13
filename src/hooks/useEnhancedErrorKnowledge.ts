@@ -47,19 +47,6 @@ export interface ErrorMarketData {
   updated_at: string;
 }
 
-interface AIDetectionResult {
-  errors_detected: Array<{
-    error_id: string;
-    error_name: string;
-    error_type: string;
-    severity: number;
-    rarity: number;
-    confidence: number;
-  }>;
-  confidence_scores: Record<string, number>;
-  cross_references: string[];
-}
-
 export const useEnhancedErrorKnowledge = () => {
   return useQuery({
     queryKey: ['enhanced-error-knowledge'],
@@ -169,47 +156,17 @@ export const useDetectCoinErrors = () => {
     }) => {
       const { data, error } = await supabase.rpc('detect_coin_errors', {
         p_image_hash: imageHash,
-        p_base_coin_info: coinInfo,
+        p_coin_info: coinInfo,
         p_detection_config: detectionConfig
       });
-      
-      if (error) throw error;
-      return data as unknown as AIDetectionResult;
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: "Failed to detect coin errors: " + error.message,
-        variant: "destructive",
-      });
-    }
-  });
-};
 
-export const useCalculateErrorCoinValue = () => {
-  return useMutation({
-    mutationFn: async ({
-      errorId,
-      grade,
-      baseCoinValue = 0
-    }: {
-      errorId: string;
-      grade: string;
-      baseCoinValue?: number;
-    }) => {
-      const { data, error } = await supabase.rpc('calculate_error_coin_value', {
-        p_error_id: errorId,
-        p_grade: grade,
-        p_base_coin_value: baseCoinValue
-      });
-      
       if (error) throw error;
       return data;
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: "Failed to calculate coin value: " + error.message,
+        title: "Detection Failed",
+        description: "Failed to detect coin errors: " + error.message,
         variant: "destructive",
       });
     }

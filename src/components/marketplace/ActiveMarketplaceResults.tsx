@@ -22,8 +22,8 @@ const ActiveMarketplaceResults: React.FC<ActiveMarketplaceResultsProps> = ({
     return (
       <div className="flex justify-center items-center py-16">
         <div className="flex items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
-          <span className="text-electric-blue">Loading marketplace...</span>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="text-primary">Loading marketplace...</span>
         </div>
       </div>
     );
@@ -33,14 +33,14 @@ const ActiveMarketplaceResults: React.FC<ActiveMarketplaceResultsProps> = ({
     return (
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
-          <div className="w-24 h-24 bg-gradient-to-br from-electric-blue to-electric-purple rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6">
             <div className="text-4xl">🔍</div>
           </div>
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent mb-2">No coins found</h2>
-          <p className="text-electric-blue mb-6">
+          <h2 className="text-2xl font-semibold text-primary mb-2">No coins found</h2>
+          <p className="text-muted-foreground mb-6">
             We couldn't find any coins matching your search criteria.
           </p>
-          <Button onClick={clearFilters} className="bg-gradient-to-r from-electric-orange to-electric-red hover:from-electric-red hover:to-electric-orange text-white">
+          <Button onClick={clearFilters} className="bg-primary hover:bg-primary/90">
             Clear all filters
           </Button>
         </div>

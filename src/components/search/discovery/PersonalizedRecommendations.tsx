@@ -14,7 +14,6 @@ const PersonalizedRecommendations = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Get user's favorites to understand preferences
       const { data: favorites } = await supabase
         .from('favorites')
         .select(`
@@ -27,12 +26,10 @@ const PersonalizedRecommendations = () => {
         `)
         .eq('user_id', user.id);
 
-      // Extract categories from user's favorites
       const preferredCategories = [...new Set(
         favorites?.map(fav => fav.coins?.category).filter(Boolean) || []
       )];
 
-      // Get recommended coins based on preferences
       const { data: coins, error } = await supabase
         .from('coins')
         .select('*')
@@ -52,14 +49,14 @@ const PersonalizedRecommendations = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-purple-600" />
+            <Target className="h-5 w-5 text-primary" />
             Personalized Recommendations
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-lg"></div>
+              <div key={i} className="animate-pulse bg-muted h-32 rounded-lg"></div>
             ))}
           </div>
         </CardContent>
@@ -71,7 +68,7 @@ const PersonalizedRecommendations = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-purple-600" />
+          <Target className="h-5 w-5 text-primary" />
           Personalized Recommendations
         </CardTitle>
       </CardHeader>
@@ -84,16 +81,22 @@ const PersonalizedRecommendations = () => {
           ) : (
             recommendations?.map((coin) => (
               <div key={coin.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                  <img 
-                    src={coin.image} 
-                    alt={coin.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="aspect-square bg-muted rounded-lg mb-3 overflow-hidden">
+                  {coin.image ? (
+                    <img 
+                      src={coin.image} 
+                      alt={coin.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      No Image
+                    </div>
+                  )}
                 </div>
                 <h3 className="font-semibold text-sm mb-2">{coin.name}</h3>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-bold text-purple-600">${coin.price}</span>
+                  <span className="text-lg font-bold text-primary">${coin.price}</span>
                   <Badge variant="outline" className="text-xs">
                     {coin.rarity}
                   </Badge>

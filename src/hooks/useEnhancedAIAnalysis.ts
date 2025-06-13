@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAdminAICommands } from './useAdminAICommands';
+import { useQuery } from '@tanstack/react-query';
 
 interface AIAnalysisInput {
   type: 'image' | 'site_url';
@@ -34,7 +34,19 @@ export const useEnhancedAIAnalysis = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [results, setResults] = useState<CoinAnalysisResult[]>([]);
   
-  const { data: availableCommands = [] } = useAdminAICommands();
+  const { data: availableCommands = [] } = useQuery({
+    queryKey: ['available-ai-commands'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_commands')
+        .select('*')
+        .eq('is_active', true)
+        .order('priority', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   const analyzeWithAI = async (input: AIAnalysisInput): Promise<CoinAnalysisResult> => {
     setIsAnalyzing(true);
@@ -71,7 +83,6 @@ export const useEnhancedAIAnalysis = () => {
   const performImageAnalysis = async (imageUrl: string): Promise<CoinAnalysisResult> => {
     setAnalysisProgress(25);
     
-    // Find appropriate AI command for image analysis
     const imageCommand = availableCommands.find(
       cmd => cmd.category === 'coin_identification' && !cmd.site_url
     );
@@ -82,7 +93,6 @@ export const useEnhancedAIAnalysis = () => {
 
     setAnalysisProgress(50);
 
-    // Execute the AI command with image
     const { data, error } = await supabase.functions.invoke('anthropic-coin-recognition', {
       body: {
         image: imageUrl,
@@ -116,7 +126,6 @@ export const useEnhancedAIAnalysis = () => {
   const performSiteAnalysis = async (siteUrl: string): Promise<CoinAnalysisResult> => {
     setAnalysisProgress(25);
 
-    // Find appropriate AI command for site parsing
     const siteCommand = availableCommands.find(
       cmd => cmd.category === 'market_analysis' && cmd.site_url
     );
@@ -127,7 +136,6 @@ export const useEnhancedAIAnalysis = () => {
 
     setAnalysisProgress(50);
 
-    // Execute the parse-website function
     const { data, error } = await supabase.functions.invoke('parse-website', {
       body: {
         url: siteUrl,

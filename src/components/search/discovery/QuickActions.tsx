@@ -14,7 +14,7 @@ const QuickActions = () => {
       const [
         { count: newListings },
         { count: endingSoonAuctions },
-        { count: hotCategories }
+        { count: totalCategories }
       ] = await Promise.all([
         supabase
           .from('coins')
@@ -35,7 +35,7 @@ const QuickActions = () => {
       return {
         newListings: newListings || 0,
         endingSoonAuctions: endingSoonAuctions || 0,
-        hotCategories: Math.floor((hotCategories || 0) / 10)
+        hotCategories: Math.floor((totalCategories || 0) / 10)
       };
     }
   });

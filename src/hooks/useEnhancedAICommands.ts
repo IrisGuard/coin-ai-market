@@ -27,7 +27,6 @@ export const useEnhancedAICommands = (category?: string) => {
 
   const executeCommandMutation = useMutation({
     mutationFn: async ({ commandId, inputData }: { commandId: string; inputData: any }) => {
-      // Execute command using database function
       const { data: executionData, error: executionError } = await supabase
         .rpc('execute_ai_command', {
           p_command_id: commandId,
@@ -36,11 +35,9 @@ export const useEnhancedAICommands = (category?: string) => {
 
       if (executionError) throw executionError;
 
-      // Get the command details to determine which edge function to call
       const command = commands.find(cmd => cmd.id === commandId);
       if (!command) throw new Error('Command not found');
 
-      // Call appropriate edge function based on command category
       let edgeFunction = '';
       switch (command.category) {
         case 'web_scraping':
@@ -56,7 +53,6 @@ export const useEnhancedAICommands = (category?: string) => {
           edgeFunction = 'advanced-coin-analyzer';
       }
 
-      // Execute the edge function
       const { data: functionResult, error: functionError } = await supabase.functions.invoke(edgeFunction, {
         body: {
           commandType: command.command_type,

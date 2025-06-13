@@ -18,7 +18,6 @@ const RealTimeAdminDashboard = () => {
     last_updated: new Date().toISOString()
   });
 
-  // Real-time metrics query using existing dashboard stats
   const { data: dashboardData, refetch } = useQuery({
     queryKey: ['real-time-admin-metrics'],
     queryFn: async () => {
@@ -32,7 +31,6 @@ const RealTimeAdminDashboard = () => {
 
   useEffect(() => {
     if (dashboardData) {
-      // Transform dashboard stats to real-time metrics
       setMetrics({
         active_users: dashboardData.active_users || 0,
         active_sessions: Math.floor(dashboardData.active_users * 1.2) || 0,

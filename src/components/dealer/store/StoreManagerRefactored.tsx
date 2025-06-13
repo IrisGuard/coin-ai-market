@@ -65,7 +65,6 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
 
   const handleStoreEdit = (store: Store) => {
     console.log('Edit store:', store.id);
-    // TODO: Implement edit functionality
   };
 
   if (isLoading) {
