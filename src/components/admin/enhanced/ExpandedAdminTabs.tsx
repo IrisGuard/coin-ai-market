@@ -11,17 +11,11 @@ import {
 const ExpandedAdminTabs = () => {
   return (
     <TabsList className="h-auto p-2 bg-white border rounded-lg shadow-sm">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-2 w-full">
-        {/* 🧠 AI BRAIN - PRIMARY TAB */}
+      <div className="grid grid-cols-6 gap-2 w-full">
+        {/* Row 1 - AI & Core Features */}
         <TabsTrigger value="ai-brain" className="flex flex-col items-center gap-1 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-700">
           <Brain className="h-5 w-5" />
           <span className="text-xs font-bold">🧠 AI BRAIN</span>
-        </TabsTrigger>
-
-        {/* Core System */}
-        <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1 h-16">
-          <BarChart3 className="h-4 w-4" />
-          <span className="text-xs">Dashboard</span>
         </TabsTrigger>
         <TabsTrigger value="overview" className="flex flex-col items-center gap-1 h-16">
           <Activity className="h-4 w-4" />
@@ -39,8 +33,12 @@ const ExpandedAdminTabs = () => {
           <Coins className="h-4 w-4" />
           <span className="text-xs">Coins</span>
         </TabsTrigger>
+        <TabsTrigger value="stores" className="flex flex-col items-center gap-1 h-16">
+          <Store className="h-4 w-4" />
+          <span className="text-xs">Stores</span>
+        </TabsTrigger>
 
-        {/* AI System */}
+        {/* Row 2 - AI System Management */}
         <TabsTrigger value="ai-commands" className="flex flex-col items-center gap-1 h-16">
           <Bot className="h-4 w-4" />
           <span className="text-xs">AI Commands</span>
@@ -57,8 +55,16 @@ const ExpandedAdminTabs = () => {
           <Target className="h-4 w-4" />
           <span className="text-xs">Automation</span>
         </TabsTrigger>
+        <TabsTrigger value="ai-performance" className="flex flex-col items-center gap-1 h-16">
+          <Brain className="h-4 w-4" />
+          <span className="text-xs">AI Perf</span>
+        </TabsTrigger>
+        <TabsTrigger value="ai-training" className="flex flex-col items-center gap-1 h-16">
+          <Target className="h-4 w-4" />
+          <span className="text-xs">Training</span>
+        </TabsTrigger>
 
-        {/* Error & Knowledge */}
+        {/* Row 3 - Error & Knowledge Management */}
         <TabsTrigger value="error-knowledge" className="flex flex-col items-center gap-1 h-16">
           <AlertTriangle className="h-4 w-4" />
           <span className="text-xs">Error Base</span>
@@ -71,16 +77,20 @@ const ExpandedAdminTabs = () => {
           <Eye className="h-4 w-4" />
           <span className="text-xs">Detection</span>
         </TabsTrigger>
-
-        {/* Marketplace */}
-        <TabsTrigger value="stores" className="flex flex-col items-center gap-1 h-16">
-          <Store className="h-4 w-4" />
-          <span className="text-xs">Stores</span>
+        <TabsTrigger value="ai-cache" className="flex flex-col items-center gap-1 h-16">
+          <Database className="h-4 w-4" />
+          <span className="text-xs">AI Cache</span>
+        </TabsTrigger>
+        <TabsTrigger value="ai-config" className="flex flex-col items-center gap-1 h-16">
+          <Settings className="h-4 w-4" />
+          <span className="text-xs">AI Config</span>
         </TabsTrigger>
         <TabsTrigger value="marketplace-listings" className="flex flex-col items-center gap-1 h-16">
           <ShoppingCart className="h-4 w-4" />
           <span className="text-xs">Listings</span>
         </TabsTrigger>
+
+        {/* Row 4 - Marketplace & Trading */}
         <TabsTrigger value="auctions" className="flex flex-col items-center gap-1 h-16">
           <DollarSign className="h-4 w-4" />
           <span className="text-xs">Auctions</span>
@@ -89,8 +99,10 @@ const ExpandedAdminTabs = () => {
           <TrendingUp className="h-4 w-4" />
           <span className="text-xs">Transactions</span>
         </TabsTrigger>
-
-        {/* Data Sources */}
+        <TabsTrigger value="marketplace-stats" className="flex flex-col items-center gap-1 h-16">
+          <BarChart3 className="h-4 w-4" />
+          <span className="text-xs">MP Stats</span>
+        </TabsTrigger>
         <TabsTrigger value="external-sources" className="flex flex-col items-center gap-1 h-16">
           <ExternalLink className="h-4 w-4" />
           <span className="text-xs">Sources</span>
@@ -104,7 +116,7 @@ const ExpandedAdminTabs = () => {
           <span className="text-xs">Quality</span>
         </TabsTrigger>
 
-        {/* Analytics */}
+        {/* Row 5 - Analytics & Data */}
         <TabsTrigger value="analytics-events" className="flex flex-col items-center gap-1 h-16">
           <BarChart3 className="h-4 w-4" />
           <span className="text-xs">Events</span>
@@ -121,8 +133,16 @@ const ExpandedAdminTabs = () => {
           <Globe className="h-4 w-4" />
           <span className="text-xs">Market</span>
         </TabsTrigger>
+        <TabsTrigger value="geographic-data" className="flex flex-col items-center gap-1 h-16">
+          <Globe className="h-4 w-4" />
+          <span className="text-xs">Geography</span>
+        </TabsTrigger>
+        <TabsTrigger value="price-history" className="flex flex-col items-center gap-1 h-16">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-xs">Price Hist</span>
+        </TabsTrigger>
 
-        {/* System Management */}
+        {/* Row 6 - System Management */}
         <TabsTrigger value="system-metrics" className="flex flex-col items-center gap-1 h-16">
           <Activity className="h-4 w-4" />
           <span className="text-xs">Metrics</span>
@@ -148,40 +168,14 @@ const ExpandedAdminTabs = () => {
           <span className="text-xs">Logs</span>
         </TabsTrigger>
 
-        {/* AI Performance */}
-        <TabsTrigger value="ai-performance" className="flex flex-col items-center gap-1 h-16">
-          <Brain className="h-4 w-4" />
-          <span className="text-xs">AI Perf</span>
-        </TabsTrigger>
-        <TabsTrigger value="ai-training" className="flex flex-col items-center gap-1 h-16">
-          <Target className="h-4 w-4" />
-          <span className="text-xs">Training</span>
-        </TabsTrigger>
-        <TabsTrigger value="ai-cache" className="flex flex-col items-center gap-1 h-16">
-          <Database className="h-4 w-4" />
-          <span className="text-xs">AI Cache</span>
-        </TabsTrigger>
-        <TabsTrigger value="ai-config" className="flex flex-col items-center gap-1 h-16">
-          <Settings className="h-4 w-4" />
-          <span className="text-xs">AI Config</span>
-        </TabsTrigger>
-
-        {/* Additional Tabs */}
-        <TabsTrigger value="marketplace-stats" className="flex flex-col items-center gap-1 h-16">
-          <BarChart3 className="h-4 w-4" />
-          <span className="text-xs">MP Stats</span>
-        </TabsTrigger>
-        <TabsTrigger value="geographic-data" className="flex flex-col items-center gap-1 h-16">
-          <Globe className="h-4 w-4" />
-          <span className="text-xs">Geography</span>
-        </TabsTrigger>
-        <TabsTrigger value="price-history" className="flex flex-col items-center gap-1 h-16">
-          <TrendingUp className="h-4 w-4" />
-          <span className="text-xs">Price Hist</span>
-        </TabsTrigger>
+        {/* Row 7 - Additional Features */}
         <TabsTrigger value="data-cache" className="flex flex-col items-center gap-1 h-16">
           <Database className="h-4 w-4" />
           <span className="text-xs">Data Cache</span>
+        </TabsTrigger>
+        <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1 h-16">
+          <BarChart3 className="h-4 w-4" />
+          <span className="text-xs">Dashboard</span>
         </TabsTrigger>
       </div>
     </TabsList>
