@@ -81,13 +81,48 @@ const SecureSystemActivationManager = () => {
       setActivationProgress(30);
       setCurrentStep('Creating AI command infrastructure...');
       
-      // Step 2: Initialize AI commands
+      // Step 2: Initialize AI commands with required fields
       const aiCommands = [
-        { name: 'Enhanced Dual Recognition', command_type: 'image_analysis', is_active: true },
-        { name: 'Visual Matching Engine', command_type: 'pattern_matching', is_active: true },
-        { name: 'Market Analysis Engine', command_type: 'data_analysis', is_active: true },
-        { name: 'Error Detection System', command_type: 'quality_control', is_active: true },
-        { name: 'Price Prediction Model', command_type: 'prediction', is_active: true }
+        { 
+          name: 'Enhanced Dual Recognition', 
+          command_type: 'image_analysis', 
+          is_active: true,
+          code: 'enhanced_dual_recognition_v1',
+          category: 'image_analysis',
+          description: 'Advanced dual-side coin recognition and analysis'
+        },
+        { 
+          name: 'Visual Matching Engine', 
+          command_type: 'pattern_matching', 
+          is_active: true,
+          code: 'visual_matching_engine_v1',
+          category: 'pattern_matching',
+          description: 'Visual pattern matching for coin identification'
+        },
+        { 
+          name: 'Market Analysis Engine', 
+          command_type: 'data_analysis', 
+          is_active: true,
+          code: 'market_analysis_engine_v1',
+          category: 'market_analysis',
+          description: 'Real-time market data analysis and trends'
+        },
+        { 
+          name: 'Error Detection System', 
+          command_type: 'quality_control', 
+          is_active: true,
+          code: 'error_detection_system_v1',
+          category: 'quality_control',
+          description: 'Automated error coin detection and classification'
+        },
+        { 
+          name: 'Price Prediction Model', 
+          command_type: 'prediction', 
+          is_active: true,
+          code: 'price_prediction_model_v1',
+          category: 'prediction',
+          description: 'AI-powered price prediction and valuation'
+        }
       ];
       
       for (const command of aiCommands) {
@@ -111,12 +146,36 @@ const SecureSystemActivationManager = () => {
       setActivationProgress(80);
       setCurrentStep('Activating data sources...');
       
-      // Step 4: Activate data sources
+      // Step 4: Activate data sources with required fields
       const dataSources = [
-        { name: 'eBay API', source_type: 'marketplace', is_active: true },
-        { name: 'Heritage Auctions', source_type: 'auction', is_active: true },
-        { name: 'PCGS Price Guide', source_type: 'pricing', is_active: true },
-        { name: 'NGC Registry', source_type: 'grading', is_active: true }
+        { 
+          name: 'eBay API', 
+          type: 'marketplace', 
+          is_active: true,
+          url: 'https://api.ebay.com/buy/marketplace/v1/',
+          priority: 1
+        },
+        { 
+          name: 'Heritage Auctions', 
+          type: 'auction', 
+          is_active: true,
+          url: 'https://coins.ha.com/api/v1/',
+          priority: 2
+        },
+        { 
+          name: 'PCGS Price Guide', 
+          type: 'pricing', 
+          is_active: true,
+          url: 'https://www.pcgs.com/prices/api/',
+          priority: 3
+        },
+        { 
+          name: 'NGC Registry', 
+          type: 'grading', 
+          is_active: true,
+          url: 'https://www.ngccoin.com/api/v1/',
+          priority: 4
+        }
       ];
       
       for (const source of dataSources) {
