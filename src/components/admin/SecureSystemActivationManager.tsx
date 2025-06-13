@@ -78,11 +78,50 @@ const SecureSystemActivationManager = () => {
       });
       if (scrapingError) throw new Error(`Scraping activation failed: ${scrapingError.message}`);
       
-      setActivationProgress(20);
+      setActivationProgress(30);
       setCurrentStep('Creating AI command infrastructure...');
       
-      // Continue with rest of activation steps...
-      // [Implementation continues with proper admin verification at each step]
+      // Step 2: Initialize AI commands
+      const aiCommands = [
+        { name: 'Enhanced Dual Recognition', command_type: 'image_analysis', is_active: true },
+        { name: 'Visual Matching Engine', command_type: 'pattern_matching', is_active: true },
+        { name: 'Market Analysis Engine', command_type: 'data_analysis', is_active: true },
+        { name: 'Error Detection System', command_type: 'quality_control', is_active: true },
+        { name: 'Price Prediction Model', command_type: 'prediction', is_active: true }
+      ];
+      
+      for (const command of aiCommands) {
+        await supabase.from('ai_commands').insert(command);
+      }
+      
+      setActivationProgress(60);
+      setCurrentStep('Setting up automation rules...');
+      
+      // Step 3: Create automation rules
+      const automationRules = [
+        { name: 'Auto-Analysis Trigger', rule_type: 'trigger', is_active: true, conditions: {}, actions: [] },
+        { name: 'Market Data Sync', rule_type: 'scheduled', is_active: true, conditions: {}, actions: [] },
+        { name: 'Quality Check Pipeline', rule_type: 'validation', is_active: true, conditions: {}, actions: [] }
+      ];
+      
+      for (const rule of automationRules) {
+        await supabase.from('automation_rules').insert(rule);
+      }
+      
+      setActivationProgress(80);
+      setCurrentStep('Activating data sources...');
+      
+      // Step 4: Activate data sources
+      const dataSources = [
+        { name: 'eBay API', source_type: 'marketplace', is_active: true },
+        { name: 'Heritage Auctions', source_type: 'auction', is_active: true },
+        { name: 'PCGS Price Guide', source_type: 'pricing', is_active: true },
+        { name: 'NGC Registry', source_type: 'grading', is_active: true }
+      ];
+      
+      for (const source of dataSources) {
+        await supabase.from('data_sources').insert(source);
+      }
       
       setActivationProgress(100);
       setCurrentStep('ADMIN SYSTEM ACTIVATION COMPLETE! 🚀');
