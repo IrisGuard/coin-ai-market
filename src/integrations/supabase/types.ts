@@ -3875,6 +3875,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_admin_role_secure: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       configure_complete_auth_security: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4061,14 +4065,6 @@ export type Database = {
       validate_security_config: {
         Args: Record<PropertyKey, never>
         Returns: Json
-      }
-      verify_admin_access_final: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
-      verify_admin_access_secure: {
-        Args: { user_id?: string }
-        Returns: boolean
       }
     }
     Enums: {
