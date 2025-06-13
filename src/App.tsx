@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
+import DirectDealerButton from "@/components/DirectDealerButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
@@ -14,6 +15,7 @@ import CoinUpload from "./pages/CoinUpload";
 import Profile from "./pages/Profile";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import CoinDetails from "./pages/CoinDetails";
+import DealerDirect from "./pages/DealerDirect";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,7 @@ function App() {
           <AuthProvider>
             <AdminProvider>
               <AdminKeyboardHandler />
+              <DirectDealerButton />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -35,6 +38,7 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<AdminPanelPage />} />
                 <Route path="/coin/:id" element={<CoinDetails />} />
+                <Route path="/dealer-direct" element={<DealerDirect />} />
               </Routes>
             </AdminProvider>
           </AuthProvider>

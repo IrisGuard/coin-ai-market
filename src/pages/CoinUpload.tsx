@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useSmartUserRole } from '@/hooks/useSmartUserRole';
-import AdvancedDealerUploadPanel from '@/components/dealer/AdvancedDealerUploadPanel';
+import AdvancedDealerUploadPanelRefactored from '@/components/dealer/AdvancedDealerUploadPanelRefactored';
 import { Loader2 } from 'lucide-react';
 
 const CoinUpload = () => {
@@ -20,7 +20,6 @@ const CoinUpload = () => {
     roleLoading
   });
 
-  // Show loading while authentication is initializing
   if (authLoading) {
     console.log('⏳ Auth still loading...');
     return (
@@ -33,13 +32,11 @@ const CoinUpload = () => {
     );
   }
 
-  // Redirect to auth if not authenticated
   if (!isAuthenticated) {
     console.log('❌ Not authenticated, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading while role is being determined
   if (roleLoading) {
     console.log('⏳ Role still loading...');
     return (
@@ -52,7 +49,6 @@ const CoinUpload = () => {
     );
   }
 
-  // Redirect non-dealers to marketplace
   if (userRole !== 'dealer') {
     console.log('❌ User is not a dealer, redirecting to marketplace. Role:', userRole);
     return <Navigate to="/marketplace" replace />;
@@ -73,7 +69,7 @@ const CoinUpload = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <AdvancedDealerUploadPanel />
+            <AdvancedDealerUploadPanelRefactored />
           </motion.div>
         </div>
       </div>
