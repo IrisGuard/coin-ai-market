@@ -3993,6 +3993,10 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      get_ultra_optimized_admin_dashboard: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_user_role: {
         Args: { user_uuid?: string }
         Returns: string
@@ -4071,6 +4075,10 @@ export type Database = {
         Returns: Json
       }
       validate_enhanced_security_config: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_final_optimization: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
