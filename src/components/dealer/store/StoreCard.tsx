@@ -10,19 +10,14 @@ interface Store {
   name: string;
   description: string;
   logo_url: string;
-  banner_url?: string;
+  banner_url: string;
   is_active: boolean;
   verified: boolean;
-  rating?: number;
-  total_sales?: number;
+  rating: number;
+  total_sales: number;
   created_at: string;
   updated_at: string;
   user_id: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-  address?: any;
-  shipping_options?: any;
 }
 
 interface StoreCardProps {
@@ -70,8 +65,8 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, isSelected, onSelect, onEd
                 )}
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                <span>Rating: {store.rating || 0}/5</span>
-                <span>Sales: {store.total_sales || 0}</span>
+                <span>Rating: {store.rating}/5</span>
+                <span>Sales: {store.total_sales}</span>
               </div>
             </div>
           </div>

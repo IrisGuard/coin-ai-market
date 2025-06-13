@@ -14,19 +14,14 @@ interface Store {
   name: string;
   description: string;
   logo_url: string;
-  banner_url?: string;
+  banner_url: string;
   is_active: boolean;
   verified: boolean;
-  rating?: number;
-  total_sales?: number;
+  rating: number;
+  total_sales: number;
   created_at: string;
   updated_at: string;
   user_id: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-  address?: any;
-  shipping_options?: any;
 }
 
 interface StoreManagerRefactoredProps {
