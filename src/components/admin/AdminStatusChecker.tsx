@@ -25,9 +25,9 @@ const AdminStatusChecker = () => {
         .select('*')
         .eq('user_id', user.id);
 
-      // Check RPC function
+      // Check new secure RPC function
       const { data: rpcResult, error: rpcError } = await supabase
-        .rpc('verify_admin_access_secure', { user_id: user.id });
+        .rpc('is_admin_secure');
 
       setDbStatus({
         roles: roles || [],

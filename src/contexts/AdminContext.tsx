@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,12 +56,12 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      // Method 2: Check with RPC function as backup
+      // Method 2: Check with new secure RPC function as backup
       const { data: rpcData, error: rpcError } = await supabase
-        .rpc('verify_admin_access_secure', { user_id: user.id });
+        .rpc('is_admin_secure');
 
       if (!rpcError && rpcData === true) {
-        console.log('✅ AdminContext: Admin verified via RPC function');
+        console.log('✅ AdminContext: Admin verified via secure RPC function');
         setIsAdmin(true);
         setIsLoading(false);
         return;

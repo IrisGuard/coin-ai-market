@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -60,11 +59,11 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ isOpen, onClose, onSucc
         throw new Error('Failed to verify admin privileges');
       }
 
-      // Also check with RPC function as fallback
+      // Also check with new secure RPC function as fallback
       if (!adminData) {
-        console.log('🔄 Checking with RPC function...');
+        console.log('🔄 Checking with secure RPC function...');
         const { data: rpcResult, error: rpcError } = await supabase
-          .rpc('verify_admin_access_secure', { user_id: authData.user.id });
+          .rpc('is_admin_secure');
 
         if (rpcError) {
           console.error('❌ RPC verification failed:', rpcError);

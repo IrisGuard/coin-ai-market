@@ -12,9 +12,9 @@ export const verifyEnhancedAdminAccess = async (): Promise<boolean> => {
       return false;
     }
 
-    // Verify admin role with enhanced security
+    // Verify admin role with new secure function
     const { data: adminCheck, error: adminError } = await supabase
-      .rpc('verify_admin_access_secure', { user_id: user.id });
+      .rpc('is_admin_secure');
     
     if (adminError) {
       console.warn('Admin verification failed:', adminError);
