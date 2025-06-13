@@ -52,6 +52,18 @@ const AITrainingManager = () => {
     avgQuality: trainingData?.reduce((sum, d) => sum + (d.training_quality_score || 0), 0) / (trainingData?.length || 1)
   };
 
+  // Helper function to safely extract coin identification data
+  const getCoinIdentification = (coinId: any) => {
+    if (!coinId || typeof coinId !== 'object') return { name: 'Unknown', year: 'N/A', grade: 'N/A' };
+    
+    const identification = coinId as { [key: string]: any };
+    return {
+      name: identification.name || 'Unknown',
+      year: identification.year || 'N/A',
+      grade: identification.grade || 'N/A'
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -131,63 +143,67 @@ const AITrainingManager = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((data) => (
-                <TableRow key={data.id}>
-                  <TableCell>
-                    <div className="font-mono text-sm">
-                      {data.image_hash.substring(0, 12)}...
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs">
-                      <div className="text-sm font-medium">
-                        {data.coin_identification?.name || 'Unknown'}
+              {filteredData.map((data) => {
+                const coinInfo = getCoinIdentification(data.coin_identification);
+                
+                return (
+                  <TableRow key={data.id}>
+                    <TableCell>
+                      <div className="font-mono text-sm">
+                        {data.image_hash.substring(0, 12)}...
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {data.coin_identification?.year || 'N/A'} • {data.coin_identification?.grade || 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <div className="text-sm font-medium">
+                          {coinInfo.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {coinInfo.year} • {coinInfo.grade}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(data.validation_status)}>
-                      {data.validation_status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span>{Math.round((data.training_quality_score || 0) * 100)}%</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {data.contributed_by ? 'User' : 'System'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {new Date(data.created_at).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {data.validation_status === 'pending' && (
-                        <>
-                          <Button variant="outline" size="sm" className="text-green-600">
-                            <Check className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-600">
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(data.validation_status)}>
+                        {data.validation_status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        <span>{Math.round((data.training_quality_score || 0) * 100)}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {data.contributed_by ? 'User' : 'System'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {new Date(data.created_at).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {data.validation_status === 'pending' && (
+                          <>
+                            <Button variant="outline" size="sm" className="text-green-600">
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-red-600">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm">
+                          View
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

@@ -90,6 +90,14 @@ const ConnectedMarketIntelligence = () => {
     }
   });
 
+  // Helper function to safely extract trend analysis data
+  const getTrendDirection = (trendAnalysis: any): string => {
+    if (!trendAnalysis || typeof trendAnalysis !== 'object') return 'stable';
+    
+    const trend = trendAnalysis as { [key: string]: any };
+    return trend.direction || 'stable';
+  };
+
   const getTrendColor = (trend: string) => {
     switch (trend) {
       case 'increasing': return 'text-green-600';
@@ -202,31 +210,35 @@ const ConnectedMarketIntelligence = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {marketAnalytics?.map((metric) => (
-                <div key={metric.id} className="p-3 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium">{metric.metric_name}</div>
-                    <Badge variant="outline">{metric.time_period}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">{metric.metric_type}</div>
-                    <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      <span className="font-bold">
-                        {typeof metric.metric_value === 'number' ? 
-                          metric.metric_value.toFixed(2) : metric.metric_value}
-                      </span>
+              {marketAnalytics?.map((metric) => {
+                const trendDirection = getTrendDirection(metric.trend_analysis);
+                
+                return (
+                  <div key={metric.id} className="p-3 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">{metric.metric_name}</div>
+                      <Badge variant="outline">{metric.time_period}</Badge>
                     </div>
-                  </div>
-                  {metric.trend_analysis && (
-                    <div className="mt-2 text-sm">
-                      Trend: <span className={getTrendColor(metric.trend_analysis.direction || 'stable')}>
-                        {metric.trend_analysis.direction || 'stable'}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">{metric.metric_type}</div>
+                      <div className="flex items-center gap-2">
+                        <Target className="h-4 w-4" />
+                        <span className="font-bold">
+                          {typeof metric.metric_value === 'number' ? 
+                            metric.metric_value.toFixed(2) : metric.metric_value}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {metric.trend_analysis && (
+                      <div className="mt-2 text-sm">
+                        Trend: <span className={getTrendColor(trendDirection)}>
+                          {trendDirection}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

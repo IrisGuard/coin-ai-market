@@ -57,8 +57,8 @@ const AIConfigManager = () => {
   });
 
   React.useEffect(() => {
-    if (aiConfig?.config) {
-      setConfig(prev => ({ ...prev, ...aiConfig.config }));
+    if (aiConfig?.config && typeof aiConfig.config === 'object' && aiConfig.config !== null) {
+      setConfig(prev => ({ ...prev, ...(aiConfig.config as any) }));
     }
   }, [aiConfig]);
 
