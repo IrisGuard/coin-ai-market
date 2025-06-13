@@ -33,6 +33,15 @@ interface DashboardStats {
   last_updated?: string;
 }
 
+interface PerformanceData {
+  optimization_status?: string;
+  query_time_ms?: number;
+  performance_improvement?: string;
+  indexes_optimized?: number;
+  policies_cleaned?: number;
+  tested_at?: string;
+}
+
 const PerformanceOptimizedDashboard = () => {
   const { data: rawStats, isLoading, error } = useOptimizedDashboardStats();
   const { data: performanceData } = usePerformanceMonitoring();
@@ -82,6 +91,15 @@ const PerformanceOptimizedDashboard = () => {
     }
   })();
 
+  // Type guard for performance data
+  const safePerformanceData: PerformanceData = (() => {
+    if (!performanceData) return {};
+    if (typeof performanceData === 'object' && performanceData !== null) {
+      return performanceData as PerformanceData;
+    }
+    return {};
+  })();
+
   const formatNumber = (num?: number) => {
     return new Intl.NumberFormat().format(num || 0);
   };
@@ -99,16 +117,6 @@ const PerformanceOptimizedDashboard = () => {
       case 'good': return 'text-blue-600';
       default: return 'text-yellow-600';
     }
-  };
-
-  // Safe access to performanceData with proper type checking
-  const getQueryTime = () => {
-    if (!performanceData) return '0';
-    if (typeof performanceData === 'object' && performanceData !== null) {
-      const queryTime = (performanceData as any).query_time_ms;
-      return typeof queryTime === 'number' ? queryTime.toFixed(0) : '0';
-    }
-    return '0';
   };
 
   return (
@@ -204,9 +212,9 @@ const PerformanceOptimizedDashboard = () => {
       <div className="text-xs text-muted-foreground text-center">
         Last updated: {stats.last_updated ? new Date(stats.last_updated).toLocaleString() : 'Unknown'}
         <span className="ml-2 text-green-600">• Performance Optimized</span>
-        {performanceData && (
+        {safePerformanceData.query_time_ms && (
           <span className="ml-2 text-blue-600">
-            • Live Monitoring: {getQueryTime()}ms
+            • Live Monitoring: {safePerformanceData.query_time_ms.toFixed(0)}ms
           </span>
         )}
       </div>
