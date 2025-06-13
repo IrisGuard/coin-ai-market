@@ -1,144 +1,251 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Zap, TrendingUp, Database, AlertCircle } from 'lucide-react';
-import { useRealAICommands, useRealAutomationRules, useRealPerformanceMetrics } from '@/hooks/useRealAdminData';
-import { useExecuteAICommand } from '@/hooks/useExecuteAICommand';
+import { Brain, Zap, Target, TrendingUp, Eye, Play } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const ConnectedAIAnalysis = () => {
-  const { data: aiCommands = [], isLoading: aiLoading } = useRealAICommands();
-  const { data: automationRules = [], isLoading: autoLoading } = useRealAutomationRules();
-  const { data: performanceMetrics = [], isLoading: metricsLoading } = useRealPerformanceMetrics();
-  const { executeCommand, isExecuting } = useExecuteAICommand();
+  const [activeCommand, setActiveCommand] = useState<string | null>(null);
 
-  if (aiLoading || autoLoading || metricsLoading) {
+  // Real connection to AI commands from Admin system
+  const { data: aiCommands, isLoading: commandsLoading } = useQuery({
+    queryKey: ['dealer-ai-commands'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_commands')
+        .select('*')
+        .eq('is_active', true)
+        .in('category', ['coin_identification', 'market_analysis', 'authentication'])
+        .order('priority', { ascending: false });
+      
+      if (error) {
+        console.error('❌ Error fetching AI commands for dealer:', error);
+        throw error;
+      }
+      
+      console.log('✅ Dealer AI commands loaded:', data?.length);
+      return data || [];
+    }
+  });
+
+  // Real connection to AI performance data
+  const { data: performanceData, isLoading: performanceLoading } = useQuery({
+    queryKey: ['dealer-ai-performance'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_performance_metrics')
+        .select('*')
+        .order('recorded_at', { ascending: false })
+        .limit(10);
+      
+      if (error) {
+        console.error('❌ Error fetching AI performance for dealer:', error);
+        throw error;
+      }
+      
+      console.log('✅ Dealer AI performance loaded:', data?.length);
+      return data || [];
+    }
+  });
+
+  // Real connection to recent analysis results
+  const { data: analysisResults, isLoading: analysisLoading } = useQuery({
+    queryKey: ['dealer-analysis-results'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dual_image_analysis')
+        .select('*')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) {
+        console.error('❌ Error fetching analysis results for dealer:', error);
+        throw error;
+      }
+      
+      console.log('✅ Dealer analysis results loaded:', data?.length);
+      return data || [];
+    }
+  });
+
+  const executeAICommand = async (commandId: string) => {
+    setActiveCommand(commandId);
+    try {
+      // Call the Supabase function to execute AI command
+      const { data, error } = await supabase.rpc('execute_ai_command', {
+        p_command_id: commandId,
+        p_input_data: {}
+      });
+
+      if (error) throw error;
+      console.log('✅ AI Command executed:', data);
+    } catch (error) {
+      console.error('❌ Error executing AI command:', error);
+    } finally {
+      setActiveCommand(null);
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'coin_identification': return 'bg-blue-100 text-blue-800';
+      case 'market_analysis': return 'bg-green-100 text-green-800';
+      case 'authentication': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (commandsLoading || performanceLoading || analysisLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <Brain className="animate-spin h-6 w-6 text-blue-600" />
-            <span>Connecting to Admin AI Brain...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
-  const coinAnalysisCommands = aiCommands.filter(cmd => 
-    cmd.category === 'coin_identification' || cmd.category === 'market_analysis'
-  );
-
-  const activeAutomation = automationRules.filter(rule => rule.is_active);
-
-  const recentMetrics = performanceMetrics.slice(0, 5);
-
   return (
     <div className="space-y-6">
-      {/* AI Commands Integration */}
+      {/* AI Commands Dashboard */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-purple-600" />
-            Connected AI Analysis ({coinAnalysisCommands.length} Commands)
+            <Brain className="h-6 w-6 text-blue-600" />
+            AI Analysis Commands
+            <Badge className="bg-blue-100 text-blue-800">Live Connection to Admin Brain</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3">
-            {coinAnalysisCommands.map((command) => (
-              <div key={command.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">{command.name}</h4>
-                  <p className="text-sm text-muted-foreground">{command.description}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline">{command.category}</Badge>
-                    <Badge variant="secondary">Priority: {command.priority}</Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {aiCommands?.map((command) => (
+              <Card key={command.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold">{command.name}</h3>
+                    <Badge className={getCategoryColor(command.category)}>
+                      {command.category}
+                    </Badge>
                   </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => executeCommand(command.id, {})}
-                  disabled={isExecuting}
-                  className="flex items-center gap-1"
-                >
-                  <Zap className="w-4 h-4" />
-                  Execute
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Automation Rules */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-orange-600" />
-            Active Automation ({activeAutomation.length} Rules)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {activeAutomation.map((rule) => (
-              <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">{rule.name}</h4>
-                  <p className="text-sm text-muted-foreground">{rule.description}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline">{rule.rule_type}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      Executed: {rule.execution_count} times
-                    </span>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {command.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      <span className="text-sm">Priority: {command.priority}</span>
+                    </div>
+                    <Button 
+                      size="sm"
+                      onClick={() => executeAICommand(command.id)}
+                      disabled={activeCommand === command.id}
+                    >
+                      {activeCommand === command.id ? (
+                        <div className="animate-spin h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
-                </div>
-                <Badge variant={rule.is_active ? "default" : "secondary"}>
-                  {rule.is_active ? "Active" : "Inactive"}
-                </Badge>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </CardContent>
       </Card>
 
       {/* Performance Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-600" />
-            Performance Metrics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentMetrics.map((metric) => (
-              <div key={metric.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">{metric.metric_name}</h4>
-                  <p className="text-sm text-muted-foreground">Type: {metric.metric_type}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold">{metric.metric_value}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(metric.recorded_at).toLocaleDateString()}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-yellow-600" />
+              AI Performance Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {performanceData?.map((metric) => (
+                <div key={metric.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium">{metric.metric_name}</div>
+                    <div className="text-sm text-muted-foreground">{metric.metric_type}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="font-bold">
+                      {typeof metric.metric_value === 'number' ? 
+                        metric.metric_value.toFixed(2) : metric.metric_value}
+                    </span>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Connection Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-purple-600" />
+              Recent Analysis Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {analysisResults?.map((result) => (
+                <div key={result.id} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium">
+                      Analysis #{result.id.substring(0, 8)}
+                    </div>
+                    <Badge variant="outline">
+                      {Math.round((result.confidence_score || 0) * 100)}% confidence
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Grade: {result.grade_assessment || 'Not assessed'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Errors: {result.detected_errors?.length || 0} detected
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-2">
+                    {new Date(result.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* System Status */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 text-green-600">
-            <Database className="w-5 h-5" />
-            <span className="font-medium">Connected to Admin Brain</span>
-            <Badge variant="outline" className="text-green-600 border-green-600">
-              87 Tables Active
-            </Badge>
+        <CardHeader>
+          <CardTitle>AI System Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{aiCommands?.length || 0}</div>
+              <div className="text-sm text-muted-foreground">Available Commands</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{performanceData?.length || 0}</div>
+              <div className="text-sm text-muted-foreground">Performance Metrics</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{analysisResults?.length || 0}</div>
+              <div className="text-sm text-muted-foreground">Recent Analyses</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {Math.round((analysisResults?.reduce((sum, r) => sum + (r.confidence_score || 0), 0) || 0) / (analysisResults?.length || 1) * 100)}%
+              </div>
+              <div className="text-sm text-muted-foreground">Avg Confidence</div>
+            </div>
           </div>
         </CardContent>
       </Card>

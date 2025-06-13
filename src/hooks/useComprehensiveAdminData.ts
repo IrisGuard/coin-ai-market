@@ -1,62 +1,40 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { getOptimizedDashboardStats, validateSecurityStatus } from '@/utils/optimizedAdminHelpers';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useComprehensiveAdminData = () => {
   return useQuery({
-    queryKey: ['comprehensive-admin-dashboard'],
-    queryFn: getOptimizedDashboardStats,
-    refetchInterval: 30000, // Refresh every 30 seconds
-    retry: (failureCount, error: any) => {
-      // Don't retry on permission errors
-      if (error?.message?.includes('permission') || error?.message?.includes('denied')) {
-        console.error('🚫 Permission denied - check admin access');
-        return false;
+    queryKey: ['comprehensive-admin-data'],
+    queryFn: async () => {
+      try {
+        // Use the optimized admin dashboard function
+        const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
+        
+        if (error) {
+          console.error('❌ Error fetching comprehensive admin data:', error);
+          throw error;
+        }
+        
+        console.log('✅ Comprehensive admin data loaded:', data);
+        return data;
+      } catch (error) {
+        console.error('❌ Failed to fetch comprehensive admin data:', error);
+        
+        // Fallback to individual queries if the function fails
+        const [usersResult, coinsResult, systemResult] = await Promise.all([
+          supabase.from('profiles').select('*', { count: 'exact', head: true }),
+          supabase.from('coins').select('*', { count: 'exact', head: true }),
+          supabase.from('ai_commands').select('*', { count: 'exact', head: true })
+        ]);
+
+        return {
+          users: { total: usersResult.count || 0 },
+          coins: { total: coinsResult.count || 0 },
+          system: { ai_commands: systemResult.count || 0 }
+        };
       }
-      return failureCount < 2;
-    }
-  });
-};
-
-export const useSecurityValidation = () => {
-  return useQuery({
-    queryKey: ['security-validation'],
-    queryFn: validateSecurityStatus,
-    refetchInterval: 60000, // Check every minute
-    enabled: true
-  });
-};
-
-// Hook for database table management
-export const useDatabaseTablesData = () => {
-  return useQuery({
-    queryKey: ['database-tables-overview'],
-    queryFn: async () => {
-      // This would normally fetch actual table statistics
-      return {
-        totalTables: 84,
-        tablesWithRLS: 84,
-        categories: 11,
-        healthStatus: 'optimal',
-        lastUpdate: new Date().toISOString()
-      };
     },
-    refetchInterval: 120000, // Refresh every 2 minutes
-  });
-};
-
-// Hook for security table monitoring
-export const useSecurityTablesData = () => {
-  return useQuery({
-    queryKey: ['security-tables-data'],
-    queryFn: async () => {
-      return {
-        activeIncidents: 0,
-        adminUsers: 3,
-        securityScore: 98,
-        lastSecurityEvent: '2 minutes ago'
-      };
-    },
-    refetchInterval: 30000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 30 * 1000, // 30 seconds
   });
 };
