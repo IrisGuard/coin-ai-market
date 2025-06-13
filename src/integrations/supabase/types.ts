@@ -3875,6 +3875,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_optimization_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       configure_complete_auth_security: {
         Args: Record<PropertyKey, never>
         Returns: Json
