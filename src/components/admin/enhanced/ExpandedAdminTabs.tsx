@@ -2,80 +2,174 @@
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  BarChart3, Users, Coins, Store, Brain, Database, Zap, Bot, TrendingUp, Shield,
-  Key, Gavel, ShoppingCart, Bell, FileText, Settings, User, Globe, Eye, AlertTriangle,
-  Activity, UserCheck, Monitor, Search, Upload, Target, BookOpen, Microscope,
-  Calculator, CloudDownload, Layers, Network, Cpu, HardDrive, Lock
+  Database, Shield, Users, Coins, Brain, ShoppingCart, BarChart3, 
+  Globe, Settings, AlertTriangle, Key, Activity, Store, Gavel, 
+  TrendingUp, Search, Bot, Cog, Bell, FileText, Eye
 } from 'lucide-react';
 
 const ExpandedAdminTabs = () => {
-  const expandedTabs = [
-    // Core Dashboard & Database
-    { id: 'overview', label: 'Overview', icon: BarChart3, category: 'core' },
-    { id: 'database', label: 'Database', icon: Database, category: 'core' },
-    { id: 'users', label: 'Users', icon: Users, category: 'core' },
-    { id: 'coins', label: 'Coins', icon: Coins, category: 'core' },
-    
-    // AI Brain - 8 sub-interfaces
-    { id: 'ai-commands', label: 'AI Commands', icon: Brain, category: 'ai' },
-    { id: 'ai-executions', label: 'AI Executions', icon: Activity, category: 'ai' },
-    { id: 'ai-predictions', label: 'AI Predictions', icon: TrendingUp, category: 'ai' },
-    { id: 'automation-rules', label: 'Automation', icon: Bot, category: 'ai' },
-    { id: 'ai-performance', label: 'AI Performance', icon: Zap, category: 'ai' },
-    { id: 'ai-training', label: 'AI Training', icon: Microscope, category: 'ai' },
-    { id: 'ai-cache', label: 'AI Cache', icon: HardDrive, category: 'ai' },
-    { id: 'ai-config', label: 'AI Config', icon: Settings, category: 'ai' },
-    
-    // Error Detection - 3 sub-interfaces
-    { id: 'error-knowledge', label: 'Error Knowledge', icon: BookOpen, category: 'errors' },
-    { id: 'error-market-data', label: 'Error Market', icon: Calculator, category: 'errors' },
-    { id: 'error-detection', label: 'Error Detection', icon: AlertTriangle, category: 'errors' },
-    
-    // Marketplace - 5 sub-interfaces
-    { id: 'stores', label: 'Stores', icon: Store, category: 'marketplace' },
-    { id: 'marketplace-listings', label: 'Listings', icon: ShoppingCart, category: 'marketplace' },
-    { id: 'marketplace-stats', label: 'Market Stats', icon: BarChart3, category: 'marketplace' },
-    { id: 'auctions', label: 'Auctions', icon: Gavel, category: 'marketplace' },
-    { id: 'transactions', label: 'Transactions', icon: TrendingUp, category: 'marketplace' },
-    
-    // Data Sources - 6 sub-interfaces
-    { id: 'external-sources', label: 'External Sources', icon: Globe, category: 'data' },
-    { id: 'scraping-jobs', label: 'Scraping Jobs', icon: CloudDownload, category: 'data' },
-    { id: 'data-quality', label: 'Data Quality', icon: Target, category: 'data' },
-    { id: 'geographic-data', label: 'Geographic', icon: Globe, category: 'data' },
-    { id: 'price-history', label: 'Price History', icon: TrendingUp, category: 'data' },
-    { id: 'data-cache', label: 'Data Cache', icon: Database, category: 'data' },
-    
-    // Analytics - 4 sub-interfaces
-    { id: 'analytics-events', label: 'Events', icon: Activity, category: 'analytics' },
-    { id: 'user-analytics', label: 'User Analytics', icon: UserCheck, category: 'analytics' },
-    { id: 'search-analytics', label: 'Search Analytics', icon: Search, category: 'analytics' },
-    { id: 'market-analytics', label: 'Market Analytics', icon: TrendingUp, category: 'analytics' },
-    
-    // System Management - 6 sub-interfaces
-    { id: 'system-metrics', label: 'System Metrics', icon: Monitor, category: 'system' },
-    { id: 'performance', label: 'Performance', icon: Cpu, category: 'system' },
-    { id: 'security', label: 'Security', icon: Shield, category: 'system' },
-    { id: 'api-keys', label: 'API Keys', icon: Key, category: 'system' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, category: 'system' },
-    { id: 'logs', label: 'Logs', icon: FileText, category: 'system' }
-  ];
-
   return (
-    <div className="w-full">
-      <TabsList className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 h-auto p-1 bg-muted rounded-lg">
-        {expandedTabs.map((tab) => (
-          <TabsTrigger
-            key={tab.id}
-            value={tab.id}
-            className="flex flex-col items-center gap-1 p-2 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground"
-          >
-            <tab.icon className="h-4 w-4" />
-            <span className="hidden sm:block truncate">{tab.label}</span>
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </div>
+    <TabsList className="grid w-full grid-cols-8 gap-1">
+      {/* Core System */}
+      <TabsTrigger value="overview" className="flex items-center gap-2">
+        <Database className="h-4 w-4" />
+        Overview
+      </TabsTrigger>
+      <TabsTrigger value="database" className="flex items-center gap-2">
+        <Database className="h-4 w-4" />
+        Database
+      </TabsTrigger>
+      <TabsTrigger value="users" className="flex items-center gap-2">
+        <Users className="h-4 w-4" />
+        Users
+      </TabsTrigger>
+      <TabsTrigger value="coins" className="flex items-center gap-2">
+        <Coins className="h-4 w-4" />
+        Coins
+      </TabsTrigger>
+
+      {/* AI System */}
+      <TabsTrigger value="ai-commands" className="flex items-center gap-2">
+        <Brain className="h-4 w-4" />
+        AI Commands
+      </TabsTrigger>
+      <TabsTrigger value="ai-executions" className="flex items-center gap-2">
+        <Activity className="h-4 w-4" />
+        AI Executions
+      </TabsTrigger>
+      <TabsTrigger value="ai-predictions" className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4" />
+        AI Predictions
+      </TabsTrigger>
+      <TabsTrigger value="automation-rules" className="flex items-center gap-2">
+        <Cog className="h-4 w-4" />
+        Automation
+      </TabsTrigger>
+
+      {/* Error & Knowledge */}
+      <TabsTrigger value="error-knowledge" className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4" />
+        Error Knowledge
+      </TabsTrigger>
+      <TabsTrigger value="error-market-data" className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4" />
+        Error Market
+      </TabsTrigger>
+      <TabsTrigger value="error-detection" className="flex items-center gap-2">
+        <Shield className="h-4 w-4" />
+        Error Detection
+      </TabsTrigger>
+
+      {/* Marketplace */}
+      <TabsTrigger value="stores" className="flex items-center gap-2">
+        <Store className="h-4 w-4" />
+        Stores
+      </TabsTrigger>
+      <TabsTrigger value="marketplace-listings" className="flex items-center gap-2">
+        <ShoppingCart className="h-4 w-4" />
+        Listings
+      </TabsTrigger>
+      <TabsTrigger value="marketplace-stats" className="flex items-center gap-2">
+        <BarChart3 className="h-4 w-4" />
+        Marketplace Stats
+      </TabsTrigger>
+      <TabsTrigger value="auctions" className="flex items-center gap-2">
+        <Gavel className="h-4 w-4" />
+        Auctions
+      </TabsTrigger>
+      <TabsTrigger value="transactions" className="flex items-center gap-2">
+        <FileText className="h-4 w-4" />
+        Transactions
+      </TabsTrigger>
+
+      {/* Data Sources */}
+      <TabsTrigger value="external-sources" className="flex items-center gap-2">
+        <Globe className="h-4 w-4" />
+        External Sources
+      </TabsTrigger>
+      <TabsTrigger value="scraping-jobs" className="flex items-center gap-2">
+        <Bot className="h-4 w-4" />
+        Scraping Jobs
+      </TabsTrigger>
+      <TabsTrigger value="data-quality" className="flex items-center gap-2">
+        <Eye className="h-4 w-4" />
+        Data Quality
+      </TabsTrigger>
+      <TabsTrigger value="geographic-data" className="flex items-center gap-2">
+        <Globe className="h-4 w-4" />
+        Geographic
+      </TabsTrigger>
+      <TabsTrigger value="price-history" className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4" />
+        Price History
+      </TabsTrigger>
+      <TabsTrigger value="data-cache" className="flex items-center gap-2">
+        <Database className="h-4 w-4" />
+        Data Cache
+      </TabsTrigger>
+
+      {/* Analytics */}
+      <TabsTrigger value="analytics-events" className="flex items-center gap-2">
+        <BarChart3 className="h-4 w-4" />
+        Analytics Events
+      </TabsTrigger>
+      <TabsTrigger value="user-analytics" className="flex items-center gap-2">
+        <Users className="h-4 w-4" />
+        User Analytics
+      </TabsTrigger>
+      <TabsTrigger value="search-analytics" className="flex items-center gap-2">
+        <Search className="h-4 w-4" />
+        Search Analytics
+      </TabsTrigger>
+      <TabsTrigger value="market-analytics" className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4" />
+        Market Analytics
+      </TabsTrigger>
+
+      {/* Performance & AI */}
+      <TabsTrigger value="ai-performance" className="flex items-center gap-2">
+        <Activity className="h-4 w-4" />
+        AI Performance
+      </TabsTrigger>
+      <TabsTrigger value="ai-training" className="flex items-center gap-2">
+        <Brain className="h-4 w-4" />
+        AI Training
+      </TabsTrigger>
+      <TabsTrigger value="ai-cache" className="flex items-center gap-2">
+        <Database className="h-4 w-4" />
+        AI Cache
+      </TabsTrigger>
+      <TabsTrigger value="ai-config" className="flex items-center gap-2">
+        <Settings className="h-4 w-4" />
+        AI Config
+      </TabsTrigger>
+
+      {/* System Management */}
+      <TabsTrigger value="system-metrics" className="flex items-center gap-2">
+        <Activity className="h-4 w-4" />
+        System Metrics
+      </TabsTrigger>
+      <TabsTrigger value="performance" className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4" />
+        Performance
+      </TabsTrigger>
+      <TabsTrigger value="security" className="flex items-center gap-2">
+        <Shield className="h-4 w-4" />
+        Security
+      </TabsTrigger>
+      <TabsTrigger value="api-keys" className="flex items-center gap-2">
+        <Key className="h-4 w-4" />
+        API Keys
+      </TabsTrigger>
+      <TabsTrigger value="notifications" className="flex items-center gap-2">
+        <Bell className="h-4 w-4" />
+        Notifications
+      </TabsTrigger>
+      <TabsTrigger value="logs" className="flex items-center gap-2">
+        <FileText className="h-4 w-4" />
+        Logs
+      </TabsTrigger>
+    </TabsList>
   );
 };
 

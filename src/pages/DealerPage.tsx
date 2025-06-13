@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import FullyConnectedDealerPanel from "@/components/dealer/FullyConnectedDealerPanel";
+import EnhancedDealerPanel from "@/components/dealer/EnhancedDealerPanel";
 
 const DealerPage = () => {
-  console.log('📄 DealerPage - FULLY CONNECTED DEALER PANEL with Real Admin Data');
+  console.log('📄 DealerPage - ENHANCED DEALER PANEL with Full AI Brain Integration');
   
   try {
     usePageView();
@@ -13,7 +13,7 @@ const DealerPage = () => {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <FullyConnectedDealerPanel />
+          <EnhancedDealerPanel />
         </div>
       </div>
     );
@@ -26,7 +26,7 @@ const DealerPage = () => {
           <div className="text-6xl mb-4">💥</div>
           <h2 className="text-2xl font-bold text-foreground">Page Error</h2>
           <p className="text-muted-foreground">
-            Error loading dealer panel page. Check console for details.
+            Error loading enhanced dealer panel. Check console for details.
           </p>
           <button 
             onClick={() => window.location.href = '/'} 
