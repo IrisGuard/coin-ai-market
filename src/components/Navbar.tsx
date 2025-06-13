@@ -34,7 +34,6 @@ const Navbar = () => {
   const navigationItems = [
     { name: 'Marketplace', path: '/marketplace', icon: <Coins className="w-4 h-4" /> },
     { name: 'Auctions', path: '/auctions', icon: <Store className="w-4 h-4" /> },
-    { name: 'Upload', path: '/upload', icon: <Upload className="w-4 h-4" /> },
   ];
 
   return (
@@ -62,6 +61,17 @@ const Navbar = () => {
                 </Link>
               ))}
               
+              {/* Dealer Upload Access - ONLY FOR AUTHENTICATED DEALERS */}
+              {user && userRole === 'dealer' && (
+                <Link
+                  to="/upload"
+                  className="flex items-center space-x-1 text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Upload</span>
+                </Link>
+              )}
+              
               {/* Dealer Panel Access - ONLY FOR AUTHENTICATED DEALERS */}
               {user && userRole === 'dealer' && (
                 <Link
@@ -77,7 +87,8 @@ const Navbar = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {isAdmin && (
+            {/* Admin Access - ONLY FOR AUTHENTICATED ADMINS */}
+            {user && isAdmin && (
               <Link to="/admin">
                 <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 cursor-pointer">
                   <Brain className="w-3 h-3 mr-1" />
@@ -137,6 +148,18 @@ const Navbar = () => {
                   <span>{item.name}</span>
                 </Link>
               ))}
+              
+              {/* Mobile Dealer Upload Access - ONLY FOR AUTHENTICATED DEALERS */}
+              {user && userRole === 'dealer' && (
+                <Link
+                  to="/upload"
+                  className="flex items-center space-x-2 text-gray-500 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Upload</span>
+                </Link>
+              )}
               
               {/* Mobile Dealer Panel Access - ONLY FOR AUTHENTICATED DEALERS */}
               {user && userRole === 'dealer' && (

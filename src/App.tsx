@@ -5,8 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
-import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
-import DirectDealerButton from "@/components/DirectDealerButton";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
@@ -27,19 +26,52 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <AdminProvider>
-              <AdminKeyboardHandler />
-              <DirectDealerButton />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/marketplace" element={<ActiveMarketplace />} />
                 <Route path="/auctions" element={<Auctions />} />
-                <Route path="/upload" element={<CoinUpload />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/admin" element={<AdminPanelPage />} />
+                <Route 
+                  path="/upload" 
+                  element={
+                    <ProtectedRoute requireAuth={true} requireDealer={true}>
+                      <CoinUpload />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute requireAuth={true}>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute requireAuth={true} requireAdmin={true}>
+                      <AdminPanelPage />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/coin/:id" element={<CoinDetails />} />
-                <Route path="/dealer-direct" element={<DealerDirect />} />
-                <Route path="/dealer" element={<DealerDirect />} />
+                <Route 
+                  path="/dealer-direct" 
+                  element={
+                    <ProtectedRoute requireAuth={true} requireDealer={true}>
+                      <DealerDirect />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/dealer" 
+                  element={
+                    <ProtectedRoute requireAuth={true} requireDealer={true}>
+                      <DealerDirect />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </AdminProvider>
           </AuthProvider>
