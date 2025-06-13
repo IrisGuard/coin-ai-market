@@ -1,26 +1,15 @@
 
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
 import OptimizedAdminDashboard from './OptimizedAdminDashboard';
 import AdminPerformanceMonitor from './AdminPerformanceMonitor';
-
-// Lazy load heavy components for better performance
-const AdminUsersTab = lazy(() => import('./AdminUsersTab'));
-const AdminCoinsTab = lazy(() => import('./AdminCoinsTab'));
-const AdminTransactionsTab = lazy(() => import('./AdminTransactionsTab'));
-const AdminSystemTab = lazy(() => import('./AdminSystemTab'));
-const AdminSettingsTab = lazy(() => import('./AdminSettingsTab'));
-
-const LoadingFallback = () => (
-  <Card>
-    <CardContent className="flex items-center justify-center p-6">
-      <Loader2 className="h-6 w-6 animate-spin mr-2" />
-      <span>Loading optimized admin panel...</span>
-    </CardContent>
-  </Card>
-);
+// Import existing admin tabs
+import AdminUsersTab from './tabs/AdminUsersTab';
+import AdminCoinsTab from './tabs/AdminCoinsTab';
+import AdminTransactionsTab from './tabs/AdminTransactionsTab';
+import AdminSystemTab from './tabs/AdminSystemTab';
+import AdminSettingsTab from './tabs/AdminSettingsTab';
 
 const ConsolidatedAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -53,33 +42,23 @@ const ConsolidatedAdminPanel = () => {
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminUsersTab />
-          </Suspense>
+          <AdminUsersTab />
         </TabsContent>
 
         <TabsContent value="coins" className="space-y-4">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminCoinsTab />
-          </Suspense>
+          <AdminCoinsTab />
         </TabsContent>
 
         <TabsContent value="transactions" className="space-y-4">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminTransactionsTab />
-          </Suspense>
+          <AdminTransactionsTab />
         </TabsContent>
 
         <TabsContent value="system" className="space-y-4">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminSystemTab />
-          </Suspense>
+          <AdminSystemTab />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminSettingsTab />
-          </Suspense>
+          <AdminSettingsTab />
         </TabsContent>
       </Tabs>
     </div>
