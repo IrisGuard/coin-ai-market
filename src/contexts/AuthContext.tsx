@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -61,19 +60,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const userRole = session.user.user_metadata?.role;
           console.log('✅ User signed in with role:', userRole);
           
-          // Only redirect from auth page or after dealer signup
-          if (window.location.pathname === '/auth' || (userRole === 'dealer' && event === 'SIGNED_IN')) {
-            if (userRole === 'dealer') {
-              console.log('📍 Redirecting dealer to /upload');
-              setTimeout(() => {
-                navigate('/upload');
-              }, 100);
-            } else {
-              console.log('📍 Redirecting buyer to home');
-              setTimeout(() => {
-                navigate('/');
-              }, 100);
-            }
+          // Direct redirect for dealers after signup or login
+          if (userRole === 'dealer') {
+            console.log('📍 Redirecting dealer to /upload');
+            setTimeout(() => {
+              navigate('/upload');
+            }, 100);
+          } else if (window.location.pathname === '/auth') {
+            // Only redirect buyers from auth page
+            console.log('📍 Redirecting buyer to home');
+            setTimeout(() => {
+              navigate('/');
+            }, 100);
           }
         }
 
@@ -125,13 +123,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const dealerSignup = async (email: string, password: string, userData: { fullName: string; username: string }) => {
     console.log('🏪 Dealer signup initiated for:', email);
-    const redirectUrl = `${window.location.origin}/upload`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           full_name: userData.fullName,
           name: userData.fullName,
@@ -156,13 +152,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signUp = async (email: string, password: string, userData: { fullName: string; username: string }) => {
     console.log('📝 Attempting buyer signup for:', email);
-    const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           full_name: userData.fullName,
           name: userData.fullName,

@@ -39,23 +39,22 @@ export const useDealerSignup = (onClose: () => void) => {
       });
       
       toast({
-        title: "Welcome to CoinAI!",
-        description: "Dealer account created successfully. Redirecting to your panel...",
+        title: "Καλώς ήρθατε στο CoinAI!",
+        description: "Το κατάστημά σας δημιουργήθηκε επιτυχώς. Μεταφορά στο dealer panel...",
       });
       
       onClose();
       
-      // The AuthContext will handle the redirect automatically
-      // But we can also ensure it happens
+      // Direct navigation to dealer panel - no email verification needed
       setTimeout(() => {
         navigate('/upload');
-      }, 1000);
+      }, 500);
       
     } catch (error: any) {
       console.error('❌ Dealer signup error:', error);
       toast({
-        title: "Signup Failed",
-        description: error.message || 'An error occurred during signup',
+        title: "Αποτυχία Εγγραφής",
+        description: error.message || 'Παρουσιάστηκε σφάλμα κατά την εγγραφή',
         variant: "destructive",
       });
     } finally {
