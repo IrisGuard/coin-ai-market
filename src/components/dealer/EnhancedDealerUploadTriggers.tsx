@@ -1,11 +1,10 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Bot, TrendingUp, Eye, Bell, CheckCircle, Zap } from 'lucide-react';
+import { Upload, Bot, TrendingUp, Eye, Bell, CheckCircle, Zap, AlertTriangle } from 'lucide-react';
 import { useConnectedSystemFlow } from '@/hooks/useConnectedSystemFlow';
 import { useCoinUpload } from '@/hooks/useCoinUpload';
 
