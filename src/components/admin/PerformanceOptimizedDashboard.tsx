@@ -101,6 +101,16 @@ const PerformanceOptimizedDashboard = () => {
     }
   };
 
+  // Safe access to performanceData with proper type checking
+  const getQueryTime = () => {
+    if (!performanceData) return '0';
+    if (typeof performanceData === 'object' && performanceData !== null) {
+      const queryTime = (performanceData as any).query_time_ms;
+      return typeof queryTime === 'number' ? queryTime.toFixed(0) : '0';
+    }
+    return '0';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -196,7 +206,7 @@ const PerformanceOptimizedDashboard = () => {
         <span className="ml-2 text-green-600">• Performance Optimized</span>
         {performanceData && (
           <span className="ml-2 text-blue-600">
-            • Live Monitoring: {performanceData.query_time_ms?.toFixed(0)}ms
+            • Live Monitoring: {getQueryTime()}ms
           </span>
         )}
       </div>

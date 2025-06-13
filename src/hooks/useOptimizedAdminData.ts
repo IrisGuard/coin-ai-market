@@ -24,9 +24,20 @@ export const useOptimizedDashboardStats = () => {
         // Get the actual dashboard data
         const dashboardData = await getOptimizedDashboardStats();
         
+        // Safe spreading with null check
+        if (dashboardData && typeof dashboardData === 'object') {
+          return {
+            ...dashboardData,
+            optimization_metrics: data
+          };
+        }
+        
         return {
-          ...dashboardData,
-          optimization_metrics: data
+          optimization_metrics: data,
+          users: { total: 0, dealers: 0, verified_dealers: 0 },
+          coins: { total: 0, featured: 0, live_auctions: 0 },
+          transactions: { completed: 0, revenue: 0 },
+          system: { errors_24h: 0, ai_commands: 0 }
         };
       } catch (error) {
         console.error('❌ Failed to fetch optimized dashboard:', error);

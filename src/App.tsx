@@ -14,6 +14,7 @@ import CoinUpload from "./pages/CoinUpload";
 import Profile from "./pages/Profile";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import CoinDetails from "./pages/CoinDetails";
+import DirectDealerPanel from "./pages/DirectDealerPanel";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<AdminPanelPage />} />
                 <Route path="/coin/:id" element={<CoinDetails />} />
+                <Route path="/dealer-panel" element={<DirectDealerPanel />} />
               </Routes>
             </AdminProvider>
           </AuthProvider>
