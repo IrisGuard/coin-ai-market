@@ -1,168 +1,129 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, Store, AlertCircle, Database } from 'lucide-react';
-import AdvancedImageUploadManager from './AdvancedImageUploadManager';
-import CoinListingForm from './CoinListingForm';
-import BulkUploadManager from './BulkUploadManager';
-import DraftManager from './DraftManager';
-import ShippingPaymentManager from './ShippingPaymentManager';
-import StoreManagerRefactored from './store/StoreManagerRefactored';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, Bot, Zap, Camera, Settings, TrendingUp } from 'lucide-react';
+import EnhancedDealerUploadTriggers from './EnhancedDealerUploadTriggers';
+import MultiCategoryListingManager from './MultiCategoryListingManager';
+import PhotoBackgroundSelector from './PhotoBackgroundSelector';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-// REAL ADMIN CONNECTIONS - NO MORE MOCK DATA
-import ConnectedAIAnalysis from './ConnectedAIAnalysis';
-import ConnectedMarketIntelligence from './ConnectedMarketIntelligence';
-import ConnectedErrorDetection from './ConnectedErrorDetection';
+const AdvancedDealerUploadPanelRefactored = () => {
+  const [activeTab, setActiveTab] = useState('upload');
 
-const AdvancedDealerUploadPanelRefactored: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('stores');
-  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
-  const [uploadedImages, setUploadedImages] = useState<any[]>([]);
-  const [aiAnalysisResults, setAiAnalysisResults] = useState<any>(null);
-  const [coinData, setCoinData] = useState<any>({});
+  // Get live system status
+  const { data: systemStatus } = useQuery({
+    queryKey: ['dealer-system-status'],
+    queryFn: async () => {
+      const [scrapingJobs, aiCommands, automation] = await Promise.all([
+        supabase.from('scraping_jobs').select('status').eq('status', 'running'),
+        supabase.from('ai_commands').select('is_active').eq('is_active', true),
+        supabase.from('automation_rules').select('is_active').eq('is_active', true)
+      ]);
 
-  const handleImagesProcessed = (images: any[]) => {
-    setUploadedImages(images);
-  };
-
-  const handleAIAnalysisComplete = (results: any) => {
-    setAiAnalysisResults(results);
-    setCoinData(prev => ({
-      ...prev,
-      title: results.analysis?.name || '',
-      year: results.analysis?.year || '',
-      grade: results.analysis?.grade || '',
-      composition: results.analysis?.composition || '',
-      diameter: results.analysis?.diameter || '',
-      weight: results.analysis?.weight || '',
-      estimatedValue: results.analysis?.estimated_value || '',
-      errors: results.errors || [],
-      rarity: results.analysis?.rarity || 'Common',
-      store_id: selectedStoreId
-    }));
-  };
-
-  const handleStoreSelect = (storeId: string) => {
-    setSelectedStoreId(storeId);
-    setCoinData(prev => ({ ...prev, store_id: storeId }));
-  };
+      return {
+        activeScrapingJobs: scrapingJobs.data?.length || 0,
+        activeAICommands: aiCommands.data?.length || 0,
+        activeAutomation: automation.data?.length || 0
+      };
+    },
+    refetchInterval: 5000
+  });
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Advanced Dealer Panel</h1>
+    <div className="space-y-6">
+      {/* Header with Live Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-6 w-6 text-blue-600" />
+            Advanced Dealer Upload System
+            {systemStatus && (
+              <>
+                <Badge className="bg-green-100 text-green-800">
+                  {systemStatus.activeScrapingJobs} Active Scrapers
+                </Badge>
+                <Badge className="bg-blue-100 text-blue-800">
+                  {systemStatus.activeAICommands} AI Commands
+                </Badge>
+                <Badge className="bg-purple-100 text-purple-800">
+                  {systemStatus.activeAutomation} Auto Rules
+                </Badge>
+              </>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <p className="text-muted-foreground">
-            Professional coin listing management - CONNECTED TO ADMIN BRAIN
+            Complete AI-powered coin upload system with automatic analysis, visual matching, 
+            background selection, and multi-category marketplace listing.
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="flex items-center gap-2">
-            <Brain className="w-4 h-4" />
-            AI-Powered Platform
-          </Badge>
-          <Badge variant="outline" className="flex items-center gap-2 text-green-600 border-green-600">
-            <Database className="w-4 h-4" />
-            87 Tables Connected
-          </Badge>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {!selectedStoreId && activeTab !== 'stores' && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Please select a store first to upload coins. Go to the "Store Management" tab to create or select a store.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="stores" className="flex items-center gap-2">
-            <Store className="w-4 h-4" />
-            Stores
-          </TabsTrigger>
-          <TabsTrigger value="upload" className="flex items-center gap-2" disabled={!selectedStoreId}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="w-4 h-4" />
-            Upload
+            Smart Upload
           </TabsTrigger>
-          <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={!selectedStoreId}>
-            <Package className="w-4 h-4" />
-            Bulk
-          </TabsTrigger>
-          <TabsTrigger value="ai_brain" className="flex items-center gap-2">
-            <Brain className="w-4 h-4" />
-            AI Brain
-          </TabsTrigger>
-          <TabsTrigger value="market_intel" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Market Intel
-          </TabsTrigger>
-          <TabsTrigger value="error_detection" className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Error Detection
-          </TabsTrigger>
-          <TabsTrigger value="drafts" className="flex items-center gap-2">
+          <TabsTrigger value="background" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            Drafts
+            Background
           </TabsTrigger>
-          <TabsTrigger value="shipping" className="flex items-center gap-2">
-            <Truck className="w-4 h-4" />
-            Shipping
+          <TabsTrigger value="multi-listing" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Multi-Listing
+          </TabsTrigger>
+          <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
+            <Bot className="w-4 h-4" />
+            AI Analysis
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="stores" className="space-y-6">
-          <StoreManagerRefactored 
-            onStoreSelect={handleStoreSelect}
-            selectedStoreId={selectedStoreId}
-          />
+        <TabsContent value="upload">
+          <EnhancedDealerUploadTriggers />
         </TabsContent>
 
-        <TabsContent value="upload" className="space-y-6">
-          {selectedStoreId && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AdvancedImageUploadManager
-                onImagesProcessed={handleImagesProcessed}
-                onAIAnalysisComplete={handleAIAnalysisComplete}
-                maxImages={10}
-              />
-              <CoinListingForm
-                images={uploadedImages}
-                aiResults={aiAnalysisResults}
-                coinData={coinData}
-                onCoinDataChange={setCoinData}
-              />
-            </div>
-          )}
+        <TabsContent value="background">
+          <PhotoBackgroundSelector />
         </TabsContent>
 
-        <TabsContent value="bulk">
-          {selectedStoreId && <BulkUploadManager />}
+        <TabsContent value="multi-listing">
+          <MultiCategoryListingManager />
         </TabsContent>
 
-        <TabsContent value="ai_brain">
-          <ConnectedAIAnalysis />
-        </TabsContent>
-
-        <TabsContent value="market_intel">
-          <ConnectedMarketIntelligence />
-        </TabsContent>
-
-        <TabsContent value="error_detection">
-          <ConnectedErrorDetection />
-        </TabsContent>
-
-        <TabsContent value="drafts">
-          <DraftManager />
-        </TabsContent>
-
-        <TabsContent value="shipping">
-          <ShippingPaymentManager />
+        <TabsContent value="ai-analysis">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-6 w-6 text-purple-600" />
+                AI Analysis Engine Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 border rounded-lg">
+                  <Bot className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <div className="font-medium">Visual Recognition</div>
+                  <div className="text-sm text-muted-foreground">Active & Ready</div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <Zap className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                  <div className="font-medium">Market Analysis</div>
+                  <div className="text-sm text-muted-foreground">Real-time Data</div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <TrendingUp className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                  <div className="font-medium">Auto-Listing</div>
+                  <div className="text-sm text-muted-foreground">Multi-Category</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

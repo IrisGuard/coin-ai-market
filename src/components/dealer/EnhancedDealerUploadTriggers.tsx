@@ -4,15 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Bot, TrendingUp, Eye, Bell, CheckCircle } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
+import { Upload, Bot, TrendingUp, Eye, Bell, CheckCircle, Zap } from 'lucide-react';
+import { useConnectedSystemFlow } from '@/hooks/useConnectedSystemFlow';
 import { useCoinUpload } from '@/hooks/useCoinUpload';
 
 const EnhancedDealerUploadTriggers = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
   
   const {
     images,
@@ -24,118 +22,108 @@ const EnhancedDealerUploadTriggers = () => {
     handleFiles,
     handleDrag,
     handleDrop,
-    handleUploadAndAnalyze,
-    handleSubmitListing,
     removeImage,
     handleCoinDataChange
   } = useCoinUpload();
 
-  // Auto-trigger scraping for uploaded coins
-  const triggerScrapingMutation = useMutation({
-    mutationFn: async (coinData: any) => {
-      const { data, error } = await supabase.functions.invoke('advanced-web-scraper', {
-        body: {
-          commandType: 'coin_market_research',
-          targetUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(coinData.name + ' ' + coinData.year)}`,
-          coinData: coinData,
-          scrapingConfig: {
-            autoTrigger: true,
-            dealerUpload: true,
-            analysisDepth: 'comprehensive'
-          }
-        }
-      });
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      console.log('✅ Auto-scraping triggered:', data);
-      setNotifications(prev => [...prev, {
-        type: 'scraping_started',
-        message: `Market research initiated for ${coinData.title}`,
-        timestamp: new Date(),
-        status: 'success'
-      }]);
-    }
-  });
+  const {
+    flowStatus,
+    isExecuting,
+    triggerCompleteFlow,
+    error
+  } = useConnectedSystemFlow();
 
-  // Auto-trigger visual matching
-  const triggerVisualMatchingMutation = useMutation({
-    mutationFn: async (imageData: any) => {
-      const { data, error } = await supabase.functions.invoke('visual-matching-engine', {
-        body: {
-          analysisId: imageData.analysisId,
-          frontImage: imageData.frontImage,
-          backImage: imageData.backImage,
-          similarityThreshold: 0.7,
-          autoTrigger: true
-        }
-      });
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      console.log('✅ Visual matching triggered:', data);
-      setNotifications(prev => [...prev, {
-        type: 'visual_matching_started',
-        message: `Visual matching analysis started - ${data.matchesFound} matches found`,
-        timestamp: new Date(),
-        status: 'success'
-      }]);
-    }
-  });
+  // Calculate overall progress
+  const getOverallProgress = () => {
+    const steps = Object.values(flowStatus);
+    const completedSteps = steps.filter(Boolean).length;
+    return (completedSteps / steps.length) * 100;
+  };
 
-  // Enhanced upload handler with auto-triggers
+  // Enhanced upload handler with complete system flow
   const handleEnhancedUpload = useCallback(async () => {
-    if (!images.length) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      // Step 1: Upload and analyze
-      await handleUploadAndAnalyze();
-      
-      // Step 2: Auto-trigger scraping
-      if (coinData.title && coinData.year) {
-        await triggerScrapingMutation.mutateAsync(coinData);
-      }
-      
-      // Step 3: Auto-trigger visual matching
-      if (images.length >= 2) {
-        await triggerVisualMatchingMutation.mutateAsync({
-          analysisId: 'auto-generated-id',
-          frontImage: images[0]?.preview,
-          backImage: images[1]?.preview
-        });
-      }
-      
-      // Step 4: Real-time notification
+    if (!images.length) {
       setNotifications(prev => [...prev, {
-        type: 'upload_complete',
-        message: `Coin analysis complete with automated market research and visual matching`,
-        timestamp: new Date(),
-        status: 'success'
-      }]);
-      
-      toast({
-        title: "Upload Complete",
-        description: "Coin uploaded with automated analysis and market research",
-      });
-      
-    } catch (error) {
-      console.error('❌ Enhanced upload failed:', error);
-      setNotifications(prev => [...prev, {
-        type: 'upload_error',
-        message: `Upload failed: ${error.message}`,
+        type: 'error',
+        message: 'Please select at least one image to upload',
         timestamp: new Date(),
         status: 'error'
       }]);
-    } finally {
-      setIsProcessing(false);
+      return;
     }
-  }, [images, coinData, handleUploadAndAnalyze, triggerScrapingMutation, triggerVisualMatchingMutation]);
+    
+    // Convert image objects to File objects
+    const fileArray = images.map(img => img.file).filter(Boolean) as File[];
+    
+    if (fileArray.length === 0) {
+      setNotifications(prev => [...prev, {
+        type: 'error',
+        message: 'No valid files found for upload',
+        timestamp: new Date(),
+        status: 'error'
+      }]);
+      return;
+    }
+
+    // Add start notification
+    setNotifications(prev => [...prev, {
+      type: 'flow_started',
+      message: 'Starting complete system flow: Upload → AI Analysis → Visual Match → Market Research → Listing',
+      timestamp: new Date(),
+      status: 'info'
+    }]);
+
+    // Trigger the complete connected flow
+    triggerCompleteFlow(fileArray, coinData);
+  }, [images, coinData, triggerCompleteFlow]);
+
+  // Add real-time flow notifications
+  React.useEffect(() => {
+    if (flowStatus.upload && !flowStatus.analysis) {
+      setNotifications(prev => [...prev, {
+        type: 'upload_complete',
+        message: 'Images uploaded successfully, starting AI analysis...',
+        timestamp: new Date(),
+        status: 'success'
+      }]);
+    }
+    
+    if (flowStatus.analysis && !flowStatus.visualMatch) {
+      setNotifications(prev => [...prev, {
+        type: 'analysis_complete',
+        message: 'AI analysis complete, searching for visual matches...',
+        timestamp: new Date(),
+        status: 'success'
+      }]);
+    }
+    
+    if (flowStatus.visualMatch && !flowStatus.marketResearch) {
+      setNotifications(prev => [...prev, {
+        type: 'visual_match_complete',
+        message: 'Visual matching complete, conducting market research...',
+        timestamp: new Date(),
+        status: 'success'
+      }]);
+    }
+    
+    if (flowStatus.marketResearch && !flowStatus.listing) {
+      setNotifications(prev => [...prev, {
+        type: 'market_research_complete',
+        message: 'Market research complete, creating marketplace listing...',
+        timestamp: new Date(),
+        status: 'success'
+      }]);
+    }
+    
+    if (flowStatus.listing) {
+      setNotifications(prev => [...prev, {
+        type: 'flow_complete',
+        message: 'Complete system flow executed successfully! Coin is now listed.',
+        timestamp: new Date(),
+        status: 'success'
+      }]);
+    }
+  }, [flowStatus]);
 
   return (
     <div className="space-y-6">
@@ -143,9 +131,9 @@ const EnhancedDealerUploadTriggers = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-6 w-6 text-green-600" />
-            Enhanced Dealer Upload with Auto-Triggers
-            <Badge className="bg-green-100 text-green-800">Auto-Scraping Active</Badge>
-            <Badge className="bg-blue-100 text-blue-800">Visual Matching Enabled</Badge>
+            Enhanced Dealer Upload with Complete System Flow
+            <Badge className="bg-green-100 text-green-800">Fully Connected</Badge>
+            <Badge className="bg-blue-100 text-blue-800">Auto-Triggers Active</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -162,7 +150,7 @@ const EnhancedDealerUploadTriggers = () => {
             >
               <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-lg font-medium">Drop coin images here or click to upload</p>
-              <p className="text-sm text-gray-500">Supports JPG, PNG files</p>
+              <p className="text-sm text-gray-500">Triggers complete AI analysis and marketplace listing flow</p>
               <input
                 type="file"
                 multiple
@@ -200,7 +188,7 @@ const EnhancedDealerUploadTriggers = () => {
                       <div className="absolute bottom-2 left-2">
                         <Badge className="bg-green-100 text-green-800">
                           <CheckCircle className="h-3 w-3 mr-1" />
-                          Analyzed
+                          Ready
                         </Badge>
                       </div>
                     )}
@@ -209,46 +197,58 @@ const EnhancedDealerUploadTriggers = () => {
               </div>
             )}
 
-            {/* Progress Bar */}
-            {uploadProgress > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
+            {/* Flow Progress */}
+            {isExecuting && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-blue-600 animate-pulse" />
+                  <span className="font-medium">Executing Complete System Flow</span>
+                </div>
+                <Progress value={getOverallProgress()} className="h-2" />
+                <div className="grid grid-cols-5 gap-2 text-xs">
+                  <div className={`text-center p-2 rounded ${flowStatus.upload ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
+                    Upload
+                  </div>
+                  <div className={`text-center p-2 rounded ${flowStatus.analysis ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
+                    AI Analysis
+                  </div>
+                  <div className={`text-center p-2 rounded ${flowStatus.visualMatch ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
+                    Visual Match
+                  </div>
+                  <div className={`text-center p-2 rounded ${flowStatus.marketResearch ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
+                    Market Research
+                  </div>
+                  <div className={`text-center p-2 rounded ${flowStatus.listing ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
+                    Listing
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button
-                onClick={handleEnhancedUpload}
-                disabled={!images.length || isAnalyzing || isProcessing}
-                className="flex items-center gap-2"
-              >
-                {isAnalyzing || isProcessing ? (
-                  <>
-                    <Bot className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Bot className="h-4 w-4" />
-                    Analyze & Auto-Research
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleSubmitListing}
-                disabled={!coinData.title}
-                className="flex items-center gap-2"
-              >
-                <TrendingUp className="h-4 w-4" />
-                Create Multi-Listing
-              </Button>
-            </div>
+            {/* Action Button */}
+            <Button
+              onClick={handleEnhancedUpload}
+              disabled={!images.length || isAnalyzing || isExecuting}
+              className="w-full bg-green-600 hover:bg-green-700"
+              size="lg"
+            >
+              {isExecuting ? (
+                <>
+                  <Bot className="h-5 w-5 mr-2 animate-spin" />
+                  Executing Complete Flow...
+                </>
+              ) : isAnalyzing ? (
+                <>
+                  <Bot className="h-5 w-5 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-5 w-5 mr-2" />
+                  Execute Complete System Flow
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -259,13 +259,17 @@ const EnhancedDealerUploadTriggers = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-6 w-6 text-blue-600" />
-              Real-time Notifications
+              Live System Notifications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {notifications.slice(-5).map((notification, index) => (
-                <Alert key={index} className={notification.status === 'error' ? 'border-red-200' : 'border-green-200'}>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {notifications.slice(-8).map((notification, index) => (
+                <Alert key={index} className={
+                  notification.status === 'error' ? 'border-red-200 bg-red-50' :
+                  notification.status === 'success' ? 'border-green-200 bg-green-50' :
+                  'border-blue-200 bg-blue-50'
+                }>
                   <Bell className="h-4 w-4" />
                   <AlertDescription className="flex justify-between items-center">
                     <span>{notification.message}</span>
@@ -280,34 +284,14 @@ const EnhancedDealerUploadTriggers = () => {
         </Card>
       )}
 
-      {/* Analysis Results Display */}
-      {analysisResults && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-6 w-6 text-purple-600" />
-              AI Analysis Results
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium mb-2">Coin Identification</h4>
-                <p><strong>Name:</strong> {analysisResults.name}</p>
-                <p><strong>Year:</strong> {analysisResults.year}</p>
-                <p><strong>Grade:</strong> {analysisResults.grade}</p>
-                <p><strong>Country:</strong> {analysisResults.country}</p>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Market Analysis</h4>
-                <p><strong>Estimated Value:</strong> ${analysisResults.estimatedValue}</p>
-                <p><strong>Rarity:</strong> {analysisResults.rarity}</p>
-                <p><strong>Confidence:</strong> {Math.round(analysisResults.confidence * 100)}%</p>
-                <p><strong>AI Provider:</strong> {analysisResults.aiProvider}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Error Display */}
+      {error && (
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {error.message || 'An error occurred during the system flow'}
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );

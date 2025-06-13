@@ -1,11 +1,9 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Database, Activity } from 'lucide-react';
 import ExpandedAdminTabs from './ExpandedAdminTabs';
 import SystemInitializer from './SystemInitializer';
+import LiveSystemMetrics from './LiveSystemMetrics';
 
 // Import all management components
 import AdminStatsOverview from '../AdminStatsOverview';
@@ -31,6 +29,7 @@ import AdminErrorDetectionSection from '../sections/AdminErrorDetectionSection';
 // Marketplace components
 import MarketplaceManager from './MarketplaceManager';
 import AdminExternalSourcesTab from '../tabs/AdminExternalSourcesTab';
+import AuctionBidsManager from './AuctionBidsManager';
 
 // Data Sources components
 import ScrapingJobsManager from './ScrapingJobsManager';
@@ -43,25 +42,8 @@ const FullSystemAdminPanel = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-6 w-6 text-blue-600" />
-              Full System Administration Panel
-              <Badge className="bg-green-100 text-green-800 ml-2">36 Active Interfaces</Badge>
-              <Badge className="bg-blue-100 text-blue-800 ml-2">87 Tables Connected</Badge>
-              <Badge className="bg-purple-100 text-purple-800 ml-2">124 AI Commands</Badge>
-              <Badge className="bg-orange-100 text-orange-800 ml-2">18+ Scraping Jobs</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Complete administration control over all system components including AI Brain, 
-              marketplace operations, scraping jobs, error detection, and user management.
-              System is 100% operational with real-time data processing.
-            </p>
-          </CardContent>
-        </Card>
+        {/* Live System Metrics */}
+        <LiveSystemMetrics />
 
         {/* System Initializer - Show on first load */}
         <SystemInitializer />
@@ -146,7 +128,7 @@ const FullSystemAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="auctions">
-            <MarketplaceManager />
+            <AuctionBidsManager />
           </TabsContent>
 
           <TabsContent value="transactions">
@@ -221,44 +203,9 @@ const FullSystemAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="dashboard">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <LiveSystemMetrics />
               <SystemAnalyticsManager />
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-6 w-6 text-green-600" />
-                    System Status - 100% Operational
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span>Admin Panel Interfaces</span>
-                      <Badge className="bg-green-100 text-green-800">36/36 Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Dealer Panel Features</span>
-                      <Badge className="bg-green-100 text-green-800">7/7 Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Scraping Jobs</span>
-                      <Badge className="bg-green-100 text-green-800">18+ Running</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Auto-Triggers</span>
-                      <Badge className="bg-green-100 text-green-800">✅ Enabled</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Real-time Notifications</span>
-                      <Badge className="bg-green-100 text-green-800">✅ Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Commercial Features</span>
-                      <Badge className="bg-green-100 text-green-800">✅ Ready</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>
