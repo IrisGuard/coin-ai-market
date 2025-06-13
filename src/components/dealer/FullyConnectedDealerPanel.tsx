@@ -10,8 +10,8 @@ import ConnectedAIAnalysis from './ConnectedAIAnalysis';
 import ConnectedMarketIntelligence from './ConnectedMarketIntelligence';
 import ConnectedErrorDetection from './ConnectedErrorDetection';
 
-// Import existing dealer components
-import DealerUploadForm from './DealerUploadForm';
+// Import the FULL upload manager instead of the empty form
+import EnhancedCoinUploadManager from './EnhancedCoinUploadManager';
 import DealerCoinsList from './DealerCoinsList';
 import DealerAnalytics from './DealerAnalytics';
 
@@ -80,7 +80,7 @@ const FullyConnectedDealerPanel = () => {
         </TabsList>
 
         <TabsContent value="upload">
-          <DealerUploadForm />
+          <EnhancedCoinUploadManager />
         </TabsContent>
 
         <TabsContent value="ai-analysis">
