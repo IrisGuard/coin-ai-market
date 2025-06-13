@@ -23,6 +23,7 @@ import SourcesHeader from './sources/SourcesHeader';
 import EnhancedErrorKnowledgeManager from './EnhancedErrorKnowledgeManager';
 import EnhancedErrorMarketDataManager from './EnhancedErrorMarketDataManager';
 import { useRealExternalSources } from '@/hooks/useRealExternalSources';
+import { transformSourcesForGeographic } from './sources/utils';
 
 const EnhancedSourcesManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -35,6 +36,9 @@ const EnhancedSourcesManager = () => {
       </div>
     );
   }
+
+  // Transform sources for geographic component
+  const geographicSources = transformSourcesForGeographic(sources || []);
 
   return (
     <div className="space-y-6">
@@ -113,7 +117,7 @@ const EnhancedSourcesManager = () => {
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicSourceMap sources={sources || []} />
+          <GeographicSourceMap sources={geographicSources} />
         </TabsContent>
       </Tabs>
     </div>

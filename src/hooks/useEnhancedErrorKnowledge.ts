@@ -156,7 +156,7 @@ export const useDetectCoinErrors = () => {
     }) => {
       const { data, error } = await supabase.rpc('detect_coin_errors', {
         p_image_hash: imageHash,
-        p_coin_info: coinInfo,
+        p_base_coin_info: coinInfo,
         p_detection_config: detectionConfig
       });
 
@@ -167,6 +167,36 @@ export const useDetectCoinErrors = () => {
       toast({
         title: "Detection Failed",
         description: "Failed to detect coin errors: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+};
+
+export const useCalculateErrorCoinValue = () => {
+  return useMutation({
+    mutationFn: async ({ 
+      errorId, 
+      grade, 
+      baseCoinValue = 0 
+    }: {
+      errorId: string;
+      grade: string;
+      baseCoinValue?: number;
+    }) => {
+      const { data, error } = await supabase.rpc('calculate_error_coin_value', {
+        p_error_id: errorId,
+        p_grade: grade,
+        p_base_coin_value: baseCoinValue
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Valuation Failed",
+        description: "Failed to calculate coin value: " + error.message,
         variant: "destructive",
       });
     }
