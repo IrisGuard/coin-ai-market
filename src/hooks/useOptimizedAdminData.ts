@@ -24,10 +24,17 @@ export const useOptimizedDashboardStats = () => {
         // Get the actual dashboard data
         const dashboardData = await getOptimizedDashboardStats();
         
-        return {
-          ...dashboardData,
-          optimization_metrics: data
-        };
+        // Ensure we return a proper object
+        if (dashboardData && typeof dashboardData === 'object') {
+          return {
+            ...dashboardData,
+            optimization_metrics: data
+          };
+        } else {
+          return {
+            optimization_metrics: data
+          };
+        }
       } catch (error) {
         console.error('❌ Failed to fetch optimized dashboard:', error);
         // Fallback to regular dashboard stats

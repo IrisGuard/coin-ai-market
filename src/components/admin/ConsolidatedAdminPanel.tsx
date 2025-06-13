@@ -12,7 +12,6 @@ import PerformanceOptimizedDashboard from './PerformanceOptimizedDashboard';
 import AdminStatsOverview from './AdminStatsOverview';
 import AdminUsersSection from './AdminUsersSection';
 import AdminCoinsSection from './AdminCoinsSection';
-import AdminTabsList from './navigation/AdminTabsList';
 
 const ConsolidatedAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -63,7 +62,27 @@ const ConsolidatedAdminPanel = () => {
 
         {/* Enhanced Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <AdminTabsList activeTab={activeTab} />
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="coins" className="flex items-center gap-2">
+              <Coins className="h-4 w-4" />
+              Coins
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center gap-2">
+              Statistics
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
           
           <TabsContent value="dashboard" className="space-y-4">
             <Card>
