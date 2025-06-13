@@ -300,14 +300,7 @@ const EnhancedDealerPanel = () => {
         </TabsContent>
 
         <TabsContent value="upload">
-          <DealerUploadForm 
-            onCoinUploaded={(coinData) => {
-              triggerScrapingForCoin(coinData);
-            }}
-            onImageAnalyzed={(imageData) => {
-              triggerVisualMatching(imageData);
-            }}
-          />
+          <DealerUploadForm />
         </TabsContent>
 
         <TabsContent value="ai-brain">
@@ -323,7 +316,7 @@ const EnhancedDealerPanel = () => {
         </TabsContent>
 
         <TabsContent value="my-coins">
-          <DealerCoinsList coins={dealerCoins} />
+          <DealerCoinsList />
         </TabsContent>
 
         <TabsContent value="store">

@@ -16,7 +16,6 @@ const ScrapingJobsManager = () => {
   const [newJob, setNewJob] = useState({
     job_type: '',
     target_url: '',
-    priority: 1,
     config: {}
   });
 
@@ -57,7 +56,6 @@ const ScrapingJobsManager = () => {
       setNewJob({
         job_type: '',
         target_url: '',
-        priority: 1,
         config: {}
       });
     }
@@ -90,12 +88,6 @@ const ScrapingJobsManager = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const getPriorityColor = (priority: number) => {
-    if (priority >= 8) return 'bg-red-100 text-red-800';
-    if (priority >= 5) return 'bg-orange-100 text-orange-800';
-    return 'bg-green-100 text-green-800';
   };
 
   if (isLoading) {
@@ -185,16 +177,6 @@ const ScrapingJobsManager = () => {
                       placeholder="https://www.ebay.com/sch/i.html?_nkw=morgan+silver+dollar"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Priority (1-10)</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={newJob.priority}
-                      onChange={(e) => setNewJob({...newJob, priority: parseInt(e.target.value)})}
-                    />
-                  </div>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -215,9 +197,8 @@ const ScrapingJobsManager = () => {
                 <TableHead>Job Type</TableHead>
                 <TableHead>Target URL</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Started</TableHead>
+                <TableHead>Completed</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -238,24 +219,13 @@ const ScrapingJobsManager = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getPriorityColor(job.priority)}>
-                      {job.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm">{job.progress_percentage || 0}%</div>
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{width: `${job.progress_percentage || 0}%`}}
-                        ></div>
-                      </div>
+                    <div className="text-sm">
+                      {job.started_at ? new Date(job.started_at).toLocaleDateString() : 'Not started'}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {new Date(job.created_at).toLocaleDateString()}
+                      {job.completed_at ? new Date(job.completed_at).toLocaleDateString() : 'Not completed'}
                     </div>
                   </TableCell>
                   <TableCell>

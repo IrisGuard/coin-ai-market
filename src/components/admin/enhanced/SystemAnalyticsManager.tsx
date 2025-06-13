@@ -118,7 +118,7 @@ const SystemAnalyticsManager = () => {
   const userStats = {
     totalSessions: userAnalytics?.length || 0,
     avgSessionTime: userAnalytics?.reduce((sum, session) => sum + (session.time_spent_minutes || 0), 0) / (userAnalytics?.length || 1),
-    avgPagesPerSession: userAnalytics?.reduce((sum, session) => sum + (session.pages_visited || 0), 0) / (userAnalytics?.length || 1)
+    avgPagesPerSession: userAnalytics?.reduce((sum, session) => sum + (session.page_views || 0), 0) / (userAnalytics?.length || 1)
   };
 
   const searchStats = {
@@ -308,8 +308,8 @@ const SystemAnalyticsManager = () => {
                       <TableHead>Session ID</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Duration</TableHead>
-                      <TableHead>Pages Visited</TableHead>
-                      <TableHead>Device Type</TableHead>
+                      <TableHead>Pages Viewed</TableHead>
+                      <TableHead>Device Info</TableHead>
                       <TableHead>Started</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -317,7 +317,7 @@ const SystemAnalyticsManager = () => {
                     {userAnalytics?.slice(0, 10).map((session) => (
                       <TableRow key={session.id}>
                         <TableCell>
-                          <span className="font-mono text-sm">{session.id.substring(0, 8)}...</span>
+                          <span className="font-mono text-sm">{session.session_id.substring(0, 8)}...</span>
                         </TableCell>
                         <TableCell>
                           {session.user_id ? (
@@ -327,9 +327,11 @@ const SystemAnalyticsManager = () => {
                           )}
                         </TableCell>
                         <TableCell>{session.time_spent_minutes || 0} min</TableCell>
-                        <TableCell>{session.pages_visited || 0}</TableCell>
+                        <TableCell>{session.page_views || 0}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{session.device_type || 'Unknown'}</Badge>
+                          <Badge variant="outline">
+                            {(session.device_info as any)?.type || 'Unknown'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           {new Date(session.created_at).toLocaleString()}
