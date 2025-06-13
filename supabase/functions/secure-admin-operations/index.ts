@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -54,36 +53,101 @@ serve(async (req) => {
       throw new Error('User not authenticated')
     }
 
-    // Check if user is admin using our new secure function
+    // CRITICAL: Check if user is admin using secure function
     const { data: isAdmin, error: adminError } = await supabaseClient
-      .rpc('is_admin_user', { user_id: user.id })
+      .rpc('secure_admin_verification', { user_uuid: user.id })
 
     if (adminError || !isAdmin) {
-      throw new Error('Access denied: Admin privileges required')
+      console.error('SECURITY VIOLATION: Non-admin attempted system activation', {
+        user_id: user.id,
+        email: user.email,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Log security incident
+      await supabaseClient.from('security_incidents').insert({
+        incident_type: 'unauthorized_admin_access',
+        severity_level: 'high',
+        title: 'Non-admin attempted system activation',
+        description: `User ${user.email} (${user.id}) attempted to access admin-only system activation`,
+        incident_data: {
+          user_id: user.id,
+          user_email: user.email,
+          attempted_operation: 'system_activation',
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+      throw new Error('SECURITY VIOLATION: Admin privileges required for system activation');
     }
 
     const { operation, payload } = await req.json()
 
     switch (operation) {
+      case 'initialize_scraping_jobs':
+        return await handleSecureScrapingInitialization(supabaseClient, payload, user.id)
       case 'bulk_create_api_keys':
         return await handleBulkCreateApiKeys(supabaseClient, payload, user.id)
       case 'create_api_key':
         return await handleCreateApiKey(supabaseClient, payload, user.id)
       default:
-        throw new Error('Unknown operation')
+        throw new Error('Unknown admin operation')
     }
 
   } catch (error) {
-    console.error('Admin operation error:', error)
+    console.error('Secure admin operation error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        security_notice: 'This operation requires verified admin access'
+      }),
       {
-        status: 400,
+        status: error.message.includes('SECURITY VIOLATION') ? 403 : 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     )
   }
 })
+
+async function handleSecureScrapingInitialization(supabase: any, payload: any, adminUserId: string) {
+  console.log('🔒 ADMIN-ONLY: Initializing scraping infrastructure...');
+  
+  // Log admin action
+  await supabase.from('admin_activity_logs').insert({
+    admin_user_id: adminUserId,
+    action: 'initialize_scraping_infrastructure',
+    target_type: 'system',
+    details: { operation: 'scraping_initialization', timestamp: new Date().toISOString() }
+  });
+
+  // Create scraping jobs with admin verification
+  const scrapingJobs = [
+    { name: 'eBay Coin Monitor', target_url: 'https://ebay.com/coins', status: 'active' },
+    { name: 'Heritage Auctions', target_url: 'https://coins.ha.com', status: 'active' },
+    { name: 'PCGS Price Guide', target_url: 'https://pcgs.com/prices', status: 'active' },
+    // Add more scraping jobs...
+  ];
+
+  const { data: createdJobs, error } = await supabase
+    .from('scraping_jobs')
+    .insert(scrapingJobs.map(job => ({
+      ...job,
+      created_by: adminUserId,
+      admin_verified: true
+    })))
+    .select();
+
+  if (error) throw error;
+
+  return new Response(
+    JSON.stringify({ 
+      scraping_jobs_created: createdJobs.length,
+      admin_verified: true,
+      message: 'Scraping infrastructure initialized by admin'
+    }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
 
 async function handleBulkCreateApiKeys(supabase: any, keys: any[], userId: string) {
   let imported = 0

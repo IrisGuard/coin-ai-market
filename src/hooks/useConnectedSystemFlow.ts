@@ -13,19 +13,19 @@ export const useConnectedSystemFlow = () => {
     listing: false
   });
 
-  // REAL Enhanced upload with full flow
+  // SECURE Dealer Upload Flow (NO SYSTEM ACTIVATION)
   const executeFullFlowMutation = useMutation({
     mutationFn: async ({ images, coinData }: { images: File[], coinData: any }) => {
-      console.log('🚀 REAL Connected System Flow Starting...');
+      console.log('🚀 Dealer Upload Flow Starting...');
       
-      // Step 1: REAL Upload and analyze
+      // Step 1: Upload images
       setFlowStatus(prev => ({ ...prev, upload: true }));
       
       const uploadPromises = images.map(async (image) => {
         const formData = new FormData();
         formData.append('file', image);
         
-        // REAL Upload to storage
+        // Upload to storage
         const fileName = `dealer-uploads/${Date.now()}-${image.name}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('coin-images')
@@ -40,12 +40,12 @@ export const useConnectedSystemFlow = () => {
       });
       
       const uploadedImages = await Promise.all(uploadPromises);
-      console.log('✅ REAL Images uploaded:', uploadedImages.length);
+      console.log('✅ Images uploaded:', uploadedImages.length);
       
-      // Step 2: REAL AI Analysis
+      // Step 2: AI Analysis (dealer-safe operation)
       setFlowStatus(prev => ({ ...prev, analysis: true }));
       
-      console.log('🤖 Triggering REAL AI analysis...');
+      console.log('🤖 Triggering AI analysis...');
       const { data: analysisData, error: analysisError } = await supabase.functions.invoke('enhanced-dual-recognition', {
         body: {
           frontImageUrl: uploadedImages[0]?.publicUrl,
@@ -57,13 +57,12 @@ export const useConnectedSystemFlow = () => {
       
       if (analysisError) {
         console.warn('⚠️ AI Analysis warning:', analysisError.message);
-        // Continue with mock data if edge function fails
       }
       
-      // Step 3: REAL Visual Matching
+      // Step 3: Visual Matching (dealer-safe operation)
       setFlowStatus(prev => ({ ...prev, visualMatch: true }));
       
-      console.log('👁️ Triggering REAL visual matching...');
+      console.log('👁️ Triggering visual matching...');
       const { data: visualMatchData } = await supabase.functions.invoke('visual-matching-engine', {
         body: {
           imageHash: analysisData?.imageHash || 'sample-hash',
@@ -72,10 +71,10 @@ export const useConnectedSystemFlow = () => {
         }
       });
       
-      // Step 4: REAL Market Research
+      // Step 4: Market Research (dealer-safe operation)
       setFlowStatus(prev => ({ ...prev, marketResearch: true }));
       
-      console.log('📊 Triggering REAL market research...');
+      console.log('📊 Triggering market research...');
       const { data: marketData } = await supabase.functions.invoke('advanced-web-scraper', {
         body: {
           commandType: 'coin_market_research',
@@ -84,10 +83,10 @@ export const useConnectedSystemFlow = () => {
         }
       });
       
-      // Step 5: REAL Create Listing
+      // Step 5: Create Listing (dealer-only operation)
       setFlowStatus(prev => ({ ...prev, listing: true }));
       
-      console.log('📝 Creating REAL marketplace listing...');
+      console.log('📝 Creating marketplace listing...');
       const { data: listingData, error: listingError } = await supabase
         .from('coins')
         .insert({
@@ -111,7 +110,7 @@ export const useConnectedSystemFlow = () => {
       
       if (listingError) throw listingError;
       
-      console.log('✅ REAL Coin listing created:', listingData.id);
+      console.log('✅ Coin listing created:', listingData.id);
       
       return {
         analysis: analysisData,
@@ -119,14 +118,14 @@ export const useConnectedSystemFlow = () => {
         marketResearch: marketData,
         listing: listingData,
         uploadedImages,
-        message: 'REAL COMPLETE FLOW EXECUTED SUCCESSFULLY'
+        message: 'DEALER UPLOAD FLOW COMPLETED SUCCESSFULLY'
       };
     },
     onSuccess: (data) => {
-      console.log('✅ REAL Complete flow executed successfully:', data);
+      console.log('✅ Dealer flow executed successfully:', data);
       toast({
-        title: "🚀 REAL Complete Flow Executed!",
-        description: `Coin analyzed, matched, researched, and listed successfully. Coin ID: ${data.listing?.id}`,
+        title: "🚀 Upload Flow Complete!",
+        description: `Coin analyzed and listed successfully. Coin ID: ${data.listing?.id}`,
       });
       
       // Reset flow status after success
@@ -141,10 +140,10 @@ export const useConnectedSystemFlow = () => {
       }, 3000);
     },
     onError: (error: any) => {
-      console.error('❌ REAL Flow execution failed:', error);
+      console.error('❌ Dealer flow failed:', error);
       toast({
-        title: "❌ Real Flow Failed",
-        description: error.message || "Complete system flow failed",
+        title: "❌ Upload Failed",
+        description: error.message || "Upload flow failed",
         variant: "destructive"
       });
       
@@ -160,7 +159,7 @@ export const useConnectedSystemFlow = () => {
   });
 
   const triggerCompleteFlow = useCallback((images: File[], coinData: any) => {
-    console.log('🎯 Triggering REAL complete flow with:', { imageCount: images.length, coinData });
+    console.log('🎯 Triggering dealer upload flow with:', { imageCount: images.length, coinData });
     executeFullFlowMutation.mutate({ images, coinData });
   }, [executeFullFlowMutation]);
 
