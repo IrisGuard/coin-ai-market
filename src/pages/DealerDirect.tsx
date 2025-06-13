@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import AdvancedDealerUploadPanel from '@/components/dealer/AdvancedDealerUploadPanel';
+import AdvancedDealerUploadPanelRefactored from '@/components/dealer/AdvancedDealerUploadPanelRefactored';
 
 const DealerDirect = () => {
   return (
@@ -18,7 +18,7 @@ const DealerDirect = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <AdvancedDealerUploadPanel />
+            <AdvancedDealerUploadPanelRefactored />
           </motion.div>
         </div>
       </div>
