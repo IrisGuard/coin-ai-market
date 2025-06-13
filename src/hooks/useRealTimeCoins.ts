@@ -31,7 +31,6 @@ export const useRealTimeCoins = (filters?: {
   const [isConnected, setIsConnected] = useState(false);
   const [newCoinAlert, setNewCoinAlert] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
 
   const { data: coins, isLoading, refetch } = useQuery({
     queryKey: ['real-time-coins', filters],
@@ -77,9 +76,12 @@ export const useRealTimeCoins = (filters?: {
 
   // Set up real-time subscription for new coins
   useEffect(() => {
-    // Prevent multiple subscriptions
-    if (isSubscribedRef.current || channelRef.current) {
-      return;
+    // Cleanup any existing subscription first
+    if (channelRef.current) {
+      console.log('🛑 Cleaning up existing coins subscription');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+      setIsConnected(false);
     }
 
     console.log('🔄 Setting up real-time coins subscription...');
@@ -88,54 +90,40 @@ export const useRealTimeCoins = (filters?: {
     
     const channel = supabase
       .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'coins',
-          filter: 'authentication_status=eq.verified'
-        },
-        (payload) => {
-          // Show alert for new coin
-          const newCoin = payload.new as RealTimeCoin;
-          setNewCoinAlert(`New coin added: ${newCoin.name}`);
-          setTimeout(() => setNewCoinAlert(null), 5000);
-          
-          // Refetch data
-          refetch();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'coins'
-        },
-        () => {
-          refetch();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'coins'
-        },
-        () => {
-          refetch();
-        }
-      )
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'coins',
+        filter: 'authentication_status=eq.verified'
+      }, (payload) => {
+        // Show alert for new coin
+        const newCoin = payload.new as RealTimeCoin;
+        setNewCoinAlert(`New coin added: ${newCoin.name}`);
+        setTimeout(() => setNewCoinAlert(null), 5000);
+        
+        // Refetch data
+        refetch();
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'coins'
+      }, () => {
+        refetch();
+      })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'coins'
+      }, () => {
+        refetch();
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
-          isSubscribedRef.current = true;
           console.log('✅ Real-time coins subscription established');
         } else if (status === 'CHANNEL_ERROR') {
           setIsConnected(false);
-          isSubscribedRef.current = false;
           console.error('❌ Real-time coins subscription error');
         }
       });
@@ -147,7 +135,6 @@ export const useRealTimeCoins = (filters?: {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
-        isSubscribedRef.current = false;
         setIsConnected(false);
       }
     };

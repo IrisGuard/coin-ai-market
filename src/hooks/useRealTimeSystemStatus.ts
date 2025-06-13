@@ -14,8 +14,7 @@ export const useRealTimeSystemStatus = () => {
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const channelsRef = useRef<any[]>([]);
-  const isSubscribedRef = useRef(false);
+  const channelRef = useRef<any>(null);
 
   const fetchStatus = async () => {
     try {
@@ -48,37 +47,39 @@ export const useRealTimeSystemStatus = () => {
   };
 
   useEffect(() => {
-    // Prevent multiple subscriptions
-    if (isSubscribedRef.current || channelsRef.current.length > 0) {
-      return;
+    // Cleanup any existing subscriptions first
+    if (channelRef.current) {
+      console.log('🛑 Cleaning up existing system status subscription');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
     // Fetch immediately
     fetchStatus();
     
     // Set up polling interval
-    intervalRef.current = setInterval(fetchStatus, 5000);
+    intervalRef.current = setInterval(fetchStatus, 30000); // Increased to 30 seconds
     
-    // Set up real-time subscriptions with unique channel names
+    // Set up single real-time subscription
     const timestamp = Date.now();
-    
-    const scrapingChannel = supabase
-      .channel(`scraping-jobs-changes-${timestamp}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scraping_jobs' }, fetchStatus)
-      .subscribe();
-
-    const aiChannel = supabase
-      .channel(`ai-commands-changes-${timestamp}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_commands' }, fetchStatus)
-      .subscribe();
-
-    const coinsChannel = supabase
-      .channel(`coins-changes-${timestamp}`)
+    const channel = supabase
+      .channel(`system-status-${timestamp}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'coins' }, fetchStatus)
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_commands' }, fetchStatus)
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ System status subscription established');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ System status subscription error');
+        }
+      });
 
-    channelsRef.current = [scrapingChannel, aiChannel, coinsChannel];
-    isSubscribedRef.current = true;
+    channelRef.current = channel;
 
     return () => {
       console.log('🛑 Cleaning up system status subscriptions');
@@ -88,15 +89,12 @@ export const useRealTimeSystemStatus = () => {
         intervalRef.current = null;
       }
       
-      channelsRef.current.forEach(channel => {
-        if (channel) {
-          supabase.removeChannel(channel);
-        }
-      });
-      channelsRef.current = [];
-      isSubscribedRef.current = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, []);
+  }, []); // Empty dependency array
 
   return status;
 };
