@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Enhanced admin access verification using the new final function
+// Enhanced admin access verification using the new secure function
 export const verifyAdminAccess = async (): Promise<boolean> => {
   try {
     // Check authentication first
@@ -13,7 +13,7 @@ export const verifyAdminAccess = async (): Promise<boolean> => {
 
     // Use the new secure function that prevents infinite recursion
     const { data: adminCheck, error: adminError } = await supabase
-      .rpc('verify_admin_access_final', { user_uuid: user.id });
+      .rpc('is_admin_secure');
     
     if (adminError) {
       console.warn('Admin verification failed:', adminError);

@@ -7,12 +7,12 @@ export const checkAdminRole = async (userId: string): Promise<boolean> => {
     console.log('🔍 Checking admin role for user:', userId);
     
     // Use the new secure function that prevents infinite recursion
-    const { data, error } = await supabase.rpc('verify_admin_access_final', { 
-      user_uuid: userId 
+    const { data, error } = await supabase.rpc('is_user_admin', { 
+      check_user_id: userId 
     });
     
     if (error) {
-      console.error('❌ Error calling verify_admin_access_final:', error);
+      console.error('❌ Error calling is_user_admin:', error);
       return false;
     }
 
@@ -52,9 +52,7 @@ export const verifyAdminAccess = async (): Promise<boolean> => {
     }
 
     // Use the new secure function
-    const { data, error } = await supabase.rpc('verify_admin_access_final', {
-      user_uuid: user.id
-    });
+    const { data, error } = await supabase.rpc('is_admin_secure');
     
     if (error) {
       console.error('❌ Admin verification error:', error);

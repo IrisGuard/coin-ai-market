@@ -6,7 +6,7 @@ export const useAICommandsQuery = () => {
   return useQuery({
     queryKey: ['admin-ai-commands'],
     queryFn: async () => {
-      console.log('🔍 Fetching AI commands with unified policies...');
+      console.log('🔍 Fetching AI commands with clean policies...');
       
       try {
         const { data, error } = await supabase

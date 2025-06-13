@@ -117,14 +117,14 @@ export const useCleanUpdateUserStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['clean-admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: "Χρήστης Ενημερώθηκε",
-        description: "Το status του χρήστη ενημερώθηκε επιτυχώς με ενιαία policies.",
+        title: "User Updated",
+        description: "User status updated successfully with unified policies.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Σφάλμα",
-        description: error.message || 'Παρουσιάστηκε σφάλμα',
+        title: "Error",
+        description: error.message || 'An error occurred',
         variant: "destructive",
       });
     },

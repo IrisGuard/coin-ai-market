@@ -3875,10 +3875,6 @@ export type Database = {
         }
         Returns: Json
       }
-      check_admin_role_secure: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
       configure_complete_auth_security: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3989,10 +3985,6 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
-      get_user_role: {
-        Args: { user_uuid?: string }
-        Returns: string
-      }
       has_role: {
         Args: {
           _user_id: string
@@ -4003,6 +3995,14 @@ export type Database = {
       increment_page_view: {
         Args: { page_path_param: string }
         Returns: undefined
+      }
+      is_admin_secure: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_user_admin: {
+        Args: { check_user_id: string }
+        Returns: boolean
       }
       log_admin_activity: {
         Args: {
@@ -4041,10 +4041,6 @@ export type Database = {
       resolve_security_warnings: {
         Args: Record<PropertyKey, never>
         Returns: Json
-      }
-      secure_admin_verification: {
-        Args: { user_uuid?: string }
-        Returns: boolean
       }
       set_tenant_context: {
         Args: { tenant_uuid: string }
