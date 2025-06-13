@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,8 +30,6 @@ export const useRealTimeCoins = (filters?: {
 }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [newCoinAlert, setNewCoinAlert] = useState<string | null>(null);
-  const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
 
   const { data: coins, isLoading, refetch } = useQuery({
     queryKey: ['real-time-coins', filters],
@@ -44,6 +42,7 @@ export const useRealTimeCoins = (filters?: {
 
       // Apply filters with proper type casting
       if (filters?.category) {
+        // Cast the category to the proper enum type
         query = query.eq('category', filters.category as any);
       }
 
@@ -77,17 +76,8 @@ export const useRealTimeCoins = (filters?: {
 
   // Set up real-time subscription for new coins
   useEffect(() => {
-    // Prevent multiple subscriptions
-    if (isSubscribedRef.current || channelRef.current) {
-      return;
-    }
-
-    console.log('🔄 Setting up real-time coins subscription...');
-    
-    const channelName = `coins-changes-realtime-${Date.now()}`;
-    
     const channel = supabase
-      .channel(channelName)
+      .channel('coins-changes')
       .on(
         'postgres_changes',
         {
@@ -129,27 +119,11 @@ export const useRealTimeCoins = (filters?: {
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setIsConnected(true);
-          isSubscribedRef.current = true;
-          console.log('✅ Real-time coins subscription established');
-        } else if (status === 'CHANNEL_ERROR') {
-          setIsConnected(false);
-          isSubscribedRef.current = false;
-          console.error('❌ Real-time coins subscription error');
-        }
+        setIsConnected(status === 'SUBSCRIBED');
       });
 
-    channelRef.current = channel;
-
     return () => {
-      console.log('🛑 Cleaning up real-time coins subscription');
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-        isSubscribedRef.current = false;
-        setIsConnected(false);
-      }
+      supabase.removeChannel(channel);
     };
   }, [refetch]);
 

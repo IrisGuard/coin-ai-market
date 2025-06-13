@@ -1,72 +1,57 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMarketplaceStats } from '../useMarketplaceStats';
 
 export const useRealTimeStats = () => {
   const { data: stats, refetch } = useMarketplaceStats();
   const [lastUpdate, setLastUpdate] = useState(new Date());
-  const channelsRef = useRef<any[]>([]);
-  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
-    // Prevent multiple subscriptions
-    if (isSubscribedRef.current || channelsRef.current.length > 0) {
-      return;
-    }
-
-    console.log('🔄 Setting up real-time stats subscriptions...');
-
-    const handleUpdate = () => {
-      refetch();
-      setLastUpdate(new Date());
-    };
-
-    // Create unique channel names
-    const timestamp = Date.now();
-    
+    // Set up real-time subscriptions for live updates
     const coinsSubscription = supabase
-      .channel(`coins-changes-stats-${timestamp}`)
+      .channel('coins-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'coins' },
-        handleUpdate
+        () => {
+          refetch();
+          setLastUpdate(new Date());
+        }
       )
       .subscribe();
 
     const profilesSubscription = supabase
-      .channel(`profiles-changes-stats-${timestamp}`)
+      .channel('profiles-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'profiles' },
-        handleUpdate
+        () => {
+          refetch();
+          setLastUpdate(new Date());
+        }
       )
       .subscribe();
 
     const transactionsSubscription = supabase
-      .channel(`transactions-changes-stats-${timestamp}`)
+      .channel('transactions-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'transactions' },
-        handleUpdate
+        () => {
+          refetch();
+          setLastUpdate(new Date());
+        }
       )
       .subscribe();
 
-    channelsRef.current = [coinsSubscription, profilesSubscription, transactionsSubscription];
-    isSubscribedRef.current = true;
-
     return () => {
-      console.log('🛑 Cleaning up real-time stats subscriptions');
-      channelsRef.current.forEach(channel => {
-        if (channel) {
-          supabase.removeChannel(channel);
-        }
-      });
-      channelsRef.current = [];
-      isSubscribedRef.current = false;
+      supabase.removeChannel(coinsSubscription);
+      supabase.removeChannel(profilesSubscription);
+      supabase.removeChannel(transactionsSubscription);
     };
   }, [refetch]);
 
   return {
     stats,
     lastUpdate,
-    isRealTime: isSubscribedRef.current
+    isRealTime: true
   };
 };
