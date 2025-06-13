@@ -1,16 +1,16 @@
 
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import ConsolidatedAdminPanel from "@/components/admin/ConsolidatedAdminPanel";
+import ComprehensiveAdminPanel from "@/components/admin/ComprehensiveAdminPanel";
 
 const AdminPanelPage = () => {
-  console.log('📄 AdminPanelPage rendering...');
+  console.log('📄 AdminPanelPage rendering - RESTORED TO COMPREHENSIVE...');
   
   try {
     usePageView();
     console.log('✅ AdminPanelPage: usePageView hook completed');
     
-    return <ConsolidatedAdminPanel />;
+    return <ComprehensiveAdminPanel />;
   } catch (error) {
     console.error('💥 Error in AdminPanelPage:', error);
     

@@ -4,14 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, Store, AlertCircle } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, Store, AlertCircle, Database } from 'lucide-react';
 import AdvancedImageUploadManager from './AdvancedImageUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
-import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
 import ShippingPaymentManager from './ShippingPaymentManager';
 import StoreManagerRefactored from './store/StoreManagerRefactored';
+
+// REAL ADMIN CONNECTIONS - NO MORE MOCK DATA
+import ConnectedAIAnalysis from './ConnectedAIAnalysis';
+import ConnectedMarketIntelligence from './ConnectedMarketIntelligence';
+import ConnectedErrorDetection from './ConnectedErrorDetection';
 
 const AdvancedDealerUploadPanelRefactored: React.FC = () => {
   const [activeTab, setActiveTab] = useState('stores');
@@ -52,13 +56,19 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">Advanced Dealer Panel</h1>
           <p className="text-muted-foreground">
-            Professional coin listing management with AI-powered analysis
+            Professional coin listing management - CONNECTED TO ADMIN BRAIN
           </p>
         </div>
-        <Badge variant="outline" className="flex items-center gap-2">
-          <Brain className="w-4 h-4" />
-          AI-Powered Platform
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            AI-Powered Platform
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-2 text-green-600 border-green-600">
+            <Database className="w-4 h-4" />
+            87 Tables Connected
+          </Badge>
+        </div>
       </div>
 
       {!selectedStoreId && activeTab !== 'stores' && (
@@ -71,7 +81,7 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="stores" className="flex items-center gap-2">
             <Store className="w-4 h-4" />
             Stores
@@ -84,9 +94,17 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
             <Package className="w-4 h-4" />
             Bulk
           </TabsTrigger>
-          <TabsTrigger value="intelligence" className="flex items-center gap-2">
+          <TabsTrigger value="ai_brain" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            AI Brain
+          </TabsTrigger>
+          <TabsTrigger value="market_intel" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
-            Market
+            Market Intel
+          </TabsTrigger>
+          <TabsTrigger value="error_detection" className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Error Detection
           </TabsTrigger>
           <TabsTrigger value="drafts" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -95,10 +113,6 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
           <TabsTrigger value="shipping" className="flex items-center gap-2">
             <Truck className="w-4 h-4" />
             Shipping
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <Brain className="w-4 h-4" />
-            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -131,8 +145,16 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
           {selectedStoreId && <BulkUploadManager />}
         </TabsContent>
 
-        <TabsContent value="intelligence">
-          <MarketIntelligenceDashboard />
+        <TabsContent value="ai_brain">
+          <ConnectedAIAnalysis />
+        </TabsContent>
+
+        <TabsContent value="market_intel">
+          <ConnectedMarketIntelligence />
+        </TabsContent>
+
+        <TabsContent value="error_detection">
+          <ConnectedErrorDetection />
         </TabsContent>
 
         <TabsContent value="drafts">
@@ -141,19 +163,6 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
 
         <TabsContent value="shipping">
           <ShippingPaymentManager />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Performance tracking and analytics coming soon...
-              </p>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
