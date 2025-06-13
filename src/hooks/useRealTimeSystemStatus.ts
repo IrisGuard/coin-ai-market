@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useRealTimeSystemStatus = () => {
@@ -12,6 +12,10 @@ export const useRealTimeSystemStatus = () => {
     liveAuctions: 0,
     lastUpdated: new Date()
   });
+
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const channelsRef = useRef<any[]>([]);
+  const isSubscribedRef = useRef(false);
 
   const fetchStatus = async () => {
     try {
@@ -44,33 +48,53 @@ export const useRealTimeSystemStatus = () => {
   };
 
   useEffect(() => {
+    // Prevent multiple subscriptions
+    if (isSubscribedRef.current || channelsRef.current.length > 0) {
+      return;
+    }
+
     // Fetch immediately
     fetchStatus();
     
-    // Set up real-time updates every 5 seconds
-    const interval = setInterval(fetchStatus, 5000);
+    // Set up polling interval
+    intervalRef.current = setInterval(fetchStatus, 5000);
     
-    // Set up real-time subscriptions for instant updates
+    // Set up real-time subscriptions with unique channel names
+    const timestamp = Date.now();
+    
     const scrapingChannel = supabase
-      .channel('scraping-jobs-changes')
+      .channel(`scraping-jobs-changes-${timestamp}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scraping_jobs' }, fetchStatus)
       .subscribe();
 
     const aiChannel = supabase
-      .channel('ai-commands-changes')
+      .channel(`ai-commands-changes-${timestamp}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_commands' }, fetchStatus)
       .subscribe();
 
     const coinsChannel = supabase
-      .channel('coins-changes')
+      .channel(`coins-changes-${timestamp}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'coins' }, fetchStatus)
       .subscribe();
 
+    channelsRef.current = [scrapingChannel, aiChannel, coinsChannel];
+    isSubscribedRef.current = true;
+
     return () => {
-      clearInterval(interval);
-      supabase.removeChannel(scrapingChannel);
-      supabase.removeChannel(aiChannel);
-      supabase.removeChannel(coinsChannel);
+      console.log('🛑 Cleaning up system status subscriptions');
+      
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      channelsRef.current.forEach(channel => {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      });
+      channelsRef.current = [];
+      isSubscribedRef.current = false;
     };
   }, []);
 
