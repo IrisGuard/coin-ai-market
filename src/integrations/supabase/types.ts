@@ -3891,6 +3891,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      configure_production_auth_security_final: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       configure_secure_otp_settings: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3989,6 +3993,10 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      get_user_role: {
+        Args: { user_uuid?: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -4050,6 +4058,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      secure_admin_verification: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       set_tenant_context: {
         Args: { tenant_uuid: string }
         Returns: undefined
@@ -4059,6 +4071,10 @@ export type Database = {
         Returns: Json
       }
       validate_enhanced_security_config: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_phase_2_security_fixes: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
