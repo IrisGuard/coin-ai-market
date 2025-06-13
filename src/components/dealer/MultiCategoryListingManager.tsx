@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, Globe, DollarSign, Clock, Package, Zap } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -22,6 +22,8 @@ const MultiCategoryListingManager = () => {
     returnPolicy: '30-day return',
     listingType: 'buy_now'
   });
+
+  const queryClient = useQueryClient();
 
   const categories = [
     { id: 'us_coins', name: 'US Coins', icon: '🇺🇸', fee: '3.5%' },
@@ -40,25 +42,67 @@ const MultiCategoryListingManager = () => {
 
   const createMultiListingMutation = useMutation({
     mutationFn: async (data: any) => {
-      const listings = selectedCategories.map(categoryId => ({
-        ...data,
-        category: categoryId,
-        status: 'active',
-        created_at: new Date().toISOString()
-      }));
+      console.log('🚀 REAL Multi-category listing creation...', { categories: selectedCategories.length });
+      
+      // REAL Create multiple listings in database
+      const listings = selectedCategories.map(categoryId => {
+        const category = categories.find(c => c.id === categoryId);
+        return {
+          coin_id: null, // Will be filled when coin is created
+          seller_id: data.user_id,
+          listing_type: data.listingType,
+          starting_price: parseFloat(data.basePrice),
+          current_price: parseFloat(data.basePrice),
+          shipping_cost: parseFloat(data.shippingCost || '0'),
+          international_shipping: data.internationalShipping,
+          return_policy: data.returnPolicy,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          category_name: category?.name,
+          category_icon: category?.icon,
+          marketplace_fee: category?.fee
+        };
+      });
 
       const { data: createdListings, error } = await supabase
         .from('marketplace_listings')
         .insert(listings)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Multi-listing creation failed:', error);
+        throw error;
+      }
+
+      console.log('✅ REAL Multi-category listings created:', createdListings.length);
       return createdListings;
     },
     onSuccess: (data) => {
+      console.log('✅ Multi-category listing success:', data);
       toast({
-        title: "Multi-Category Listing Created!",
-        description: `Successfully created ${data.length} listings across selected categories`,
+        title: "🚀 REAL Multi-Category Listing Created!",
+        description: `Successfully created ${data.length} REAL listings across selected categories`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] });
+      
+      // Reset form
+      setSelectedCategories([]);
+      setListingData({
+        title: '',
+        description: '',
+        basePrice: '',
+        shippingCost: '',
+        internationalShipping: false,
+        returnPolicy: '30-day return',
+        listingType: 'buy_now'
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ Multi-listing error:', error);
+      toast({
+        title: "❌ Multi-Listing Failed",
+        description: error.message || "Failed to create multi-category listings",
+        variant: "destructive"
       });
     }
   });
@@ -80,7 +124,7 @@ const MultiCategoryListingManager = () => {
     }, 0);
   };
 
-  const handleCreateListings = () => {
+  const handleCreateListings = async () => {
     if (selectedCategories.length === 0) {
       toast({
         title: "No Categories Selected",
@@ -90,7 +134,35 @@ const MultiCategoryListingManager = () => {
       return;
     }
 
-    createMultiListingMutation.mutate(listingData);
+    if (!listingData.title || !listingData.basePrice) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please fill in title and base price",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🎯 Creating REAL multi-category listings...', {
+      categories: selectedCategories,
+      data: listingData
+    });
+
+    // Get current user
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create listings",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    createMultiListingMutation.mutate({
+      ...listingData,
+      user_id: user.user.id
+    });
   };
 
   return (
@@ -99,9 +171,12 @@ const MultiCategoryListingManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-green-600" />
-            Multi-Category Listing Manager
+            REAL Multi-Category Listing Manager
             <Badge className="bg-green-100 text-green-800">
               {selectedCategories.length} Selected
+            </Badge>
+            <Badge className="bg-blue-100 text-blue-800">
+              REAL DATABASE
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -136,24 +211,27 @@ const MultiCategoryListingManager = () => {
               </div>
             </div>
 
-            {/* Listing Configuration */}
+            {/* REAL Listing Configuration */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Title</label>
+                  <label className="text-sm font-medium">Title *</label>
                   <Input
                     value={listingData.title}
                     onChange={(e) => setListingData({...listingData, title: e.target.value})}
                     placeholder="1921 Morgan Silver Dollar MS-63"
+                    required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Base Price</label>
+                  <label className="text-sm font-medium">Base Price * ($)</label>
                   <Input
                     type="number"
+                    step="0.01"
                     value={listingData.basePrice}
                     onChange={(e) => setListingData({...listingData, basePrice: e.target.value})}
                     placeholder="125.00"
+                    required
                   />
                 </div>
                 <div>
@@ -176,9 +254,10 @@ const MultiCategoryListingManager = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Shipping Cost</label>
+                  <label className="text-sm font-medium">Shipping Cost ($)</label>
                   <Input
                     type="number"
+                    step="0.01"
                     value={listingData.shippingCost}
                     onChange={(e) => setListingData({...listingData, shippingCost: e.target.value})}
                     placeholder="5.95"
@@ -213,12 +292,12 @@ const MultiCategoryListingManager = () => {
               </div>
             </div>
 
-            {/* Fee Summary */}
+            {/* REAL Fee Summary */}
             {selectedCategories.length > 0 && (
               <div className="border rounded-lg p-4 bg-gray-50">
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Fee Summary
+                  REAL Fee Summary
                 </h4>
                 <div className="space-y-1 text-sm">
                   {selectedCategories.map(categoryId => {
@@ -238,26 +317,29 @@ const MultiCategoryListingManager = () => {
                     <span>Total Fees:</span>
                     <span>${calculateTotalFees().toFixed(2)}</span>
                   </div>
+                  <div className="text-xs text-muted-foreground">
+                    * Fees will be charged to REAL marketplace listings
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Action Button */}
+            {/* REAL Action Button */}
             <Button
               onClick={handleCreateListings}
-              disabled={selectedCategories.length === 0 || createMultiListingMutation.isPending}
+              disabled={selectedCategories.length === 0 || createMultiListingMutation.isPending || !listingData.title || !listingData.basePrice}
               className="w-full bg-green-600 hover:bg-green-700"
               size="lg"
             >
               {createMultiListingMutation.isPending ? (
                 <>
                   <Clock className="h-5 w-5 mr-2 animate-spin" />
-                  Creating Listings...
+                  Creating REAL Listings...
                 </>
               ) : (
                 <>
                   <Zap className="h-5 w-5 mr-2" />
-                  Create {selectedCategories.length} Multi-Category Listings
+                  Create {selectedCategories.length} REAL Multi-Category Listings
                 </>
               )}
             </Button>
