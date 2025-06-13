@@ -78,7 +78,12 @@ const EnhancedErrorKnowledgeManager = () => {
         detectionConfig: { min_confidence: 0.5 }
       });
       
-      const errorsDetected = Array.isArray(result?.errors_detected) ? result.errors_detected : [];
+      // Properly handle Json type from Supabase RPC
+      let errorsDetected: any[] = [];
+      if (result && typeof result === 'object' && 'errors_detected' in result) {
+        const detectedErrors = (result as any).errors_detected;
+        errorsDetected = Array.isArray(detectedErrors) ? detectedErrors : [];
+      }
       
       toast({
         title: "AI Detection Test Complete",
