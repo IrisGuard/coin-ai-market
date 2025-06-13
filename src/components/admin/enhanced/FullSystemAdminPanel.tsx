@@ -21,6 +21,9 @@ import AITrainingManager from './ai/AITrainingManager';
 import AICacheManager from './ai/AICacheManager';
 import AIConfigManager from './ai/AIConfigManager';
 
+// Enhanced AI Brain Dashboard
+import EnhancedAIBrainDashboard from '../ai-brain/EnhancedAIBrainDashboard';
+
 // Error & Knowledge components
 import ErrorKnowledgeBaseManager from './ErrorKnowledgeBaseManager';
 import ErrorMarketDataManager from './ErrorMarketDataManager';
@@ -37,7 +40,8 @@ import SystemAnalyticsManager from './SystemAnalyticsManager';
 import SecurityManager from './SecurityManager';
 
 const FullSystemAdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // 🧠 DEFAULT TO AI BRAIN - THE CENTRAL HUB
+  const [activeTab, setActiveTab] = useState('ai-brain');
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -50,6 +54,11 @@ const FullSystemAdminPanel = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <ExpandedAdminTabs />
+
+          {/* 🧠 AI BRAIN - PRIMARY INTERFACE */}
+          <TabsContent value="ai-brain">
+            <EnhancedAIBrainDashboard />
+          </TabsContent>
 
           {/* Core System Tabs */}
           <TabsContent value="overview">

@@ -12,6 +12,12 @@ const ExpandedAdminTabs = () => {
   return (
     <TabsList className="h-auto p-2 bg-white border rounded-lg shadow-sm">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-2 w-full">
+        {/* 🧠 AI BRAIN - PRIMARY TAB */}
+        <TabsTrigger value="ai-brain" className="flex flex-col items-center gap-1 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-700">
+          <Brain className="h-5 w-5" />
+          <span className="text-xs font-bold">🧠 AI BRAIN</span>
+        </TabsTrigger>
+
         {/* Core System */}
         <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1 h-16">
           <BarChart3 className="h-4 w-4" />
