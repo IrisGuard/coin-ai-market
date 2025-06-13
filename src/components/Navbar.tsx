@@ -1,200 +1,148 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from '@/contexts/AdminContext';
 import { 
   Menu, 
   X, 
-  Coins, 
-  Store, 
-  Upload, 
   User, 
-  LogOut,
-  Gavel,
-  Home
+  LogOut, 
+  Settings, 
+  Shield, 
+  Coins,
+  Store,
+  Upload,
+  Brain
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Get user role
-  const { data: userRole } = useQuery({
-    queryKey: ['userRole', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data?.role;
-    },
-    enabled: !!user?.id,
-  });
-
-  const handleLogout = async () => {
-    await logout();
+  const handleSignOut = async () => {
+    await signOut();
     navigate('/');
   };
 
+  const navigationItems = [
+    { name: 'Marketplace', path: '/marketplace', icon: <Coins className="w-4 h-4" /> },
+    { name: 'Auctions', path: '/auctions', icon: <Store className="w-4 h-4" /> },
+    { name: 'Upload', path: '/upload', icon: <Upload className="w-4 h-4" /> },
+  ];
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <nav className="bg-white shadow-lg border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-electric-blue to-cyber-purple rounded-lg flex items-center justify-center">
-              <Coins className="w-5 h-5 text-white" />
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Coins className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">CoinVault</span>
+            </Link>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:ml-10 md:flex md:space-x-8">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className="flex items-center space-x-1 text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </Link>
+              ))}
+              
+              {/* Dealer Panel Access */}
+              <Link
+                to="/dealer"
+                className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                <Store className="w-4 h-4" />
+                <span>Dealer Panel</span>
+              </Link>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-electric-blue to-cyber-purple bg-clip-text text-transparent">
-              CoinVault
-            </span>
-          </Link>
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-electric-blue transition-colors flex items-center gap-2">
-              <Home className="w-4 h-4" />
-              Home
-            </Link>
-            
-            <Link to="/marketplace" className="text-gray-700 hover:text-electric-blue transition-colors">
-              Marketplace
-            </Link>
-            
-            <Link to="/auctions" className="text-gray-700 hover:text-electric-blue transition-colors">
-              Auctions
-            </Link>
-            
-            {isAuthenticated && userRole === 'dealer' && (
-              <Link to="/upload" className="text-gray-700 hover:text-electric-blue transition-colors">
-                Upload Coins
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {isAdmin && (
+              <Link to="/admin">
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 cursor-pointer">
+                  <Brain className="w-3 h-3 mr-1" />
+                  AI Admin
+                </Badge>
               </Link>
             )}
-
-            {isAuthenticated && userRole === 'admin' && (
-              <Link to="/admin" className="text-gray-700 hover:text-electric-blue transition-colors">
-                Admin Panel
-              </Link>
-            )}
-
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
+            
+            {user ? (
+              <div className="flex items-center space-x-3">
                 <Link to="/profile">
-                  <Button variant="ghost" size="sm">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">Profile</span>
                   </Button>
                 </Link>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2 text-red-600 hover:text-red-700"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
                 </Button>
               </div>
             ) : (
               <Link to="/auth">
-                <Button>Join as Buyer</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Sign In
+                </Button>
               </Link>
             )}
-          </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
             >
-              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden pb-4">
-            <div className="flex flex-col space-y-2">
-              <Link 
-                to="/" 
-                className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors flex items-center gap-2"
-                onClick={() => setIsOpen(false)}
-              >
-                <Home className="w-4 h-4" />
-                Home
-              </Link>
-              
-              <Link 
-                to="/marketplace" 
-                className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Marketplace
-              </Link>
-              
-              <Link 
-                to="/auctions" 
-                className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Auctions
-              </Link>
-              
-              {isAuthenticated && userRole === 'dealer' && (
-                <Link 
-                  to="/upload" 
-                  className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
-                  onClick={() => setIsOpen(false)}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className="flex items-center space-x-2 text-gray-500 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  Upload Coins
+                  {item.icon}
+                  <span>{item.name}</span>
                 </Link>
-              )}
-
-              {isAuthenticated && userRole === 'admin' && (
-                <Link 
-                  to="/admin" 
-                  className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Admin Panel
-                </Link>
-              )}
-
-              {isAuthenticated ? (
-                <>
-                  <Link 
-                    to="/profile" 
-                    className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      handleLogout();
-                      setIsOpen(false);
-                    }}
-                    className="px-3 py-2 text-left text-gray-700 hover:text-electric-blue transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <Link 
-                  to="/auth"
-                  className="px-3 py-2 text-gray-700 hover:text-electric-blue transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Join as Buyer
-                </Link>
-              )}
+              ))}
+              
+              {/* Mobile Dealer Panel Access */}
+              <Link
+                to="/dealer"
+                className="flex items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Store className="w-4 h-4" />
+                <span>Dealer Panel</span>
+              </Link>
             </div>
           </div>
         )}

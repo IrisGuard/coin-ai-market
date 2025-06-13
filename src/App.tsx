@@ -39,6 +39,7 @@ function App() {
                 <Route path="/admin" element={<AdminPanelPage />} />
                 <Route path="/coin/:id" element={<CoinDetails />} />
                 <Route path="/dealer-direct" element={<DealerDirect />} />
+                <Route path="/dealer" element={<DealerDirect />} />
               </Routes>
             </AdminProvider>
           </AuthProvider>

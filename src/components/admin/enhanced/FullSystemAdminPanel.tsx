@@ -46,23 +46,22 @@ const FullSystemAdminPanel = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Live System Metrics */}
-        <LiveSystemMetrics />
-
-        {/* System Initializer - Show on first load */}
-        <SystemInitializer />
-
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <ExpandedAdminTabs />
 
-          {/* 🧠 AI BRAIN - PRIMARY INTERFACE */}
+          {/* 🧠 AI BRAIN - PRIMARY INTERFACE - NOW AT TOP */}
           <TabsContent value="ai-brain">
-            <EnhancedAIBrainDashboard />
+            <div className="space-y-6">
+              <EnhancedAIBrainDashboard />
+            </div>
           </TabsContent>
 
           {/* Core System Tabs */}
           <TabsContent value="overview">
-            <AdminStatsOverview />
+            <div className="space-y-6">
+              <LiveSystemMetrics />
+              <AdminStatsOverview />
+            </div>
           </TabsContent>
 
           <TabsContent value="database">
@@ -214,6 +213,7 @@ const FullSystemAdminPanel = () => {
           <TabsContent value="dashboard">
             <div className="space-y-6">
               <LiveSystemMetrics />
+              <SystemInitializer />
               <SystemAnalyticsManager />
             </div>
           </TabsContent>
