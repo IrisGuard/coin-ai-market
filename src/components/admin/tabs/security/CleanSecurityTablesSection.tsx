@@ -3,29 +3,16 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Database, Globe, Activity, CheckCircle, AlertCircle } from 'lucide-react';
+import { Shield, Database, Globe, Activity, CheckCircle } from 'lucide-react';
 import { useCleanErrorReferenceSources, useCleanSourcePerformanceMetrics, useCleanVpnProxies } from '@/hooks/admin/useCleanSecurityTables';
 
 const CleanSecurityTablesSection = () => {
-  const { data: errorSources = [], isLoading: errorSourcesLoading, error: errorSourcesError } = useCleanErrorReferenceSources();
-  const { data: performanceMetrics = [], isLoading: performanceLoading, error: performanceError } = useCleanSourcePerformanceMetrics();
-  const { data: vpnProxies = [], isLoading: vpnLoading, error: vpnError } = useCleanVpnProxies();
+  const { data: errorSources = [], isLoading: errorSourcesLoading } = useCleanErrorReferenceSources();
+  const { data: performanceMetrics = [], isLoading: performanceLoading } = useCleanSourcePerformanceMetrics();
+  const { data: vpnProxies = [], isLoading: vpnLoading } = useCleanVpnProxies();
 
   const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-  };
-
-  const renderErrorState = (error: any, entityName: string) => {
-    console.error(`Error loading ${entityName}:`, error);
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-500" />
-        <p>Σφάλμα φόρτωσης {entityName}</p>
-        <p className="text-xs text-gray-500 mt-1">
-          {error?.message || 'Άγνωστο σφάλμα'}
-        </p>
-      </div>
-    );
   };
 
   return (
@@ -60,21 +47,13 @@ const CleanSecurityTablesSection = () => {
 
             <TabsContent value="error-sources" className="space-y-4">
               {errorSourcesLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="animate-spin h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  Φόρτωση error reference sources...
-                </div>
-              ) : errorSourcesError ? (
-                renderErrorState(errorSourcesError, 'error reference sources')
+                <div className="text-center py-8 text-muted-foreground">Φόρτωση error reference sources...</div>
               ) : errorSources.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Database className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  Δεν βρέθηκαν error reference sources
-                </div>
+                <div className="text-center py-8 text-muted-foreground">Δεν βρέθηκαν error reference sources</div>
               ) : (
                 errorSources.map((source: any) => (
-                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-1">
+                  <div key={source.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
                       <h4 className="font-medium">{source.source_name}</h4>
                       <p className="text-sm text-gray-600">{source.source_url}</p>
                       <p className="text-xs text-gray-500">
@@ -98,21 +77,13 @@ const CleanSecurityTablesSection = () => {
 
             <TabsContent value="performance-metrics" className="space-y-4">
               {performanceLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="animate-spin h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  Φόρτωση performance metrics...
-                </div>
-              ) : performanceError ? (
-                renderErrorState(performanceError, 'performance metrics')
+                <div className="text-center py-8 text-muted-foreground">Φόρτωση performance metrics...</div>
               ) : performanceMetrics.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Activity className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  Δεν βρέθηκαν performance metrics
-                </div>
+                <div className="text-center py-8 text-muted-foreground">Δεν βρέθηκαν performance metrics</div>
               ) : (
                 performanceMetrics.slice(0, 20).map((metric: any) => (
-                  <div key={metric.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-1">
+                  <div key={metric.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
                       <h4 className="font-medium">{metric.metric_name || 'Performance Metric'}</h4>
                       <p className="text-sm text-gray-600">
                         Source ID: {metric.source_id?.substring(0, 8)}...
@@ -133,21 +104,13 @@ const CleanSecurityTablesSection = () => {
 
             <TabsContent value="vpn-proxies" className="space-y-4">
               {vpnLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="animate-spin h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  Φόρτωση VPN proxies...
-                </div>
-              ) : vpnError ? (
-                renderErrorState(vpnError, 'VPN proxies')
+                <div className="text-center py-8 text-muted-foreground">Φόρτωση VPN proxies...</div>
               ) : vpnProxies.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Globe className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  Δεν βρέθηκαν VPN proxies
-                </div>
+                <div className="text-center py-8 text-muted-foreground">Δεν βρέθηκαν VPN proxies</div>
               ) : (
                 vpnProxies.map((proxy: any) => (
-                  <div key={proxy.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-1">
+                  <div key={proxy.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
                       <h4 className="font-medium">{proxy.proxy_name || 'VPN Proxy'}</h4>
                       <p className="text-sm text-gray-600">
                         {proxy.proxy_host}:{proxy.proxy_port}
