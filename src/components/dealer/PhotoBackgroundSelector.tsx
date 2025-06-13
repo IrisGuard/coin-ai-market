@@ -3,38 +3,39 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Palette, Check, Upload } from 'lucide-react';
+import { Palette, Check, Upload, Zap, Download } from 'lucide-react';
+import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
 
 const PhotoBackgroundSelector = () => {
-  const [selectedBackground, setSelectedBackground] = useState('white');
-  const [processedImages, setProcessedImages] = useState<any[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedBackground, setSelectedBackground] = useState('#FFFFFF');
+  const { 
+    isProcessing, 
+    processedImages, 
+    processMultipleImages, 
+    setProcessedImages 
+  } = useEnhancedImageProcessing();
 
   const backgrounds = [
     { id: 'white', name: 'White', color: '#FFFFFF', preview: 'bg-white border-2' },
     { id: 'black', name: 'Black', color: '#000000', preview: 'bg-black' },
     { id: 'blue', name: 'Blue', color: '#3B82F6', preview: 'bg-blue-500' },
+    { id: 'gray', name: 'Gray', color: '#6B7280', preview: 'bg-gray-500' },
+    { id: 'green', name: 'Green', color: '#10B981', preview: 'bg-green-500' },
     { id: 'transparent', name: 'Transparent', color: 'transparent', preview: 'bg-gray-100 border-2 border-dashed' }
   ];
 
   const processWithBackground = async (files: FileList) => {
-    setIsProcessing(true);
-    const processed = [];
+    if (!files || files.length === 0) return;
 
-    for (const file of Array.from(files)) {
-      // Simulate background processing
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      processed.push({
-        original: URL.createObjectURL(file),
-        processed: URL.createObjectURL(file), // In real implementation, this would be the processed image
-        background: selectedBackground,
-        filename: file.name
-      });
-    }
+    const fileArray = Array.from(files);
+    const options = {
+      backgroundColor: selectedBackground,
+      removeBackground: false,
+      enhanceContrast: true,
+      resizeToStandard: true
+    };
 
-    setProcessedImages(processed);
-    setIsProcessing(false);
+    await processMultipleImages(fileArray, options);
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,40 +45,60 @@ const PhotoBackgroundSelector = () => {
     }
   };
 
+  const downloadProcessedImage = (imageData: any) => {
+    const link = document.createElement('a');
+    link.href = imageData.processed;
+    link.download = `processed_${imageData.filename}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const clearProcessedImages = () => {
+    processedImages.forEach(img => {
+      URL.revokeObjectURL(img.original);
+      URL.revokeObjectURL(img.processed);
+    });
+    setProcessedImages([]);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-6 w-6 text-purple-600" />
-            Photo Background Processor
-            <Badge className="bg-purple-100 text-purple-800">Professional Quality</Badge>
+            Professional Photo Background Processor
+            <Badge className="bg-purple-100 text-purple-800">Real-time Processing</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             {/* Background Selection */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Select Background</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h3 className="text-lg font-medium">Select Background Color</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {backgrounds.map((bg) => (
                   <div
                     key={bg.id}
                     className={`relative cursor-pointer rounded-lg border-2 transition-all ${
-                      selectedBackground === bg.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-400'
+                      selectedBackground === bg.color 
+                        ? 'border-blue-500 ring-2 ring-blue-200' 
+                        : 'border-gray-200 hover:border-gray-400'
                     }`}
-                    onClick={() => setSelectedBackground(bg.id)}
+                    onClick={() => setSelectedBackground(bg.color)}
                   >
-                    <div className={`h-24 rounded-lg ${bg.preview} flex items-center justify-center`}>
-                      {selectedBackground === bg.id && (
+                    <div className={`h-20 rounded-lg ${bg.preview} flex items-center justify-center`}>
+                      {selectedBackground === bg.color && (
                         <Check className="h-6 w-6 text-green-600 bg-white rounded-full p-1" />
                       )}
                       {bg.id === 'transparent' && (
-                        <span className="text-xs text-gray-500">PNG</span>
+                        <span className="text-xs text-gray-500 font-mono">PNG</span>
                       )}
                     </div>
                     <div className="p-2 text-center">
-                      <div className="font-medium text-sm">{bg.name}</div>
+                      <div className="font-medium text-xs">{bg.name}</div>
+                      <div className="text-xs text-muted-foreground">{bg.color}</div>
                     </div>
                   </div>
                 ))}
@@ -89,7 +110,7 @@ const PhotoBackgroundSelector = () => {
               <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-lg font-medium mb-2">Upload Photos for Background Processing</p>
               <p className="text-sm text-gray-500 mb-4">
-                Selected background: <span className="font-medium">{backgrounds.find(b => b.id === selectedBackground)?.name}</span>
+                Selected background: <span className="font-medium">{backgrounds.find(b => b.color === selectedBackground)?.name}</span>
               </p>
               <input
                 type="file"
@@ -98,35 +119,86 @@ const PhotoBackgroundSelector = () => {
                 onChange={handleFileInput}
                 className="hidden"
                 id="background-upload"
+                disabled={isProcessing}
               />
               <label htmlFor="background-upload">
                 <Button asChild disabled={isProcessing}>
                   <span>
-                    {isProcessing ? 'Processing...' : 'Select Images'}
+                    {isProcessing ? (
+                      <>
+                        <Zap className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Select Images
+                      </>
+                    )}
                   </span>
                 </Button>
               </label>
             </div>
 
+            {/* Processing Progress */}
+            {isProcessing && (
+              <div className="text-center">
+                <div className="animate-pulse">
+                  <Zap className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+                  <p className="text-purple-600 font-medium">Processing images with selected background...</p>
+                </div>
+              </div>
+            )}
+
             {/* Processed Images Preview */}
             {processedImages.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Processed Images</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Processed Images</h3>
+                  <Button variant="outline" size="sm" onClick={clearProcessedImages}>
+                    Clear All
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {processedImages.map((img, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="relative">
-                        <img
-                          src={img.processed}
-                          alt={`Processed ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <Badge className="absolute top-2 right-2 bg-purple-500">
-                          {img.background}
-                        </Badge>
+                    <div key={index} className="space-y-3 border rounded-lg p-3">
+                      {/* Before/After Comparison */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Original</p>
+                          <img
+                            src={img.original}
+                            alt={`Original ${index + 1}`}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Processed</p>
+                          <img
+                            src={img.processed}
+                            alt={`Processed ${index + 1}`}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                        </div>
                       </div>
-                      <div className="text-sm text-center text-muted-foreground">
-                        {img.filename}
+                      
+                      {/* File Info and Actions */}
+                      <div className="space-y-2">
+                        <div className="text-sm">
+                          <div className="font-medium truncate">{img.filename}</div>
+                          <div className="text-muted-foreground text-xs">
+                            Background: {backgrounds.find(b => b.color === img.options.backgroundColor)?.name}
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadProcessedImage(img)}
+                          className="w-full"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
                       </div>
                     </div>
                   ))}

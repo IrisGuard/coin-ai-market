@@ -1,159 +1,116 @@
 
-import { useState } from 'react';
-import { uploadImage } from '@/utils/imageUpload';
-import { toast } from 'sonner';
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface ProcessedImageResult {
-  originalFile: File;
-  processedFile: File;
-  processedUrl: string;
-  preview: string;
-  metadata: {
-    originalSize: { width: number; height: number };
-    processedSize: { width: number; height: number };
-    hasWhiteBackground: boolean;
-    isCircleCropped: boolean;
-  };
+export interface BackgroundProcessingOptions {
+  backgroundColor: string;
+  removeBackground: boolean;
+  enhanceContrast: boolean;
+  resizeToStandard: boolean;
 }
 
 export const useEnhancedImageProcessing = () => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingProgress, setProcessingProgress] = useState(0);
+  const [processedImages, setProcessedImages] = useState<any[]>([]);
 
-  const processImage = async (file: File): Promise<ProcessedImageResult> => {
+  const processImageWithBackground = useCallback(async (
+    file: File, 
+    options: BackgroundProcessingOptions
+  ) => {
     setIsProcessing(true);
-    setProcessingProgress(0);
-
+    
     try {
-      console.log('🎨 Starting image processing:', file.name);
+      // Create canvas for image processing
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       
-      // Step 1: Load image
-      const img = await loadImageFromFile(file);
-      setProcessingProgress(25);
-
-      // Step 2: Add white background and make square
-      const processedCanvas = await addWhiteBackgroundAndMakeSquare(img);
-      setProcessingProgress(50);
-
-      // Step 3: Apply circle crop
-      const circleCanvas = await applyCircleCrop(processedCanvas);
-      setProcessingProgress(75);
-
-      // Step 4: Convert to file and upload
-      const processedFile = await canvasToFile(circleCanvas, file.name);
-      const processedUrl = await uploadImage(processedFile, 'dealer-uploads');
-      setProcessingProgress(100);
-
-      console.log('✅ Image processing completed');
-
-      return {
-        originalFile: file,
-        processedFile,
-        processedUrl,
-        preview: URL.createObjectURL(processedFile),
-        metadata: {
-          originalSize: { width: img.naturalWidth, height: img.naturalHeight },
-          processedSize: { width: circleCanvas.width, height: circleCanvas.height },
-          hasWhiteBackground: true,
-          isCircleCropped: true,
-        }
-      };
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      // Load image
+      const img = new Image();
+      const imageUrl = URL.createObjectURL(file);
+      
+      return new Promise<Blob>((resolve, reject) => {
+        img.onload = () => {
+          // Set canvas size
+          canvas.width = options.resizeToStandard ? 800 : img.width;
+          canvas.height = options.resizeToStandard ? 600 : img.height;
+          
+          // Apply background color
+          ctx.fillStyle = options.backgroundColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw image
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // Enhance contrast if requested
+          if (options.enhanceContrast) {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+              // Increase contrast
+              data[i] = Math.min(255, data[i] * 1.2);     // Red
+              data[i + 1] = Math.min(255, data[i + 1] * 1.2); // Green  
+              data[i + 2] = Math.min(255, data[i + 2] * 1.2); // Blue
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+          }
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to process image'));
+            }
+          }, 'image/jpeg', 0.95);
+          
+          URL.revokeObjectURL(imageUrl);
+        };
+        
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = imageUrl;
+      });
     } catch (error) {
-      console.error('❌ Image processing failed:', error);
-      toast.error('Image processing failed. Please try again.');
+      console.error('Image processing failed:', error);
       throw error;
     } finally {
       setIsProcessing(false);
-      setProcessingProgress(0);
     }
-  };
+  }, []);
 
-  const processBatchImages = async (files: File[]): Promise<ProcessedImageResult[]> => {
-    const results: ProcessedImageResult[] = [];
+  const processMultipleImages = useCallback(async (
+    files: File[],
+    options: BackgroundProcessingOptions
+  ) => {
+    const processed = [];
     
-    for (let i = 0; i < files.length; i++) {
+    for (const file of files) {
       try {
-        const result = await processImage(files[i]);
-        results.push(result);
-        toast.success(`Image ${i + 1}/${files.length} processed successfully`);
+        const processedBlob = await processImageWithBackground(file, options);
+        const processedUrl = URL.createObjectURL(processedBlob);
+        
+        processed.push({
+          original: URL.createObjectURL(file),
+          processed: processedUrl,
+          filename: file.name,
+          options
+        });
       } catch (error) {
-        console.error(`Failed to process image ${i + 1}:`, error);
-        toast.error(`Failed to process image ${i + 1}`);
+        console.error('Failed to process', file.name, error);
       }
     }
-
-    return results;
-  };
+    
+    setProcessedImages(processed);
+    return processed;
+  }, [processImageWithBackground]);
 
   return {
-    processImage,
-    processBatchImages,
     isProcessing,
-    processingProgress
+    processedImages,
+    processImageWithBackground,
+    processMultipleImages,
+    setProcessedImages
   };
-};
-
-// Helper functions
-const loadImageFromFile = (file: File): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-};
-
-const addWhiteBackgroundAndMakeSquare = async (img: HTMLImageElement): Promise<HTMLCanvasElement> => {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Cannot get canvas context');
-
-  // Determine square size (use the larger dimension)
-  const size = Math.max(img.naturalWidth, img.naturalHeight);
-  canvas.width = size;
-  canvas.height = size;
-
-  // Fill with white background
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, size, size);
-
-  // Center the image
-  const x = (size - img.naturalWidth) / 2;
-  const y = (size - img.naturalHeight) / 2;
-  
-  ctx.drawImage(img, x, y);
-
-  return canvas;
-};
-
-const applyCircleCrop = async (canvas: HTMLCanvasElement): Promise<HTMLCanvasElement> => {
-  const circleCanvas = document.createElement('canvas');
-  const ctx = circleCanvas.getContext('2d');
-  if (!ctx) throw new Error('Cannot get canvas context');
-
-  const size = Math.min(canvas.width, canvas.height);
-  circleCanvas.width = size;
-  circleCanvas.height = size;
-
-  // Create circular clipping path
-  ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-  ctx.clip();
-
-  // Draw the image within the circle
-  ctx.drawImage(canvas, 0, 0, size, size);
-
-  return circleCanvas;
-};
-
-const canvasToFile = (canvas: HTMLCanvasElement, originalName: string): Promise<File> => {
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const fileName = `processed_${originalName.split('.')[0]}.png`;
-        const file = new File([blob], fileName, { type: 'image/png' });
-        resolve(file);
-      }
-    }, 'image/png');
-  });
 };
