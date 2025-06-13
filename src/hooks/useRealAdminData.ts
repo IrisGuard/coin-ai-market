@@ -106,3 +106,24 @@ export const useRealSystemMetrics = () => {
     }
   });
 };
+
+export const useRealPerformanceMetrics = () => {
+  return useQuery({
+    queryKey: ['real-performance-metrics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_performance_metrics')
+        .select('*')
+        .order('recorded_at', { ascending: false })
+        .limit(50);
+      
+      if (error) {
+        console.error('❌ Error fetching performance metrics:', error);
+        throw error;
+      }
+      
+      console.log('✅ Real performance metrics loaded:', data?.length);
+      return data || [];
+    }
+  });
+};

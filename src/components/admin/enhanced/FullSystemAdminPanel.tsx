@@ -4,44 +4,10 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import ExpandedAdminTabs from './ExpandedAdminTabs';
 import { useComprehensiveAdminData } from '@/hooks/useComprehensiveAdminData';
 
-// Import all detailed management components
+// Import existing detailed management components
 import AICommandsManager from './ai/AICommandsManager';
 import AIExecutionsManager from './ai/AIExecutionsManager';
 import AIPredictionsManager from './ai/AIPredictionsManager';
-import AutomationRulesManager from './ai/AutomationRulesManager';
-import AIPerformanceManager from './ai/AIPerformanceManager';
-import AITrainingManager from './ai/AITrainingManager';
-import AICacheManager from './ai/AICacheManager';
-import AIConfigManager from './ai/AIConfigManager';
-
-import ErrorKnowledgeManager from './errors/ErrorKnowledgeManager';
-import ErrorMarketDataManager from './errors/ErrorMarketDataManager';
-import ErrorDetectionManager from './errors/ErrorDetectionManager';
-
-import StoresManager from './marketplace/StoresManager';
-import MarketplaceListingsManager from './marketplace/MarketplaceListingsManager';
-import MarketplaceStatsManager from './marketplace/MarketplaceStatsManager';
-import AuctionsManager from './marketplace/AuctionsManager';
-import TransactionsManager from './marketplace/TransactionsManager';
-
-import ExternalSourcesManager from './data/ExternalSourcesManager';
-import ScrapingJobsManager from './data/ScrapingJobsManager';
-import DataQualityManager from './data/DataQualityManager';
-import GeographicDataManager from './data/GeographicDataManager';
-import PriceHistoryManager from './data/PriceHistoryManager';
-import DataCacheManager from './data/DataCacheManager';
-
-import AnalyticsEventsManager from './analytics/AnalyticsEventsManager';
-import UserAnalyticsManager from './analytics/UserAnalyticsManager';
-import SearchAnalyticsManager from './analytics/SearchAnalyticsManager';
-import MarketAnalyticsManager from './analytics/MarketAnalyticsManager';
-
-import SystemMetricsManager from './system/SystemMetricsManager';
-import PerformanceManager from './system/PerformanceManager';
-import SecurityManager from './system/SecurityManager';
-import APIKeysManager from './system/APIKeysManager';
-import NotificationsManager from './system/NotificationsManager';
-import LogsManager from './system/LogsManager';
 
 // Core components
 import AdminStatsOverview from '../AdminStatsOverview';
@@ -61,6 +27,9 @@ const FullSystemAdminPanel = () => {
     );
   }
 
+  // Safely extract data with proper type checking
+  const safeAdminData = adminData && typeof adminData === 'object' && !Array.isArray(adminData) ? adminData as any : {};
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -69,7 +38,7 @@ const FullSystemAdminPanel = () => {
           <p className="text-muted-foreground">Full access to all 87 database tables and systems</p>
         </div>
         <div className="text-sm text-muted-foreground">
-          {adminData?.users?.total || 0} Users • {adminData?.coins?.total || 0} Coins • {adminData?.system?.ai_commands || 0} AI Commands
+          {safeAdminData?.users?.total || 0} Users • {safeAdminData?.coins?.total || 0} Coins • {safeAdminData?.system?.ai_commands || 0} AI Commands
         </div>
       </div>
 
@@ -93,7 +62,7 @@ const FullSystemAdminPanel = () => {
           <AdminCoinsSection />
         </TabsContent>
 
-        {/* AI System Tabs - 8 interfaces */}
+        {/* AI System Tabs - 3 interfaces */}
         <TabsContent value="ai-commands">
           <AICommandsManager />
         </TabsContent>
@@ -106,126 +75,80 @@ const FullSystemAdminPanel = () => {
           <AIPredictionsManager />
         </TabsContent>
 
+        {/* For other tabs, show placeholder content until components are created */}
         <TabsContent value="automation-rules">
-          <AutomationRulesManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Automation Rules Manager</h2>
+            <p>Coming soon - Full automation rules management interface</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="ai-performance">
-          <AIPerformanceManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">AI Performance Manager</h2>
+            <p>Coming soon - AI performance monitoring and analytics</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="ai-training">
-          <AITrainingManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">AI Training Manager</h2>
+            <p>Coming soon - AI model training and management</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="ai-cache">
-          <AICacheManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">AI Cache Manager</h2>
+            <p>Coming soon - AI recognition cache management</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="ai-config">
-          <AIConfigManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">AI Configuration</h2>
+            <p>Coming soon - AI system configuration</p>
+          </div>
         </TabsContent>
 
-        {/* Error Detection Tabs - 3 interfaces */}
+        {/* Error Detection Tabs */}
         <TabsContent value="error-knowledge">
-          <ErrorKnowledgeManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Error Knowledge Manager</h2>
+            <p>Coming soon - Error coin knowledge base management</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="error-market-data">
-          <ErrorMarketDataManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Error Market Data</h2>
+            <p>Coming soon - Error coin market data analysis</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="error-detection">
-          <ErrorDetectionManager />
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Error Detection</h2>
+            <p>Coming soon - Error detection system</p>
+          </div>
         </TabsContent>
 
-        {/* Marketplace Tabs - 5 interfaces */}
-        <TabsContent value="stores">
-          <StoresManager />
-        </TabsContent>
-
-        <TabsContent value="marketplace-listings">
-          <MarketplaceListingsManager />
-        </TabsContent>
-
-        <TabsContent value="marketplace-stats">
-          <MarketplaceStatsManager />
-        </TabsContent>
-
-        <TabsContent value="auctions">
-          <AuctionsManager />
-        </TabsContent>
-
-        <TabsContent value="transactions">
-          <TransactionsManager />
-        </TabsContent>
-
-        {/* Data Sources Tabs - 6 interfaces */}
-        <TabsContent value="external-sources">
-          <ExternalSourcesManager />
-        </TabsContent>
-
-        <TabsContent value="scraping-jobs">
-          <ScrapingJobsManager />
-        </TabsContent>
-
-        <TabsContent value="data-quality">
-          <DataQualityManager />
-        </TabsContent>
-
-        <TabsContent value="geographic-data">
-          <GeographicDataManager />
-        </TabsContent>
-
-        <TabsContent value="price-history">
-          <PriceHistoryManager />
-        </TabsContent>
-
-        <TabsContent value="data-cache">
-          <DataCacheManager />
-        </TabsContent>
-
-        {/* Analytics Tabs - 4 interfaces */}
-        <TabsContent value="analytics-events">
-          <AnalyticsEventsManager />
-        </TabsContent>
-
-        <TabsContent value="user-analytics">
-          <UserAnalyticsManager />
-        </TabsContent>
-
-        <TabsContent value="search-analytics">
-          <SearchAnalyticsManager />
-        </TabsContent>
-
-        <TabsContent value="market-analytics">
-          <MarketAnalyticsManager />
-        </TabsContent>
-
-        {/* System Management Tabs - 6 interfaces */}
-        <TabsContent value="system-metrics">
-          <SystemMetricsManager />
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <PerformanceManager />
-        </TabsContent>
-
-        <TabsContent value="security">
-          <SecurityManager />
-        </TabsContent>
-
-        <TabsContent value="api-keys">
-          <APIKeysManager />
-        </TabsContent>
-
-        <TabsContent value="notifications">
-          <NotificationsManager />
-        </TabsContent>
-
-        <TabsContent value="logs">
-          <LogsManager />
-        </TabsContent>
+        {/* Add placeholder content for all other tabs */}
+        {[
+          'stores', 'marketplace-listings', 'marketplace-stats', 'auctions', 'transactions',
+          'external-sources', 'scraping-jobs', 'data-quality', 'geographic-data', 'price-history', 'data-cache',
+          'analytics-events', 'user-analytics', 'search-analytics', 'market-analytics',
+          'system-metrics', 'performance', 'security', 'api-keys', 'notifications', 'logs'
+        ].map(tabId => (
+          <TabsContent key={tabId} value={tabId}>
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4 capitalize">
+                {tabId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </h2>
+              <p>Coming soon - Full {tabId.replace('-', ' ')} management interface</p>
+            </div>
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

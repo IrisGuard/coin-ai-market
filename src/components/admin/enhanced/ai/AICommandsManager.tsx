@@ -7,12 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Play, Plus, Search, Edit, Trash2, Brain } from 'lucide-react';
 import { useAICommands } from '@/hooks/useAICommands';
-import { useExecuteAICommand } from '@/hooks/useExecuteAICommand';
 
 const AICommandsManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { commands, isLoading } = useAICommands();
-  const { executeCommand, isExecuting } = useExecuteAICommand();
+  const { data: commands, isLoading } = useAICommands();
 
   const filteredCommands = commands?.filter(cmd => 
     cmd.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -26,14 +24,6 @@ const AICommandsManager = () => {
       case 'price_estimation': return 'bg-yellow-100 text-yellow-800';
       case 'authentication': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleExecuteCommand = async (commandId: string) => {
-    try {
-      await executeCommand(commandId, {});
-    } catch (error) {
-      console.error('Command execution failed:', error);
     }
   };
 
@@ -149,12 +139,7 @@ const AICommandsManager = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleExecuteCommand(command.id)}
-                        disabled={isExecuting || !command.is_active}
-                      >
+                      <Button variant="outline" size="sm">
                         <Play className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm">
