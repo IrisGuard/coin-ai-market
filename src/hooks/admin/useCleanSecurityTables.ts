@@ -3,11 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { verifyAdminAccess } from '@/utils/supabaseSecurityHelpers';
 
-// Clean Error Reference Sources Hook με ενσωματωμένα policies
+// Clean Error Reference Sources Hook with enhanced error handling
 export const useCleanErrorReferenceSources = () => {
   return useQuery({
     queryKey: ['clean-error-reference-sources'],
     queryFn: async () => {
+      console.log('🔍 Fetching clean error reference sources...');
+      
       const isAdmin = await verifyAdminAccess();
       if (!isAdmin) {
         throw new Error('Admin access required for error reference sources');
@@ -31,15 +33,19 @@ export const useCleanErrorReferenceSources = () => {
         return false;
       }
       return failureCount < 2;
-    }
+    },
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false
   });
 };
 
-// Clean Source Performance Metrics Hook με ενσωματωμένα policies
+// Clean Source Performance Metrics Hook with enhanced error handling
 export const useCleanSourcePerformanceMetrics = () => {
   return useQuery({
     queryKey: ['clean-source-performance-metrics'],
     queryFn: async () => {
+      console.log('🔍 Fetching clean source performance metrics...');
+      
       const isAdmin = await verifyAdminAccess();
       if (!isAdmin) {
         throw new Error('Admin access required for source performance metrics');
@@ -63,15 +69,19 @@ export const useCleanSourcePerformanceMetrics = () => {
         return false;
       }
       return failureCount < 2;
-    }
+    },
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false
   });
 };
 
-// Clean VPN Proxies Hook με ενσωματωμένα policies
+// Clean VPN Proxies Hook with enhanced error handling
 export const useCleanVpnProxies = () => {
   return useQuery({
     queryKey: ['clean-vpn-proxies'],
     queryFn: async () => {
+      console.log('🔍 Fetching clean VPN proxies...');
+      
       const isAdmin = await verifyAdminAccess();
       if (!isAdmin) {
         throw new Error('Admin access required for VPN proxies');
@@ -95,6 +105,8 @@ export const useCleanVpnProxies = () => {
         return false;
       }
       return failureCount < 2;
-    }
+    },
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false
   });
 };
