@@ -124,7 +124,6 @@ const MultiCategoryListingManager = () => {
                     <div className="flex items-center space-x-2">
                       <Checkbox 
                         checked={selectedCategories.includes(category.id)}
-                        readOnly
                       />
                       <span className="text-xl">{category.icon}</span>
                       <div className="flex-1">

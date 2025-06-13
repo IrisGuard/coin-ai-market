@@ -12,6 +12,7 @@ export interface BackgroundProcessingOptions {
 export const useEnhancedImageProcessing = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedImages, setProcessedImages] = useState<any[]>([]);
+  const [processingProgress, setProcessingProgress] = useState(0);
 
   const processImageWithBackground = useCallback(async (
     file: File, 
@@ -80,6 +81,51 @@ export const useEnhancedImageProcessing = () => {
     }
   }, []);
 
+  // Add the missing processImage method
+  const processImage = useCallback(async (file: File) => {
+    const options: BackgroundProcessingOptions = {
+      backgroundColor: '#FFFFFF',
+      removeBackground: false,
+      enhanceContrast: true,
+      resizeToStandard: true
+    };
+    return await processImageWithBackground(file, options);
+  }, [processImageWithBackground]);
+
+  // Add the missing processBatchImages method
+  const processBatchImages = useCallback(async (files: File[]) => {
+    setIsProcessing(true);
+    setProcessingProgress(0);
+    
+    const processed = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const file = files[i];
+        const processedBlob = await processImage(file);
+        const processedUrl = URL.createObjectURL(processedBlob);
+        
+        processed.push({
+          original: URL.createObjectURL(file),
+          processedUrl,
+          preview: processedUrl,
+          filename: file.name
+        });
+        
+        // Update progress
+        setProcessingProgress(((i + 1) / files.length) * 100);
+      } catch (error) {
+        console.error('Failed to process', files[i].name, error);
+      }
+    }
+    
+    setProcessedImages(processed);
+    setIsProcessing(false);
+    setProcessingProgress(0);
+    
+    return processed;
+  }, [processImage]);
+
   const processMultipleImages = useCallback(async (
     files: File[],
     options: BackgroundProcessingOptions
@@ -109,7 +155,10 @@ export const useEnhancedImageProcessing = () => {
   return {
     isProcessing,
     processedImages,
+    processingProgress,
     processImageWithBackground,
+    processImage,
+    processBatchImages,
     processMultipleImages,
     setProcessedImages
   };
