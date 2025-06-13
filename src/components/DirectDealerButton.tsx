@@ -2,9 +2,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, Upload } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 
 const DirectDealerButton = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { data: userRole } = useSmartUserRole();
+
+  // Only show to authenticated dealers - HIDDEN FROM PUBLIC
+  if (!isAuthenticated || userRole !== 'dealer') {
+    return null;
+  }
 
   const handleClick = () => {
     navigate('/dealer');

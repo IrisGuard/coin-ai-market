@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/contexts/AdminContext';
+import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 import { 
   Menu, 
   X, 
@@ -22,6 +23,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isAdmin } = useAdmin();
+  const { data: userRole } = useSmartUserRole();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -60,14 +62,16 @@ const Navbar = () => {
                 </Link>
               ))}
               
-              {/* Dealer Panel Access */}
-              <Link
-                to="/dealer"
-                className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                <Store className="w-4 h-4" />
-                <span>Dealer Panel</span>
-              </Link>
+              {/* Dealer Panel Access - ONLY FOR AUTHENTICATED DEALERS */}
+              {user && userRole === 'dealer' && (
+                <Link
+                  to="/dealer"
+                  className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <Store className="w-4 h-4" />
+                  <span>Dealer Panel</span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -134,15 +138,17 @@ const Navbar = () => {
                 </Link>
               ))}
               
-              {/* Mobile Dealer Panel Access */}
-              <Link
-                to="/dealer"
-                className="flex items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Store className="w-4 h-4" />
-                <span>Dealer Panel</span>
-              </Link>
+              {/* Mobile Dealer Panel Access - ONLY FOR AUTHENTICATED DEALERS */}
+              {user && userRole === 'dealer' && (
+                <Link
+                  to="/dealer"
+                  className="flex items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Store className="w-4 h-4" />
+                  <span>Dealer Panel</span>
+                </Link>
+              )}
             </div>
           </div>
         )}
