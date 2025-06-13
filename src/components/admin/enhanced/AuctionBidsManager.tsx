@@ -16,8 +16,7 @@ const AuctionBidsManager = () => {
         .from('auction_bids')
         .select(`
           *,
-          profiles:bidder_id(name, email),
-          coins:auction_id(name, image, grade)
+          coins!auction_bids_auction_id_fkey(name, image, grade)
         `)
         .order('created_at', { ascending: false });
       
@@ -119,12 +118,12 @@ const AuctionBidsManager = () => {
                           />
                         )}
                         <div>
-                          <div className="font-medium text-sm">{bid.coins?.name}</div>
+                          <div className="font-medium text-sm">{bid.coins?.name || 'Unknown Coin'}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{bid.profiles?.name}</div>
+                      <div className="text-sm">Bidder {bid.bidder_id.slice(-8)}</div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">${bid.amount?.toLocaleString()}</div>

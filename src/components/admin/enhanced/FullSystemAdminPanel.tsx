@@ -1,7 +1,11 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Database, Activity } from 'lucide-react';
 import ExpandedAdminTabs from './ExpandedAdminTabs';
-import { useComprehensiveAdminData } from '@/hooks/useComprehensiveAdminData';
+import SystemInitializer from './SystemInitializer';
 
 // Import all management components
 import AdminStatsOverview from '../AdminStatsOverview';

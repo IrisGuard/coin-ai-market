@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -235,7 +234,6 @@ const MultiCategoryListingManager = () => {
                       <div className="flex items-center space-x-3">
                         <Checkbox
                           checked={selectedCategories.includes(category.id)}
-                          readOnly
                         />
                         <span className="text-lg">{category.icon}</span>
                         <div>
