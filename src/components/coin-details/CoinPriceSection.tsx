@@ -1,13 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, Gavel } from 'lucide-react';
+import EnhancedTransakPayment from '@/components/payment/EnhancedTransakPayment';
 
 interface CoinPriceSectionProps {
   coin: {
+    id: string;
+    name: string;
     is_auction?: boolean;
     price: number;
     sold?: boolean;
@@ -36,6 +39,38 @@ const CoinPriceSection = ({
   isBidding,
   bidsCount
 }: CoinPriceSectionProps) => {
+  const [showTransakPayment, setShowTransakPayment] = useState(false);
+
+  const handlePurchaseClick = () => {
+    setShowTransakPayment(true);
+  };
+
+  const handleTransakSuccess = () => {
+    setShowTransakPayment(false);
+    onPurchase(); // Call the original purchase handler
+  };
+
+  if (showTransakPayment) {
+    return (
+      <div className="space-y-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowTransakPayment(false)}
+          className="w-full"
+        >
+          Back to Traditional Payment
+        </Button>
+        <EnhancedTransakPayment
+          orderType="coin_purchase"
+          coinId={coin.id}
+          coinName={coin.name}
+          price={coin.price}
+          onPaymentSuccess={handleTransakSuccess}
+        />
+      </div>
+    );
+  }
+
   return (
     <Card className="glass-card border-2 border-green-200">
       <CardContent className="p-6">
@@ -94,15 +129,27 @@ const CoinPriceSection = ({
             </div>
             
             {!isOwner && !coin.sold && (
-              <Button 
-                onClick={onPurchase}
-                disabled={isPurchasing}
-                className="w-full coinvision-button text-lg py-3"
-                size="lg"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                Purchase Now
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={onPurchase}
+                  disabled={isPurchasing}
+                  className="w-full coinvision-button text-lg py-3"
+                  size="lg"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Purchase Now (Traditional)
+                </Button>
+
+                <Button 
+                  onClick={handlePurchaseClick}
+                  variant="outline"
+                  className="w-full text-lg py-3 border-blue-500 text-blue-600 hover:bg-blue-50"
+                  size="lg"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Pay with Crypto/Card
+                </Button>
+              </div>
             )}
             
             {coin.sold && (

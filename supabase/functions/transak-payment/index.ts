@@ -7,6 +7,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface TransakOrderRequest {
+  coinId?: string;
+  amount: string;
+  currency: string;
+  userId: string;
+  orderType: 'coin_purchase' | 'subscription' | 'store_upgrade';
+  subscriptionPlan?: string;
+  walletAddress?: string;
+  cryptoCurrency?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -21,60 +32,74 @@ serve(async (req) => {
 
     const { method } = req;
     const url = new URL(req.url);
-    const action = url.searchParams.get('action');
+    const action = url.searchParams.get('action') || 'create-order';
 
     if (method === 'POST' && action === 'create-order') {
-      const { coinId, amount, currency, userId } = await req.json();
+      const orderData: TransakOrderRequest = await req.json();
       
       // Get user authentication
       const authHeader = req.headers.get('Authorization')!;
       const token = authHeader.replace('Bearer ', '');
       const { data: { user } } = await supabaseClient.auth.getUser(token);
       
-      if (!user || user.id !== userId) {
+      if (!user || user.id !== orderData.userId) {
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Create Transak order
-      const transakApiKey = Deno.env.get('TRANSAK_API_KEY');
-      const transakResponse = await fetch('https://api.transak.com/api/v2/orders', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${transakApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cryptocurrency: currency || 'ETH',
-          fiatAmount: amount,
-          network: 'ethereum',
-          walletAddress: 'temp-address', // This will be updated when user provides wallet
-        }),
-      });
+      // Default Solana wallet address
+      const defaultWallet = 'GKp3Ckr4xghXy2sXbgrHJG1iGQxfEtw7NQeQhVQ9a2Pg';
+      const walletAddress = orderData.walletAddress || defaultWallet;
 
-      if (!transakResponse.ok) {
-        console.error('Transak API error:', await transakResponse.text());
-        return new Response(
-          JSON.stringify({ error: 'Payment initiation failed' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // Determine cryptocurrency based on order type
+      let cryptoCurrency = orderData.cryptoCurrency || 'SOL';
+      if (orderData.orderType === 'subscription') {
+        cryptoCurrency = 'USDC'; // Stable for subscriptions
       }
 
-      const transakData = await transakResponse.json();
+      // Create Transak order configuration
+      const transakConfig = {
+        apiKey: Deno.env.get('TRANSAK_API_KEY'),
+        environment: 'STAGING', // Change to 'PRODUCTION' when ready
+        walletAddress: walletAddress,
+        cryptoCurrencyCode: cryptoCurrency,
+        fiatCurrency: orderData.currency || 'USD',
+        fiatAmount: orderData.amount,
+        network: cryptoCurrency === 'SOL' ? 'solana' : 'ethereum',
+        partnerOrderId: `${orderData.orderType}_${Date.now()}`,
+        partnerCustomerId: user.id,
+        redirectURL: `${Deno.env.get('SITE_URL') || 'http://localhost:5173'}/payment/success`,
+        hostURL: Deno.env.get('SITE_URL') || 'http://localhost:5173',
+        widgetHeight: '600px',
+        widgetWidth: '450px',
+        themeColor: '3B82F6'
+      };
+
+      // Create Transak order URL
+      const transakParams = new URLSearchParams();
+      Object.entries(transakConfig).forEach(([key, value]) => {
+        if (value) transakParams.append(key, value.toString());
+      });
       
+      const transakUrl = `https://staging-global.transak.com/?${transakParams.toString()}`;
+
       // Store transaction in our database
       const { data: transaction, error: dbError } = await supabaseClient
         .from('payment_transactions')
         .insert({
-          user_id: userId,
-          coin_id: coinId,
-          amount: parseFloat(amount),
-          currency: currency || 'USD',
+          user_id: orderData.userId,
+          coin_id: orderData.coinId,
+          amount: parseFloat(orderData.amount),
+          currency: orderData.currency || 'USD',
+          crypto_currency: cryptoCurrency,
+          wallet_address: walletAddress,
           status: 'pending',
-          transak_order_id: transakData.id,
-          transak_data: transakData,
+          order_type: orderData.orderType,
+          subscription_plan: orderData.subscriptionPlan,
+          transak_order_id: transakConfig.partnerOrderId,
+          transak_data: transakConfig,
         })
         .select()
         .single();
@@ -91,8 +116,82 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           transaction: transaction,
-          transakUrl: transakData.url 
+          transakUrl: transakUrl,
+          config: transakConfig
         }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (method === 'POST' && action === 'webhook') {
+      // Handle Transak webhooks
+      const webhookData = await req.json();
+      
+      console.log('Transak webhook received:', webhookData);
+      
+      // Update transaction status based on webhook
+      if (webhookData.eventID && webhookData.status) {
+        const { error: updateError } = await supabaseClient
+          .from('payment_transactions')
+          .update({ 
+            status: webhookData.status.toLowerCase(),
+            transak_data: webhookData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('transak_order_id', webhookData.partnerOrderId);
+
+        if (updateError) {
+          console.error('Webhook update error:', updateError);
+        }
+
+        // Handle successful payments
+        if (webhookData.status === 'COMPLETED') {
+          // Process based on order type
+          const { data: transaction } = await supabaseClient
+            .from('payment_transactions')
+            .select('*')
+            .eq('transak_order_id', webhookData.partnerOrderId)
+            .single();
+
+          if (transaction) {
+            switch (transaction.order_type) {
+              case 'coin_purchase':
+                // Mark coin as sold
+                await supabaseClient
+                  .from('coins')
+                  .update({ sold: true, sold_at: new Date().toISOString() })
+                  .eq('id', transaction.coin_id);
+                break;
+              
+              case 'subscription':
+                // Activate subscription
+                await supabaseClient
+                  .from('user_subscriptions')
+                  .insert({
+                    user_id: transaction.user_id,
+                    plan_name: transaction.subscription_plan,
+                    status: 'active',
+                    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                  });
+                break;
+              
+              case 'store_upgrade':
+                // Upgrade dealer store
+                await supabaseClient
+                  .from('stores')
+                  .update({ 
+                    subscription_tier: transaction.subscription_plan,
+                    subscription_expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                  })
+                  .eq('user_id', transaction.user_id);
+                break;
+            }
+          }
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -119,43 +218,6 @@ serve(async (req) => {
           JSON.stringify({ error: 'Transaction not found' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
-      }
-
-      // Check status with Transak if we have an order ID
-      if (transaction.transak_order_id) {
-        const transakApiKey = Deno.env.get('TRANSAK_API_KEY');
-        const statusResponse = await fetch(
-          `https://api.transak.com/api/v2/orders/${transaction.transak_order_id}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${transakApiKey}`,
-            },
-          }
-        );
-
-        if (statusResponse.ok) {
-          const statusData = await statusResponse.json();
-          
-          // Update our database if status changed
-          if (statusData.status !== transaction.status) {
-            await supabaseClient
-              .from('payment_transactions')
-              .update({ 
-                status: statusData.status,
-                transak_data: statusData,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', transactionId);
-          }
-          
-          return new Response(
-            JSON.stringify({ 
-              status: statusData.status,
-              transaction: { ...transaction, status: statusData.status }
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
       }
 
       return new Response(

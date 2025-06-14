@@ -215,9 +215,15 @@ const SimpleDealerPanel = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Upload your coins with AI-powered analysis and intelligent categorization
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground">
+              Upload your coins with AI-powered analysis and intelligent categorization
+            </p>
+            <Button variant="outline" onClick={() => window.open('/dealer/upgrade', '_blank')}>
+              <Package className="h-4 w-4 mr-2" />
+              Upgrade Store
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
