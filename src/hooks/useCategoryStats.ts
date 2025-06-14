@@ -54,7 +54,7 @@ export const useCategoryStats = () => {
       // Get counts for each category from the coins table
       const { data: coinCounts, error: countError } = await supabase
         .from('coins')
-        .select('category, tags');
+        .select('category, tags, name, description, rarity');
       
       if (countError) throw countError;
 
@@ -99,8 +99,11 @@ export const useCategoryStats = () => {
       coinCounts?.forEach(coin => {
         const category = coin.category || 'unclassified';
         const tags = coin.tags || [];
+        const name = coin.name?.toLowerCase() || '';
+        const description = coin.description?.toLowerCase() || '';
+        const rarity = coin.rarity?.toLowerCase() || '';
         
-        // Map categories to our stats
+        // Map existing categories to our stats
         switch (category) {
           case 'ancient':
             categoryCounts.ancient++;
@@ -108,20 +111,14 @@ export const useCategoryStats = () => {
           case 'modern':
             categoryCounts.modern++;
             break;
-          case 'error':
+          case 'error_coin':
             categoryCounts.error++;
-            break;
-          case 'graded':
-            categoryCounts.graded++;
-            break;
-          case 'trending':
-            categoryCounts.trending++;
-            break;
-          case 'european':
-            categoryCounts.european++;
             break;
           case 'american':
             categoryCounts.american++;
+            break;
+          case 'european':
+            categoryCounts.european++;
             break;
           case 'asian':
             categoryCounts.asian++;
@@ -132,8 +129,8 @@ export const useCategoryStats = () => {
           case 'silver':
             categoryCounts.silver++;
             break;
-          case 'rare':
-            categoryCounts.rare++;
+          case 'commemorative':
+            categoryCounts.commemorative++;
             break;
         }
 
@@ -141,70 +138,94 @@ export const useCategoryStats = () => {
         tags.forEach((tag: string) => {
           const tagLower = tag.toLowerCase();
           
-          if (tagLower.includes('us') || tagLower.includes('united states')) {
+          if (tagLower.includes('us') || tagLower.includes('united states') || tagLower.includes('usa')) {
             categoryCounts.us++;
           }
-          if (tagLower.includes('world') || tagLower.includes('international')) {
+          if (tagLower.includes('world') || tagLower.includes('international') || tagLower.includes('foreign')) {
             categoryCounts.world++;
           }
           if (tagLower.includes('platinum')) {
             categoryCounts.platinum++;
           }
-          if (tagLower.includes('paper') || tagLower.includes('banknote')) {
+          if (tagLower.includes('paper') || tagLower.includes('banknote') || tagLower.includes('currency note')) {
             categoryCounts.paper++;
           }
-          if (tagLower.includes('commemorative')) {
+          if (tagLower.includes('graded') || tagLower.includes('pcgs') || tagLower.includes('ngc')) {
+            categoryCounts.graded++;
+          }
+          if (tagLower.includes('commemorative') || tagLower.includes('special edition')) {
             categoryCounts.commemorative++;
           }
           if (tagLower.includes('proof')) {
             categoryCounts.proof++;
           }
-          if (tagLower.includes('uncirculated') || tagLower.includes('unc')) {
+          if (tagLower.includes('uncirculated') || tagLower.includes('unc') || tagLower.includes('mint state')) {
             categoryCounts.uncirculated++;
           }
-          if (tagLower.includes('token') || tagLower.includes('medal')) {
+          if (tagLower.includes('token') || tagLower.includes('medal') || tagLower.includes('medallion')) {
             categoryCounts.tokens++;
           }
-          if (tagLower.includes('bullion') || tagLower.includes('bar')) {
+          if (tagLower.includes('bullion') || tagLower.includes('bar') || tagLower.includes('ingot')) {
             categoryCounts.bullion++;
           }
-          if (tagLower.includes('african')) {
+          if (tagLower.includes('african') || tagLower.includes('africa')) {
             categoryCounts.african++;
           }
-          if (tagLower.includes('australian') || tagLower.includes('oceania')) {
+          if (tagLower.includes('australian') || tagLower.includes('oceania') || tagLower.includes('australia')) {
             categoryCounts.australian++;
           }
-          if (tagLower.includes('south american')) {
+          if (tagLower.includes('south american') || tagLower.includes('latin american')) {
             categoryCounts.south_american++;
           }
-          if (tagLower.includes('double die')) {
+          if (tagLower.includes('error') || tagLower.includes('mistake') || tagLower.includes('misprint')) {
+            categoryCounts.error++;
+          }
+          if (tagLower.includes('double die') || tagLower.includes('doubled die')) {
             categoryCounts.double_die++;
           }
-          if (tagLower.includes('off-center') || tagLower.includes('off center')) {
+          if (tagLower.includes('off-center') || tagLower.includes('off center') || tagLower.includes('misaligned')) {
             categoryCounts.off_center++;
           }
-          if (tagLower.includes('clipped')) {
+          if (tagLower.includes('clipped') || tagLower.includes('clip')) {
             categoryCounts.clipped++;
           }
-          if (tagLower.includes('broadstrike')) {
+          if (tagLower.includes('broadstrike') || tagLower.includes('broad strike')) {
             categoryCounts.broadstrike++;
           }
-          if (tagLower.includes('die crack')) {
+          if (tagLower.includes('die crack') || tagLower.includes('cracked die')) {
             categoryCounts.die_crack++;
           }
-          if (tagLower.includes('lamination')) {
+          if (tagLower.includes('lamination') || tagLower.includes('peeling')) {
             categoryCounts.lamination++;
           }
-          if (tagLower.includes('wrong planchet')) {
+          if (tagLower.includes('wrong planchet') || tagLower.includes('planchet error')) {
             categoryCounts.wrong_planchet++;
           }
-          if (tagLower.includes('rotated die')) {
+          if (tagLower.includes('rotated die') || tagLower.includes('rotation error')) {
             categoryCounts.rotated_die++;
           }
-          if (tagLower.includes('cud error')) {
+          if (tagLower.includes('cud error') || tagLower.includes('cud')) {
             categoryCounts.cud_error++;
           }
+          if (tagLower.includes('trending') || tagLower.includes('popular') || tagLower.includes('hot')) {
+            categoryCounts.trending++;
+          }
         });
+
+        // Check name and description for additional clues
+        const fullText = `${name} ${description}`;
+        
+        if (rarity.includes('rare') || fullText.includes('rare') || fullText.includes('scarce')) {
+          categoryCounts.rare++;
+        }
+        
+        if (fullText.includes('ancient') || fullText.includes('roman') || fullText.includes('greek')) {
+          categoryCounts.ancient++;
+        }
+        
+        if (fullText.includes('modern') || fullText.includes('contemporary')) {
+          categoryCounts.modern++;
+        }
       });
 
       // Get auction count
