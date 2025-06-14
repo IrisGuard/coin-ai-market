@@ -24,6 +24,11 @@ import AIConfigManager from './ai/AIConfigManager';
 // Enhanced AI Brain Dashboard
 import EnhancedAIBrainDashboard from '../ai-brain/EnhancedAIBrainDashboard';
 
+// NEW: Moved admin components from Dealer Panel
+import ConnectedAIAnalysis from './ai/ConnectedAIAnalysis';
+import ConnectedMarketIntelligence from './market/ConnectedMarketIntelligence';
+import ConnectedErrorDetection from './error/ConnectedErrorDetection';
+
 // Error & Knowledge components
 import ErrorKnowledgeBaseManager from './ErrorKnowledgeBaseManager';
 import ErrorMarketDataManager from './ErrorMarketDataManager';
@@ -76,9 +81,12 @@ const FullSystemAdminPanel = () => {
             <AdminCoinsSection />
           </TabsContent>
 
-          {/* AI System Tabs - Complete */}
+          {/* AI System Tabs - Enhanced with moved components */}
           <TabsContent value="ai-commands">
-            <AICommandsManager />
+            <div className="space-y-6">
+              <AICommandsManager />
+              <ConnectedAIAnalysis />
+            </div>
           </TabsContent>
 
           <TabsContent value="ai-executions">
@@ -109,7 +117,7 @@ const FullSystemAdminPanel = () => {
             <AIConfigManager />
           </TabsContent>
 
-          {/* Error & Knowledge Management */}
+          {/* Error & Knowledge Management - Enhanced */}
           <TabsContent value="error-knowledge">
             <ErrorKnowledgeBaseManager />
           </TabsContent>
@@ -119,10 +127,13 @@ const FullSystemAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="error-detection">
-            <AdminErrorDetectionSection />
+            <div className="space-y-6">
+              <AdminErrorDetectionSection />
+              <ConnectedErrorDetection />
+            </div>
           </TabsContent>
 
-          {/* Marketplace Management */}
+          {/* Marketplace Management - Enhanced */}
           <TabsContent value="stores">
             <MarketplaceManager />
           </TabsContent>
@@ -132,7 +143,10 @@ const FullSystemAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="marketplace-stats">
-            <MarketplaceManager />
+            <div className="space-y-6">
+              <MarketplaceManager />
+              <ConnectedMarketIntelligence />
+            </div>
           </TabsContent>
 
           <TabsContent value="auctions">
@@ -182,7 +196,10 @@ const FullSystemAdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="market-analytics">
-            <SystemAnalyticsManager />
+            <div className="space-y-6">
+              <SystemAnalyticsManager />
+              <ConnectedMarketIntelligence />
+            </div>
           </TabsContent>
 
           {/* System Management */}
