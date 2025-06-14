@@ -18,6 +18,7 @@ declare global {
       setupAutomaticMonitoring(): void;
     };
     createFirstAdmin?: (email: string) => Promise<any>;
+    TransakSDK?: any;
   }
 }
 

@@ -29,6 +29,16 @@ export interface SubscriptionPlan {
   popular?: boolean;
 }
 
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  plan_name: string;
+  status: string;
+  expires_at?: string;
+  cancelled_at?: string;
+  created_at: string;
+}
+
 export const useEnhancedTransakPayment = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +114,7 @@ export const useEnhancedTransakPayment = () => {
     }
   }, []);
 
-  const getUserTransactions = useCallback(async () => {
+  const getUserTransactions = useCallback(async (): Promise<PaymentTransaction[]> => {
     if (!user) return [];
 
     try {
@@ -122,7 +132,7 @@ export const useEnhancedTransakPayment = () => {
     }
   }, [user]);
 
-  const getUserSubscriptions = useCallback(async () => {
+  const getUserSubscriptions = useCallback(async (): Promise<UserSubscription[]> => {
     if (!user) return [];
 
     try {
@@ -140,7 +150,7 @@ export const useEnhancedTransakPayment = () => {
     }
   }, [user]);
 
-  const getAvailableSubscriptionPlans = useCallback(async () => {
+  const getAvailableSubscriptionPlans = useCallback(async (): Promise<SubscriptionPlan[]> => {
     try {
       const { data, error } = await supabase
         .from('subscription_plans')

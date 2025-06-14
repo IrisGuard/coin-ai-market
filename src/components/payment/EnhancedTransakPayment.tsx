@@ -104,7 +104,7 @@ const EnhancedTransakPayment: React.FC<EnhancedTransakPaymentProps> = ({
       if (error) throw error;
 
       if (data?.success && data?.transakUrl) {
-        // Open Transak widget
+        // Check if TransakSDK is available on window
         if (window.TransakSDK) {
           const transak = new window.TransakSDK({
             apiKey: data.config.apiKey,

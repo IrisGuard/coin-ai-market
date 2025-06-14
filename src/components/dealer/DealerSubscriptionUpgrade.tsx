@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useEnhancedTransakPayment } from '@/hooks/useEnhancedTransakPayment';
+import { useEnhancedTransakPayment, type UserSubscription } from '@/hooks/useEnhancedTransakPayment';
 import EnhancedTransakPayment from '@/components/payment/EnhancedTransakPayment';
 import { Store, Zap, Shield, Star, TrendingUp, Users, Package } from 'lucide-react';
 
@@ -67,7 +67,7 @@ const DealerSubscriptionUpgrade: React.FC<DealerSubscriptionUpgradeProps> = ({
   onUpgradeSuccess
 }) => {
   const { getUserSubscriptions, isLoading } = useEnhancedTransakPayment();
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
 
@@ -137,7 +137,7 @@ const DealerSubscriptionUpgrade: React.FC<DealerSubscriptionUpgradeProps> = ({
                 <div>
                   <h4 className="font-semibold text-green-900">Active Subscription</h4>
                   <p className="text-sm text-green-700">
-                    {activeSubscription.plan_name} - Expires {new Date(activeSubscription.expires_at).toLocaleDateString()}
+                    {activeSubscription.plan_name} - Expires {activeSubscription.expires_at ? new Date(activeSubscription.expires_at).toLocaleDateString() : 'Never'}
                   </p>
                 </div>
               </div>
