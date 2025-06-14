@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,12 +66,14 @@ const SimpleDealerPanel = () => {
     }
   });
 
-  // 12+ Categories for selection
+  // 30 Categories for selection - EXACT SAME AS HOME PAGE
   const categories = [
-    'US Coins', 'World Coins', 'Silver Coins', 'Gold Coins', 'Rare Errors',
-    'Morgan Dollars', 'Peace Dollars', 'Walking Liberty', 'Mercury Dimes',
-    'Indian Head Cents', 'Lincoln Cents', 'Colonial Coins', 'Ancient Coins',
-    'Paper Money', 'Commemoratives', 'Mint Sets'
+    'US Coins', 'World Coins', 'Ancient Coins', 'Modern Coins', 'Gold Coins',
+    'Silver Coins', 'Platinum Coins', 'Paper Money', 'Graded Coins', 'Commemorative Coins',
+    'Proof Coins', 'Uncirculated Coins', 'Tokens & Medals', 'Bullion Bars', 'American Coins',
+    'European Coins', 'Asian Coins', 'African Coins', 'Australian Coins', 'South American Coins',
+    'Error Coins', 'Double Die', 'Off-Center Strike', 'Clipped Planchet', 'Broadstrike',
+    'Die Crack', 'Lamination Error', 'Wrong Planchet', 'Rotated Die', 'Cud Error'
   ];
 
   const handleImageUpload = async (files: FileList) => {
@@ -436,10 +437,10 @@ const SimpleDealerPanel = () => {
             </div>
           )}
 
-          {/* Categories */}
+          {/* Categories - 30 FINAL CATEGORIES */}
           <div>
             <Label>Categories (Select all that apply)</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 max-h-64 overflow-y-auto">
               {categories.map((category) => (
                 <div key={category} className="flex items-center space-x-2">
                   <Checkbox
