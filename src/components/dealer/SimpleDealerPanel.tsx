@@ -445,7 +445,13 @@ const SimpleDealerPanel = () => {
                   <Checkbox
                     id={category}
                     checked={selectedCategories.includes(category)}
-                    onCheckedChange={() => toggleCategory(category)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedCategories(prev => [...prev, category]);
+                      } else {
+                        setSelectedCategories(prev => prev.filter(c => c !== category));
+                      }
+                    }}
                   />
                   <Label htmlFor={category} className="text-sm">{category}</Label>
                 </div>
@@ -458,7 +464,7 @@ const SimpleDealerPanel = () => {
             <Checkbox
               id="international"
               checked={internationalShipping}
-              onCheckedChange={setInternationalShipping}
+              onCheckedChange={(checked) => setInternationalShipping(checked === true)}
             />
             <Label htmlFor="international" className="flex items-center gap-2">
               <Globe className="h-4 w-4" />

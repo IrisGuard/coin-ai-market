@@ -21,6 +21,25 @@ export const useEnhancedErrorKnowledge = () => {
   });
 };
 
+export const useErrorMarketData = () => {
+  return useQuery({
+    queryKey: ['error-market-data'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('error_coins_market_data')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching error market data:', error);
+        throw error;
+      }
+      
+      return data || [];
+    }
+  });
+};
+
 export const useDetectCoinErrors = () => {
   const queryClient = useQueryClient();
   
@@ -41,6 +60,25 @@ export const useDetectCoinErrors = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-error-knowledge'] });
+    }
+  });
+};
+
+export const useCalculateErrorCoinValue = () => {
+  return useMutation({
+    mutationFn: async ({ errorId, grade, baseCoinValue }: {
+      errorId: string;
+      grade: string;
+      baseCoinValue: number;
+    }) => {
+      const { data, error } = await supabase.rpc('calculate_error_coin_value', {
+        p_error_id: errorId,
+        p_grade: grade,
+        p_base_coin_value: baseCoinValue
+      });
+      
+      if (error) throw error;
+      return data;
     }
   });
 };
