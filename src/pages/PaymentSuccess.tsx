@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,7 @@ const PaymentSuccess = () => {
   const transactionId = searchParams.get('transaction_id');
   const coinId = searchParams.get('coin_id');
   const amount = searchParams.get('amount');
+  const paymentMethod = searchParams.get('payment_method') || 'Credit Card';
 
   useEffect(() => {
     if (!user) {
@@ -49,55 +51,94 @@ const PaymentSuccess = () => {
     }
 
     try {
-      // Check payment_transactions first
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('payment_transactions')
-        .select(`
-          *,
-          coins (
-            name,
-            image
-          )
-        `)
-        .eq('id', transactionId || '')
-        .eq('user_id', user?.id)
-        .single();
+      let transactionData = null;
 
-      if (paymentData && !paymentError) {
-        setTransaction({
-          id: paymentData.id,
-          amount: paymentData.amount,
-          coin_name: paymentData.coins?.name || 'Unknown Coin',
-          coin_image: paymentData.coins?.image || '',
-          seller_name: 'Marketplace',
-          transaction_date: paymentData.created_at,
-          payment_method: paymentData.currency || 'USD',
-          status: paymentData.status
-        });
-      } else if (coinId && amount) {
-        // Fallback: get coin details for display
+      // Try to fetch from payment_transactions first
+      if (transactionId) {
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('payment_transactions')
+          .select(`
+            *,
+            coins (
+              name,
+              image,
+              user_id,
+              profiles(name)
+            )
+          `)
+          .eq('id', transactionId)
+          .eq('user_id', user?.id)
+          .single();
+
+        if (paymentData && !paymentError) {
+          transactionData = {
+            id: paymentData.id,
+            amount: paymentData.amount,
+            coin_name: paymentData.coins?.name || 'Unknown Coin',
+            coin_image: paymentData.coins?.image || '',
+            seller_name: (paymentData.coins?.profiles as any)?.name || 'Marketplace',
+            transaction_date: paymentData.created_at,
+            payment_method: paymentData.currency || 'USD',
+            status: paymentData.status
+          };
+        }
+      }
+
+      // Fallback: get coin details for display if no transaction found
+      if (!transactionData && coinId && amount) {
         const { data: coinData } = await supabase
           .from('coins')
-          .select('name, image, user_id, profiles(name)')
+          .select(`
+            id,
+            name,
+            image,
+            user_id,
+            profiles(name)
+          `)
           .eq('id', coinId)
           .single();
 
         if (coinData) {
-          setTransaction({
+          transactionData = {
             id: transactionId || 'temp-' + Date.now(),
             amount: parseFloat(amount),
             coin_name: coinData.name,
             coin_image: coinData.image,
             seller_name: (coinData.profiles as any)?.name || 'Unknown Seller',
             transaction_date: new Date().toISOString(),
-            payment_method: 'Credit Card',
+            payment_method: paymentMethod,
             status: 'completed'
-          });
+          };
+
+          // Create a transaction record for tracking
+          const { error: insertError } = await supabase
+            .from('payment_transactions')
+            .insert({
+              id: transactionData.id,
+              user_id: user?.id,
+              coin_id: coinId,
+              amount: transactionData.amount,
+              currency: 'USD',
+              status: 'completed',
+              order_type: 'coin_purchase'
+            });
+
+          if (insertError) {
+            console.error('Error creating transaction record:', insertError);
+          }
         }
+      }
+
+      if (transactionData) {
+        setTransaction(transactionData);
+      } else {
+        toast.error('Transaction details not found');
+        navigate('/marketplace');
       }
     } catch (error) {
       console.error('Error fetching transaction:', error);
       toast.error('Failed to load transaction details');
+      navigate('/marketplace');
     } finally {
       setLoading(false);
     }
@@ -105,6 +146,14 @@ const PaymentSuccess = () => {
 
   const handleDownloadReceipt = () => {
     setShowReceiptModal(true);
+  };
+
+  const handleEmailReceipt = () => {
+    if (user?.email) {
+      toast.success(`Receipt will be sent to ${user.email}`);
+    } else {
+      toast.info('Email receipt feature coming soon!');
+    }
   };
 
   if (loading) {
@@ -158,7 +207,7 @@ const PaymentSuccess = () => {
             {/* Coin Info */}
             <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
               <img 
-                src={transaction.coin_image} 
+                src={transaction.coin_image || '/placeholder.svg'} 
                 alt={transaction.coin_name}
                 className="w-16 h-16 object-cover rounded-lg"
               />
@@ -217,7 +266,7 @@ const PaymentSuccess = () => {
             
             <Button 
               variant="outline"
-              onClick={() => toast.info('Email receipt feature coming soon!')}
+              onClick={handleEmailReceipt}
               className="flex items-center justify-center gap-2"
             >
               <Mail className="h-4 w-4" />

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Copy, Check, Wallet, CreditCard, Bitcoin, Banknote } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import EnhancedTransakPayment from '@/components/payment/EnhancedTransakPayment';
 
 interface CheckoutModalProps {
@@ -31,6 +31,7 @@ interface CheckoutModalProps {
   } | null;
   onTraditionalPurchase: () => void;
   onTransakSuccess: () => void;
+  onTransakFailure?: () => void;
 }
 
 const CheckoutModal = ({
@@ -39,7 +40,8 @@ const CheckoutModal = ({
   coin,
   dealerStore,
   onTraditionalPurchase,
-  onTransakSuccess
+  onTransakSuccess,
+  onTransakFailure
 }: CheckoutModalProps) => {
   const [paymentMethod, setPaymentMethod] = useState<'traditional' | 'crypto' | 'direct'>('traditional');
   const [copiedField, setCopiedField] = useState<string>('');
@@ -52,16 +54,9 @@ const CheckoutModal = ({
       await navigator.clipboard.writeText(text);
       setCopiedField(fieldName);
       setTimeout(() => setCopiedField(''), 2000);
-      toast({
-        title: "Copied",
-        description: `${fieldName} copied to clipboard`,
-      });
+      toast.success(`${fieldName} copied to clipboard`);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
+      toast.error('Failed to copy to clipboard');
     }
   };
 

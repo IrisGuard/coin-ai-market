@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, Gavel } from 'lucide-react';
 import CheckoutModal from './CheckoutModal';
+import PaymentProcessingModal from './PaymentProcessingModal';
 
 interface CoinPriceSectionProps {
   coin: {
@@ -53,10 +54,41 @@ const CoinPriceSection = ({
   bidsCount
 }: CoinPriceSectionProps) => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showProcessingModal, setShowProcessingModal] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'processing' | 'success' | 'failed' | null>(null);
+  const [transactionId, setTransactionId] = useState<string>('');
 
-  const handleCheckoutSuccess = () => {
+  const handleTraditionalPurchase = async () => {
     setShowCheckoutModal(false);
-    onPurchase(); // Call the original purchase handler
+    setShowProcessingModal(true);
+    setPaymentStatus('processing');
+    
+    try {
+      // Simulate traditional payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Call original purchase handler
+      onPurchase();
+      
+      // Set success status
+      setPaymentStatus('success');
+      setTransactionId(`trad-${Date.now()}`);
+    } catch (error) {
+      setPaymentStatus('failed');
+    }
+  };
+
+  const handleTransakSuccess = () => {
+    setShowCheckoutModal(false);
+    setShowProcessingModal(true);
+    setPaymentStatus('success');
+    setTransactionId(`transak-${Date.now()}`);
+  };
+
+  const handleTransakFailure = () => {
+    setShowCheckoutModal(false);
+    setShowProcessingModal(true);
+    setPaymentStatus('failed');
   };
 
   return (
@@ -148,8 +180,18 @@ const CoinPriceSection = ({
         onClose={() => setShowCheckoutModal(false)}
         coin={coin}
         dealerStore={dealerStore}
-        onTraditionalPurchase={handleCheckoutSuccess}
-        onTransakSuccess={handleCheckoutSuccess}
+        onTraditionalPurchase={handleTraditionalPurchase}
+        onTransakSuccess={handleTransakSuccess}
+        onTransakFailure={handleTransakFailure}
+      />
+
+      <PaymentProcessingModal
+        isOpen={showProcessingModal}
+        onClose={() => setShowProcessingModal(false)}
+        paymentStatus={paymentStatus}
+        transactionId={transactionId}
+        coinName={coin.name}
+        amount={coin.price}
       />
     </>
   );
