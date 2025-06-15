@@ -19,6 +19,7 @@ import DealerDirect from "./pages/DealerDirect";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
 import DealerUpgradePage from "./pages/DealerUpgradePage";
+import CategoryPage from "./pages/CategoryPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function App() {
                 <Route path="/dealer/upgrade" element={<DealerUpgradePage />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-failure" element={<PaymentFailure />} />
+                <Route path="/category/:category" element={<CategoryPage />} />
               </Routes>
             </AdminProvider>
           </AuthProvider>
