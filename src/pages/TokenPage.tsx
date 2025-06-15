@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navbar } from '@/components/Navbar';
+import Navbar from '@/components/Navbar';
 import { TokenHeader } from '@/components/token/TokenHeader';
 import { TokenStats } from '@/components/token/TokenStats';
 import { TokenPurchase } from '@/components/token/TokenPurchase';
