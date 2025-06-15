@@ -35,7 +35,10 @@ export const useCoinDetails = (id: string) => {
       const { data, error } = await supabase
         .from('bids')
         .select(`
-          *,
+          id,
+          amount,
+          created_at,
+          user_id,
           profiles!bids_user_id_fkey (
             name,
             username

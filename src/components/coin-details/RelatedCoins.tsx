@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router-dom';
 interface RelatedCoin {
   id: string;
   name: string;
-  year: number;
+  year?: number; // Make year optional to match the actual data
   price: number;
   image?: string;
+  grade?: string;
 }
 
 interface RelatedCoinsProps {
@@ -39,7 +40,7 @@ const RelatedCoins = ({ relatedCoins }: RelatedCoinsProps) => {
               />
               <h3 className="font-semibold text-lg mb-2">{relatedCoin.name}</h3>
               <div className="flex justify-between items-center">
-                <Badge>{relatedCoin.year}</Badge>
+                {relatedCoin.year && <Badge>{relatedCoin.year}</Badge>}
                 <div className="text-lg font-bold text-green-600">${Number(relatedCoin.price).toFixed(2)}</div>
               </div>
             </CardContent>
