@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,13 +14,11 @@ import { toast } from 'sonner';
 import { Star, ArrowUp } from 'lucide-react';
 import TokenIcon from './TokenIcon';
 
-// Gradient border style helper for cards
+// Premium gradient border style for ultra-vivid cards
 const cardGradientBorder =
-  "relative bg-gradient-to-tr from-blue-50 via-purple-50 to-emerald-50 rounded-2xl shadow-xl p-[1.5px]"; // outer border
+  "relative bg-gradient-to-br from-[#00d4ff]/20 via-white/95 to-[#00ff88]/20 rounded-3xl shadow-xl border-2 border-[#00d4ff]/70 glass-card p-2 animate-fade-in";
 const cardInner =
-  "rounded-2xl bg-white/80 dark:bg-white/70 p-6 flex flex-col gap-3 h-full backdrop-blur-[2px]"; // inner content
-const cardShadow =
-  "shadow-[0_2px_8px_rgba(64,116,201,0.08),0_10px_20px_rgba(80,84,236,0.05)]";
+  "rounded-2xl bg-gradient-to-br from-white/90 via-white/95 to-white/80 p-6 flex flex-col gap-3 h-full backdrop-blur-sm shadow-lg";
 
 export const TokenLocking = () => {
   const [inputAmounts, setInputAmounts] = useState<{ [optionId: string]: string }>({});
@@ -28,7 +27,6 @@ export const TokenLocking = () => {
   const { refetch: refetchUserLocks } = useTokenLocks();
   const { data: user } = useUser();
 
-  // Λογική Lock (ανά κάρτα)
   const handleLock = async (option: any) => {
     if (!user) {
       toast.error('You must be logged in to lock tokens.');
@@ -81,26 +79,26 @@ export const TokenLocking = () => {
     });
   };
 
-  // Helper for premium gradient background for bonus percent box
+  // Premium ultra-vivid gradient for bonus percent box
   const getPercentBoxClass = () =>
-    "block mx-auto rounded-full px-5 py-3 mb-3 mt-2 shadow-[0_1.5px_12px_rgba(80,84,236,0.07)] " +
-    "bg-gradient-to-tr from-electric-blue via-electric-purple to-electric-green animate-glow " +
-    "text-white text-[2rem] font-bold font-sans tracking-tight border-2 border-white/40 " +
-    "outline outline-2 outline-electric-purple/10";
+    "block mx-auto rounded-full px-6 py-4 mb-4 mt-3 shadow-[0_0_30px_#00d4ff80] " +
+    "bg-gradient-to-br from-[#00d4ff] via-[#0070fa] to-[#7c3aed] animate-glow " +
+    "text-white text-[2.2rem] font-extrabold tracking-tight border-2 border-white/50 " +
+    "shadow-xl transform hover:scale-105 transition-all duration-300";
 
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <h2 className="text-3xl font-extrabold text-brand-primary tracking-tight text-center">
-            Lock Tokens, Boost Rewards
+        <h2 className="text-4xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent tracking-tight text-center animate-glow drop-shadow">
+          Premium Token Staking Platform
         </h2>
-        <p className="text-lg text-text-secondary text-center max-w-2xl mx-auto mt-4 mb-8">
-            Commit your GCAI tokens for a set period to earn substantial APY bonuses on your holdings and enjoy exclusive platform benefits.
+        <p className="text-lg font-bold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent text-center max-w-2xl mx-auto animate-glow">
+          Lock your GCAI tokens to earn premium rewards and unlock exclusive AI features
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div className={`${cardGradientBorder} ${cardShadow}`} key={i}>
-              <div className={`${cardInner} animate-pulse min-h-[290px]`} />
+            <div className={cardGradientBorder} key={i}>
+              <div className={`${cardInner} animate-pulse min-h-[350px]`} />
             </div>
           ))}
         </div>
@@ -111,8 +109,8 @@ export const TokenLocking = () => {
   if (lockOptionsError) {
     return (
       <div className="text-center py-10">
-        <p className="font-semibold text-red-600">Error loading locking options.</p>
-        <p className="text-sm text-gray-500 mt-2">Could not fetch data from the server. Please try again later.</p>
+        <p className="font-extrabold text-xl bg-gradient-to-r from-[#ff00cc] to-[#7c3aed] bg-clip-text text-transparent animate-glow">Error loading staking options.</p>
+        <p className="text-sm font-bold bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent mt-2">Please refresh the page and try again.</p>
       </div>
     );
   }
@@ -120,11 +118,11 @@ export const TokenLocking = () => {
   return (
     <div className="space-y-10">
       <div>
-        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green bg-clip-text text-transparent tracking-tight text-center mb-1 drop-shadow animate-glow">
-          Lock Tokens, Boost Rewards
+        <h2 className="text-4xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent tracking-tight text-center mb-2 drop-shadow animate-glow">
+          Premium GCAI Token Staking
         </h2>
-        <p className="text-lg text-text-secondary text-center max-w-2xl mx-auto mt-4 mb-8">
-          Commit your GCAI tokens for a set period to earn substantial APY bonuses on your holdings and enjoy exclusive platform benefits.
+        <p className="text-lg font-bold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent text-center max-w-2xl mx-auto mt-4 mb-8 animate-glow">
+          Lock your GCAI tokens for guaranteed high-yield returns and exclusive access to advanced AI features
         </p>
         <div
           className="
@@ -135,56 +133,56 @@ export const TokenLocking = () => {
           {lockOptions?.map((option: any) => (
             <div
               key={option.id}
-              className={`${cardGradientBorder} ${cardShadow} min-w-[330px] md:min-w-0 md:w-auto`}
-              style={{ minHeight: 350 }}
+              className={`${cardGradientBorder} min-w-[330px] md:min-w-0 md:w-auto`}
+              style={{ minHeight: 380 }}
             >
               <div className={`${cardInner} relative z-10`}>
-                {/* Top Branding Badge/Stars */}
+                {/* Premium Badges */}
                 <div className="absolute top-4 left-4 flex gap-2 z-20">
                   {option.is_popular && !option.is_maximum && (
-                    <span className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 shadow-[0_2px_4px_rgba(250,174,53,0.09)]">
-                      <Star className="w-3.5 h-3.5 text-orange-400 -ml-1" />
-                      Popular
+                    <span className="flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold bg-gradient-to-r from-[#ff9500] to-[#ff6b00] text-white shadow-[0_0_15px_#ff950080] animate-glow">
+                      <Star className="w-3.5 h-3.5 -ml-1" />
+                      Most Popular
                     </span>
                   )}
                   {option.is_maximum && (
-                    <span className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-yellow-50 text-yellow-800 border border-yellow-200 shadow-[0_2px_4px_rgba(255,238,45,0.09)]">
-                      <ArrowUp className="w-3.5 h-3.5 text-yellow-400 -ml-1" />
-                      Max Reward
+                    <span className="flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold bg-gradient-to-r from-[#ffd700] to-[#ffed4e] text-black shadow-[0_0_15px_#ffd70080] animate-glow">
+                      <ArrowUp className="w-3.5 h-3.5 -ml-1" />
+                      Maximum APY
                     </span>
                   )}
                 </div>
                 <div className="flex flex-col items-center justify-center w-full">
-                  {/* Lock Icon */}
-                  <span className="inline-flex items-center justify-center rounded-xl bg-gradient-to-tr from-brand-primary via-electric-purple to-electric-green shadow-lg ring-2 ring-brand-primary/20 w-12 h-12 mt-4">
-                    <Lock className="w-7 h-7 text-white drop-shadow filter" />
+                  {/* Premium Lock Icon */}
+                  <span className="inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-[#00d4ff] via-[#0070fa] to-[#7c3aed] shadow-[0_0_25px_#00d4ff80] ring-4 ring-white/30 w-14 h-14 mt-6 animate-glow">
+                    <Lock className="w-8 h-8 text-white drop-shadow-lg" />
                   </span>
-                  {/* Card main values */}
-                  <h4 className="text-xl font-bold text-brand-primary mb-0 tracking-tight mt-4">
+                  {/* Duration Title */}
+                  <h4 className="text-2xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#7c3aed] bg-clip-text text-transparent mb-1 tracking-tight mt-4 animate-glow">
                     {option.duration_months} Months
                   </h4>
-                  {/* Bonus Percent Box */}
+                  {/* Ultra-Vivid Bonus Percent Box */}
                   <span className={getPercentBoxClass()}>
                     +{option.benefit_percentage}%
                   </span>
-                  <span className="block text-sm text-text-secondary font-semibold mb-3 -mt-2">
-                    Additional Rewards
+                  <span className="block text-sm font-extrabold bg-gradient-to-r from-[#ff00cc] via-[#7c3aed] to-[#0070fa] bg-clip-text text-transparent mb-4 -mt-2 animate-glow">
+                    Annual Percentage Yield
                   </span>
                 </div>
-                {/* Amount Input */}
-                <div className="flex flex-col gap-2 items-center w-full">
+                {/* Premium Input Section */}
+                <div className="flex flex-col gap-3 items-center w-full">
                   <Label
                     htmlFor={`lock-amount-${option.id}`}
-                    className="font-semibold text-text-secondary flex items-center gap-2 text-base"
+                    className="font-extrabold bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent flex items-center gap-2 text-base animate-glow"
                   >
-                    Amount <span className="text-xs text-brand-primary tracking-normal">(GCAI)</span>
-                    <TokenIcon size={17} className="ml-0.5" />
+                    Amount to Lock <span className="text-xs bg-gradient-to-r from-[#00ff88] to-[#0070fa] bg-clip-text text-transparent">(GCAI)</span>
+                    <TokenIcon size={18} className="ml-1" />
                   </Label>
-                  <div className="relative w-full max-w-[150px]">
+                  <div className="relative w-full max-w-[180px]">
                     <Input
                       id={`lock-amount-${option.id}`}
                       type="number"
-                      placeholder="e.g. 1000"
+                      placeholder="Enter amount"
                       value={inputAmounts[option.id] || ''}
                       onChange={e =>
                         setInputAmounts(prev => ({
@@ -193,24 +191,23 @@ export const TokenLocking = () => {
                         }))
                       }
                       className="
-                        text-lg font-semibold pr-10 py-2 pl-4
-                        shadow-md border-2 border-electric-blue/20 focus:border-brand-primary/70
-                        bg-white bg-gradient-to-br from-bg-primary via-blue-50/90 to-emerald-50/90
+                        text-lg font-extrabold pr-12 py-3 pl-4
+                        shadow-lg border-2 border-[#00d4ff]/60 focus:border-[#00d4ff] focus:shadow-[0_0_25px_#00d4ff80]
+                        glass-card bg-gradient-to-br from-[#00d4ff]/10 via-white/95 to-[#00ff88]/10
                         rounded-xl 
-                        transition-all duration-200
-                        focus:shadow-xl
+                        transition-all duration-300
                         outline-none
+                        animate-glow
                       "
                     />
-                    {/* Soft embedded icon */}
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-55">
-                      <TokenIcon size={18} />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <TokenIcon size={20} />
                     </span>
                   </div>
                   {inputAmounts[option.id] && parseFloat(inputAmounts[option.id]) > 0 && (
-                    <div className="p-2 bg-green-50 rounded-xl text-center w-full my-1 border border-green-100 flex items-center justify-center gap-2 shadow-[0_1px_4px_rgba(16,185,129,0.11)]">
-                      <span className="block text-xs text-gray-600 mb-0.5">Bonus:</span>
-                      <span className="font-bold text-brand-success text-lg flex items-center gap-1">
+                    <div className="p-3 glass-card bg-gradient-to-r from-[#00ff88]/20 via-white/90 to-[#0070fa]/20 rounded-xl text-center w-full border-2 border-[#00ff88]/60 flex items-center justify-center gap-2 shadow-lg animate-fade-in">
+                      <span className="block text-sm font-bold bg-gradient-to-r from-[#0070fa] to-[#00ff88] bg-clip-text text-transparent">Bonus Earned:</span>
+                      <span className="font-extrabold text-lg bg-gradient-to-r from-[#00ff88] to-[#0070fa] bg-clip-text text-transparent flex items-center gap-1 animate-glow">
                         {(parseFloat(inputAmounts[option.id]) * option.benefit_percentage / 100).toFixed(2)}
                         <TokenIcon size={16} className="ml-1" /> GCAI
                       </span>
@@ -219,19 +216,16 @@ export const TokenLocking = () => {
                   <Button
                     onClick={() => handleLock(option)}
                     className={`
-                      w-full h-11 text-base font-extrabold mt-2 transition-all rounded-full inline-flex items-center justify-center
-                      bg-gradient-to-r from-brand-primary/80 to-brand-success/90
-                      hover:from-brand-success/75 hover:to-brand-primary/90
-                      ${inputAmounts[option.id] ? 'brightness-110 shadow-lg' : 'opacity-85'}
-                      text-white shadow-md shadow-brand-primary/25
-                      focus:ring-4 focus:ring-electric-blue/30
-                      hover:scale-[1.035] active:scale-95
-                      duration-200
+                      w-full h-12 text-base font-extrabold mt-3 transition-all rounded-xl inline-flex items-center justify-center
+                      bg-gradient-to-r from-[#00d4ff] via-[#0070fa] to-[#7c3aed]
+                      hover:from-[#00ff88] hover:via-[#00d4ff] hover:to-[#0070fa]
+                      ${inputAmounts[option.id] ? 'shadow-[0_0_30px_#00d4ff80] scale-105' : 'opacity-80'}
+                      text-white shadow-xl
+                      focus:ring-4 focus:ring-[#00d4ff]/50
+                      hover:scale-110 active:scale-95
+                      duration-300 animate-glow
+                      border-2 border-white/30
                     `}
-                    style={{
-                      boxShadow: "0 4px 20px 1px rgba(99,102,241,0.07), 0 1.5px 11px rgba(16,185,129,0.11)",
-                      letterSpacing: "0.015em"
-                    }}
                     disabled={
                       !user ||
                       loadingLockId === option.id ||
@@ -257,12 +251,12 @@ export const TokenLocking = () => {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                           />
                         </svg>
-                        Processing...
+                        Processing Transaction...
                       </span>
                     ) : (
                       <>
-                        <TokenIcon size={20} className="mr-2" />
-                        Lock Tokens
+                        <TokenIcon size={22} className="mr-2" />
+                        Lock GCAI Tokens
                       </>
                     )}
                   </Button>
@@ -271,9 +265,6 @@ export const TokenLocking = () => {
             </div>
           ))}
         </div>
-      </div>
-      <div className="text-center text-brand-primary text-[15px] mt-4 font-medium opacity-80">
-        Θέλω οι κάρτες locking να φαίνονται premium, επαγγελματικές και καλαίσθητες, όχι flat κουτιά. Επίσης, αυτό το στιλ να το συνεχίσουμε και στα επόμενα sections του site ώστε όλη η σελίδα crypto να έχει ενιαία ταυτότητα, υψηλής αισθητικής.
       </div>
     </div>
   );

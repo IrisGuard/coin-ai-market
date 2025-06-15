@@ -7,7 +7,7 @@ const roadmapPhases = [
   {
     title: 'Q1-Q2 2024: AI Foundation & Core Platform',
     status: 'Completed',
-    icon: <Check className="w-5 h-5 text-green-500" />,
+    icon: <Check className="w-5 h-5 text-[#00ff88]" />,
     items: [
       'Launch of Advanced AI Coin Recognition Engine (99.7% accuracy)',
       'Professional Dealer Panel & Global Marketplace Launch',
@@ -18,7 +18,7 @@ const roadmapPhases = [
   {
     title: 'Q3 2024: Token Ecosystem & Premium Features',
     status: 'Completed',
-    icon: <Check className="w-5 h-5 text-green-500" />,
+    icon: <Check className="w-5 h-5 text-[#00ff88]" />,
     items: [
       'GCAI Token Deployment on Solana Blockchain',
       'High-Yield Token Locking System (up to 100% APY)',
@@ -29,7 +29,7 @@ const roadmapPhases = [
   {
     title: 'Q4 2024: AI Enhancement & Global Expansion',
     status: 'In Progress',
-    icon: <Package className="w-5 h-5 text-blue-500" />,
+    icon: <Package className="w-5 h-5 text-[#0070fa]" />,
     items: [
       'Next-Generation Error Detection & Grade Prediction AI',
       'Multi-Source Price Aggregation & Market Intelligence',
@@ -40,7 +40,7 @@ const roadmapPhases = [
   {
     title: 'Q1 2025: DAO Governance & Advanced AI Tools',
     status: 'Upcoming',
-    icon: <Zap className="w-5 h-5 text-purple-500" />,
+    icon: <Zap className="w-5 h-5 text-[#ff00cc]" />,
     items: [
       'Full DAO Governance Portal for GCAI Token Holders',
       'Predictive AI Models for Market Trends & Portfolio Analysis',
@@ -52,25 +52,25 @@ const roadmapPhases = [
 
 export function RoadmapSection() {
   return (
-    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-slate-50 via-white to-emerald-50/50">
+    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-[#00ff88]/10 via-white/95 to-[#ff00cc]/10">
       <div className="max-w-4xl w-full">
-        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green bg-clip-text text-transparent tracking-tight text-center mb-8 animate-glow">
+        <h2 className="text-4xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent tracking-tight text-center mb-8 animate-glow">
           DEVELOPMENT ROADMAP
         </h2>
         <div className="grid grid-cols-1 gap-7">
           {roadmapPhases.map(({ title, items, icon, status }) => (
-            <div key={title} className="glass-card rounded-3xl shadow-xl border border-electric-blue/20 p-0">
-              <div className="flex flex-row items-center justify-between gap-2 py-6 px-8 bg-gradient-to-r from-brand-primary/10 via-white/90 to-electric-green/10 rounded-t-3xl">
-                <h3 className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">{title}</h3>
-                <div className="flex items-center gap-2 text-sm font-semibold text-text-secondary">
+            <div key={title} className="glass-card rounded-3xl shadow-xl border-2 border-[#00d4ff]/70 p-0 bg-gradient-to-br from-white/90 via-white/95 to-white/80 animate-fade-in">
+              <div className="flex flex-row items-center justify-between gap-2 py-6 px-8 bg-gradient-to-r from-[#00d4ff]/20 via-white/90 to-[#00ff88]/20 rounded-t-3xl border-b-2 border-[#00d4ff]/30">
+                <h3 className="text-xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent animate-glow">{title}</h3>
+                <div className="flex items-center gap-2 text-sm font-extrabold bg-gradient-to-r from-[#ff00cc] to-[#7c3aed] bg-clip-text text-transparent">
                   {icon}
                   <span>{status}</span>
                 </div>
               </div>
-              <div className="p-8 pt-3">
-                <ul className="list-disc pl-5 space-y-2 text-text-secondary text-base">
+              <div className="p-8 pt-6">
+                <ul className="list-disc pl-5 space-y-3 font-bold bg-gradient-to-r from-[#0070fa] via-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent text-base">
                   {items.map((item) => (
-                    <li key={item} className="font-medium">{item}</li>
+                    <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
