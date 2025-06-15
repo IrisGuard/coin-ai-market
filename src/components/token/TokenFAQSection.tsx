@@ -1,77 +1,58 @@
 
 import React from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { HelpCircle } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const faqItems = [
+  {
+    question: "What is the GCAI token?",
+    answer: "GCAI is the native utility token of our platform. It's used to access premium AI features, reduce marketplace fees, earn staking rewards, and participate in platform governance."
+  },
+  {
+    question: "How can I buy GCAI tokens?",
+    answer: "You can purchase GCAI tokens directly on this page using our secure purchase terminal. We accept various payment methods, including credit/debit cards and major cryptocurrencies like SOL, USDC, and USDT."
+  },
+  {
+    question: "What is token locking?",
+    answer: "Token locking allows you to stake your GCAI tokens for a fixed period (e.g., 3, 6, or 12 months) in exchange for a high Annual Percentage Yield (APY) bonus. It's a way to earn passive rewards while supporting the platform's stability."
+  },
+  {
+    question: "Which blockchain is GCAI built on?",
+    answer: "GCAI is a token built on the Solana blockchain, known for its high speed, low transaction fees, and robust security."
+  },
+  {
+      question: "What happens to unsold tokens?",
+      answer: "To ensure deflationary pressure and reward early supporters, all tokens that remain unsold after the presale period will be permanently burned, reducing the total supply."
+  }
+];
 
 export const TokenFAQSection = () => {
-  const faqItems = [
-    {
-      question: "What is GCAI Token and what is its purpose?",
-      answer: "GCAI (Global Coin AI) is the native utility token of our AI-powered coin recognition platform. It's used for accessing premium features, locking for platform shares, and participating in governance decisions. Token holders benefit from revenue sharing and platform growth through our innovative locking mechanism."
-    },
-    {
-      question: "How does the token locking mechanism work?",
-      answer: "When you lock GCAI tokens, you receive platform ownership shares and earn passive income from platform revenue. The longer you lock (3-36 months), the higher your bonus percentage. Locked tokens cannot be withdrawn until the lock period expires, ensuring platform stability and rewarding long-term holders."
-    },
-    {
-      question: "What are the benefits of locking GCAI tokens?",
-      answer: "Locking GCAI tokens provides: (1) Platform ownership shares proportional to your lock amount and duration, (2) Passive income from platform revenue distribution, (3) Bonus rewards up to 100% for 36-month locks, (4) Governance voting rights, and (5) Early access to new features and premium AI capabilities."
-    },
-    {
-      question: "How can I purchase GCAI tokens?",
-      answer: "You can buy GCAI tokens in two ways: (1) Through our Transak integration using credit card or bank transfer (supports 100+ countries), or (2) By manually sending USDC or SOL to our treasury address. Current exchange rates are displayed in real-time and updated based on market conditions."
-    },
-    {
-      question: "What is the referral program and how much can I earn?",
-      answer: "Our referral program rewards you with 5% commission in GCAI tokens for every purchase made through your unique referral link. There's no limit on the number of referrals or total earnings. Commissions are automatically credited to your wallet within 24 hours of each referred purchase."
-    },
-    {
-      question: "When will the GCAI token be available for trading?",
-      answer: "The GCAI token will be deployed and available for purchase once our smart contracts are finalized and audited. All platform infrastructure is ready, and token functionality will be activated immediately upon deployment. Stay connected to receive launch notifications."
-    }
-  ];
-
   return (
-    <section className="py-16 px-4 bg-bg-secondary">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <HelpCircle className="w-8 h-8 text-brand-primary" />
-            <h2 className="text-4xl font-bold text-text-primary">
-              Frequently Asked Questions
+    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-slate-50">
+        <div className="max-w-4xl w-full">
+            <h2 className="text-3xl font-extrabold text-brand-primary tracking-tight text-center mb-8">
+              FREQUENTLY ASKED QUESTIONS
             </h2>
-          </div>
-          <p className="text-xl text-text-secondary">
-            Get answers to common questions about GCAI tokens and platform features
-          </p>
+            <Card className="w-full shadow-md border border-gray-200/80">
+                <CardContent className="p-6">
+                    <Accordion type="single" collapsible className="w-full">
+                        {faqItems.map((item, index) => (
+                        <AccordionItem value={`item-${index}`} key={index}>
+                            <AccordionTrigger className="text-left font-semibold text-lg">{item.question}</AccordionTrigger>
+                            <AccordionContent className="text-base text-text-secondary">
+                            {item.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                        ))}
+                    </Accordion>
+                </CardContent>
+            </Card>
         </div>
-
-        <Accordion type="single" collapsible className="space-y-4">
-          {faqItems.map((item, index) => (
-            <AccordionItem 
-              key={index} 
-              value={`item-${index}`}
-              className="bg-bg-primary border border-border-custom-primary rounded-lg px-6"
-            >
-              <AccordionTrigger className="text-left text-lg font-semibold text-text-primary hover:text-brand-primary">
-                {item.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-text-secondary leading-relaxed pt-2">
-                {item.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-
-        <div className="text-center mt-12">
-          <p className="text-text-secondary">
-            Still have questions? Contact our support team at{' '}
-            <a href="mailto:support@gcai.app" className="text-brand-primary hover:underline">
-              support@gcai.app
-            </a>
-          </p>
-        </div>
-      </div>
     </section>
   );
 };

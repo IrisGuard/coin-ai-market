@@ -1,59 +1,40 @@
 
 import React from 'react';
-
-const wpBoxes = [
-  {
-    title: "1. Mission",
-    content: (
-      <p>
-        The GCAI platform leverages advanced AI to provide instant, accurate, and transparent coin recognition tools for collectors and investors globally.
-      </p>
-    )
-  },
-  {
-    title: "2. Token Utility & Economics",
-    content: (
-      <ul className="list-disc pl-4 space-y-2">
-        <li>GCAI unlocks marketplace & premium AI features</li>
-        <li>Revenue-sharing through token locking</li>
-        <li>Burn & redistribution model for long-term value</li>
-        <li>Community governance</li>
-      </ul>
-    )
-  },
-  {
-    title: "3. AI Technology",
-    content: (
-      <p>
-        Our system uses machine learning, visual error detection, and scalable blockchain architecture, optimized for mobile and web.
-      </p>
-    )
-  },
-  {
-    title: "4. Security",
-    content: (
-      <ul className="list-disc pl-4 space-y-2">
-        <li>Smart contract audits</li>
-        <li>Anti-fraud detection</li>
-        <li>Bug bounty program</li>
-      </ul>
-    )
-  },
-];
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
 
 export function WhitepaperSection() {
   return (
-    <section className="flex w-full justify-center py-12 px-2">
-      <div className="max-w-[900px] w-full">
-        <div className="section-title mb-6 text-3xl font-extrabold text-brand-primary tracking-tight text-center">
-          GCAI WHITEPAPER
-        </div>
-        {wpBoxes.map(({ title, content }, i) => (
-          <div className="section-box wp-box" key={i}>
-            <h3 className="font-bold text-[18px] mb-2">{title}</h3>
-            <div className="text-[15px] text-text-secondary">{content}</div>
-          </div>
-        ))}
+    <section className="flex w-full justify-center py-12 px-4 md:px-2">
+      <div className="max-w-4xl w-full">
+        <Card className="w-full shadow-md border border-gray-200/80">
+          <CardHeader>
+            <CardTitle className="text-3xl font-extrabold text-brand-primary tracking-tight text-center">
+              A New Era for Coin Collecting
+            </CardTitle>
+            <CardDescription className="text-center text-lg pt-2 text-text-secondary">
+              Discover the technology powering the world's most advanced coin analysis and trading platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-base text-text-secondary leading-relaxed space-y-4">
+            <p>
+              The GCAI platform revolutionizes the coin collecting industry by merging state-of-the-art Artificial Intelligence with a decentralized, transparent marketplace. Our ecosystem is designed to empower both seasoned collectors and newcomers by providing powerful tools for coin identification, grading, error detection, and valuation.
+            </p>
+            <p>
+              At its core, our platform leverages a proprietary AI engine trained on a massive dataset of coins to deliver instant, accurate analysis from just a photo. This technology, combined with a robust dealer network and a live marketplace, creates a trusted environment for buying, selling, and managing collections.
+            </p>
+            <p>
+              The GCAI token is the key that unlocks the full potential of this ecosystem. It serves as a utility token for accessing premium features, reducing transaction fees, participating in governance, and earning rewards through staking. By holding GCAI, you become an integral part of a community dedicated to bringing transparency, accessibility, and innovation to the timeless hobby of numismatics.
+            </p>
+            <div className="text-center pt-4">
+                <Button disabled>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Whitepaper Coming Soon
+                </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

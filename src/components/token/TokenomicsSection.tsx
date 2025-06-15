@@ -1,103 +1,110 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SupplyChart } from './tokenomics/SupplyChart';
+import { Badge } from '@/components/ui/badge';
 
 const supplyAllocations = [
-  { label: "Public Sale", value: "40%" },
-  { label: "Team & Advisors (vested)", value: "20%" },
-  { label: "Marketing", value: "15%" },
-  { label: "Development", value: "15%" },
-  { label: "Liquidity", value: "10%" },
+  { label: "Public Sale", value: "40%", color: "bg-sky-500" },
+  { label: "Team & Advisors (Vested)", value: "20%", color: "bg-blue-500" },
+  { label: "Ecosystem & Development", value: "20%", color: "bg-indigo-500" },
+  { label: "Marketing & Partnerships", value: "10%", color: "bg-purple-500" },
+  { label: "Liquidity & Staking Rewards", value: "10%", color: "bg-pink-500" },
+];
+
+const lockingSchedule = [
+    { period: "3 Months", apy: "+15% APY", vesting: "No" },
+    { period: "6 Months", apy: "+25% APY", vesting: "No" },
+    { period: "12 Months", apy: "+40% APY", vesting: "No" },
+    { period: "18 Months", apy: "+55% APY", vesting: "Yes" },
+    { period: "24 Months", apy: "+70% APY", vesting: "Yes" },
+    { period: "36 Months", apy: "+100% APY", vesting: "Yes" },
 ];
 
 export const TokenomicsSection = () => {
   return (
-    <section className="flex w-full justify-center py-12 px-2">
-      <div className="max-w-[900px] w-full">
-        <div className="section-title mb-6 text-3xl font-extrabold text-brand-primary tracking-tight text-center">
+    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-slate-50">
+      <div className="max-w-4xl w-full">
+        <h2 className="text-3xl font-extrabold text-brand-primary tracking-tight text-center mb-8">
           TOKENOMICS
-        </div>
+        </h2>
+        
+        <Card className="w-full shadow-md border border-gray-200/80">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-brand-primary">Supply Allocation</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1">
+              <ul className="space-y-3">
+                {supplyAllocations.map((item) => (
+                  <li key={item.label} className="flex items-center text-base">
+                    <span className={`w-3 h-3 rounded-full mr-3 ${item.color}`}></span>
+                    <span className="font-semibold text-brand-primary min-w-[60px]">{item.value}</span>
+                    <span className="text-text-secondary">{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="order-1 md:order-2">
+              <SupplyChart />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="section-box tokenomics-box mb-6">
-          <h3 className="font-bold text-[18px] mb-2">Supply Allocation</h3>
-          <ul className="list-disc pl-4 space-y-2 text-[15px]">
-            {supplyAllocations.map((item, i) => (
-              <li key={i}>
-                <span className="font-semibold text-brand-primary">{item.value}</span> {item.label}
-              </li>
-            ))}
-          </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <Card className="w-full shadow-md border border-gray-200/80">
+                <CardHeader>
+                    <CardTitle className="text-xl font-bold text-brand-primary">GCAI Utility</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ul className="list-disc pl-5 space-y-2 text-text-secondary">
+                        <li><span className="font-semibold">Premium AI Access:</span> Unlock advanced coin recognition, error detection, and market analysis.</li>
+                        <li><span className="font-semibold">Reduced Marketplace Fees:</span> Enjoy lower transaction fees when using GCAI on our platform.</li>
+                        <li><span className="font-semibold">Staking & Locking Rewards:</span> Lock your tokens to earn high-yield APY bonuses.</li>
+                        <li><span className="font-semibold">DAO Governance:</span> Participate in key decisions shaping the future of the platform.</li>
+                    </ul>
+                </CardContent>
+            </Card>
+            <Card className="w-full shadow-md border border-gray-200/80">
+                <CardHeader>
+                    <CardTitle className="text-xl font-bold text-brand-primary">Vesting & Security</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ul className="list-disc pl-5 space-y-2 text-text-secondary">
+                        <li><span className="font-semibold">Team & Advisor Vesting:</span> Tokens are vested over 24 months with a 6-month cliff to ensure long-term commitment.</li>
+                        <li><span className="font-semibold">Burn Mechanism:</span> A portion of platform fees and all unsold tokens are burned to reduce supply and increase value.</li>
+                        <li><span className="font-semibold">Locked Liquidity:</span> All initial liquidity is locked to provide maximum security and stability for token holders.</li>
+                    </ul>
+                </CardContent>
+            </Card>
         </div>
-
-        <div className="section-box tokenomics-box mb-6">
-          <h3 className="font-bold text-[18px] mb-2">Bonus Locking Schedule</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-[350px] w-full border text-[15px] rounded-lg overflow-hidden">
-              <thead className="bg-brand-primary/10">
-                <tr>
-                  <th className="px-4 py-2 text-left">Lock Period</th>
-                  <th className="px-4 py-2 text-left">APY Bonus</th>
-                  <th className="px-4 py-2 text-left">Vesting</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-gray-100">
-                  <td className="px-4 py-2">3 Months</td>
-                  <td className="px-4 py-2 font-bold text-brand-success">+15%</td>
-                  <td className="px-4 py-2">No</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2">6 Months</td>
-                  <td className="px-4 py-2 font-bold text-brand-success">+25%</td>
-                  <td className="px-4 py-2">No</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2">12 Months</td>
-                  <td className="px-4 py-2 font-bold text-brand-success">+40%</td>
-                  <td className="px-4 py-2">No</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2">18 Months</td>
-                  <td className="px-4 py-2 font-bold text-brand-success">+55%</td>
-                  <td className="px-4 py-2">Yes</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2">24 Months</td>
-                  <td className="px-4 py-2 font-bold text-brand-success">+70%</td>
-                  <td className="px-4 py-2">Yes</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-2">36 Months</td>
-                  <td className="px-4 py-2 font-bold text-brand-success">+100%</td>
-                  <td className="px-4 py-2">Yes</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="section-box tokenomics-box mb-6">
-          <h3 className="font-bold text-[18px] mb-2">Utility</h3>
-          <p className="text-[15px]">
-            GCAI provides access to AI features, premium analytics, staking rewards, DAO governance, and more.
-          </p>
-        </div>
-
-        <div className="section-box tokenomics-box mb-6">
-          <h3 className="font-bold text-[18px] mb-2">Vesting Schedule</h3>
-          <p className="text-[15px]">
-            Team & advisor tokens vest over 24 months. Marketing and development budgets unlock gradually based on milestones.
-          </p>
-        </div>
-
-        <div className="section-box tokenomics-box">
-          <h3 className="font-bold text-[18px] mb-2">Burn & Security</h3>
-          <ul className="list-disc pl-4 space-y-2 text-[15px]">
-            <li>Dynamic burn on platform usage for long-term growth</li>
-            <li>All bonus APYs tied to lock duration</li>
-            <li>Vesting contracts and liquidity locked for maximum security</li>
-            <li>All unsold tokens burned after presale</li>
-          </ul>
-        </div>
+        
+        <Card className="w-full shadow-md border border-gray-200/80 mt-6">
+            <CardHeader>
+                <CardTitle className="text-2xl font-bold text-brand-primary">Bonus Locking Schedule</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Lock Period</TableHead>
+                            <TableHead>APY Bonus</TableHead>
+                            <TableHead>Vesting</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {lockingSchedule.map((item) => (
+                            <TableRow key={item.period}>
+                                <TableCell className="font-medium">{item.period}</TableCell>
+                                <TableCell><Badge variant="outline" className="font-bold text-brand-success border-brand-success/50">{item.apy}</Badge></TableCell>
+                                <TableCell>{item.vesting}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
       </div>
     </section>
   );
