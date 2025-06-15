@@ -1,11 +1,11 @@
 
 import React from 'react';
-import EnhancedCategoryManager from '../enhanced/EnhancedCategoryManager';
+import EnhancedCategoryManagerWithUpload from '../enhanced/EnhancedCategoryManagerWithUpload';
 
 const AdminCategoriesTab = () => {
   return (
     <div className="space-y-6">
-      <EnhancedCategoryManager />
+      <EnhancedCategoryManagerWithUpload />
     </div>
   );
 };

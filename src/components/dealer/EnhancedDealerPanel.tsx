@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import WalletManagementTab from './WalletManagementTab';
 import DealerSubscriptionUpgrade from './DealerSubscriptionUpgrade';
 import TransactionHistory from './TransactionHistory';
 import AdvancedDealerUploadPanelRefactored from './AdvancedDealerUploadPanelRefactored';
+import StoreCustomizationSection from './StoreCustomizationSection';
 
 const EnhancedDealerPanel = () => {
   const { user } = useAuth();
@@ -54,7 +56,7 @@ const EnhancedDealerPanel = () => {
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Settings
+            Store Settings
           </TabsTrigger>
         </TabsList>
 
@@ -79,14 +81,7 @@ const EnhancedDealerPanel = () => {
         </TabsContent>
 
         <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Store Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Store configuration and preferences will be available here.</p>
-            </CardContent>
-          </Card>
+          <StoreCustomizationSection />
         </TabsContent>
       </Tabs>
     </div>
