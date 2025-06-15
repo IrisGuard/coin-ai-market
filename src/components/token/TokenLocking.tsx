@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,10 +10,17 @@ import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const TokenLocking = () => {
   const [selectedOption, setSelectedOption] = useState<any>(null);
   const [lockAmount, setLockAmount] = useState('');
+  const [isLockDialogOpen, setIsLockDialogOpen] = useState(false);
   const { data: lockOptions, isLoading, error: lockOptionsError } = useLockOptions();
   const { refetch: refetchUserLocks } = useTokenLocks();
   const { data: user } = useUser();
@@ -65,6 +71,7 @@ export const TokenLocking = () => {
         refetchUserLocks();
         setLockAmount('');
         setSelectedOption(null);
+        setIsLockDialogOpen(false);
         return `Successfully locked ${amount} GCAI for ${selectedOption.duration_months} months!`;
       },
       error: (err: any) => {
@@ -72,6 +79,14 @@ export const TokenLocking = () => {
         return `Error: ${err.message}`;
       },
     });
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsLockDialogOpen(open);
+    if (!open) {
+      setSelectedOption(null);
+      setLockAmount('');
+    }
   };
 
   if (isLoading) {
@@ -123,7 +138,10 @@ export const TokenLocking = () => {
                     : 'border-gray-200/80'
                 }
               `}
-              onClick={() => setSelectedOption(option)}
+              onClick={() => {
+                setSelectedOption(option);
+                setIsLockDialogOpen(true);
+              }}
             >
               <CardContent className="p-6 text-center relative overflow-hidden">
                 {option.is_popular && !option.is_maximum && (
@@ -156,44 +174,45 @@ export const TokenLocking = () => {
           ))}
         </div>
         
-        <Card className="max-w-lg mx-auto shadow-md border-gray-200/80">
-          <CardHeader>
-            <CardTitle className="text-center text-xl font-bold text-brand-primary">
-              {selectedOption ? `Confirm Lock for ${selectedOption.duration_months} Months` : 'Select a Lock Period'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="lock-amount" className="font-semibold text-text-secondary">Amount to Lock (GCAI)</Label>
-              <Input
-                id="lock-amount"
-                type="number"
-                placeholder="e.g. 1000"
-                value={lockAmount}
-                onChange={(e) => setLockAmount(e.target.value)}
-                disabled={!selectedOption}
-                className="text-lg"
-              />
-            </div>
-            
-            {selectedOption && lockAmount && parseFloat(lockAmount) > 0 && (
-              <div className="p-4 bg-green-50 rounded-lg text-center">
-                <p className="text-sm text-gray-600">You will receive an additional bonus of:</p>
-                <p className="text-2xl font-bold text-brand-success">
-                  {(parseFloat(lockAmount) * selectedOption.benefit_percentage / 100).toFixed(2)} GCAI
-                </p>
+        <Dialog open={isLockDialogOpen} onOpenChange={handleOpenChange}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-bold text-brand-primary">
+                {selectedOption ? `Confirm Lock for ${selectedOption.duration_months} Months` : 'Select a Lock Period'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="lock-amount-modal" className="font-semibold text-text-secondary">Amount to Lock (GCAI)</Label>
+                <Input
+                  id="lock-amount-modal"
+                  type="number"
+                  placeholder="e.g. 1000"
+                  value={lockAmount}
+                  onChange={(e) => setLockAmount(e.target.value)}
+                  className="text-lg"
+                />
               </div>
-            )}
-            
-            <Button 
-              onClick={handleLock} 
-              className="w-full h-12 text-lg font-bold" 
-              disabled={!selectedOption || !lockAmount || parseFloat(lockAmount) <= 0 || !user}
-            >
-              Lock Tokens Now
-            </Button>
-          </CardContent>
-        </Card>
+              
+              {selectedOption && lockAmount && parseFloat(lockAmount) > 0 && (
+                <div className="p-4 bg-green-50 rounded-lg text-center">
+                  <p className="text-sm text-gray-600">You will receive an additional bonus of:</p>
+                  <p className="text-2xl font-bold text-brand-success">
+                    {(parseFloat(lockAmount) * selectedOption.benefit_percentage / 100).toFixed(2)} GCAI
+                  </p>
+                </div>
+              )}
+              
+              <Button 
+                onClick={handleLock} 
+                className="w-full h-12 text-lg font-bold" 
+                disabled={!selectedOption || !lockAmount || parseFloat(lockAmount) <= 0 || !user}
+              >
+                Lock Tokens Now
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
