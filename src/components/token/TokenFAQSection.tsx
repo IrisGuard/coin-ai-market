@@ -7,23 +7,27 @@ export const TokenFAQSection = () => {
   const faqItems = [
     {
       question: "What is GCAI Token and what is its purpose?",
-      answer: "GCAI (Global Coin AI) is the native utility token of our AI-powered coin recognition platform. It's used for accessing premium features, locking for platform shares, and participating in governance decisions. Token holders benefit from revenue sharing and platform growth."
+      answer: "GCAI (Global Coin AI) is the native utility token of our AI-powered coin recognition platform. It's used for accessing premium features, locking for platform shares, and participating in governance decisions. Token holders benefit from revenue sharing and platform growth through our innovative locking mechanism."
     },
     {
       question: "How does the token locking mechanism work?",
-      answer: "When you lock GCAI tokens, you receive platform ownership shares and earn passive income from platform revenue. The longer you lock (3-36 months), the higher your bonus percentage. Locked tokens cannot be withdrawn until the lock period expires, ensuring platform stability."
+      answer: "When you lock GCAI tokens, you receive platform ownership shares and earn passive income from platform revenue. The longer you lock (3-36 months), the higher your bonus percentage. Locked tokens cannot be withdrawn until the lock period expires, ensuring platform stability and rewarding long-term holders."
     },
     {
       question: "What are the benefits of locking GCAI tokens?",
-      answer: "Locking GCAI tokens provides: (1) Platform ownership shares proportional to your lock amount and duration, (2) Passive income from platform revenue distribution, (3) Bonus rewards up to 100% for 36-month locks, (4) Governance voting rights, and (5) Early access to new features."
+      answer: "Locking GCAI tokens provides: (1) Platform ownership shares proportional to your lock amount and duration, (2) Passive income from platform revenue distribution, (3) Bonus rewards up to 100% for 36-month locks, (4) Governance voting rights, and (5) Early access to new features and premium AI capabilities."
     },
     {
       question: "How can I purchase GCAI tokens?",
-      answer: "You can buy GCAI tokens in two ways: (1) Through our Transak integration using credit card or bank transfer (supports 100+ countries), or (2) By manually sending USDC or SOL to our treasury address. Current rates are 1 USDC = 10 GCAI and 1 SOL = 1000 GCAI."
+      answer: "You can buy GCAI tokens in two ways: (1) Through our Transak integration using credit card or bank transfer (supports 100+ countries), or (2) By manually sending USDC or SOL to our treasury address. Current exchange rates are displayed in real-time and updated based on market conditions."
     },
     {
       question: "What is the referral program and how much can I earn?",
       answer: "Our referral program rewards you with 5% commission in GCAI tokens for every purchase made through your unique referral link. There's no limit on the number of referrals or total earnings. Commissions are automatically credited to your wallet within 24 hours of each referred purchase."
+    },
+    {
+      question: "When will the GCAI token be available for trading?",
+      answer: "The GCAI token will be deployed and available for purchase once our smart contracts are finalized and audited. All platform infrastructure is ready, and token functionality will be activated immediately upon deployment. Stay connected to receive launch notifications."
     }
   ];
 
@@ -38,7 +42,7 @@ export const TokenFAQSection = () => {
             </h2>
           </div>
           <p className="text-xl text-text-secondary">
-            Get answers to common questions about GCAI tokens
+            Get answers to common questions about GCAI tokens and platform features
           </p>
         </div>
 

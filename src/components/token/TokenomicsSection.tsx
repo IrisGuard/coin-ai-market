@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useTokenInfo } from '@/hooks/useTokenInfo';
+import { Loader2 } from 'lucide-react';
 
 const COLORS = ['#007AFF', '#5856D6', '#34C759', '#FF9500', '#FF3B30'];
 
 export const TokenomicsSection = () => {
-  const { data: tokenInfo } = useTokenInfo();
+  const { data: tokenInfo, isLoading } = useTokenInfo();
 
   const pieData = [
     { name: 'Public Sale', value: 40, amount: 400000000 },
@@ -18,13 +19,30 @@ export const TokenomicsSection = () => {
   ];
 
   const lockingData = [
-    { period: '3M', apy: 15, locked: 50000000 },
-    { period: '6M', apy: 25, locked: 75000000 },
-    { period: '12M', apy: 40, locked: 120000000 },
-    { period: '18M', apy: 55, locked: 85000000 },
-    { period: '24M', apy: 70, locked: 60000000 },
-    { period: '36M', apy: 100, locked: 45000000 },
+    { period: '3M', apy: 15, locked: 0 },
+    { period: '6M', apy: 25, locked: 0 },
+    { period: '12M', apy: 40, locked: 0 },
+    { period: '18M', apy: 55, locked: 0 },
+    { period: '24M', apy: 70, locked: 0 },
+    { period: '36M', apy: 100, locked: 0 },
   ];
+
+  if (isLoading) {
+    return (
+      <section className="py-16 px-4 bg-bg-secondary">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-text-primary mb-4">
+              GCAI Tokenomics
+            </h2>
+            <div className="flex justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 px-4 bg-bg-secondary">
@@ -59,23 +77,25 @@ export const TokenomicsSection = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
+                  <Tooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Locking Statistics */}
+          {/* Locking APY Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Locking Statistics</CardTitle>
+              <CardTitle>Lock Duration APY</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={lockingData}>
                   <XAxis dataKey="period" />
                   <YAxis />
-                  <Bar dataKey="locked" fill="#007AFF" />
+                  <Tooltip formatter={(value) => [`${value}%`, 'APY']} />
+                  <Bar dataKey="apy" fill="#007AFF" />
                   <Legend />
                 </BarChart>
               </ResponsiveContainer>
@@ -97,7 +117,7 @@ export const TokenomicsSection = () => {
           <Card>
             <CardContent className="p-6 text-center">
               <div className="text-2xl font-bold text-text-primary">
-                {tokenInfo?.circulating_supply?.toLocaleString() || '250,000,000'}
+                {tokenInfo?.circulating_supply?.toLocaleString() || '0'}
               </div>
               <div className="text-text-secondary">Circulating</div>
             </CardContent>
@@ -106,7 +126,7 @@ export const TokenomicsSection = () => {
           <Card>
             <CardContent className="p-6 text-center">
               <div className="text-2xl font-bold text-text-primary">
-                435,000,000
+                0
               </div>
               <div className="text-text-secondary">Total Locked</div>
             </CardContent>
@@ -115,7 +135,7 @@ export const TokenomicsSection = () => {
           <Card>
             <CardContent className="p-6 text-center">
               <div className="text-2xl font-bold text-text-primary">
-                ${((tokenInfo?.circulating_supply || 250000000) * (tokenInfo?.current_price_usd || 0.1)).toLocaleString()}
+                ${((tokenInfo?.circulating_supply || 0) * (tokenInfo?.current_price_usd || 0)).toLocaleString()}
               </div>
               <div className="text-text-secondary">Market Cap</div>
             </CardContent>

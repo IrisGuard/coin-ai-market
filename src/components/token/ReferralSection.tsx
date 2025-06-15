@@ -3,20 +3,44 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, Copy, Gift, TrendingUp } from 'lucide-react';
+import { Users, Copy, Gift, TrendingUp, Loader2 } from 'lucide-react';
 import { useReferrals } from '@/hooks/useReferrals';
+import { toast } from 'sonner';
 
 export const ReferralSection = () => {
   const [copySuccess, setCopySuccess] = useState(false);
-  const { data: referralData } = useReferrals();
+  const { data: referralData, isLoading } = useReferrals();
   
-  const referralLink = `https://gcai.app/token?ref=${referralData?.referral_code || 'GCAI12345678'}`;
+  const referralCode = referralData?.referral_code || '';
+  const referralLink = referralCode ? `${window.location.origin}/token?ref=${referralCode}` : '';
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+      toast.success('Referral link copied to clipboard!');
+    } else {
+      toast.info('Referral system will be available when you connect your wallet.');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-text-primary mb-4">
+              Loading Referral Program...
+            </h2>
+            <div className="flex justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 px-4">
@@ -40,21 +64,32 @@ export const ReferralSection = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Input
-                  value={referralLink}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button
-                  onClick={handleCopyLink}
-                  variant="outline"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-              {copySuccess && (
-                <div className="text-sm text-brand-success">Link copied to clipboard!</div>
+              {referralLink ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={referralLink}
+                      readOnly
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      onClick={handleCopyLink}
+                      variant="outline"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {copySuccess && (
+                    <div className="text-sm text-brand-success">Link copied to clipboard!</div>
+                  )}
+                </>
+              ) : (
+                <div className="p-4 bg-brand-primary/10 rounded-lg text-center">
+                  <Users className="w-8 h-8 mx-auto mb-2 text-brand-primary" />
+                  <p className="text-sm text-text-secondary">
+                    Connect your wallet to generate your unique referral link
+                  </p>
+                </div>
               )}
               
               <div className="p-4 bg-brand-primary/10 rounded-lg">

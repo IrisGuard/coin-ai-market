@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Coins, DollarSign, TrendingUp, Users, Lock, Activity,
-  Settings, AlertCircle, CheckCircle, Zap, Shield
+  Settings, AlertCircle, CheckCircle, Zap, Shield, Loader2
 } from 'lucide-react';
 import { useAdminTokenStats } from '@/hooks/useAdminTokenData';
 
@@ -15,7 +15,10 @@ export const TokenManagementOverview = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading token management data...</p>
+        </div>
       </div>
     );
   }
@@ -44,7 +47,7 @@ export const TokenManagementOverview = () => {
     },
     {
       title: 'Current Price',
-      value: `$${tokenData?.tokenInfo?.current_price_usd?.toFixed(4) || '0.1000'}`,
+      value: `$${tokenData?.tokenInfo?.current_price_usd?.toFixed(4) || '0.0000'}`,
       icon: DollarSign,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100'
@@ -135,7 +138,7 @@ export const TokenManagementOverview = () => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Market Cap:</span>
                 <span className="font-semibold">
-                  ${((tokenData?.tokenInfo?.circulating_supply || 250000000) * (tokenData?.tokenInfo?.current_price_usd || 0.1)).toLocaleString()}
+                  ${((tokenData?.tokenInfo?.circulating_supply || 0) * (tokenData?.tokenInfo?.current_price_usd || 0)).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -164,6 +167,21 @@ export const TokenManagementOverview = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Token Launch Status */}
+      <Card className="border-2 border-yellow-200 bg-yellow-50">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <AlertCircle className="w-8 h-8 text-yellow-600" />
+            <div>
+              <h3 className="text-lg font-semibold text-yellow-800">Token Deployment Status</h3>
+              <p className="text-yellow-700">
+                GCAI token is ready for deployment. All infrastructure is in place and will be activated upon smart contract deployment.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

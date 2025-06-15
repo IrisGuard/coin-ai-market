@@ -1,29 +1,55 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, Copy, ExternalLink } from 'lucide-react';
+import { CreditCard, Copy, ExternalLink, Loader2 } from 'lucide-react';
 import { useTokenInfo } from '@/hooks/useTokenInfo';
+import { toast } from 'sonner';
 
 export const BuyTokensSection = () => {
   const [amount, setAmount] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
-  const { data: tokenInfo } = useTokenInfo();
+  const [solPrice, setSolPrice] = useState<number | null>(null);
+  const [loadingPrice, setLoadingPrice] = useState(true);
+  const { data: tokenInfo, isLoading: tokenLoading } = useTokenInfo();
 
-  const treasuryAddress = tokenInfo?.treasury_address || "7xKXmN9p2hVrQFhB3mE8jL4nC6dY5sW9qX8rT1vU3kF2";
+  // Fetch real SOL price
+  useEffect(() => {
+    const fetchSolPrice = async () => {
+      try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        const data = await response.json();
+        setSolPrice(data.solana?.usd || null);
+      } catch (error) {
+        console.error('Failed to fetch SOL price:', error);
+        setSolPrice(null);
+      } finally {
+        setLoadingPrice(false);
+      }
+    };
+
+    fetchSolPrice();
+    const interval = setInterval(fetchSolPrice, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const treasuryAddress = tokenInfo?.treasury_address || "Treasury address will be available when token is deployed";
 
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(treasuryAddress);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
+    if (tokenInfo?.treasury_address) {
+      navigator.clipboard.writeText(tokenInfo.treasury_address);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+      toast.success('Treasury address copied to clipboard!');
+    } else {
+      toast.info('Treasury address will be available when crypto token is deployed.');
+    }
   };
 
   const handleTransakPurchase = () => {
-    // Integration with Transak API
-    console.log('Opening Transak widget');
+    toast.info('Transak integration will be activated when crypto token is deployed.');
   };
 
   return (
@@ -34,7 +60,7 @@ export const BuyTokensSection = () => {
             Buy GCAI Tokens
           </h2>
           <p className="text-xl text-text-secondary">
-            Purchase GCAI tokens using USDC, SOL, or bank transfer
+            Purchase GCAI tokens using USDC, SOL, or bank transfer through Transak
           </p>
         </div>
 
@@ -63,9 +89,16 @@ export const BuyTokensSection = () => {
                 
                 <div className="p-4 bg-brand-primary/10 rounded-lg">
                   <div className="text-sm text-text-secondary mb-1">You will receive approximately:</div>
-                  <div className="text-2xl font-bold text-brand-primary">
-                    {amount ? (parseFloat(amount) * (tokenInfo?.usdc_rate || 10)).toLocaleString() : '0'} GCAI
-                  </div>
+                  {tokenLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Loading rates...</span>
+                    </div>
+                  ) : (
+                    <div className="text-2xl font-bold text-brand-primary">
+                      {amount ? (parseFloat(amount) * (tokenInfo?.usdc_rate || 10)).toLocaleString() : '0'} GCAI
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -92,7 +125,7 @@ export const BuyTokensSection = () => {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label>Send USDC or SOL to our treasury address:</Label>
+                  <Label>Treasury Address (Available when token is deployed):</Label>
                   <div className="flex items-center gap-2 mt-2">
                     <Input
                       value={treasuryAddress}
@@ -103,6 +136,7 @@ export const BuyTokensSection = () => {
                       onClick={handleCopyAddress}
                       variant="outline"
                       size="sm"
+                      disabled={!tokenInfo?.treasury_address}
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
@@ -114,13 +148,36 @@ export const BuyTokensSection = () => {
 
                 <div className="space-y-3">
                   <div className="p-3 bg-bg-primary rounded-lg">
-                    <div className="text-sm font-semibold text-text-primary">Exchange Rates:</div>
-                    <div className="text-sm text-text-secondary">
-                      1 USDC = {tokenInfo?.usdc_rate || 10} GCAI
-                    </div>
-                    <div className="text-sm text-text-secondary">
-                      1 SOL = {tokenInfo?.sol_rate || 1000} GCAI
-                    </div>
+                    <div className="text-sm font-semibold text-text-primary">Current Exchange Rates:</div>
+                    {tokenLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-text-secondary">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Loading rates...
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-sm text-text-secondary">
+                          1 USDC = {tokenInfo?.usdc_rate || 10} GCAI
+                        </div>
+                        <div className="text-sm text-text-secondary">
+                          1 SOL = {tokenInfo?.sol_rate || 1000} GCAI
+                        </div>
+                      </>
+                    )}
+                    {loadingPrice ? (
+                      <div className="flex items-center gap-2 text-sm text-text-secondary">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Loading SOL price...
+                      </div>
+                    ) : solPrice ? (
+                      <div className="text-sm text-text-secondary">
+                        SOL Price: ${solPrice.toFixed(2)} USD
+                      </div>
+                    ) : (
+                      <div className="text-sm text-text-secondary">
+                        SOL Price: Unable to load
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -130,8 +187,8 @@ export const BuyTokensSection = () => {
                   Important:
                 </div>
                 <div className="text-xs text-text-secondary">
-                  After sending, tokens will be credited to your wallet within 5-10 minutes. 
-                  Make sure your wallet is connected.
+                  Manual transfer functionality will be available when the crypto token is deployed. 
+                  Tokens will be credited to your connected wallet address.
                 </div>
               </div>
             </CardContent>
