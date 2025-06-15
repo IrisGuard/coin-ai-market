@@ -1,22 +1,29 @@
-
 import React, { useState, useEffect } from "react";
 import { useTokenInfo } from "@/hooks/useTokenInfo";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { toast } from "sonner";
-import { Loader2, ChevronRight, Info, Wallet, DollarSign, ArrowDownUp } from "lucide-react";
+import { Loader2, ChevronRight, Info, Wallet, DollarSign, ArrowDownUp, CreditCard } from "lucide-react";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { useEnhancedTransakPayment } from "@/hooks/useEnhancedTransakPayment";
+import { useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 
 const PAYMENT_METHODS = [
+  { label: "CARD", icon: <CreditCard className="w-4 h-4" /> },
   { label: "SOL", icon: <DollarSign className="w-4 h-4" /> },
   { label: "USDT", icon: <DollarSign className="w-4 h-4" /> },
   { label: "USDC", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "CARD", icon: <DollarSign className="w-4 h-4" /> },
 ];
 
 export default function TokenHeroBannerExact() {
-  const { data: tokenInfo, isLoading } = useTokenInfo();
+  const { data: tokenInfo, isLoading: isTokenInfoLoading } = useTokenInfo();
   const { publicKey, connected, connect, connecting } = useSolanaWallet();
-  const [selectedPayment, setSelectedPayment] = useState("SOL");
-  const [solAmount, setSolAmount] = useState("");
+  const { data: balance, isLoading: isBalanceLoading } = useWalletBalance();
+  const { createPayment, isLoading: isPaymentLoading } = useEnhancedTransakPayment();
+  const queryClient = useQueryClient();
+
+  const [selectedPayment, setSelectedPayment] = useState("CARD");
+  const [usdAmount, setUsdAmount] = useState("");
   const [gcaiAmount, setGcaiAmount] = useState("");
   const [timeLeft, setTimeLeft] = useState({
     days: "--",
@@ -52,41 +59,79 @@ export default function TokenHeroBannerExact() {
     return () => clearInterval(interval);
   }, [tokenInfo]);
 
-  // Amount calculation logic (example: SOL ➔ GCAI)
+  // Amount calculation from USD to GCAI
   useEffect(() => {
-    if (!solAmount || !tokenInfo?.sol_rate) {
+    if (!usdAmount || !tokenInfo?.current_price_usd) {
       setGcaiAmount("");
       return;
     }
-    const amt = parseFloat(solAmount);
-    if (!isNaN(amt) && amt > 0) {
-      setGcaiAmount((amt * Number(tokenInfo.sol_rate)).toLocaleString());
+    const amount = parseFloat(usdAmount);
+    const price = parseFloat(tokenInfo.current_price_usd);
+    if (!isNaN(amount) && amount > 0 && price > 0) {
+      setGcaiAmount((amount / price).toLocaleString(undefined, { maximumFractionDigits: 2 }));
     } else {
       setGcaiAmount("");
     }
-  }, [solAmount, tokenInfo?.sol_rate]);
+  }, [usdAmount, tokenInfo?.current_price_usd]);
 
   const handleConnectWallet = async () => {
-    await connect();
-    toast.success("Wallet connected.");
-  };
-
-  const handleBuyWithSol = () => {
-    if (!connected) {
-      toast.error("Please connect your wallet first.");
-    } else {
-      toast.info("Purchase with SOL is coming soon!");
+    try {
+      await connect();
+      toast.success("Wallet connected.");
+    } catch(e) {
+      toast.error("Failed to connect wallet.");
     }
   };
 
+  const handleBuy = async () => {
+    if (!connected) {
+      toast.error("Please connect your wallet first.");
+      return handleConnectWallet();
+    }
+    const amount = parseFloat(usdAmount);
+    if (isNaN(amount) || amount < 1) { // Minimum purchase amount might be $1
+        toast.error("Please enter a valid amount (minimum $1).");
+        return;
+    }
+
+    const cryptoCurrency = selectedPayment === 'CARD' ? 'USDC' : selectedPayment;
+
+    toast.info("Initializing payment...");
+    const result = await createPayment({
+        orderType: 'coin_purchase',
+        coinId: 'GCAI',
+        amount: amount,
+        currency: 'USD',
+        cryptoCurrency: cryptoCurrency,
+    });
+
+    if (result?.paymentUrl) {
+        const transakWindow = window.open(result.paymentUrl, 'transak-payment', 'width=500,height=700,scrollbars=yes,resizable=yes');
+        
+        const checkClosed = setInterval(() => {
+            if (transakWindow?.closed) {
+                clearInterval(checkClosed);
+                toast.info("Verifying payment status...");
+                setTimeout(() => {
+                    queryClient.invalidateQueries({ queryKey: ['wallet-balance'] });
+                    queryClient.invalidateQueries({ queryKey: ['token-activity'] });
+                    toast.success('Your balance will be updated shortly if the payment was successful.');
+                    setUsdAmount('');
+                }, 5000);
+            }
+        }, 1000);
+    }
+  };
+  
   // Data from Supabase or fallback
   const raised = typeof (tokenInfo as any)?.amount_raised === "number" ? (tokenInfo as any).amount_raised : 2950000;
   const target = typeof (tokenInfo as any)?.total_raise_target === "number" ? (tokenInfo as any).total_raise_target : 5000000;
   const raisePercent = Math.min((raised / target) * 100, 100);
 
-  const currentPrice = tokenInfo?.current_price_usd ? Number(tokenInfo.current_price_usd).toFixed(3) : "--";
-  const purchasedGcai = 0; // This should be fetched per user if available
-  const stakeableGcai = 0; // This too
+  const currentPrice = tokenInfo?.current_price_usd ? Number(tokenInfo.current_price_usd).toFixed(4) : "--";
+  const purchasedGcai = balance?.gcai_balance ?? 0;
+  const stakeableGcai = balance?.locked_balance ?? 0;
+  const isTokenDeployed = !!tokenInfo?.current_price_usd;
 
   return (
     <div className="w-full bg-white py-8 px-2 md:px-0 border-b border-gray-200">
@@ -128,10 +173,12 @@ export default function TokenHeroBannerExact() {
         {/* Purchased/Stakeable GCAI */}
         <div className="w-full grid grid-cols-2 gap-2 mb-3">
           <div className="flex items-center justify-center bg-gray-100 px-3 py-2 rounded font-medium text-blue-900 text-xs">
-            <Info className="w-4 h-4 mr-1 text-blue-400" /> YOUR PURCHASED GCAI = {purchasedGcai}
+            <Info className="w-4 h-4 mr-1 text-blue-400" /> 
+            {isBalanceLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : `YOUR GCAI = ${Number(purchasedGcai).toLocaleString()}`}
           </div>
           <div className="flex items-center justify-center bg-gray-100 px-3 py-2 rounded font-medium text-blue-900 text-xs">
-            <Info className="w-4 h-4 mr-1 text-blue-400" /> YOUR STAKEABLE GCAI = {stakeableGcai}
+            <Info className="w-4 h-4 mr-1 text-blue-400" />
+            {isBalanceLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : `YOUR LOCKED GCAI = ${Number(stakeableGcai).toLocaleString()}`}
           </div>
         </div>
         {/* GCAI Price */}
@@ -140,18 +187,18 @@ export default function TokenHeroBannerExact() {
         </div>
         {/* Payment methods */}
         <div className="mb-3 flex w-full justify-center gap-3">
-          {PAYMENT_METHODS.map((method) => (
+          {isTokenDeployed ? PAYMENT_METHODS.map((method) => (
             <button
               key={method.label}
-              className={`flex items-center px-4 py-2 rounded border border-blue-200 font-semibold text-blue-900 bg-white hover:bg-blue-50 transition
-              ${selectedPayment === method.label ? "ring-2 ring-blue-400 border-blue-400 bg-blue-50" : ""}`}
+              className={`flex items-center px-4 py-2 rounded border-2 font-semibold text-blue-900 bg-white hover:bg-blue-50 transition
+              ${selectedPayment === method.label ? "ring-2 ring-blue-400 border-blue-400 bg-blue-50" : "border-blue-200"}`}
               onClick={() => setSelectedPayment(method.label)}
               type="button"
             >
               {method.icon}
               <span className="ml-1">{method.label}</span>
             </button>
-          ))}
+          )) : <Badge variant="outline">Purchasing will be enabled soon</Badge>}
         </div>
         {/* Input fields */}
         <div className="flex flex-col w-full gap-3 mb-4">
@@ -160,21 +207,21 @@ export default function TokenHeroBannerExact() {
             <input
               className="bg-transparent outline-none border-none w-full text-blue-900 font-semibold"
               type="number"
-              min="0"
+              min="1"
               step="any"
-              placeholder="Pay with SOL"
-              value={solAmount}
-              onChange={e => setSolAmount(e.target.value)}
-              disabled={selectedPayment !== "SOL"}
+              placeholder="Amount to Pay"
+              value={usdAmount}
+              onChange={e => setUsdAmount(e.target.value)}
+              disabled={!isTokenDeployed || isPaymentLoading}
             />
-            <span className="ml-2 text-xs text-blue-900 font-semibold">SOL</span>
+            <span className="ml-2 text-xs text-blue-900 font-semibold">USD</span>
           </div>
           <div className="flex items-center bg-gray-100 rounded px-3 py-2">
             <ArrowDownUp className="w-5 h-5 text-blue-400 mr-2" />
             <input
               className="bg-transparent outline-none border-none w-full text-blue-900 font-semibold"
               type="text"
-              placeholder="Receive GCAI"
+              placeholder="You Receive"
               value={gcaiAmount}
               readOnly
             />
@@ -184,7 +231,7 @@ export default function TokenHeroBannerExact() {
         {/* Buttons */}
         <div className="flex flex-col md:flex-row w-full gap-3">
           <button
-            className="w-full md:w-1/2 flex items-center justify-center bg-blue-600 text-white font-semibold rounded py-3 hover:bg-blue-700 transition disabled:bg-gray-200"
+            className="w-full md:w-1/2 flex items-center justify-center bg-blue-600 text-white font-semibold rounded py-3 hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
             type="button"
             onClick={handleConnectWallet}
             disabled={connected || connecting}
@@ -197,22 +244,22 @@ export default function TokenHeroBannerExact() {
             ) : (
               <>
                 <Wallet className="w-5 h-5 mr-2" />
-                {connected ? "Wallet Connected" : "Connect Wallet"}
+                {connected ? `Connected: ${publicKey?.substring(0,6)}...` : "Connect Wallet"}
               </>
             )}
           </button>
           <button
-            className="w-full md:w-1/2 flex items-center justify-center bg-blue-400 text-white font-bold rounded py-3 hover:bg-blue-500 transition"
+            className="w-full md:w-1/2 flex items-center justify-center bg-blue-400 text-white font-bold rounded py-3 hover:bg-blue-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
             type="button"
-            onClick={handleBuyWithSol}
+            onClick={handleBuy}
+            disabled={!isTokenDeployed || isPaymentLoading || isTokenInfoLoading || !usdAmount || parseFloat(usdAmount) <= 0}
           >
-            <ChevronRight className="w-5 h-5 mr-2" />
-            Buy with SOL
+            {isPaymentLoading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing...</> :
+            <><ChevronRight className="w-5 h-5 mr-2" />
+            Buy with {selectedPayment}</>}
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-// ... ΤΟ ΑΡΧΕΙΟ ΕΙΝΑΙ ΠΟΛΥ ΜΕΓΑΛΟ. Αν θες refactor ζήτησέ το!

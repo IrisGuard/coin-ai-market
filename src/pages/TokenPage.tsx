@@ -8,7 +8,6 @@ import { TokenomicsSection } from '@/components/token/TokenomicsSection';
 import { TokenFAQSection } from '@/components/token/TokenFAQSection';
 import { TokenLockingSection } from '@/components/token/TokenLockingSection';
 import { UserDashboard } from '@/components/token/UserDashboard';
-import { BuyTokensSection } from '@/components/token/BuyTokensSection';
 
 const TokenPage = () => {
   return (
@@ -19,8 +18,6 @@ const TokenPage = () => {
         <TokenHeroBannerExact />
         {/* User Dashboard */}
         <UserDashboard />
-        {/* Buy Tokens Section */}
-        <BuyTokensSection />
         {/* Token Locking Section (dynamic staking/bonus lock grid) */}
         <TokenLockingSection />
         {/* Whitepaper in box-style */}
