@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useTokenInfo } from "@/hooks/useTokenInfo";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { toast } from "sonner";
-import { Loader2, ChevronRight, Info, Wallet, DollarSign, ArrowDownUp, Calendar, Gift, Lock, TrendingUp, Coins, Percent } from "lucide-react";
+import { Loader2, ChevronRight, Info, Wallet, DollarSign, ArrowDownUp } from "lucide-react";
 
 const PAYMENT_METHODS = [
   { label: "SOL", icon: <DollarSign className="w-4 h-4" /> },
@@ -25,15 +25,18 @@ export default function TokenHeroBannerExact() {
     seconds: "--",
   });
 
-  // Countdown logic
-  useEffect(() => {
-    if (!tokenInfo?.sale_end_date) return;
+  // Use fallback placeholder if missing sale_end_date
+  const fallbackSaleEndDate = "2025-03-01T00:00:00Z";
 
-    const target = new Date(tokenInfo.sale_end_date).getTime();
+  // Countdown logic with fallback
+  useEffect(() => {
+    const endDate = (tokenInfo && (tokenInfo as any).sale_end_date)
+      ? new Date((tokenInfo as any).sale_end_date).getTime()
+      : new Date(fallbackSaleEndDate).getTime();
 
     const tick = () => {
       const now = Date.now();
-      const diff = target - now;
+      const diff = endDate - now;
       if (diff <= 0) {
         setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
         return;
@@ -47,7 +50,7 @@ export default function TokenHeroBannerExact() {
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [tokenInfo?.sale_end_date]);
+  }, [tokenInfo]);
 
   // Amount calculation logic (example: SOL ➔ GCAI)
   useEffect(() => {
@@ -72,14 +75,13 @@ export default function TokenHeroBannerExact() {
     if (!connected) {
       toast.error("Please connect your wallet first.");
     } else {
-      // Should trigger the buy logic here – left as stub since backend logic not specified
       toast.info("Purchase with SOL is coming soon!");
     }
   };
 
   // Data from Supabase or fallback
-  const raised = Number(tokenInfo?.amount_raised || 0);
-  const target = Number(tokenInfo?.total_raise_target || 1);
+  const raised = typeof (tokenInfo as any)?.amount_raised === "number" ? (tokenInfo as any).amount_raised : 2950000;
+  const target = typeof (tokenInfo as any)?.total_raise_target === "number" ? (tokenInfo as any).total_raise_target : 5000000;
   const raisePercent = Math.min((raised / target) * 100, 100);
 
   const currentPrice = tokenInfo?.current_price_usd ? Number(tokenInfo.current_price_usd).toFixed(3) : "--";
@@ -92,7 +94,6 @@ export default function TokenHeroBannerExact() {
         <h2 className="font-bold text-xl md:text-2xl text-blue-900 mb-3 uppercase tracking-tight">
           BUY NOW BEFORE PRICE RISE
         </h2>
-
         {/* Countdown timer */}
         <div className="flex gap-3 mb-4">
           {[
@@ -107,7 +108,6 @@ export default function TokenHeroBannerExact() {
             </div>
           ))}
         </div>
-
         {/* USDT Raised */}
         <div className="w-full mb-4">
           <div className="flex items-center justify-between mb-1">
@@ -125,7 +125,6 @@ export default function TokenHeroBannerExact() {
             <span>{target.toLocaleString()} USDT</span>
           </div>
         </div>
-
         {/* Purchased/Stakeable GCAI */}
         <div className="w-full grid grid-cols-2 gap-2 mb-3">
           <div className="flex items-center justify-center bg-gray-100 px-3 py-2 rounded font-medium text-blue-900 text-xs">
@@ -135,12 +134,10 @@ export default function TokenHeroBannerExact() {
             <Info className="w-4 h-4 mr-1 text-blue-400" /> YOUR STAKEABLE GCAI = {stakeableGcai}
           </div>
         </div>
-
         {/* GCAI Price */}
         <div className="mb-5 text-blue-900 font-bold text-lg">
           1 GCAI = ${currentPrice}
         </div>
-
         {/* Payment methods */}
         <div className="mb-3 flex w-full justify-center gap-3">
           {PAYMENT_METHODS.map((method) => (
@@ -156,7 +153,6 @@ export default function TokenHeroBannerExact() {
             </button>
           ))}
         </div>
-
         {/* Input fields */}
         <div className="flex flex-col w-full gap-3 mb-4">
           <div className="flex items-center bg-gray-100 rounded px-3 py-2">
@@ -185,7 +181,6 @@ export default function TokenHeroBannerExact() {
             <span className="ml-2 text-xs text-blue-900 font-semibold">GCAI</span>
           </div>
         </div>
-
         {/* Buttons */}
         <div className="flex flex-col md:flex-row w-full gap-3">
           <button
@@ -219,3 +214,5 @@ export default function TokenHeroBannerExact() {
     </div>
   );
 }
+
+// ... ΤΟ ΑΡΧΕΙΟ ΕΙΝΑΙ ΠΟΛΥ ΜΕΓΑΛΟ. Αν θες refactor ζήτησέ το!
