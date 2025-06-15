@@ -1,183 +1,119 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, MapPin, ExternalLink, CheckCircle, Clock, Circle } from 'lucide-react';
 
 export const WhitepaperRoadmapSection = () => {
-  const roadmapItems = [
-    {
-      phase: "Q1 2024",
-      title: "Platform Foundation",
-      status: "completed",
-      items: [
-        "AI coin recognition system",
-        "Error detection algorithms",
-        "Basic marketplace functionality",
-        "User authentication system"
-      ]
-    },
-    {
-      phase: "Q2 2024",
-      title: "Advanced Features",
-      status: "completed",
-      items: [
-        "Enhanced AI accuracy",
-        "Dealer panel integration",
-        "Advanced search filters",
-        "Mobile app optimization"
-      ]
-    },
-    {
-      phase: "Q3 2024",
-      title: "Token Launch",
-      status: "in-progress",
-      items: [
-        "GCAI token deployment",
-        "Token locking system",
-        "Referral program",
-        "Revenue sharing model"
-      ]
-    },
-    {
-      phase: "Q4 2024",
-      title: "Ecosystem Expansion",
-      status: "planned",
-      items: [
-        "Cross-platform integration",
-        "Advanced trading features",
-        "Partnership integrations",
-        "Global marketplace launch"
-      ]
-    }
-  ];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'in-progress':
-        return <Clock className="w-5 h-5 text-yellow-500" />;
-      default:
-        return <Circle className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'border-green-200 bg-green-50';
-      case 'in-progress':
-        return 'border-yellow-200 bg-yellow-50';
-      default:
-        return 'border-gray-200 bg-gray-50';
-    }
-  };
-
   return (
-    <section className="py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-text-primary mb-4">
+    <section className="w-full bg-white py-16 px-4 border-b border-gray-100">
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-10 text-center">
+          <h2 className="text-4xl font-extrabold text-brand-primary mb-3 leading-tight">
             Whitepaper & Roadmap
           </h2>
-          <p className="text-xl text-text-secondary">
-            Learn about our vision and track our progress
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Explore our vision for GCAI and how we are building the future of AI-powered numismatic trading.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Whitepaper Section */}
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-6 h-6 text-brand-primary" />
-                GCAI Whitepaper
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="p-4 bg-brand-primary/10 rounded-lg">
-                  <h3 className="font-semibold text-text-primary mb-2">Technical Overview</h3>
-                  <p className="text-sm text-text-secondary">
-                    Comprehensive documentation of our AI-powered numismatic recognition system, 
-                    tokenomics model, and platform architecture.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-brand-secondary/10 rounded-lg">
-                  <h3 className="font-semibold text-text-primary mb-2">Economic Model</h3>
-                  <p className="text-sm text-text-secondary">
-                    Detailed explanation of token utilities, revenue sharing mechanisms, 
-                    and platform governance structure.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-brand-success/10 rounded-lg">
-                  <h3 className="font-semibold text-text-primary mb-2">AI Technology</h3>
-                  <p className="text-sm text-text-secondary">
-                    In-depth analysis of our machine learning algorithms, error detection 
-                    capabilities, and continuous improvement processes.
-                  </p>
-                </div>
-              </div>
-
-              <Button className="w-full" variant="outline">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Download Whitepaper (Coming Soon)
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Roadmap Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-6 h-6 text-brand-primary" />
-                Development Roadmap
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {roadmapItems.map((item, index) => (
-                  <div key={index} className={`p-4 rounded-lg border-2 ${getStatusColor(item.status)}`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(item.status)}
-                        <h3 className="font-semibold text-text-primary">{item.title}</h3>
-                      </div>
-                      <span className="text-sm font-medium text-text-secondary">{item.phase}</span>
-                    </div>
-                    <ul className="space-y-1">
-                      {item.items.map((subItem, subIndex) => (
-                        <li key={subIndex} className="text-sm text-text-secondary flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-brand-primary rounded-full"></div>
-                          {subItem}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-12 p-6 bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-lg text-center">
-          <h3 className="text-xl font-bold text-text-primary mb-2">Stay Updated</h3>
-          <p className="text-text-secondary mb-4">
-            Follow our progress and get notified about major milestones and token launch updates.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button variant="outline">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Join Discord
-            </Button>
-            <Button variant="outline">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Follow Twitter
-            </Button>
+        </header>
+        {/* Whitepaper Full Section */}
+        <div className="mb-14">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Whitepaper Overview</h3>
+          <div className="prose prose-blue max-w-none">
+            <h4>1. Mission</h4>
+            <p>
+              The GCAI platform harnesses advanced AI to deliver instant, accurate, and accessible coin recognition tools for collectors and traders globally.
+              Our ecosystem uses the GCAI token to align user incentives, platform sustainability, and revenue sharing transparently.
+            </p>
+            <h4>2. Utility & Economics</h4>
+            <ul>
+              <li>Token unlocks premium AI features & marketplace perks</li>
+              <li>Locking GCAI yields platform shares and revenue rewards</li>
+              <li>Dynamic burn and redistribution model for long-term value</li>
+              <li>Community governance & voting</li>
+            </ul>
+            <h4>3. Technology</h4>
+            <p>
+              GCAI's core combines machine learning, visual error detection, and scalable blockchain infrastructure, boasting efficiency for mobile and web.
+            </p>
+            <h4>4. Security</h4>
+            <ul>
+              <li>Full smart contract audits</li>
+              <li>Adaptive anti-fraud detection</li>
+              <li>Open bug bounty program</li>
+            </ul>
           </div>
+        </div>
+        {/* Roadmap Full-Width, Stacked */}
+        <div className="mb-2">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">Roadmap</h3>
+          <ol className="relative border-l border-brand-primary/30">
+            <li className="mb-12 ml-6">
+              <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-lg shadow">
+                Q1
+              </span>
+              <div className="pl-3">
+                <h4 className="text-lg font-semibold text-brand-primary">Platform Foundation</h4>
+                <ul className="list-disc pl-4 text-gray-700 text-base">
+                  <li>AI coin recognition system</li>
+                  <li>Basic marketplace</li>
+                  <li>Error detection algorithms</li>
+                  <li>User authentication</li>
+                </ul>
+              </div>
+            </li>
+            <li className="mb-12 ml-6">
+              <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-lg shadow">
+                Q2
+              </span>
+              <div className="pl-3">
+                <h4 className="text-lg font-semibold text-brand-primary">Advanced Features</h4>
+                <ul className="list-disc pl-4 text-gray-700 text-base">
+                  <li>Dealer panel</li>
+                  <li>Enhanced AI accuracy</li>
+                  <li>Marketplace mobile optimization</li>
+                  <li>Advanced search & filters</li>
+                </ul>
+              </div>
+            </li>
+            <li className="mb-12 ml-6">
+              <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-lg shadow">
+                Q3
+              </span>
+              <div className="pl-3">
+                <h4 className="text-lg font-semibold text-brand-primary">Token Launch</h4>
+                <ul className="list-disc pl-4 text-gray-700 text-base">
+                  <li>GCAI token deployment</li>
+                  <li>Token locking & rewards</li>
+                  <li>Referral program</li>
+                  <li>Revenue sharing model</li>
+                </ul>
+              </div>
+            </li>
+            <li className="ml-6">
+              <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-lg shadow">
+                Q4
+              </span>
+              <div className="pl-3">
+                <h4 className="text-lg font-semibold text-brand-primary">Ecosystem Expansion</h4>
+                <ul className="list-disc pl-4 text-gray-700 text-base">
+                  <li>Cross-platform integrations</li>
+                  <li>Global growth & trading features</li>
+                  <li>New partnerships</li>
+                  <li>Advanced AI tools</li>
+                </ul>
+              </div>
+            </li>
+          </ol>
+        </div>
+        <div className="mt-12 text-center">
+          <p className="text-gray-500 text-base mb-2">
+            Have questions? Read our full whitepaper (coming soon).
+          </p>
+          <a
+            href="#"
+            className="inline-block text-brand-primary font-semibold hover:underline"
+            aria-disabled
+          >
+            Download Whitepaper (PDF)
+          </a>
         </div>
       </div>
     </section>

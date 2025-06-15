@@ -1,208 +1,109 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { useTokenInfo } from '@/hooks/useTokenInfo';
-import { useTokenLocks } from '@/hooks/useTokenLocks';
-import { Loader2 } from 'lucide-react';
-
-const COLORS = ['#007AFF', '#5856D6', '#34C759', '#FF9500', '#FF3B30'];
 
 export const TokenomicsSection = () => {
-  const { data: tokenInfo, isLoading: tokenLoading } = useTokenInfo();
-  const { data: tokenLocks, isLoading: locksLoading } = useTokenLocks();
-
-  const isLoading = tokenLoading || locksLoading;
-
-  // Calculate real distribution data when token exists
-  const getDistributionData = () => {
-    if (!tokenInfo?.total_supply) {
-      return [
-        { name: 'Public Sale', value: 40, amount: 'TBD' },
-        { name: 'Team & Advisors', value: 20, amount: 'TBD' },
-        { name: 'Development', value: 15, amount: 'TBD' },
-        { name: 'Marketing', value: 15, amount: 'TBD' },
-        { name: 'Liquidity', value: 10, amount: 'TBD' },
-      ];
-    }
-
-    const totalSupply = tokenInfo.total_supply;
-    return [
-      { name: 'Public Sale', value: 40, amount: (totalSupply * 0.4).toLocaleString() },
-      { name: 'Team & Advisors', value: 20, amount: (totalSupply * 0.2).toLocaleString() },
-      { name: 'Development', value: 15, amount: (totalSupply * 0.15).toLocaleString() },
-      { name: 'Marketing', value: 15, amount: (totalSupply * 0.15).toLocaleString() },
-      { name: 'Liquidity', value: 10, amount: (totalSupply * 0.1).toLocaleString() },
-    ];
-  };
-
-  // Calculate real locking data from actual locks
-  const getLockingData = () => {
-    const lockPeriods = [
-      { period: '3M', apy: 15, periodMonths: 3 },
-      { period: '6M', apy: 25, periodMonths: 6 },
-      { period: '12M', apy: 40, periodMonths: 12 },
-      { period: '18M', apy: 55, periodMonths: 18 },
-      { period: '24M', apy: 70, periodMonths: 24 },
-      { period: '36M', apy: 100, periodMonths: 36 },
-    ];
-
-    return lockPeriods.map(period => {
-      let lockedAmount = 0;
-      
-      if (tokenLocks && Array.isArray(tokenLocks)) {
-        lockedAmount = tokenLocks
-          .filter(lock => {
-            // Safely access duration_months property
-            const duration = lock?.duration_months || (lock as any)?.lock_options?.duration_months;
-            return duration === period.periodMonths;
-          })
-          .reduce((sum, lock) => sum + (Number(lock?.amount) || 0), 0);
-      }
-
-      return {
-        ...period,
-        locked: lockedAmount
-      };
-    });
-  };
-
-  const pieData = getDistributionData();
-  const lockingData = getLockingData();
-
-  if (isLoading) {
-    return (
-      <section className="py-16 px-4 bg-bg-secondary">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-text-primary mb-4">
-              GCAI Tokenomics
-            </h2>
-            <div className="flex justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const totalLocked = tokenLocks?.reduce((sum, lock) => sum + (Number(lock?.amount) || 0), 0) || 0;
-
   return (
-    <section className="py-16 px-4 bg-bg-secondary">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-text-primary mb-4">
-            GCAI Tokenomics
+    <section className="w-full bg-bg-secondary py-16 px-4 border-b border-gray-100">
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-10 text-center">
+          <h2 className="text-4xl font-extrabold text-brand-primary mb-3 leading-tight">
+            Tokenomics
           </h2>
-          <p className="text-xl text-text-secondary">
-            {tokenInfo ? "Live token distribution and locking statistics" : "Planned token distribution and locking rewards"}
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Deep dive into the GCAI supply, economics, bonus schedules and utility.
           </p>
+        </header>
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Supply Breakdown</h3>
+          <ul className="grid grid-cols-2 md:grid-cols-3 gap-6 text-lg text-gray-800">
+            <li>
+              <span className="font-bold text-brand-primary">40%</span> Public Sale
+            </li>
+            <li>
+              <span className="font-bold text-brand-primary">20%</span> Team & Advisors (vested)
+            </li>
+            <li>
+              <span className="font-bold text-brand-primary">15%</span> Development
+            </li>
+            <li>
+              <span className="font-bold text-brand-primary">15%</span> Marketing
+            </li>
+            <li>
+              <span className="font-bold text-brand-primary">10%</span> Liquidity
+            </li>
+          </ul>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Token Distribution Pie Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Token Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name) => [
-                    `${value}%`, 
-                    `${name}: ${pieData.find(d => d.name === name)?.amount} GCAI`
-                  ]} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Locking APY Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Lock Duration Rewards & Current Locks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={lockingData}>
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <Tooltip formatter={(value, name) => [
-                    name === 'apy' ? `${value}%` : `${value} GCAI`,
-                    name === 'apy' ? 'Reward %' : 'Currently Locked'
-                  ]} />
-                  <Bar dataKey="apy" fill="#007AFF" name="apy" />
-                  <Bar dataKey="locked" fill="#34C759" name="locked" />
-                  <Legend />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Bonus Locking Schedule</h3>
+          <table className="w-full text-left border rounded-lg overflow-hidden text-base">
+            <thead className="bg-brand-primary/10">
+              <tr>
+                <th className="px-4 py-2">Lock Period</th>
+                <th className="px-4 py-2">APY Bonus</th>
+                <th className="px-4 py-2">Vesting</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-gray-100">
+                <td className="px-4 py-2">3 Months</td>
+                <td className="px-4 py-2 font-bold text-brand-success">+15%</td>
+                <td className="px-4 py-2">No</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2">6 Months</td>
+                <td className="px-4 py-2 font-bold text-brand-success">+25%</td>
+                <td className="px-4 py-2">No</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2">12 Months</td>
+                <td className="px-4 py-2 font-bold text-brand-success">+40%</td>
+                <td className="px-4 py-2">No</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2">18 Months</td>
+                <td className="px-4 py-2 font-bold text-brand-success">+55%</td>
+                <td className="px-4 py-2">Yes</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2">24 Months</td>
+                <td className="px-4 py-2 font-bold text-brand-success">+70%</td>
+                <td className="px-4 py-2">Yes</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2">36 Months</td>
+                <td className="px-4 py-2 font-bold text-brand-success">+100%</td>
+                <td className="px-4 py-2">Yes</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        {/* Token Details */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-text-primary">
-                {tokenInfo?.total_supply?.toLocaleString() || 'TBD'}
-              </div>
-              <div className="text-text-secondary">Total Supply</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-text-primary">
-                {tokenInfo?.circulating_supply?.toLocaleString() || '0'}
-              </div>
-              <div className="text-text-secondary">Circulating</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-text-primary">
-                {totalLocked.toLocaleString()}
-              </div>
-              <div className="text-text-secondary">Total Locked</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-text-primary">
-                {tokenInfo?.circulating_supply && tokenInfo?.current_price_usd 
-                  ? `$${(tokenInfo.circulating_supply * tokenInfo.current_price_usd).toLocaleString()}`
-                  : 'Not Available'}
-              </div>
-              <div className="text-text-secondary">Market Cap</div>
-            </CardContent>
-          </Card>
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Utility</h3>
+          <ul className="list-disc pl-6 text-lg text-gray-700">
+            <li>Power premium features and AI recognition on the platform</li>
+            <li>Lock tokens to receive platform shares and revenue</li>
+            <li>Participate in governance and roadmaps</li>
+            <li>Referral & rewards system for users</li>
+            <li>Discounted marketplace fees with GCAI</li>
+          </ul>
         </div>
-
-        {!tokenInfo && (
-          <div className="mt-8 p-4 bg-brand-warning/10 border border-brand-warning/20 rounded-lg text-center">
-            <p className="text-brand-warning font-semibold">
-              Live tokenomics data will be available when the GCAI token is deployed.
-            </p>
-          </div>
-        )}
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Burn & Vesting</h3>
+          <ul className="list-disc pl-6 text-lg text-gray-700">
+            <li>Dynamic burn for every platform use—sustains upward price action</li>
+            <li>Team & advisor tokens released linearly over 24 months post-launch</li>
+            <li>Liquidity pool locked for minimum 12 months</li>
+            <li>All unsold tokens after presale: burned</li>
+          </ul>
+        </div>
+        <div className="mb-2">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Vesting & Security</h3>
+          <ul className="list-disc pl-6 text-lg text-gray-700">
+            <li>Vesting contract: public, auditable, irreversibly locked</li>
+            <li>All bonus APYs tied strictly to lock duration & staking contract</li>
+            <li>Strict anti-whale/anti-bot launch policy</li>
+          </ul>
+        </div>
       </div>
     </section>
   );
