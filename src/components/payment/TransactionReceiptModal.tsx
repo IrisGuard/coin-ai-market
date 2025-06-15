@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Download, Print, Mail } from 'lucide-react';
+import { Download, Printer, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TransactionReceiptModalProps {
@@ -248,7 +247,7 @@ Thank you for your purchase with CoinVision!`;
             </Button>
             
             <Button onClick={printReceipt} variant="outline" className="flex items-center gap-2">
-              <Print className="h-4 w-4" />
+              <Printer className="h-4 w-4" />
               Print Receipt
             </Button>
             

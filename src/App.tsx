@@ -7,12 +7,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
-import Category from "./pages/Category";
+import CategoryPage from "./pages/CategoryPage";
 import CoinDetails from "./pages/CoinDetails";
 import Dashboard from "./pages/Dashboard";
-import AdminPanel from "./pages/AdminPanel";
-import DealerPanel from "./pages/DealerPanel";
-import Analysis from "./pages/Analysis";
+import AdminPanelPage from "./pages/AdminPanelPage";
+import DealerPage from "./pages/DealerPage";
+import DualAnalysis from "./pages/DualAnalysis";
 import Auth from "./pages/Auth";
 import Auctions from "./pages/Auctions";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -31,10 +31,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/category/:categoryName" element={<Category />} />
+            <Route path="/category/:category" element={<CategoryPage />} />
             <Route path="/coin/:id" element={<CoinDetails />} />
             <Route path="/auctions" element={<Auctions />} />
-            <Route path="/analysis" element={<Analysis />} />
+            <Route path="/analysis" element={<DualAnalysis />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/payment-success/:transactionId?" element={<PaymentSuccess />} />
             <Route path="/payment-failure/:transactionId?" element={<PaymentFailure />} />
@@ -49,16 +49,16 @@ const App = () => (
             <Route
               path="/admin"
               element={
-                <ProtectedRoute adminRequired>
-                  <AdminPanel />
+                <ProtectedRoute requireAdmin>
+                  <AdminPanelPage />
                 </ProtectedRoute>
               }
             />
             <Route
               path="/dealer"
               element={
-                <ProtectedRoute dealerRequired>
-                  <DealerPanel />
+                <ProtectedRoute requireDealer>
+                  <DealerPage />
                 </ProtectedRoute>
               }
             />
