@@ -1,105 +1,123 @@
 
 import * as React from "react";
-import { Pie, PieChart, Sector } from "recharts";
-import { PieSectorDataItem } from "recharts/types/polar/Pie";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { Pie, PieChart, Sector, Cell, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const chartData = [
-  { name: "Public Sale", value: 40, fill: "var(--color-publicSale)" },
-  { name: "Team & Advisors", value: 20, fill: "var(--color-team)" },
-  { name: "Ecosystem & Dev", value: 20, fill: "var(--color-ecosystem)" },
-  { name: "Marketing", value: 10, fill: "var(--color-marketing)" },
-  { name: "Liquidity/Rewards", value: 10, fill: "var(--color-liquidity)" },
+  { name: "Public Sale", value: 40 },
+  { name: "Team & Advisors", value: 20 },
+  { name: "Ecosystem & Dev", value: 20 },
+  { name: "Marketing", value: 10 },
+  { name: "Liquidity/Rewards", value: 10 },
 ];
 
-const chartConfig = {
-  value: {
-    label: "GCAI",
+// Define unique gradient ids & colors for each slice
+const chartGradients = [
+  {
+    id: "pie-gcai-sky",
+    stops: [
+      { offset: "0%", color: "#38bdf8" },
+      { offset: "60%", color: "#818cf8" },
+      { offset: "100%", color: "#22d3ee" }
+    ],
   },
-  publicSale: {
-    label: "Public Sale",
-    color: "hsl(var(--chart-1))",
+  {
+    id: "pie-gcai-purple",
+    stops: [
+      { offset: "0%", color: "#c026d3" },
+      { offset: "60%", color: "#e879f9" },
+      { offset: "100%", color: "#7c3aed" }
+    ],
   },
-  team: {
-    label: "Team & Advisors",
-    color: "hsl(var(--chart-2))",
+  {
+    id: "pie-gcai-green",
+    stops: [
+      { offset: "0%", color: "#10b981" },
+      { offset: "60%", color: "#a7f3d0" },
+      { offset: "100%", color: "#22d3ee" }
+    ],
   },
-  ecosystem: {
-    label: "Ecosystem & Dev",
-    color: "hsl(var(--chart-3))",
+  {
+    id: "pie-gcai-pink",
+    stops: [
+      { offset: "0%", color: "#f472b6" },
+      { offset: "80%", color: "#f9a8d4" },
+      { offset: "100%", color: "#818cf8" }
+    ],
   },
-  marketing: {
-    label: "Marketing",
-    color: "hsl(var(--chart-4))",
-  },
-  liquidity: {
-    label: "Liquidity/Rewards",
-    color: "hsl(var(--chart-5))",
-  },
-};
+  {
+    id: "pie-gcai-orange",
+    stops: [
+      { offset: "0%", color: "#fbbf24" },
+      { offset: "100%", color: "#ec4899" }
+    ],
+  }
+];
 
 export function SupplyChart() {
+  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+
   return (
     <ChartContainer
-      config={chartConfig}
-      className="mx-auto aspect-square max-h-[300px]"
+      config={{}}
+      className="rounded-2xl bg-white/95 dark:bg-white/80 shadow-xl border border-blue-100/80 glass-card mx-auto aspect-square max-w-xs md:max-w-[330px] p-2 flex items-center justify-center animate-fade-in"
     >
-      <PieChart>
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent hideLabel />}
-        />
-        <Pie
-          data={chartData}
-          dataKey="value"
-          nameKey="name"
-          innerRadius={60}
-          strokeWidth={5}
-          activeIndex={0}
-          activeShape={(props: PieSectorDataItem) => {
-              const {
-                cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, percent, name
-              } = props;
-              const RADIAN = Math.PI / 180;
-              const sin = Math.sin(-RADIAN * props.midAngle);
-              const cos = Math.cos(-RADIAN * props.midAngle);
-              const sx = cx + (outerRadius + 10) * cos;
-              const sy = cy + (outerRadius + 10) * sin;
-              const mx = cx + (outerRadius + 30) * cos;
-              const my = cy + (outerRadius + 30) * sin;
-              const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-              const ey = my;
-              const textAnchor = cos >= 0 ? 'start' : 'end';
-
-              return (
-                <g>
-                  <Sector
-                    cx={cx}
-                    cy={cy}
-                    innerRadius={innerRadius}
-                    outerRadius={outerRadius}
-                    startAngle={startAngle}
-                    endAngle={endAngle}
-                    fill={fill}
-                    className="stroke-border"
-                  />
-                  <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-                  <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-                  <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))" className="text-sm">{`${name}`}</text>
-                  <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))" className="text-xs">
-                    {`(${(percent * 100).toFixed(0)}%)`}
-                  </text>
-                </g>
-              );
-            }}
-        />
-      </PieChart>
+      <ResponsiveContainer width="100%" height={245}>
+        <PieChart>
+          <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            innerRadius={72}
+            outerRadius={100}
+            strokeWidth={5}
+            onMouseEnter={(_, idx) => setActiveIndex(idx)}
+            onMouseLeave={() => setActiveIndex(null)}
+            isAnimationActive
+          >
+            {chartData.map((_, i) => (
+              <Cell
+                key={chartGradients[i].id}
+                fill={`url(#${chartGradients[i].id})`}
+                style={{
+                  filter:
+                    activeIndex === i
+                      ? "drop-shadow(0 0 12px #3b82f6af) brightness(1.14)"
+                      : undefined,
+                  transition: "filter .28s"
+                }}
+              />
+            ))}
+            {/* Gradients for each pie slice */}
+            <defs>
+              {chartGradients.map(g =>
+                <linearGradient id={g.id} key={g.id} x1="0" y1="1" x2="1" y2="0">
+                  {g.stops.map((s, i) => (
+                    <stop key={i} offset={s.offset} stopColor={s.color} />
+                  ))}
+                </linearGradient>
+              )}
+            </defs>
+          </Pie>
+          {/* Animated big percentage in center when hovering */}
+          {activeIndex !== null && (
+            <text
+              x="50%" y="50%" strokeWidth={0}
+              dominantBaseline="middle"
+              textAnchor="middle"
+              className="font-bold pointer-events-none select-none"
+              fill="url(#pie-gcai-sky)"
+              style={{ fontSize: "2rem" }}
+            >
+              {chartData[activeIndex].value}%
+            </text>
+          )}
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="mt-2 text-center font-semibold text-md bg-gradient-to-r from-sky-500 via-electric-purple to-emerald-400 bg-clip-text text-transparent drop-shadow animate-glow">
+        Supply Allocation
+      </div>
     </ChartContainer>
   );
 }
