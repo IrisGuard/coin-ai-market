@@ -2013,6 +2013,36 @@ export type Database = {
         }
         Relationships: []
       }
+      lock_options: {
+        Row: {
+          benefit_percentage: number
+          display_order: number | null
+          duration_months: number
+          id: string
+          is_active: boolean | null
+          is_maximum: boolean | null
+          is_popular: boolean | null
+        }
+        Insert: {
+          benefit_percentage: number
+          display_order?: number | null
+          duration_months: number
+          id?: string
+          is_active?: boolean | null
+          is_maximum?: boolean | null
+          is_popular?: boolean | null
+        }
+        Update: {
+          benefit_percentage?: number
+          display_order?: number | null
+          duration_months?: number
+          id?: string
+          is_active?: boolean | null
+          is_maximum?: boolean | null
+          is_popular?: boolean | null
+        }
+        Relationships: []
+      }
       market_analysis_results: {
         Row: {
           analysis_id: string | null
@@ -2733,6 +2763,42 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          total_earned: number | null
+          total_referrals: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          total_earned?: number | null
+          total_referrals?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          total_earned?: number | null
+          total_referrals?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       revenue_forecasts: {
         Row: {
           confidence_score: number | null
@@ -3338,6 +3404,108 @@ export type Database = {
         }
         Relationships: []
       }
+      token_activity: {
+        Row: {
+          activity_type: string
+          amount: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      token_info: {
+        Row: {
+          circulating_supply: number
+          current_price_usd: number
+          id: string
+          sol_rate: number
+          total_supply: number
+          treasury_address: string
+          updated_at: string | null
+          usdc_rate: number
+        }
+        Insert: {
+          circulating_supply?: number
+          current_price_usd?: number
+          id?: string
+          sol_rate?: number
+          total_supply?: number
+          treasury_address: string
+          updated_at?: string | null
+          usdc_rate?: number
+        }
+        Update: {
+          circulating_supply?: number
+          current_price_usd?: number
+          id?: string
+          sol_rate?: number
+          total_supply?: number
+          treasury_address?: string
+          updated_at?: string | null
+          usdc_rate?: number
+        }
+        Relationships: []
+      }
+      token_locks: {
+        Row: {
+          amount: number
+          benefit_percentage: number | null
+          created_at: string | null
+          duration_months: number
+          id: string
+          lock_date: string
+          status: string
+          unlock_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          benefit_percentage?: number | null
+          created_at?: string | null
+          duration_months: number
+          id?: string
+          lock_date?: string
+          status?: string
+          unlock_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          benefit_percentage?: number | null
+          created_at?: string | null
+          duration_months?: number
+          id?: string
+          lock_date?: string
+          status?: string
+          unlock_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -3764,6 +3932,36 @@ export type Database = {
           name?: string
           success_rate?: number | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      wallet_balances: {
+        Row: {
+          created_at: string | null
+          gcai_balance: number
+          id: string
+          last_updated: string | null
+          locked_balance: number
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          gcai_balance?: number
+          id?: string
+          last_updated?: string | null
+          locked_balance?: number
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          gcai_balance?: number
+          id?: string
+          last_updated?: string | null
+          locked_balance?: number
+          user_id?: string
+          wallet_address?: string
         }
         Relationships: []
       }
