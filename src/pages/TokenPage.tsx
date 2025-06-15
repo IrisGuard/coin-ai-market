@@ -6,7 +6,7 @@ import { WhitepaperSection } from '@/components/token/WhitepaperSection';
 import { RoadmapSection } from '@/components/token/RoadmapSection';
 import { TokenomicsSection } from '@/components/token/TokenomicsSection';
 import { TokenFAQSection } from '@/components/token/TokenFAQSection';
-import { UserDashboard } from '@/components/token/UserDashboard';
+import { TokenLocking } from '@/components/token/TokenLocking';
 
 const TokenPage = () => {
   return (
@@ -15,8 +15,12 @@ const TokenPage = () => {
       <main className="pt-20 flex flex-col gap-0">
         {/* Hero Banner */}
         <TokenHeroBannerExact />
-        {/* User Dashboard */}
-        <UserDashboard />
+        {/* Token Locking Section */}
+        <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-slate-50">
+          <div className="max-w-4xl w-full">
+            <TokenLocking />
+          </div>
+        </section>
         {/* Whitepaper in box-style */}
         <WhitepaperSection />
         {/* Roadmap in box-style */}
