@@ -141,8 +141,8 @@ export const useEnhancedTransakPayment = () => {
     if (!user) return [];
 
     try {
-      // Use a raw query to avoid type inference issues
-      const { data, error } = await supabase.rpc('get_user_subscriptions', {
+      // Use RPC function with proper typing
+      const { data, error } = await (supabase as any).rpc('get_user_subscriptions', {
         p_user_id: user.id
       });
 
@@ -160,8 +160,8 @@ export const useEnhancedTransakPayment = () => {
 
   const getAvailableSubscriptionPlans = useCallback(async (): Promise<SubscriptionPlan[]> => {
     try {
-      // Use a raw query to avoid type inference issues
-      const { data, error } = await supabase.rpc('get_subscription_plans');
+      // Use RPC function with proper typing
+      const { data, error } = await (supabase as any).rpc('get_subscription_plans');
 
       if (error) {
         console.error('Error fetching subscription plans:', error);
@@ -179,7 +179,7 @@ export const useEnhancedTransakPayment = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase.rpc('cancel_user_subscription', {
+      const { error } = await (supabase as any).rpc('cancel_user_subscription', {
         p_subscription_id: subscriptionId,
         p_user_id: user.id
       });

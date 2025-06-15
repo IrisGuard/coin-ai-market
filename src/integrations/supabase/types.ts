@@ -3875,6 +3875,10 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_user_subscription: {
+        Args: { p_subscription_id: string; p_user_id: string }
+        Returns: undefined
+      }
       check_optimization_performance: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3989,6 +3993,18 @@ export type Database = {
         Args: { store_uuid: string }
         Returns: number
       }
+      get_subscription_plans: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          price: number
+          currency: string
+          features: string[]
+          duration_days: number
+          popular: boolean
+        }[]
+      }
       get_system_performance_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4004,6 +4020,18 @@ export type Database = {
       get_user_role: {
         Args: { user_uuid?: string }
         Returns: string
+      }
+      get_user_subscriptions: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          user_id: string
+          plan_name: string
+          status: string
+          expires_at: string
+          cancelled_at: string
+          created_at: string
+        }[]
       }
       has_role: {
         Args: {
