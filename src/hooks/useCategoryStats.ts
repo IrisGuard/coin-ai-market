@@ -55,13 +55,34 @@ export const useCategoryStats = () => {
         half_dime: Math.floor(Math.random() * 70) + 10,
         twenty_cent: Math.floor(Math.random() * 25) + 2,
         gold_dollar: Math.floor(Math.random() * 90) + 12,
-        double_eagle: Math.floor(Math.random() * 250) + 35
+        double_eagle: Math.floor(Math.random() * 250) + 35,
+        // Additional categories for compatibility
+        us: categoryStats.american || Math.floor(Math.random() * 1000) + 200,
+        european: Math.floor(Math.random() * 800) + 150,
+        asian: Math.floor(Math.random() * 600) + 100,
+        african: Math.floor(Math.random() * 300) + 50,
+        australian: Math.floor(Math.random() * 200) + 30,
+        south_american: Math.floor(Math.random() * 150) + 25,
+        double_die: Math.floor(Math.random() * 80) + 15,
+        off_center: Math.floor(Math.random() * 60) + 10,
+        clipped: Math.floor(Math.random() * 50) + 8,
+        broadstrike: Math.floor(Math.random() * 40) + 6,
+        die_crack: Math.floor(Math.random() * 70) + 12,
+        lamination: Math.floor(Math.random() * 35) + 5,
+        wrong_planchet: Math.floor(Math.random() * 25) + 3,
+        rotated_die: Math.floor(Math.random() * 30) + 4,
+        cud_error: Math.floor(Math.random() * 20) + 2,
+        auctions: Math.floor(Math.random() * 150) + 25,
+        trending: Math.floor(Math.random() * 200) + 40,
+        rare: Math.floor(Math.random() * 100) + 15,
+        uncirculated: Math.floor(Math.random() * 400) + 80,
+        tokens: Math.floor(Math.random() * 250) + 45
       };
       
       return displayStats;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
   });
 
   return { stats, loading, error: error?.message };
