@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useDealerStoreInfo } from './useDealerStoreInfo';
 
 export const useCoinDetails = (id: string) => {
   const [bidAmount, setBidAmount] = useState('');
@@ -28,6 +30,9 @@ export const useCoinDetails = (id: string) => {
     },
     enabled: !!id
   });
+
+  // Get dealer store info for the coin owner
+  const { data: dealerStore } = useDealerStoreInfo(coin?.user_id || '');
 
   const { data: bidsData } = useQuery({
     queryKey: ['coin-bids', id],
@@ -158,6 +163,7 @@ export const useCoinDetails = (id: string) => {
     }
   });
 
+  // Simplified purchase handler - just creates a basic transaction record
   const purchaseMutation = useMutation({
     mutationFn: async () => {
       const { data: user } = await supabase.auth.getUser();
@@ -169,7 +175,9 @@ export const useCoinDetails = (id: string) => {
           user_id: user.user.id,
           coin_id: id,
           amount: coin?.price || 0,
-          status: 'pending'
+          currency: 'USD',
+          status: 'pending',
+          order_type: 'coin_purchase'
         });
       
       if (error) throw error;
@@ -184,6 +192,7 @@ export const useCoinDetails = (id: string) => {
 
   return {
     coin,
+    dealerStore,
     isLoading,
     error,
     bidsData: bidsData || [],

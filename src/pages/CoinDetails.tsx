@@ -13,6 +13,7 @@ const CoinDetails = () => {
   
   const {
     coin,
+    dealerStore,
     isLoading,
     error,
     bidsData,
@@ -48,6 +49,7 @@ const CoinDetails = () => {
       <div className="pt-20 pb-12">
         <CoinDetailsContent
           coin={coin}
+          dealerStore={dealerStore}
           bidsData={bidsData || []}
           relatedCoins={relatedCoins || []}
           isFavorited={isFavorited}

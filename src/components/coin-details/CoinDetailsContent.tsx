@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
 import RelatedCoins from './RelatedCoins';
-import { useDealerStoreInfo } from '@/hooks/useDealerStoreInfo';
 
 interface CoinDetailsContentProps {
   coin: {
@@ -30,6 +30,16 @@ interface CoinDetailsContentProps {
       verified_dealer?: boolean;
     };
   };
+  dealerStore?: {
+    name: string;
+    solana_wallet_address?: string;
+    ethereum_wallet_address?: string;
+    bitcoin_wallet_address?: string;
+    usdc_wallet_address?: string;
+    bank_name?: string;
+    iban?: string;
+    swift_bic?: string;
+  } | null;
   bidsData: Array<{
     id: string;
     amount: number;
@@ -60,6 +70,7 @@ interface CoinDetailsContentProps {
 
 const CoinDetailsContent = ({
   coin,
+  dealerStore,
   bidsData,
   relatedCoins,
   isFavorited,
@@ -72,8 +83,6 @@ const CoinDetailsContent = ({
   onBid,
   isOwner
 }: CoinDetailsContentProps) => {
-  const { data: dealerStore } = useDealerStoreInfo(coin.user_id);
-  
   const highestBid = bidsData && bidsData.length > 0 
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
@@ -196,7 +205,7 @@ const CoinDetailsContent = ({
         </div>
       )}
 
-      {/* Related Coins - Fixed prop name */}
+      {/* Related Coins */}
       {relatedCoins && relatedCoins.length > 0 && (
         <div className="mt-12">
           <RelatedCoins relatedCoins={relatedCoins} />
