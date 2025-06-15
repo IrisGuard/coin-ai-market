@@ -1,10 +1,38 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Line, LineChart, Area, AreaChart, Bar, BarChart, Pie, PieChart, Cell, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
 import { useRealAnalyticsData } from '@/hooks/useRealAnalyticsData';
 import { useRealCategoryDistribution } from '@/hooks/useRealCategoryDistribution';
+
+const chartConfig = {
+  users: {
+    label: "Total Users",
+    color: "#8884d8",
+  },
+  newUsers: {
+    label: "New Users", 
+    color: "#82ca9d",
+  },
+  revenue: {
+    label: "Revenue",
+    color: "#8884d8",
+  },
+  transactions: {
+    label: "Transactions",
+    color: "#82ca9d",
+  },
+  response: {
+    label: "Response Time (ms)",
+    color: "#8884d8",
+  },
+  errors: {
+    label: "Error Count",
+    color: "#ff7300",
+  },
+};
 
 const AdvancedAdminCharts = () => {
   const { data: analyticsData, isLoading: analyticsLoading } = useRealAnalyticsData();
@@ -38,13 +66,13 @@ const AdvancedAdminCharts = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer config={chartConfig} className="h-[300px]">
               <AreaChart data={analyticsData?.userGrowth || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
-                <Legend />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
                 <Area 
                   type="monotone" 
                   dataKey="users" 
@@ -52,7 +80,6 @@ const AdvancedAdminCharts = () => {
                   stroke="#8884d8" 
                   fill="#8884d8" 
                   fillOpacity={0.6}
-                  name="Total Users"
                 />
                 <Area 
                   type="monotone" 
@@ -61,10 +88,9 @@ const AdvancedAdminCharts = () => {
                   stroke="#82ca9d" 
                   fill="#82ca9d" 
                   fillOpacity={0.6}
-                  name="New Users"
                 />
               </AreaChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -76,30 +102,30 @@ const AdvancedAdminCharts = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer config={chartConfig} className="h-[300px]">
               <LineChart data={analyticsData?.revenue || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value, name) => [`$${value}`, name]} />
-                <Legend />
+                <ChartTooltip 
+                  content={<ChartTooltipContent formatter={(value, name) => [`$${value}`, name]} />} 
+                />
+                <ChartLegend content={<ChartLegendContent />} />
                 <Line 
                   type="monotone" 
                   dataKey="revenue" 
                   stroke="#8884d8" 
                   strokeWidth={3}
                   dot={{ fill: '#8884d8', strokeWidth: 2, r: 6 }}
-                  name="Revenue"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="transactions" 
                   stroke="#82ca9d" 
                   strokeWidth={2}
-                  name="Transactions"
                 />
               </LineChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
@@ -114,7 +140,7 @@ const AdvancedAdminCharts = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer config={chartConfig} className="h-[300px]">
               <PieChart>
                 <Pie
                   data={categoryData || []}
@@ -130,9 +156,9 @@ const AdvancedAdminCharts = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <ChartTooltip content={<ChartTooltipContent />} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -144,17 +170,17 @@ const AdvancedAdminCharts = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer config={chartConfig} className="h-[300px]">
               <BarChart data={analyticsData?.performance || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="time" />
                 <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="response" fill="#8884d8" name="Response Time (ms)" />
-                <Bar dataKey="errors" fill="#ff7300" name="Error Count" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar dataKey="response" fill="#8884d8" />
+                <Bar dataKey="errors" fill="#ff7300" />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
