@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,9 @@ import { TokenManagementDashboard } from '../token/TokenManagementDashboard';
 import { TokenLocksManagement } from '../token/TokenLocksManagement';
 import { ReferralManagement } from '../token/ReferralManagement';
 import { LiveTokenActivity } from '../token/LiveTokenActivity';
+import { ActiveLocksSection } from '@/components/token/ActiveLocksSection';
+import { ReferralSection } from '@/components/token/ReferralSection';
+import { TokenomicsSection } from '@/components/token/TokenomicsSection';
 
 const AdminGCAITokenTab = () => {
   const [activeSubTab, setActiveSubTab] = useState('overview');
@@ -35,7 +39,7 @@ const AdminGCAITokenTab = () => {
 
       {/* Admin Sub-Tabs */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Overview
@@ -56,6 +60,10 @@ const AdminGCAITokenTab = () => {
             <Activity className="w-4 h-4" />
             Live Activity
           </TabsTrigger>
+          <TabsTrigger value="tokenomics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Tokenomics
+          </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
             Security
@@ -70,21 +78,32 @@ const AdminGCAITokenTab = () => {
           <TokenManagementDashboard />
         </TabsContent>
 
-        <TabsContent value="locks">
+        <TabsContent value="locks" className="space-y-6">
           <TokenLocksManagement />
+          <div className="mt-8">
+            <h3 className="text-xl font-bold mb-4">User Lock Tracking</h3>
+            <ActiveLocksSection />
+          </div>
         </TabsContent>
 
-        <TabsContent value="referrals">
+        <TabsContent value="referrals" className="space-y-6">
           <ReferralManagement />
+          <div className="mt-8">
+            <h3 className="text-xl font-bold mb-4">User Referral Interface</h3>
+            <ReferralSection />
+          </div>
         </TabsContent>
 
         <TabsContent value="activity">
           <LiveTokenActivity />
         </TabsContent>
 
+        <TabsContent value="tokenomics" className="space-y-6">
+          <TokenomicsSection />
+        </TabsContent>
+
         <TabsContent value="security" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Security metrics and controls will be implemented here */}
             <div className="text-center py-8">
               <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Security monitoring dashboard</p>

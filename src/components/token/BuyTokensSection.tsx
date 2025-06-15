@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,10 +29,9 @@ export const BuyTokensSection = () => {
     }
   };
 
-  const handleTransakPurchase = () => {
+  const handleCardPurchase = () => {
     if (isTokenDeployed) {
-      // Here you would integrate with actual Transak
-      toast.info('Transak purchase integration will be activated shortly.');
+      toast.info('Card purchase integration will be activated shortly.');
     } else {
       toast.info('Token purchase will be available when crypto token is deployed.');
     }
@@ -47,13 +46,13 @@ export const BuyTokensSection = () => {
           </h2>
           <p className="text-xl text-text-secondary">
             {isTokenDeployed 
-              ? "Purchase GCAI tokens using USDC, SOL, or bank transfer through Transak"
+              ? "Purchase GCAI tokens using USDC, SOL, or bank transfer"
               : "Token purchase will be available when the GCAI token is deployed"}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Transak Integration */}
+          {/* Card/Bank Transfer Purchase */}
           <Card className={!isTokenDeployed ? 'opacity-60' : ''}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -97,17 +96,17 @@ export const BuyTokensSection = () => {
               </div>
 
               <Button 
-                onClick={handleTransakPurchase}
+                onClick={handleCardPurchase}
                 className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
                 size="lg"
                 disabled={!isTokenDeployed}
               >
                 <ExternalLink className="w-5 h-5 mr-2" />
-                {isTokenDeployed ? 'Buy with Transak' : 'Coming Soon'}
+                {isTokenDeployed ? 'Buy with Card' : 'Coming Soon'}
               </Button>
               
               <div className="text-xs text-text-secondary text-center">
-                Powered by Transak • Supports 100+ countries • Bank transfer & card payments
+                Secure payment processing • Supports 100+ countries • Bank transfer & card payments
               </div>
             </CardContent>
           </Card>

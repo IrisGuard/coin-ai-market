@@ -2,12 +2,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { TokenStats } from './TokenStats';
-import { TokenWallet } from './TokenWallet';
 import { TokenHeader } from './TokenHeader';
 import { useTokenInfo } from '@/hooks/useTokenInfo';
-import { Wallet, TrendingUp, Lock, Gift } from 'lucide-react';
+import { Wallet, TrendingUp, Lock } from 'lucide-react';
 
 export const TokenHeroSection = () => {
   const { data: tokenInfo, isLoading } = useTokenInfo();
@@ -71,27 +69,6 @@ export const TokenHeroSection = () => {
                 <Wallet className="w-5 h-5 mr-2" />
                 Connect Wallet
               </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-brand-primary text-brand-primary hover:bg-brand-primary/10 font-semibold px-8 py-4 text-lg"
-              >
-                <Gift className="w-5 h-5 mr-2" />
-                Learn More
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1">
-                AI-Powered Platform
-              </Badge>
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 px-3 py-1">
-                Revenue Sharing
-              </Badge>
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 px-3 py-1">
-                Token Locking Rewards
-              </Badge>
             </div>
           </div>
 

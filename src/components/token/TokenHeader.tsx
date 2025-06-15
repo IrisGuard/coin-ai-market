@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Coins, TrendingUp, Lock, Users, Loader2 } from 'lucide-react';
+import { Coins, TrendingUp, Lock, Loader2 } from 'lucide-react';
 import { useTokenInfo } from '@/hooks/useTokenInfo';
 
 export const TokenHeader = () => {
@@ -50,10 +50,6 @@ export const TokenHeader = () => {
         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
           <Lock className="w-4 h-4 mr-2" />
           {isTokenDeployed ? 'Active Locking Rewards' : 'Token Locking Rewards'}
-        </Badge>
-        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-          <Users className="w-4 h-4 mr-2" />
-          {isTokenDeployed ? 'Live Referral Program' : 'Referral Program'}
         </Badge>
         {!isTokenDeployed && (
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
