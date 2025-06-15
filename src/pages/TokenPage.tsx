@@ -3,9 +3,10 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import TokenHeroBannerExact from '@/components/token/TokenHeroBannerExact';
 import { TokenInfoCards } from '@/components/token/TokenInfoCards';
-import { WhitepaperRoadmapSection } from '@/components/token/WhitepaperRoadmapSection';
-import { TokenFAQSection } from '@/components/token/TokenFAQSection';
+import { WhitepaperSection } from '@/components/token/WhitepaperSection';
+import { RoadmapSection } from '@/components/token/RoadmapSection';
 import { TokenomicsSection } from '@/components/token/TokenomicsSection';
+import { TokenFAQSection } from '@/components/token/TokenFAQSection';
 
 const TokenPage = () => {
   return (
@@ -14,11 +15,13 @@ const TokenPage = () => {
       <main className="pt-20 flex flex-col gap-0">
         {/* Hero Banner */}
         <TokenHeroBannerExact />
-        {/* 6 Staking Cards, ALWAYS IMMEDIATELY BELOW Banner, 2x3, responsive */}
+        {/* Info Cards, 2x3, responsive */}
         <TokenInfoCards />
-        {/* Whitepaper & Roadmap full-width, content-first */}
-        <WhitepaperRoadmapSection />
-        {/* Tokenomics full-width, vertically-rich, advanced */}
+        {/* Whitepaper in box-style */}
+        <WhitepaperSection />
+        {/* Roadmap in box-style */}
+        <RoadmapSection />
+        {/* Tokenomics in box-style */}
         <TokenomicsSection />
         {/* FAQ Section */}
         <TokenFAQSection />
