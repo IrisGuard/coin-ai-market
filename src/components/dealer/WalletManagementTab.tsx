@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,20 +44,23 @@ const WalletManagementTab = () => {
       
       return data;
     },
-    onSuccess: (data) => {
-      if (data) {
-        setWalletData({
-          solana_wallet_address: data.solana_wallet_address || '',
-          ethereum_wallet_address: data.ethereum_wallet_address || '',
-          bitcoin_wallet_address: data.bitcoin_wallet_address || '',
-          usdc_wallet_address: data.usdc_wallet_address || '',
-          bank_name: data.bank_name || '',
-          iban: data.iban || '',
-          swift_bic: data.swift_bic || ''
-        });
-      }
-    }
+    enabled: !!user?.id
   });
+
+  // Use useEffect to handle data setting when storeData changes
+  useEffect(() => {
+    if (storeData) {
+      setWalletData({
+        solana_wallet_address: storeData.solana_wallet_address || '',
+        ethereum_wallet_address: storeData.ethereum_wallet_address || '',
+        bitcoin_wallet_address: storeData.bitcoin_wallet_address || '',
+        usdc_wallet_address: storeData.usdc_wallet_address || '',
+        bank_name: storeData.bank_name || '',
+        iban: storeData.iban || '',
+        swift_bic: storeData.swift_bic || ''
+      });
+    }
+  }, [storeData]);
 
   // Update wallet mutation
   const updateWalletMutation = useMutation({

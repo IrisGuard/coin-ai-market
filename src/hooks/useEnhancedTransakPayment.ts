@@ -27,6 +27,16 @@ export interface PaymentTransaction {
   created_at: string;
 }
 
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  plan_name: string;
+  status: string;
+  expires_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+}
+
 export const useEnhancedTransakPayment = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -89,10 +99,34 @@ export const useEnhancedTransakPayment = () => {
     }
   }, []);
 
+  const getUserSubscriptions = useCallback(async (): Promise<UserSubscription[]> => {
+    if (!user?.id) {
+      console.log('No user ID available for subscription fetch');
+      return [];
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('get_user_subscriptions', {
+        p_user_id: user.id
+      });
+
+      if (error) {
+        console.error('Error fetching user subscriptions:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Subscription fetch error:', error);
+      return [];
+    }
+  }, [user?.id]);
+
   return {
     isLoading,
     transaction,
     createPayment,
     checkPaymentStatus,
+    getUserSubscriptions,
   };
 };
