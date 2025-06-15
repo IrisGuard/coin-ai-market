@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +14,7 @@ export const useCoinDetails = (id: string) => {
         .from('coins')
         .select(`
           *,
-          profiles (
+          profiles!coins_user_id_fkey (
             name,
             username,
             verified_dealer
@@ -37,7 +36,7 @@ export const useCoinDetails = (id: string) => {
         .from('bids')
         .select(`
           *,
-          profiles (
+          profiles!bids_user_id_fkey (
             name,
             username
           )

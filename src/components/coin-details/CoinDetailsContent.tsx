@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -197,10 +196,10 @@ const CoinDetailsContent = ({
         </div>
       )}
 
-      {/* Related Coins */}
+      {/* Related Coins - Fixed prop name */}
       {relatedCoins && relatedCoins.length > 0 && (
         <div className="mt-12">
-          <RelatedCoins coins={relatedCoins} />
+          <RelatedCoins relatedCoins={relatedCoins} />
         </div>
       )}
     </div>
