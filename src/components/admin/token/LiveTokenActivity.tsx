@@ -108,7 +108,7 @@ export const LiveTokenActivity = () => {
                   <TableCell>
                     <div>
                       <div className="font-medium">{activity.profiles?.name || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{activity.profiles?.email}</div>
+                      <div className="text-sm text-gray-500">{activity.profiles?.email || 'N/A'}</div>
                     </div>
                   </TableCell>
                   <TableCell>

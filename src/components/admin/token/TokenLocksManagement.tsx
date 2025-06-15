@@ -129,7 +129,7 @@ export const TokenLocksManagement = () => {
                   <TableCell>
                     <div>
                       <div className="font-medium">{lock.profiles?.name || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{lock.profiles?.email}</div>
+                      <div className="text-sm text-gray-500">{lock.profiles?.email || 'N/A'}</div>
                     </div>
                   </TableCell>
                   <TableCell>
