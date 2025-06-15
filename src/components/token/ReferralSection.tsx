@@ -50,7 +50,7 @@ export const ReferralSection = () => {
             Referral Program
           </h2>
           <p className="text-xl text-text-secondary">
-            Earn 5% commission on every purchase made through your referral link
+            Earn {referralData?.commission_rate || 5}% commission on every purchase made through your referral link
           </p>
         </div>
 
@@ -97,7 +97,7 @@ export const ReferralSection = () => {
                 <ul className="text-sm text-text-secondary space-y-1">
                   <li>• Share your unique referral link</li>
                   <li>• Friends purchase GCAI tokens using your link</li>
-                  <li>• You earn 5% commission in GCAI tokens</li>
+                  <li>• You earn {referralData?.commission_rate || 5}% commission in GCAI tokens</li>
                   <li>• No limit on referrals or total earnings</li>
                   <li>• Instant commission payouts to your wallet</li>
                 </ul>
@@ -147,7 +147,7 @@ export const ReferralSection = () => {
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-text-primary">
-                      5%
+                      {referralData?.commission_rate || 5}%
                     </div>
                     <div className="text-text-secondary">Commission Rate</div>
                   </div>
@@ -161,7 +161,7 @@ export const ReferralSection = () => {
           <div className="text-center">
             <h3 className="text-xl font-bold text-text-primary mb-2">Start Earning Today</h3>
             <p className="text-text-secondary mb-4">
-              Connect your wallet to get your referral link and start earning 5% commission on all referred purchases. 
+              Connect your wallet to get your referral link and start earning {referralData?.commission_rate || 5}% commission on all referred purchases. 
               There's no limit to how much you can earn!
             </p>
             {!referralData && (

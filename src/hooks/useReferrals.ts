@@ -4,8 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface ReferralData {
   id: string;
-  user_id: string;
   referral_code: string;
+  referrer_id: string;
+  referred_id: string;
+  commission_rate: number;
   total_referrals: number;
   total_earned: number;
   created_at: string;
@@ -13,7 +15,7 @@ interface ReferralData {
 }
 
 export const useReferrals = () => {
-  return useQuery<ReferralData | null>({
+  return useQuery({
     queryKey: ['referrals'],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
@@ -22,11 +24,11 @@ export const useReferrals = () => {
       const { data, error } = await supabase
         .from('referrals')
         .select('*')
-        .eq('user_id', user.user.id)
+        .eq('referrer_id', user.user.id)
         .maybeSingle();
       
       if (error && error.code !== 'PGRST116') throw error;
-      return data as ReferralData | null;
+      return data;
     },
     refetchInterval: 60000,
   });
