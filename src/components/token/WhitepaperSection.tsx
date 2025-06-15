@@ -1,16 +1,16 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
+import { Star, ArrowUp } from 'lucide-react';
 
 export function WhitepaperSection() {
   return (
-    <section className="flex w-full justify-center py-12 px-4 md:px-2">
+    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-white via-slate-50 to-emerald-50/30">
       <div className="max-w-4xl w-full">
-        <Card className="w-full shadow-md border border-gray-200/80">
+        <Card className="w-full glass-card rounded-3xl shadow-xl border border-electric-blue/20">
           <CardHeader>
-            <CardTitle className="text-3xl font-extrabold text-brand-primary tracking-tight text-center">
+            <CardTitle className="text-3xl font-extrabold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent tracking-tight text-center animate-glow">
               A New Era for Coin Collecting
             </CardTitle>
             <CardDescription className="text-center text-lg pt-2 text-text-secondary">
@@ -18,20 +18,65 @@ export function WhitepaperSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-base text-text-secondary leading-relaxed space-y-4">
-            <p>
-              The GCAI platform revolutionizes the coin collecting industry by merging state-of-the-art Artificial Intelligence with a decentralized, transparent marketplace. Our ecosystem is designed to empower both seasoned collectors and newcomers by providing powerful tools for coin identification, grading, error detection, and valuation.
-            </p>
-            <p>
-              At its core, our platform leverages a proprietary AI engine trained on a massive dataset of coins to deliver instant, accurate analysis from just a photo. This technology, combined with a robust dealer network and a live marketplace, creates a trusted environment for buying, selling, and managing collections.
-            </p>
-            <p>
-              The GCAI token is the key that unlocks the full potential of this ecosystem. It serves as a utility token for accessing premium features, reducing transaction fees, participating in governance, and earning rewards through staking. By holding GCAI, you become an integral part of a community dedicated to bringing transparency, accessibility, and innovation to the timeless hobby of numismatics.
-            </p>
-            <div className="text-center pt-4">
-                <Button disabled>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Whitepaper Coming Soon
-                </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="glass-card rounded-2xl shadow-md border border-brand-primary/20 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-electric-blue via-electric-purple to-electric-green flex items-center justify-center">
+                    <Star className="text-white w-4 h-4" />
+                  </span>
+                  <span className="text-md font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent">
+                    Technology
+                  </span>
+                </div>
+                <p>
+                  Our proprietary AI engine instantly recognizes, grades, and values coins using vast data sources and deep machine learning.
+                </p>
+              </div>
+              <div className="glass-card rounded-2xl shadow-md border border-brand-primary/20 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-electric-blue via-electric-purple to-electric-green flex items-center justify-center">
+                    <ArrowUp className="text-white w-4 h-4" />
+                  </span>
+                  <span className="text-md font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent">
+                    Governance
+                  </span>
+                </div>
+                <p>
+                  By holding GCAI, users participate in shaping the platform's future, enjoying perks and community-driven decision-making.
+                </p>
+              </div>
+              <div className="glass-card rounded-2xl shadow-md border border-brand-primary/20 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-electric-blue via-electric-purple to-electric-green flex items-center justify-center">
+                    <Star className="text-white w-4 h-4" />
+                  </span>
+                  <span className="text-md font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent">
+                    Security
+                  </span>
+                </div>
+                <p>
+                  Smart contract audits, anti-fraud systems, and open bug bounty ensure the safety of assets and data.
+                </p>
+              </div>
+              <div className="glass-card rounded-2xl shadow-md border border-brand-primary/20 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-electric-blue via-electric-purple to-electric-green flex items-center justify-center">
+                    <ArrowUp className="text-white w-4 h-4" />
+                  </span>
+                  <span className="text-md font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent">
+                    Marketplace
+                  </span>
+                </div>
+                <p>
+                  A live, decentralized market with zero listing fees, direct dealer tools, and instant settlement options for all users.
+                </p>
+              </div>
+            </div>
+            <div className="text-center pt-6">
+              <Button disabled className="shadow-md bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success text-white">
+                <Star className="mr-2 h-4 w-4" />
+                Whitepaper Coming Soon
+              </Button>
             </div>
           </CardContent>
         </Card>

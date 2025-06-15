@@ -24,15 +24,17 @@ const lockingSchedule = [
 
 export const TokenomicsSection = () => {
   return (
-    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-slate-50">
+    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
       <div className="max-w-4xl w-full">
-        <h2 className="text-3xl font-extrabold text-brand-primary tracking-tight text-center mb-8">
+        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green bg-clip-text text-transparent tracking-tight text-center mb-8 drop-shadow animate-glow">
           TOKENOMICS
         </h2>
         
-        <Card className="w-full shadow-md border border-gray-200/80">
+        <Card className="w-full glass-card shadow-xl border border-blue-100/80 rounded-3xl">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-brand-primary">Supply Allocation</CardTitle>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent drop-shadow animate-glow">
+              Supply Allocation
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="order-2 md:order-1">
@@ -53,9 +55,9 @@ export const TokenomicsSection = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <Card className="w-full shadow-md border border-gray-200/80">
+            <Card className="w-full glass-card shadow-lg border border-blue-100/70 rounded-3xl">
                 <CardHeader>
-                    <CardTitle className="text-xl font-bold text-brand-primary">GCAI Utility</CardTitle>
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">GCAI Utility</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc pl-5 space-y-2 text-text-secondary">
@@ -66,9 +68,9 @@ export const TokenomicsSection = () => {
                     </ul>
                 </CardContent>
             </Card>
-            <Card className="w-full shadow-md border border-gray-200/80">
+            <Card className="w-full glass-card shadow-lg border border-blue-100/70 rounded-3xl">
                 <CardHeader>
-                    <CardTitle className="text-xl font-bold text-brand-primary">Vesting & Security</CardTitle>
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">Vesting & Security</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc pl-5 space-y-2 text-text-secondary">
@@ -80,24 +82,28 @@ export const TokenomicsSection = () => {
             </Card>
         </div>
         
-        <Card className="w-full shadow-md border border-gray-200/80 mt-6">
+        <Card className="w-full glass-card shadow-xl border border-blue-100/80 rounded-3xl mt-6">
             <CardHeader>
-                <CardTitle className="text-2xl font-bold text-brand-primary">Bonus Locking Schedule</CardTitle>
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">Bonus Locking Schedule</CardTitle>
             </CardHeader>
             <CardContent>
-                <Table>
+                <Table className="glass-card rounded-2xl shadow-lg">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Lock Period</TableHead>
-                            <TableHead>APY Bonus</TableHead>
-                            <TableHead>Vesting</TableHead>
+                            <TableHead className="text-center">APY Bonus</TableHead>
+                            <TableHead className="text-center">Vesting</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {lockingSchedule.map((item) => (
                             <TableRow key={item.period}>
                                 <TableCell className="font-medium">{item.period}</TableCell>
-                                <TableCell><Badge variant="outline" className="font-bold text-brand-success border-brand-success/50">{item.apy}</Badge></TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green text-white border-none shadow-sm px-3 py-2 rounded-full">
+                                    {item.apy}
+                                  </Badge>
+                                </TableCell>
                                 <TableCell>{item.vesting}</TableCell>
                             </TableRow>
                         ))}

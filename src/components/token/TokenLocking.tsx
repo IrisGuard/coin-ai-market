@@ -81,6 +81,13 @@ export const TokenLocking = () => {
     });
   };
 
+  // Helper for premium gradient background for bonus percent box
+  const getPercentBoxClass = () =>
+    "block mx-auto rounded-full px-5 py-3 mb-3 mt-2 shadow-[0_1.5px_12px_rgba(80,84,236,0.07)] " +
+    "bg-gradient-to-tr from-electric-blue via-electric-purple to-electric-green animate-glow " +
+    "text-white text-[2rem] font-bold font-sans tracking-tight border-2 border-white/40 " +
+    "outline outline-2 outline-electric-purple/10";
+
   if (isLoading) {
     return (
       <div className="space-y-8">
@@ -113,7 +120,7 @@ export const TokenLocking = () => {
   return (
     <div className="space-y-10">
       <div>
-        <h2 className="text-3xl font-extrabold text-brand-primary tracking-tight text-center mb-1">
+        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green bg-clip-text text-transparent tracking-tight text-center mb-1 drop-shadow animate-glow">
           Lock Tokens, Boost Rewards
         </h2>
         <p className="text-lg text-text-secondary text-center max-w-2xl mx-auto mt-4 mb-8">
@@ -129,9 +136,8 @@ export const TokenLocking = () => {
             <div
               key={option.id}
               className={`${cardGradientBorder} ${cardShadow} min-w-[330px] md:min-w-0 md:w-auto`}
-              style={{ minHeight: 325 }}
+              style={{ minHeight: 350 }}
             >
-              {/* Inner soft container for card */}
               <div className={`${cardInner} relative z-10`}>
                 {/* Top Branding Badge/Stars */}
                 <div className="absolute top-4 left-4 flex gap-2 z-20">
@@ -148,30 +154,22 @@ export const TokenLocking = () => {
                     </span>
                   )}
                 </div>
-                {/* Lock Icon Circle */}
-                <div className="flex items-center justify-center mb-4 mt-4">
-                  <span className="inline-flex items-center justify-center rounded-xl bg-gradient-to-tr from-brand-primary via-electric-purple to-electric-green shadow-lg ring-2 ring-brand-primary/20 w-12 h-12">
+                <div className="flex flex-col items-center justify-center w-full">
+                  {/* Lock Icon */}
+                  <span className="inline-flex items-center justify-center rounded-xl bg-gradient-to-tr from-brand-primary via-electric-purple to-electric-green shadow-lg ring-2 ring-brand-primary/20 w-12 h-12 mt-4">
                     <Lock className="w-7 h-7 text-white drop-shadow filter" />
                   </span>
-                </div>
-                {/* Card main values */}
-                <h4 className="text-xl font-bold text-brand-primary mb-1 tracking-tight">
-                  {option.duration_months} Months
-                </h4>
-                <div className="mb-2">
-                  <span
-                    className="
-                      text-[2.2rem] font-extrabold block tracking-tight
-                      bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green
-                      bg-clip-text text-transparent drop-shadow-sm animate-glow
-                    "
-                    style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-                  >
+                  {/* Card main values */}
+                  <h4 className="text-xl font-bold text-brand-primary mb-0 tracking-tight mt-4">
+                    {option.duration_months} Months
+                  </h4>
+                  {/* Bonus Percent Box */}
+                  <span className={getPercentBoxClass()}>
                     +{option.benefit_percentage}%
                   </span>
-                  <p className="text-sm text-text-secondary font-semibold mb-2">
+                  <span className="block text-sm text-text-secondary font-semibold mb-3 -mt-2">
                     Additional Rewards
-                  </p>
+                  </span>
                 </div>
                 {/* Amount Input */}
                 <div className="flex flex-col gap-2 items-center w-full">
@@ -194,12 +192,23 @@ export const TokenLocking = () => {
                           [option.id]: e.target.value,
                         }))
                       }
-                      className="text-lg font-semibold pr-9 shadow-inner border-2 border-blue-100 focus:border-brand-primary/60 bg-gradient-to-tr from-blue-50/80 via-white/70 to-emerald-50/80 rounded-lg"
+                      className="
+                        text-lg font-semibold pr-10 py-2 pl-4
+                        shadow-md border-2 border-electric-blue/20 focus:border-brand-primary/70
+                        bg-white bg-gradient-to-br from-bg-primary via-blue-50/90 to-emerald-50/90
+                        rounded-xl 
+                        transition-all duration-200
+                        focus:shadow-xl
+                        outline-none
+                      "
                     />
-                    <TokenIcon size={19} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    {/* Soft embedded icon */}
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-55">
+                      <TokenIcon size={18} />
+                    </span>
                   </div>
                   {inputAmounts[option.id] && parseFloat(inputAmounts[option.id]) > 0 && (
-                    <div className="p-2 bg-green-50 rounded-xl text-center w-full my-1 border border-green-100 flex items-center justify-center gap-2">
+                    <div className="p-2 bg-green-50 rounded-xl text-center w-full my-1 border border-green-100 flex items-center justify-center gap-2 shadow-[0_1px_4px_rgba(16,185,129,0.11)]">
                       <span className="block text-xs text-gray-600 mb-0.5">Bonus:</span>
                       <span className="font-bold text-brand-success text-lg flex items-center gap-1">
                         {(parseFloat(inputAmounts[option.id]) * option.benefit_percentage / 100).toFixed(2)}
@@ -211,21 +220,24 @@ export const TokenLocking = () => {
                     onClick={() => handleLock(option)}
                     className={`
                       w-full h-11 text-base font-extrabold mt-2 transition-all rounded-full inline-flex items-center justify-center
-                      bg-gradient-to-r from-brand-primary/90 to-brand-success/80
-                      hover:from-brand-success/90 hover:to-brand-primary/90
-                      text-white shadow-md shadow-brand-primary/20
+                      bg-gradient-to-r from-brand-primary/80 to-brand-success/90
+                      hover:from-brand-success/75 hover:to-brand-primary/90
+                      ${inputAmounts[option.id] ? 'brightness-110 shadow-lg' : 'opacity-85'}
+                      text-white shadow-md shadow-brand-primary/25
                       focus:ring-4 focus:ring-electric-blue/30
-                      hover:scale-[1.03] active:scale-95
+                      hover:scale-[1.035] active:scale-95
+                      duration-200
                     `}
+                    style={{
+                      boxShadow: "0 4px 20px 1px rgba(99,102,241,0.07), 0 1.5px 11px rgba(16,185,129,0.11)",
+                      letterSpacing: "0.015em"
+                    }}
                     disabled={
                       !user ||
                       loadingLockId === option.id ||
                       !inputAmounts[option.id] ||
                       parseFloat(inputAmounts[option.id]) <= 0
                     }
-                    style={{
-                      letterSpacing: "0.015em"
-                    }}
                   >
                     {loadingLockId === option.id ? (
                       <span className="flex items-center justify-center gap-2">

@@ -52,29 +52,29 @@ const roadmapPhases = [
 
 export function RoadmapSection() {
   return (
-    <section className="flex w-full justify-center py-12 px-4 md:px-2">
+    <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-slate-50 via-white to-emerald-50/50">
       <div className="max-w-4xl w-full">
-        <h2 className="text-3xl font-extrabold text-brand-primary tracking-tight text-center mb-8">
+        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green bg-clip-text text-transparent tracking-tight text-center mb-8 animate-glow">
           ROADMAP
         </h2>
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-7">
           {roadmapPhases.map(({ title, items, icon, status }) => (
-            <Card key={title} className="w-full shadow-md border border-gray-200/80">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-bold text-brand-primary">{title}</CardTitle>
+            <div key={title} className="glass-card rounded-3xl shadow-xl border border-electric-blue/20 p-0">
+              <div className="flex flex-row items-center justify-between gap-2 py-6 px-8 bg-gradient-to-r from-brand-primary/10 via-white/90 to-electric-green/10 rounded-t-3xl">
+                <h3 className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">{title}</h3>
                 <div className="flex items-center gap-2 text-sm font-semibold text-text-secondary">
                   {icon}
                   <span>{status}</span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc pl-5 space-y-2 text-text-secondary">
+              </div>
+              <div className="p-8 pt-3">
+                <ul className="list-disc pl-5 space-y-2 text-text-secondary text-base">
                   {items.map((item) => (
-                    <li key={item}>{item}</li>
+                    <li key={item} className="font-medium">{item}</li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
