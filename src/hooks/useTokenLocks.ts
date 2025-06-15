@@ -24,7 +24,6 @@ export const useTokenLocks = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: true,
     refetchInterval: 30000,
   });
 };

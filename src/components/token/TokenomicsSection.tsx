@@ -53,11 +53,11 @@ export const TokenomicsSection = () => {
       if (tokenLocks && Array.isArray(tokenLocks)) {
         lockedAmount = tokenLocks
           .filter(lock => {
-            // Handle both direct duration_months and nested lock_options
-            const duration = lock.lock_options?.duration_months || lock.duration_months;
+            // Safely access duration_months property
+            const duration = lock?.duration_months || (lock as any)?.lock_options?.duration_months;
             return duration === period.periodMonths;
           })
-          .reduce((sum, lock) => sum + (lock.amount || 0), 0);
+          .reduce((sum, lock) => sum + (Number(lock?.amount) || 0), 0);
       }
 
       return {
@@ -87,7 +87,7 @@ export const TokenomicsSection = () => {
     );
   }
 
-  const totalLocked = tokenLocks?.reduce((sum, lock) => sum + (lock.amount || 0), 0) || 0;
+  const totalLocked = tokenLocks?.reduce((sum, lock) => sum + (Number(lock?.amount) || 0), 0) || 0;
 
   return (
     <section className="py-16 px-4 bg-bg-secondary">
