@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TokenStats } from './TokenStats';
 import { TokenHeader } from './TokenHeader';
@@ -75,30 +74,6 @@ export const TokenHeroSection = () => {
           {/* Right Column - Token Stats */}
           <div className="space-y-6">
             <TokenStats />
-            
-            <Card className="border-2 border-brand-primary/20 bg-gradient-to-br from-bg-primary to-bg-secondary">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-text-primary mb-4">Platform Features</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-brand-success rounded-full"></div>
-                    <span className="text-text-secondary">AI Coin Recognition Technology</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-brand-success rounded-full"></div>
-                    <span className="text-text-secondary">Error Detection & Analysis</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-brand-success rounded-full"></div>
-                    <span className="text-text-secondary">Market Intelligence & Pricing</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-brand-success rounded-full"></div>
-                    <span className="text-text-secondary">Revenue Sharing for Token Holders</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
