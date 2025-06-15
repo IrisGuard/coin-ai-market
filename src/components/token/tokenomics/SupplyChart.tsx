@@ -64,7 +64,7 @@ export function SupplyChart() {
           activeIndex={0}
           activeShape={(props: PieSectorDataItem) => {
               const {
-                cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent,
+                cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, percent, name
               } = props;
               const RADIAN = Math.PI / 180;
               const sin = Math.sin(-RADIAN * props.midAngle);
@@ -91,7 +91,7 @@ export function SupplyChart() {
                   />
                   <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
                   <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-                  <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))" className="text-sm">{`${payload.name}`}</text>
+                  <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))" className="text-sm">{`${name}`}</text>
                   <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))" className="text-xs">
                     {`(${(percent * 100).toFixed(0)}%)`}
                   </text>
