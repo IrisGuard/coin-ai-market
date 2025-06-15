@@ -2,11 +2,11 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import TokenHeroBannerExact from '@/components/token/TokenHeroBannerExact';
-import { TokenInfoCards } from '@/components/token/TokenInfoCards';
 import { WhitepaperSection } from '@/components/token/WhitepaperSection';
 import { RoadmapSection } from '@/components/token/RoadmapSection';
 import { TokenomicsSection } from '@/components/token/TokenomicsSection';
 import { TokenFAQSection } from '@/components/token/TokenFAQSection';
+import { TokenLockingSection } from '@/components/token/TokenLockingSection';
 
 const TokenPage = () => {
   return (
@@ -15,8 +15,8 @@ const TokenPage = () => {
       <main className="pt-20 flex flex-col gap-0">
         {/* Hero Banner */}
         <TokenHeroBannerExact />
-        {/* Info Cards, 2x3, responsive */}
-        <TokenInfoCards />
+        {/* Token Locking Section (dynamic staking/bonus lock grid) */}
+        <TokenLockingSection />
         {/* Whitepaper in box-style */}
         <WhitepaperSection />
         {/* Roadmap in box-style */}
@@ -31,3 +31,4 @@ const TokenPage = () => {
 };
 
 export default TokenPage;
+
