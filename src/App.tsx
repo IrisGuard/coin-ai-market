@@ -16,6 +16,8 @@ import Profile from "./pages/Profile";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import CoinDetails from "./pages/CoinDetails";
 import DealerDirect from "./pages/DealerDirect";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailure from "./pages/PaymentFailure";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ function App() {
                 <Route path="/coin/:id" element={<CoinDetails />} />
                 <Route path="/dealer-direct" element={<DealerDirect />} />
                 <Route path="/dealer" element={<DealerDirect />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-failure" element={<PaymentFailure />} />
               </Routes>
             </AdminProvider>
           </AuthProvider>
