@@ -18,6 +18,7 @@ import AdminAIBrainTab from '@/components/admin/tabs/AdminAIBrainTab';
 import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminProductionTab from '@/components/admin/tabs/AdminProductionTab';
+import AdminGCAITokenTab from '@/components/admin/tabs/AdminGCAITokenTab';
 import { useRealTimeSystemStatus } from '@/hooks/useRealTimeSystemStatus';
 
 const FullSystemAdminPanel = () => {
@@ -31,6 +32,14 @@ const FullSystemAdminPanel = () => {
       icon: Rocket,
       color: 'text-red-600',
       component: AdminProductionTab,
+      badge: 'LIVE'
+    },
+    {
+      id: 'gcai-token',
+      name: 'GCAI Token',
+      icon: Coins,
+      color: 'text-orange-600',
+      component: AdminGCAITokenTab,
       badge: 'LIVE'
     },
     {
@@ -105,13 +114,17 @@ const FullSystemAdminPanel = () => {
               <div>
                 <div className="text-2xl font-bold">Full System Admin Panel</div>
                 <div className="text-sm text-muted-foreground">
-                  Complete platform management with 87 active database tables
+                  Complete platform management with GCAI Token integration
                 </div>
               </div>
               <div className="ml-auto flex gap-2">
                 <Badge className="bg-green-100 text-green-800">
                   <Activity className="h-3 w-3 mr-1" />
                   LIVE PLATFORM
+                </Badge>
+                <Badge className="bg-orange-100 text-orange-800">
+                  <Coins className="h-3 w-3 mr-1" />
+                  GCAI ACTIVE
                 </Badge>
                 <Badge className="bg-blue-100 text-blue-800">
                   87 Tables Active
@@ -228,9 +241,9 @@ const FullSystemAdminPanel = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm">
+                <span>GCAI Token: Live</span>
                 <span>Database: 87 Tables Active</span>
                 <span>Platform: Production Mode</span>
-                <span>Monitoring: Real-time</span>
               </div>
             </div>
           </CardContent>
