@@ -7,6 +7,7 @@ import { RoadmapSection } from '@/components/token/RoadmapSection';
 import { TokenomicsSection } from '@/components/token/TokenomicsSection';
 import { TokenFAQSection } from '@/components/token/TokenFAQSection';
 import { TokenLockingSection } from '@/components/token/TokenLockingSection';
+import { UserDashboard } from '@/components/token/UserDashboard';
 
 const TokenPage = () => {
   return (
@@ -15,6 +16,8 @@ const TokenPage = () => {
       <main className="pt-20 flex flex-col gap-0">
         {/* Hero Banner */}
         <TokenHeroBannerExact />
+        {/* User Dashboard */}
+        <UserDashboard />
         {/* Token Locking Section (dynamic staking/bonus lock grid) */}
         <TokenLockingSection />
         {/* Whitepaper in box-style */}
@@ -31,4 +34,3 @@ const TokenPage = () => {
 };
 
 export default TokenPage;
-
