@@ -3,6 +3,7 @@ import * as React from "react";
 import { Pie, PieChart, Sector, Cell, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
+// ULTRA VIVID gradients for each slice:
 const chartData = [
   { name: "Public Sale", value: 40 },
   { name: "Team & Advisors", value: 20 },
@@ -10,47 +11,46 @@ const chartData = [
   { name: "Marketing", value: 10 },
   { name: "Liquidity/Rewards", value: 10 },
 ];
-
-// Strong, vibrant multi-color gradients for each slice:
+// Neon bright gradients—pure, saturated color stops:
 const chartGradients = [
   {
-    id: "pie-gcai-sky",
+    id: "pie-gcai-electric-blue",
     stops: [
-      { offset: "0%", color: "#0ea5e9" },   // sky-500
-      { offset: "60%", color: "#2563eb" },  // blue-600
-      { offset: "100%", color: "#38ffc7" }, // electric-green
+      { offset: "0%", color: "#00d4ff" },     // vivid electric blue
+      { offset: "50%", color: "#0070fa" },    // deep blue
+      { offset: "100%", color: "#00ff88" },   // electric green
     ],
   },
   {
-    id: "pie-gcai-purple",
+    id: "pie-gcai-violet-neon",
     stops: [
-      { offset: "0%", color: "#9333ea" },   // purple-600
-      { offset: "60%", color: "#e879f9" },  // fuchsia-400
-      { offset: "100%", color: "#818cf8" }, // indigo-400
+      { offset: "0%", color: "#7c3aed" },     // electric purple
+      { offset: "70%", color: "#ff00cc" },    // magenta neon
+      { offset: "100%", color: "#ffd600" },   // pure yellow
     ],
   },
   {
-    id: "pie-gcai-green",
+    id: "pie-gcai-green-cyan",
     stops: [
-      { offset: "0%", color: "#10b981" },   // emerald-500
-      { offset: "60%", color: "#22d3ee" },  // cyan-400
-      { offset: "100%", color: "#38ffc7" }, // electric-green
+      { offset: "0%", color: "#00ff88" },     // electric green
+      { offset: "65%", color: "#2af7c0" },    // vibrant teal
+      { offset: "100%", color: "#00d4ff" },   // pure cyan
     ],
   },
   {
-    id: "pie-gcai-pink",
+    id: "pie-gcai-hot-pink",
     stops: [
-      { offset: "0%", color: "#f472b6" },   // pink-400
-      { offset: "80%", color: "#f9a8d4" },  // pink-200
-      { offset: "100%", color: "#818cf8" }, // indigo-400
+      { offset: "0%", color: "#ff0080" },     // neon pink
+      { offset: "60%", color: "#fff600" },    // neon yellow
+      { offset: "100%", color: "#00d4ff" },   // blue
     ],
   },
   {
-    id: "pie-gcai-orange",
+    id: "pie-gcai-orange-sun",
     stops: [
-      { offset: "0%", color: "#f59e42" },   // custom vibrant orange
-      { offset: "80%", color: "#fbbf24" },  // amber-400
-      { offset: "100%", color: "#fd1d1d" }, // ultra-bright magenta-red
+      { offset: "0%", color: "#ff6600" },     // orange
+      { offset: "60%", color: "#ffd600" },    // bright yellow
+      { offset: "100%", color: "#ff1744" },   // electric red
     ],
   }
 ];
@@ -61,7 +61,7 @@ export function SupplyChart() {
   return (
     <ChartContainer
       config={{}}
-      className="rounded-2xl bg-white/95 dark:bg-white/80 shadow-xl border border-blue-100/80 glass-card mx-auto aspect-square max-w-xs md:max-w-[330px] p-2 flex items-center justify-center animate-fade-in"
+      className="rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 glass-card mx-auto aspect-square max-w-xs md:max-w-[330px] p-2 flex items-center justify-center animate-fade-in"
     >
       <>
         <ResponsiveContainer width="100%" height={245}>
@@ -73,7 +73,7 @@ export function SupplyChart() {
               nameKey="name"
               innerRadius={72}
               outerRadius={100}
-              strokeWidth={5}
+              strokeWidth={6}
               onMouseEnter={(_, idx) => setActiveIndex(idx)}
               onMouseLeave={() => setActiveIndex(null)}
               isAnimationActive
@@ -85,8 +85,8 @@ export function SupplyChart() {
                   style={{
                     filter:
                       activeIndex === i
-                        ? "drop-shadow(0 0 14px #2563eb) brightness(1.24)"
-                        : undefined,
+                        ? "drop-shadow(0 0 22px #00d4ff) brightness(1.32)"
+                        : "brightness(1.14)",
                     transition: "filter .28s"
                   }}
                 />
@@ -109,15 +109,18 @@ export function SupplyChart() {
                 dominantBaseline="middle"
                 textAnchor="middle"
                 className="font-extrabold pointer-events-none select-none"
-                fill="url(#pie-gcai-sky)"
-                style={{ fontSize: "2.15rem" }}
+                fill="url(#pie-gcai-electric-blue)"
+                style={{
+                  fontSize: "2.1rem",
+                  textShadow: "0 0 8px #00d4ff, 0 0 1px #fff"
+                }}
               >
                 {chartData[activeIndex].value}%
               </text>
             )}
           </PieChart>
         </ResponsiveContainer>
-        <div className="mt-2 text-center font-bold text-md bg-gradient-to-r from-blue-700 via-fuchsia-500 to-emerald-400 bg-clip-text text-transparent drop-shadow animate-glow uppercase tracking-wide">
+        <div className="mt-2 text-center font-bold text-md bg-gradient-to-r from-[#0070fa] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent drop-shadow animate-glow uppercase tracking-wide">
           Supply Allocation
         </div>
       </>
