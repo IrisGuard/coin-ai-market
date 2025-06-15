@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,38 +26,38 @@ const lockingSchedule = [
 export const TokenomicsSection = () => {
   return (
     <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-[#00d4ff]/10 via-white/95 to-[#00ff88]/10">
-      <div className="max-w-4xl w-full flex flex-col gap-8">
+      <div className="max-w-6xl w-full flex flex-col gap-8">
         <h2 className="text-4xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent tracking-tight text-center mb-2 drop-shadow animate-glow">
           ADVANCED TOKENOMICS
         </h2>
         
-        {/* Premium Charts Row */}
-        <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch md:items-start">
-          <div className="flex flex-col gap-5 flex-1 md:max-w-xs items-center">
-            <SupplyChart />
-            <TokenomicsBarChart />
-          </div>
-          <div className="flex flex-col gap-5 flex-1 md:max-w-xs items-center">
-            <TokenomicsProgressChart />
-            <Card className="w-full glass-card shadow-xl border-2 border-[#00d4ff]/70 rounded-3xl bg-gradient-to-br from-white/90 via-white/95 to-white/80 max-w-xs mx-auto animate-fade-in">
-              <CardHeader>
-                <CardTitle className="text-xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent drop-shadow animate-glow">
-                  Token Allocation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {supplyAllocations.map((item, idx) => (
-                    <li key={item.label} className="flex items-center text-base">
-                      <span className={`w-4 h-4 rounded-full mr-3 ${item.color} shadow-lg`}></span>
-                      <span className="font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent min-w-[60px] text-lg drop-shadow animate-glow">{item.value}</span>
-                      <span className="ml-2 font-bold bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent">{item.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Charts Grid - Fixed Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+          <SupplyChart />
+          <TokenomicsBarChart />
+          <TokenomicsProgressChart />
+        </div>
+
+        {/* Token Allocation Card */}
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md glass-card shadow-xl border-2 border-[#00d4ff]/70 rounded-3xl bg-gradient-to-br from-white/90 via-white/95 to-white/80 animate-fade-in">
+            <CardHeader>
+              <CardTitle className="text-xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent drop-shadow animate-glow">
+                Token Distribution Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {supplyAllocations.map((item, idx) => (
+                  <li key={item.label} className="flex items-center text-base">
+                    <span className={`w-4 h-4 rounded-full mr-3 ${item.color} shadow-lg`}></span>
+                    <span className="font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent min-w-[60px] text-lg drop-shadow animate-glow">{item.value}</span>
+                    <span className="ml-2 font-bold bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent">{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Premium Utility and Security Cards */}
@@ -92,6 +91,7 @@ export const TokenomicsSection = () => {
             </Card>
         </div>
         
+        {/* Premium Staking Rewards Schedule */}
         <Card className="w-full glass-card shadow-xl border-2 border-[#00d4ff]/70 rounded-3xl mt-6 bg-gradient-to-br from-white/90 via-white/95 to-white/80 animate-fade-in">
             <CardHeader>
                 <CardTitle className="text-3xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent animate-glow">Premium Staking Rewards Schedule</CardTitle>

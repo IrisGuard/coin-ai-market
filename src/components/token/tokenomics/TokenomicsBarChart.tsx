@@ -1,83 +1,61 @@
 
-import React from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import * as React from "react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
-// ULTRA VIVID neon gradients:
-const data = [
-  { name: "Public Sale", value: 8000 },
-  { name: "Team", value: 4000 },
-  { name: "Ecosystem", value: 4000 },
-  { name: "Marketing", value: 3000 },
-  { name: "Rewards", value: 3000 },
-];
-const barGradients = [
-  [
-    { offset: "0%", color: "#00d4ff" },    // electric blue
-    { offset: "68%", color: "#0070fa" },   // deep blue
-    { offset: "100%", color: "#00ff88" },  // electric green
-  ],
-  [
-    { offset: "0%", color: "#ff00cc" },    // neon magenta
-    { offset: "70%", color: "#7c3aed" },   // vibrant purple
-    { offset: "100%", color: "#ffd600" },  // ultra yellow
-  ],
-  [
-    { offset: "0%", color: "#00ff88" },    // electric green
-    { offset: "50%", color: "#00d4ff" },   // vivid blue
-    { offset: "100%", color: "#2af7c0" },  // teal
-  ],
-  [
-    { offset: "0%", color: "#ff0080" },    // neon pink
-    { offset: "75%", color: "#fff600" },   // yellow
-    { offset: "100%", color: "#00d4ff" },  // blue
-  ],
-  [
-    { offset: "0%", color: "#ff6600" },    // orange
-    { offset: "60%", color: "#ffd600" },   // yellow
-    { offset: "100%", color: "#ff1744" },  // electric red
-  ],
+const chartData = [
+  { period: "3M", apy: 15, color: "#00d4ff" },
+  { period: "6M", apy: 25, color: "#0070fa" },
+  { period: "12M", apy: 40, color: "#7c3aed" },
+  { period: "18M", apy: 55, color: "#ff00cc" },
+  { period: "24M", apy: 70, color: "#00ff88" },
+  { period: "36M", apy: 100, color: "#ffd700" },
 ];
 
 export function TokenomicsBarChart() {
   return (
-    <ChartContainer
-      config={{}}
-      className="rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 glass-card px-2 pt-5 pb-3 mx-auto max-w-lg animate-fade-in"
-    >
-      <>
-        <ResponsiveContainer minWidth={300} minHeight={180} height={210}>
-          <BarChart data={data} barCategoryGap="25%">
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontWeight: 700, fill: "#0070fa", fontSize: 14 }} />
-            <YAxis hide />
-            <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-            <Bar dataKey="value" radius={[18, 18, 6, 6]}>
-              {data.map((_, i) => (
-                <Cell
-                  key={`cell-${i}`}
-                  fill={`url(#bar-gradient-${i})`}
-                  style={{
-                    filter: "brightness(1.29) drop-shadow(0 0 14px #00d4ff)",
-                    transition: "filter .24s"
-                  }}
-                />
-              ))}
-            </Bar>
-            <defs>
-              {barGradients.map((stops, idx) => (
-                <linearGradient id={`bar-gradient-${idx}`} key={idx} x1="0" y1="0" x2="0" y2="1">
-                  {stops.map((stop, sidx) => (
-                    <stop key={sidx} offset={stop.offset} stopColor={stop.color} />
-                  ))}
+    <div className="w-full max-w-xs mx-auto">
+      <div className="glass-card rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 p-4 animate-fade-in">
+        <div className="w-full h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+              <XAxis 
+                dataKey="period" 
+                fontSize={11}
+                className="font-bold"
+                stroke="#0070fa"
+              />
+              <YAxis 
+                fontSize={10}
+                className="font-bold"
+                stroke="#0070fa"
+              />
+              <ChartTooltip 
+                content={<ChartTooltipContent />}
+                cursor={{ fill: 'rgba(0, 212, 255, 0.1)' }}
+              />
+              <Bar 
+                dataKey="apy" 
+                radius={[4, 4, 0, 0]}
+                fill="url(#barGradient)"
+              />
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00d4ff" />
+                  <stop offset="50%" stopColor="#0070fa" />
+                  <stop offset="100%" stopColor="#7c3aed" />
                 </linearGradient>
-              ))}
-            </defs>
-          </BarChart>
-        </ResponsiveContainer>
-        <div className="mt-1 text-center font-extrabold text-lg bg-gradient-to-r from-[#0070fa] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent drop-shadow animate-glow uppercase tracking-wide">
-          Token Distribution
+              </defs>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-      </>
-    </ChartContainer>
+        
+        <div className="text-center mt-2">
+          <h3 className="font-extrabold text-sm bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#7c3aed] bg-clip-text text-transparent animate-glow">
+            Staking APY by Period
+          </h3>
+        </div>
+      </div>
+    </div>
   );
 }

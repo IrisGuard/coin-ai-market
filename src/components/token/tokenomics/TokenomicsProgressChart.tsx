@@ -1,32 +1,46 @@
 
-import React from "react";
-import { Progress } from "@/components/ui/progress";
+import * as React from "react";
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 
-const fundraisingProgress = 83; // e.g. 83%
+const progressData = [
+  { label: "Presale Progress", value: 59, color: "#00d4ff" },
+  { label: "Token Distribution", value: 75, color: "#00ff88" },
+  { label: "Platform Development", value: 85, color: "#7c3aed" },
+];
 
 export function TokenomicsProgressChart() {
   return (
-    <div className="rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 glass-card px-6 py-4 max-w-lg mx-auto relative animate-fade-in">
-      <div className="flex flex-col gap-2 items-center">
-        <span className="text-[15px] font-semibold tracking-tight bg-gradient-to-r from-[#00d4ff] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent animate-glow">
-          Fundraising Progress
-        </span>
-        <div className="flex items-center gap-3 w-full">
-          <div className="flex-1 w-full h-5 rounded-full relative overflow-hidden border-2 border-[#00d4ff]/80 shadow-[0_1.5px_14px_#00d4ff33] bg-[#f0fbff]">
-            <div
-              className="h-full rounded-full absolute left-0 top-0 transition-all"
-              style={{
-                width: `${fundraisingProgress}%`,
-                background: "linear-gradient(to right, #00d4ff, #7c3aed, #00ff88)",
-                boxShadow: "0 0 24px 6px #00d4ff99"
-              }}
-            />
-          </div>
-          <span className="text-lg font-extrabold bg-gradient-to-r from-[#0070fa] via-[#00ff88] to-[#ff00cc] bg-clip-text text-transparent">
-            {fundraisingProgress}%
-          </span>
+    <div className="w-full max-w-xs mx-auto">
+      <div className="glass-card rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 p-4 animate-fade-in">
+        <div className="grid grid-cols-3 gap-3 h-32">
+          {progressData.map((item, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <div className="w-16 h-16 mb-2">
+                <CircularProgressbar
+                  value={item.value}
+                  text={`${item.value}%`}
+                  styles={buildStyles({
+                    pathColor: item.color,
+                    textColor: item.color,
+                    trailColor: `${item.color}20`,
+                    backgroundColor: 'transparent',
+                    textSize: '20px',
+                    pathTransitionDuration: 0.5,
+                  })}
+                />
+              </div>
+              <span className="text-xs font-bold text-center bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent">
+                {item.label}
+              </span>
+            </div>
+          ))}
         </div>
-        <div className="text-xs text-[#0070fa]/90 mt-1 font-bold">Goal: 50,000,000 <span className="tracking-tight">GCAI</span></div>
+        
+        <div className="text-center mt-3">
+          <h3 className="font-extrabold text-sm bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent animate-glow">
+            Project Progress
+          </h3>
+        </div>
       </div>
     </div>
   );
