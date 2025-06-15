@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Wallet, Bitcoin, Shield, CreditCard, Bank, Copy, Check, Eye, EyeOff } from 'lucide-react';
+import { Wallet, Bitcoin, Shield, CreditCard, Banknote, Copy, Check, Eye, EyeOff } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -315,7 +314,7 @@ const WalletManagementTab = () => {
       {/* Banking Section */}
       <div className="space-y-4">
         <h3 className="text-xl font-semibold flex items-center gap-2">
-          <Bank className="h-5 w-5 text-green-600" />
+          <Banknote className="h-5 w-5 text-green-600" />
           Traditional Banking
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -323,7 +322,7 @@ const WalletManagementTab = () => {
             label="Bank Name"
             value={dealerStore.bank_name || ''}
             fieldName="bank_name"
-            icon={Bank}
+            icon={Banknote}
             placeholder="Enter your bank name"
             onUpdate={(value) => updateWalletsMutation.mutate({ bank_name: value })}
           />
