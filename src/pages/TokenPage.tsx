@@ -1,54 +1,43 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { TokenHeader } from '@/components/token/TokenHeader';
-import { TokenStats } from '@/components/token/TokenStats';
-import { TokenPurchase } from '@/components/token/TokenPurchase';
-import { TokenLocking } from '@/components/token/TokenLocking';
-import { TokenReferrals } from '@/components/token/TokenReferrals';
-import { TokenActivity } from '@/components/token/TokenActivity';
-import { TokenWallet } from '@/components/token/TokenWallet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TokenHeroSection } from '@/components/token/TokenHeroSection';
+import { TokenLockingSection } from '@/components/token/TokenLockingSection';
+import { ActiveLocksSection } from '@/components/token/ActiveLocksSection';
+import { BuyTokensSection } from '@/components/token/BuyTokensSection';
+import { ReferralSection } from '@/components/token/ReferralSection';
+import { TokenomicsSection } from '@/components/token/TokenomicsSection';
+import { WhitepaperRoadmapSection } from '@/components/token/WhitepaperRoadmapSection';
+import { TokenFAQSection } from '@/components/token/TokenFAQSection';
 
 const TokenPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
       <Navbar />
-      <div className="pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <TokenHeader />
-          <TokenStats />
-          
-          <Tabs defaultValue="purchase" className="mt-8">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="purchase">Purchase</TabsTrigger>
-              <TabsTrigger value="lock">Lock Tokens</TabsTrigger>
-              <TabsTrigger value="referrals">Referrals</TabsTrigger>
-              <TabsTrigger value="wallet">Wallet</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="purchase" className="mt-8">
-              <TokenPurchase />
-            </TabsContent>
-            
-            <TabsContent value="lock" className="mt-8">
-              <TokenLocking />
-            </TabsContent>
-            
-            <TabsContent value="referrals" className="mt-8">
-              <TokenReferrals />
-            </TabsContent>
-            
-            <TabsContent value="wallet" className="mt-8">
-              <TokenWallet />
-            </TabsContent>
-            
-            <TabsContent value="activity" className="mt-8">
-              <TokenActivity />
-            </TabsContent>
-          </Tabs>
-        </div>
+      <div className="pt-20">
+        {/* 1. Connect Wallet Section - Top */}
+        <TokenHeroSection />
+        
+        {/* 2. Token Locking Section - 6 Cards Grid */}
+        <TokenLockingSection />
+        
+        {/* 3. Active Locks Table */}
+        <ActiveLocksSection />
+        
+        {/* 4. Buy Tokens Section */}
+        <BuyTokensSection />
+        
+        {/* 5. Referral System */}
+        <ReferralSection />
+        
+        {/* 6. Tokenomics Section */}
+        <TokenomicsSection />
+        
+        {/* 7. Whitepaper & Roadmap */}
+        <WhitepaperRoadmapSection />
+        
+        {/* 8. FAQ Section - Last */}
+        <TokenFAQSection />
       </div>
     </div>
   );
