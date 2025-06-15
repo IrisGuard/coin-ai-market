@@ -8,29 +8,35 @@ export const LocksCard = () => {
   const { data: locks, isLoading } = useTokenLocks();
 
   if (isLoading) {
-    return <div className="section-box flex items-center justify-center p-8"><Loader2 className="animate-spin" /></div>;
+    return (
+      <div className="glass-card rounded-3xl bg-gradient-to-br from-[#ff00cc]/20 via-white/90 to-[#7c3aed]/20 border-2 border-[#ff00cc]/70 shadow-xl p-8 animate-fade-in">
+        <div className="flex items-center justify-center">
+          <Loader2 className="animate-spin text-[#ff00cc] w-8 h-8" />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="section-box">
-      <h3 className="font-bold text-[18px] mb-4">Your Token Locks</h3>
+    <div className="glass-card rounded-3xl bg-gradient-to-br from-[#ff00cc]/20 via-white/90 to-[#7c3aed]/20 border-2 border-[#ff00cc]/70 shadow-xl p-6 animate-fade-in">
+      <h3 className="font-extrabold text-xl mb-5 bg-gradient-to-r from-[#7c3aed] via-[#ff00cc] to-[#0070fa] bg-clip-text text-transparent animate-glow">Your Token Locks</h3>
       {locks && locks.length > 0 ? (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {locks.map((lock) => (
-            <li key={lock.id} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded-md">
+            <li key={lock.id} className="flex items-center justify-between p-4 glass-card bg-gradient-to-r from-white/80 to-white/60 rounded-xl border border-[#ff00cc]/40 shadow-md">
               <div className="flex items-center">
-                <Lock className="w-4 h-4 mr-3 text-brand-primary" />
+                <Lock className="w-5 h-5 mr-4 text-[#7c3aed]" />
                 <div>
-                  <span className="font-semibold">{Number(lock.amount).toLocaleString()} GCAI</span>
-                  <p className="text-xs text-text-secondary">Unlocks in {formatDistanceToNow(new Date(lock.unlock_date))}</p>
+                  <span className="font-extrabold text-lg bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent">{Number(lock.amount).toLocaleString()} GCAI</span>
+                  <p className="text-sm font-semibold bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent">Unlocks in {formatDistanceToNow(new Date(lock.unlock_date))}</p>
                 </div>
               </div>
-              <span className="font-bold text-brand-success">+{lock.benefit_percentage}% APY</span>
+              <span className="font-extrabold text-lg bg-gradient-to-r from-[#00ff88] to-[#0070fa] bg-clip-text text-transparent animate-glow">+{lock.benefit_percentage}% APY</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-text-secondary text-center py-4">You have no active token locks.</p>
+        <p className="text-sm font-semibold bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent text-center py-4">You have no active token locks.</p>
       )}
     </div>
   );

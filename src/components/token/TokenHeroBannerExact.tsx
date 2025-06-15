@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useTokenInfo } from "@/hooks/useTokenInfo";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
@@ -99,9 +98,9 @@ export default function TokenHeroBannerExact() {
   const isTokenDeployed = !!tokenInfo?.current_price_usd;
 
   return (
-    <div className="w-full bg-white py-8 px-2 md:px-0 border-b border-gray-200">
+    <div className="w-full bg-gradient-to-br from-[#00d4ff]/10 via-white/95 to-[#00ff88]/10 py-10 px-4 md:px-0 border-b-2 border-[#00d4ff]/30 shadow-lg">
       <div className="max-w-3xl mx-auto flex flex-col items-center">
-        <h2 className="font-bold text-xl md:text-2xl text-blue-900 mb-3 uppercase tracking-tight">
+        <h2 className="font-extrabold text-2xl md:text-3xl mb-6 uppercase tracking-tight bg-gradient-to-r from-[#0070fa] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent animate-glow drop-shadow">
           BUY NOW BEFORE PRICE RISE
         </h2>
         

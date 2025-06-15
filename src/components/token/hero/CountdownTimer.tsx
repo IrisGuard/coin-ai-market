@@ -42,9 +42,9 @@ export const CountdownTimer = ({ endDate }: CountdownTimerProps) => {
         { label: "Minutes", value: timeLeft.minutes },
         { label: "Seconds", value: timeLeft.seconds },
       ].map((x) => (
-        <div key={x.label} className="flex flex-col items-center bg-gray-800 text-white rounded-md px-4 py-2 min-w-[54px]">
-          <span className="text-2xl font-bold">{x.value}</span>
-          <span className="text-xs font-semibold uppercase">{x.label}</span>
+        <div key={x.label} className="flex flex-col items-center bg-gradient-to-br from-[#00d4ff] via-[#0070fa] to-[#7c3aed] text-white rounded-lg px-4 py-2 min-w-[54px] shadow-lg border-2 border-[#00d4ff]/50 animate-glow">
+          <span className="text-2xl font-bold drop-shadow-lg">{x.value}</span>
+          <span className="text-xs font-semibold uppercase tracking-wide">{x.label}</span>
         </div>
       ))}
     </div>
