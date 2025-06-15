@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Print, X } from 'lucide-react';
+import { Download, Printer, X } from 'lucide-react';
 
 interface TransactionDetails {
   id: string;
@@ -212,7 +211,7 @@ const TransactionReceiptModal = ({ transaction, isOpen, onClose }: TransactionRe
               onClick={handlePrintReceipt}
               className="flex-1 flex items-center justify-center gap-2"
             >
-              <Print className="h-4 w-4" />
+              <Printer className="h-4 w-4" />
               Print Receipt
             </Button>
           </div>

@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Download, Print, Mail, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Download, Printer, Mail, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -212,7 +211,7 @@ const PaymentSuccess = () => {
               onClick={() => window.print()}
               className="flex items-center justify-center gap-2"
             >
-              <Print className="h-4 w-4" />
+              <Printer className="h-4 w-4" />
               Print Receipt
             </Button>
             
