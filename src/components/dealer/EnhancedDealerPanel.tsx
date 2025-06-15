@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Brain, TrendingUp, Shield, Database, AlertTriangle, Store, Package, Bell, Bot } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Shield, Database, AlertTriangle, Store, Package, Bell, Bot, Wallet } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -21,6 +20,9 @@ import MultiCategoryListingManager from './MultiCategoryListingManager';
 import ConnectedAIAnalysis from './ConnectedAIAnalysis';
 import ConnectedMarketIntelligence from './ConnectedMarketIntelligence';
 import ConnectedErrorDetection from './ConnectedErrorDetection';
+
+// Import the new Wallet Management component
+import WalletManagementTab from './WalletManagementTab';
 
 const EnhancedDealerPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -171,7 +173,7 @@ const EnhancedDealerPanel = () => {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             Dashboard
@@ -183,6 +185,10 @@ const EnhancedDealerPanel = () => {
           <TabsTrigger value="multi-listing" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
             Multi-Listing
+          </TabsTrigger>
+          <TabsTrigger value="my-wallets" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            My Wallets
           </TabsTrigger>
           <TabsTrigger value="ai-brain" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
@@ -282,6 +288,10 @@ const EnhancedDealerPanel = () => {
 
         <TabsContent value="multi-listing">
           <MultiCategoryListingManager />
+        </TabsContent>
+
+        <TabsContent value="my-wallets">
+          <WalletManagementTab />
         </TabsContent>
 
         <TabsContent value="ai-brain">
