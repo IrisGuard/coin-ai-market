@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Sparkles, Clock, Loader2 } from 'lucide-react';
 
 interface CoinListingFormProps {
@@ -46,12 +46,11 @@ const CoinListingForm = ({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description
           </label>
-          <Textarea
-            placeholder="Add any additional details about your coin..."
+          <RichTextEditor
             value={listingDescription}
-            onChange={(e) => onDescriptionChange(e.target.value)}
+            onChange={onDescriptionChange}
+            placeholder="Add any additional details about your coin..."
             className="w-full"
-            rows={3}
           />
         </div>
 

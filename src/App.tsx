@@ -18,6 +18,7 @@ import CoinDetails from "./pages/CoinDetails";
 import DealerDirect from "./pages/DealerDirect";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
+import DealerUpgradePage from "./pages/DealerUpgradePage";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/coin/:id" element={<CoinDetails />} />
                 <Route path="/dealer-direct" element={<DealerDirect />} />
                 <Route path="/dealer" element={<DealerDirect />} />
+                <Route path="/dealer/upgrade" element={<DealerUpgradePage />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-failure" element={<PaymentFailure />} />
               </Routes>

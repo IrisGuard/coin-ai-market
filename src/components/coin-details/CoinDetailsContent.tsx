@@ -87,6 +87,11 @@ const CoinDetailsContent = ({
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
+  // Function to render rich text HTML safely
+  const renderRichText = (htmlContent: string) => {
+    return { __html: htmlContent };
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -191,7 +196,10 @@ const CoinDetailsContent = ({
             <Card>
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-3">Description</h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{coin.description}</p>
+                <div 
+                  className="prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={renderRichText(coin.description)}
+                />
               </CardContent>
             </Card>
           )}
