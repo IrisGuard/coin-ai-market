@@ -318,7 +318,7 @@ const SiteManagementSection = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{source.source_name}</CardTitle>
-                    <Badge className={getSourceTypeColor(source.source_type)} size="sm">
+                    <Badge className={getSourceTypeColor(source.source_type)}>
                       {source.source_type.replace('_', ' ')}
                     </Badge>
                   </div>

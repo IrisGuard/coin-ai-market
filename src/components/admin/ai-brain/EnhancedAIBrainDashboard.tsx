@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +12,7 @@ import SiteManagementSection from './SiteManagementSection';
 
 const EnhancedAIBrainDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <div className="space-y-6">
@@ -58,7 +60,7 @@ const EnhancedAIBrainDashboard = () => {
         </TabsContent>
 
         <TabsContent value="commands">
-          <AICommandsSection />
+          <AICommandsSection searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </TabsContent>
 
         <TabsContent value="automation">

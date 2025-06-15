@@ -15,14 +15,10 @@ interface Transaction {
   amount: number;
   currency: string;
   status: string;
-  order_type: string;
+  payment_method: string;
   created_at: string;
   coin_id?: string;
   user_id: string;
-  profiles?: {
-    name?: string;
-    email?: string;
-  };
   coins?: {
     name?: string;
     image?: string;
@@ -43,10 +39,6 @@ const TransactionHistory = () => {
         .from('payment_transactions')
         .select(`
           *,
-          profiles!payment_transactions_user_id_fkey (
-            name,
-            email
-          ),
           coins (
             name,
             image
@@ -88,11 +80,11 @@ const TransactionHistory = () => {
     }
   };
 
-  const getOrderTypeIcon = (orderType: string) => {
-    switch (orderType) {
-      case 'coin_purchase': return <Coins className="h-4 w-4" />;
-      case 'subscription': return <Receipt className="h-4 w-4" />;
-      case 'store_upgrade': return <DollarSign className="h-4 w-4" />;
+  const getPaymentMethodIcon = (method: string) => {
+    switch (method) {
+      case 'transak': return <DollarSign className="h-4 w-4" />;
+      case 'crypto': return <Coins className="h-4 w-4" />;
+      case 'card': return <Receipt className="h-4 w-4" />;
       default: return <Receipt className="h-4 w-4" />;
     }
   };
@@ -103,14 +95,13 @@ const TransactionHistory = () => {
 
   const exportTransactions = () => {
     const csvContent = [
-      ['Date', 'Amount', 'Currency', 'Status', 'Type', 'Customer', 'Coin'].join(','),
+      ['Date', 'Amount', 'Currency', 'Status', 'Method', 'Coin'].join(','),
       ...transactions.map(t => [
         format(new Date(t.created_at), 'yyyy-MM-dd HH:mm:ss'),
         t.amount,
         t.currency,
         t.status,
-        t.order_type,
-        t.profiles?.name || t.profiles?.email || 'Unknown',
+        t.payment_method,
         t.coins?.name || 'N/A'
       ].join(','))
     ].join('\n');
@@ -176,9 +167,9 @@ const TransactionHistory = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold">
-                  {transactions.filter(t => t.order_type === 'coin_purchase').length}
+                  {transactions.filter(t => t.payment_method === 'transak').length}
                 </div>
-                <div className="text-sm text-gray-600">Coin Sales</div>
+                <div className="text-sm text-gray-600">Card Payments</div>
               </CardContent>
             </Card>
           </div>
@@ -233,10 +224,10 @@ const TransactionHistory = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                          {getOrderTypeIcon(transaction.order_type)}
+                          {getPaymentMethodIcon(transaction.payment_method)}
                           <div>
                             <div className="font-medium">
-                              {transaction.order_type.replace('_', ' ').toUpperCase()}
+                              {transaction.payment_method.toUpperCase()} Payment
                             </div>
                             <div className="text-sm text-gray-600">
                               {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
@@ -257,9 +248,7 @@ const TransactionHistory = () => {
                         
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">
-                            {transaction.profiles?.name || transaction.profiles?.email || 'Unknown Customer'}
-                          </span>
+                          <span className="text-sm">Transaction #{transaction.id.slice(0, 8)}</span>
                         </div>
                       </div>
                       
