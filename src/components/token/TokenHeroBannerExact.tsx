@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useTokenInfo } from "@/hooks/useTokenInfo";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
@@ -61,12 +62,12 @@ export default function TokenHeroBannerExact() {
 
   // Amount calculation from USD to GCAI
   useEffect(() => {
-    if (!usdAmount || !tokenInfo?.current_price_usd) {
+    if (!usdAmount || tokenInfo?.current_price_usd === undefined || tokenInfo?.current_price_usd === null) {
       setGcaiAmount("");
       return;
     }
     const amount = parseFloat(usdAmount);
-    const price = parseFloat(tokenInfo.current_price_usd);
+    const price = Number(tokenInfo.current_price_usd);
     if (!isNaN(amount) && amount > 0 && price > 0) {
       setGcaiAmount((amount / price).toLocaleString(undefined, { maximumFractionDigits: 2 }));
     } else {
