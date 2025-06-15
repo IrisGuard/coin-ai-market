@@ -18,7 +18,6 @@ const LivePlatformMonitor = () => {
         coins,
         users,
         transactions,
-        subscriptions,
         aiCommands,
         errors24h
       ] = await Promise.all([
@@ -26,18 +25,23 @@ const LivePlatformMonitor = () => {
         supabase.from('coins').select('*', { count: 'exact' }),
         supabase.from('profiles').select('*', { count: 'exact' }),
         supabase.from('payment_transactions').select('*', { count: 'exact' }).eq('status', 'completed'),
-        supabase.from('user_subscriptions').select('*', { count: 'exact' }).eq('status', 'active'),
         supabase.from('ai_commands').select('*', { count: 'exact' }).eq('is_active', true),
         supabase.from('error_logs').select('*', { count: 'exact' })
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       ]);
+
+      // Get subscriptions using raw query to avoid type issues
+      const { count: subscriptionCount } = await supabase
+        .from('user_subscriptions' as any)
+        .select('*', { count: 'exact' })
+        .eq('status', 'active');
 
       return {
         activeStores: stores.count || 0,
         totalCoins: coins.count || 0,
         totalUsers: users.count || 0,
         completedTransactions: transactions.count || 0,
-        activeSubscriptions: subscriptions.count || 0,
+        activeSubscriptions: subscriptionCount || 0,
         aiCommands: aiCommands.count || 0,
         errors24h: errors24h.count || 0,
         systemHealth: (errors24h.count || 0) < 5 ? 'healthy' : 'warning'

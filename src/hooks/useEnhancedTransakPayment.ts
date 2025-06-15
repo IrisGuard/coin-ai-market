@@ -125,7 +125,12 @@ export const useEnhancedTransakPayment = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform data to match our interface
+      return (data || []).map((item: any) => ({
+        ...item,
+        order_type: item.order_type || 'coin_purchase'
+      }));
     } catch (error) {
       console.error('Error fetching transactions:', error);
       return [];
@@ -137,7 +142,7 @@ export const useEnhancedTransakPayment = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_subscriptions')
+        .from('user_subscriptions' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -153,7 +158,7 @@ export const useEnhancedTransakPayment = () => {
   const getAvailableSubscriptionPlans = useCallback(async (): Promise<SubscriptionPlan[]> => {
     try {
       const { data, error } = await supabase
-        .from('subscription_plans')
+        .from('subscription_plans' as any)
         .select('*')
         .eq('is_active', true)
         .order('price', { ascending: true });
@@ -171,7 +176,7 @@ export const useEnhancedTransakPayment = () => {
 
     try {
       const { error } = await supabase
-        .from('user_subscriptions')
+        .from('user_subscriptions' as any)
         .update({ 
           status: 'cancelled',
           cancelled_at: new Date().toISOString()
