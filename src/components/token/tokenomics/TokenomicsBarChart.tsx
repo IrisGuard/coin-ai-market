@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const chartData = [
@@ -12,12 +12,19 @@ const chartData = [
   { period: "36M", apy: 100, color: "#ffd700" },
 ];
 
+const chartConfig = {
+  apy: {
+    label: "APY %",
+    color: "#00d4ff",
+  },
+};
+
 export function TokenomicsBarChart() {
   return (
     <div className="w-full max-w-xs mx-auto">
       <div className="glass-card rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 p-4 animate-fade-in">
         <div className="w-full h-48">
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer config={chartConfig}>
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
               <XAxis 
                 dataKey="period" 
@@ -47,7 +54,7 @@ export function TokenomicsBarChart() {
                 </linearGradient>
               </defs>
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
         
         <div className="text-center mt-2">

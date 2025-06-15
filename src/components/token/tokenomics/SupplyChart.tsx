@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { Pie, PieChart, Cell, ResponsiveContainer } from "recharts";
+import { Pie, PieChart, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const chartData = [
@@ -11,6 +11,32 @@ const chartData = [
   { name: "Liquidity/Rewards", value: 10, color: "#ff6600" },
 ];
 
+const chartConfig = {
+  value: {
+    label: "Percentage",
+  },
+  "Public Sale": {
+    label: "Public Sale",
+    color: "#00d4ff",
+  },
+  "Team & Advisors": {
+    label: "Team & Advisors",
+    color: "#7c3aed",
+  },
+  "Ecosystem & Dev": {
+    label: "Ecosystem & Dev", 
+    color: "#00ff88",
+  },
+  "Marketing": {
+    label: "Marketing",
+    color: "#ff00cc",
+  },
+  "Liquidity/Rewards": {
+    label: "Liquidity/Rewards",
+    color: "#ff6600",
+  },
+};
+
 export function SupplyChart() {
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
 
@@ -18,7 +44,10 @@ export function SupplyChart() {
     <div className="w-full max-w-xs mx-auto">
       <div className="glass-card rounded-2xl bg-white shadow-xl border-2 border-[#00d4ff]/70 p-4 animate-fade-in">
         <div className="w-full h-64 relative">
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square max-h-[250px]"
+          >
             <PieChart>
               <ChartTooltip 
                 cursor={false} 
@@ -69,7 +98,7 @@ export function SupplyChart() {
                 </text>
               )}
             </PieChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
         
         <div className="text-center mt-3">
