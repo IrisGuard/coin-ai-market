@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useCategories, useUpdateCategory, useDeleteCategory } from '@/hooks/useCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Grid3X3, Upload, Eye, TrendingUp, Image, Edit, Trash2, Move, Save } from 'lucide-react';
+import { Grid3X3, Upload, Eye, TrendingUp, Image, Edit, Trash2, Move, Save, Plus } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -33,18 +33,36 @@ const EnhancedCategoryManagerWithUpload = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [uploadingImageFor, setUploadingImageFor] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
     icon: '',
     color: '',
-    is_active: true
+    is_active: true,
+    display_order: 0
   });
+
+  const availableIcons = [
+    'MapPin', 'Globe', 'Crown', 'Coins', 'DollarSign', 'Medal', 
+    'Banknote', 'Shield', 'Star', 'Target', 'AlertCircle', 'Clock', 'Zap'
+  ];
+
+  const availableColors = [
+    'from-red-400 to-blue-500',
+    'from-green-400 to-blue-500',
+    'from-amber-400 to-orange-500',
+    'from-purple-400 to-pink-500',
+    'from-yellow-400 to-orange-500',
+    'from-gray-300 to-gray-500',
+    'from-blue-400 to-indigo-500',
+    'from-cyan-400 to-blue-500',
+    'from-teal-400 to-green-500'
+  ];
 
   const handleImageUpload = async (categoryId: string, file: File) => {
     setUploadingImageFor(categoryId);
     try {
-      // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${categoryId}-${Date.now()}.${fileExt}`;
       const filePath = `category-images/${fileName}`;
@@ -55,12 +73,10 @@ const EnhancedCategoryManagerWithUpload = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('categories')
         .getPublicUrl(filePath);
 
-      // Update category with image URL
       await updateCategoryMutation.mutateAsync({
         categoryId,
         updates: { image_url: publicUrl }
@@ -88,26 +104,56 @@ const EnhancedCategoryManagerWithUpload = () => {
       description: category.description || '',
       icon: category.icon || '',
       color: category.color || '',
-      is_active: category.is_active
+      is_active: category.is_active,
+      display_order: category.display_order || 0
     });
     setSelectedCategory(category);
     setEditDialogOpen(true);
   };
 
-  const handleSaveCategory = async () => {
-    if (!selectedCategory) return;
+  const openCreateDialog = () => {
+    setEditForm({
+      name: '',
+      description: '',
+      icon: 'Coins',
+      color: availableColors[0],
+      is_active: true,
+      display_order: categories.length + 1
+    });
+    setSelectedCategory(null);
+    setCreateDialogOpen(true);
+  };
 
-    try {
-      await updateCategoryMutation.mutateAsync({
-        categoryId: selectedCategory.id,
-        updates: editForm
-      });
-      toast.success('Category updated successfully');
-      setEditDialogOpen(false);
-      setSelectedCategory(null);
-      refetch();
-    } catch (error: any) {
-      toast.error(`Failed to update category: ${error.message}`);
+  const handleSaveCategory = async () => {
+    if (selectedCategory) {
+      // Update existing category
+      try {
+        await updateCategoryMutation.mutateAsync({
+          categoryId: selectedCategory.id,
+          updates: editForm
+        });
+        toast.success('Category updated successfully');
+        setEditDialogOpen(false);
+        setSelectedCategory(null);
+        refetch();
+      } catch (error: any) {
+        toast.error(`Failed to update category: ${error.message}`);
+      }
+    } else {
+      // Create new category
+      try {
+        const { error } = await supabase
+          .from('categories')
+          .insert([editForm]);
+        
+        if (error) throw error;
+        
+        toast.success('Category created successfully');
+        setCreateDialogOpen(false);
+        refetch();
+      } catch (error: any) {
+        toast.error(`Failed to create category: ${error.message}`);
+      }
     }
   };
 
@@ -151,15 +197,21 @@ const EnhancedCategoryManagerWithUpload = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Grid3X3 className="w-5 h-5" />
-            Enhanced Category Management
-            <Badge variant="outline">{categories.length} categories</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Grid3X3 className="w-5 h-5" />
+              <CardTitle>Enhanced Category Management</CardTitle>
+              <Badge variant="outline">{categories.length} categories</Badge>
+            </div>
+            <Button onClick={openCreateDialog} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Add Category
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map((category: Category, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {categories.map((category: Category) => (
               <Card
                 key={category.id}
                 className={`relative overflow-hidden ${!category.is_active ? 'opacity-60' : ''}`}
@@ -215,7 +267,7 @@ const EnhancedCategoryManagerWithUpload = () => {
                   {/* Category Info */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-sm">{category.name}</h3>
+                      <h3 className="font-medium text-sm line-clamp-2">{category.name}</h3>
                       <Badge variant={category.is_active ? 'default' : 'secondary'}>
                         {category.is_active ? 'Active' : 'Inactive'}
                       </Badge>
@@ -281,7 +333,7 @@ const EnhancedCategoryManagerWithUpload = () => {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Category Name</Label>
+              <Label htmlFor="name">Category Name *</Label>
               <Input
                 id="name"
                 value={editForm.name}
@@ -292,12 +344,16 @@ const EnhancedCategoryManagerWithUpload = () => {
             
             <div>
               <Label htmlFor="icon">Icon Name</Label>
-              <Input
+              <select
                 id="icon"
                 value={editForm.icon}
                 onChange={(e) => setEditForm(prev => ({ ...prev, icon: e.target.value }))}
-                placeholder="e.g., Coins, Star, Globe"
-              />
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                {availableIcons.map(icon => (
+                  <option key={icon} value={icon}>{icon}</option>
+                ))}
+              </select>
             </div>
             
             <div className="col-span-2">
@@ -307,16 +363,32 @@ const EnhancedCategoryManagerWithUpload = () => {
                 value={editForm.description}
                 onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter category description"
+                rows={3}
               />
             </div>
             
             <div>
               <Label htmlFor="color">Gradient Color</Label>
-              <Input
+              <select
                 id="color"
                 value={editForm.color}
                 onChange={(e) => setEditForm(prev => ({ ...prev, color: e.target.value }))}
-                placeholder="e.g., from-blue-400 to-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                {availableColors.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <Label htmlFor="display_order">Display Order</Label>
+              <Input
+                id="display_order"
+                type="number"
+                value={editForm.display_order}
+                onChange={(e) => setEditForm(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                placeholder="Display order"
               />
             </div>
             
@@ -337,6 +409,96 @@ const EnhancedCategoryManagerWithUpload = () => {
             <Button onClick={handleSaveCategory}>
               <Save className="w-4 h-4 mr-2" />
               Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Category</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="create_name">Category Name *</Label>
+              <Input
+                id="create_name"
+                value={editForm.name}
+                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter category name"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="create_icon">Icon Name</Label>
+              <select
+                id="create_icon"
+                value={editForm.icon}
+                onChange={(e) => setEditForm(prev => ({ ...prev, icon: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                {availableIcons.map(icon => (
+                  <option key={icon} value={icon}>{icon}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-span-2">
+              <Label htmlFor="create_description">Description</Label>
+              <Textarea
+                id="create_description"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter category description"
+                rows={3}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="create_color">Gradient Color</Label>
+              <select
+                id="create_color"
+                value={editForm.color}
+                onChange={(e) => setEditForm(prev => ({ ...prev, color: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                {availableColors.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <Label htmlFor="create_display_order">Display Order</Label>
+              <Input
+                id="create_display_order"
+                type="number"
+                value={editForm.display_order}
+                onChange={(e) => setEditForm(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                placeholder="Display order"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="create_is_active"
+                checked={editForm.is_active}
+                onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_active: checked }))}
+              />
+              <Label htmlFor="create_is_active">Active</Label>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveCategory}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Category
             </Button>
           </div>
         </DialogContent>
