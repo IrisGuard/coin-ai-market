@@ -38,17 +38,30 @@ export const useCoinDetails = (id: string) => {
           id,
           amount,
           created_at,
-          user_id,
-          profiles!bids_user_id_fkey (
-            name,
-            username
-          )
+          user_id
         `)
         .eq('coin_id', id)
         .order('amount', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Get profiles separately to avoid foreign key issues
+      const bidsWithProfiles = await Promise.all(
+        (data || []).map(async (bid) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, username')
+            .eq('id', bid.user_id)
+            .single();
+          
+          return {
+            ...bid,
+            profiles: profile || { name: '', username: '' }
+          };
+        })
+      );
+      
+      return bidsWithProfiles;
     },
     enabled: !!id
   });
