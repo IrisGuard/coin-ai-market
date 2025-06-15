@@ -39,7 +39,7 @@ const AdminGCAITokenTab = () => {
 
       {/* Admin Sub-Tabs */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Overview
@@ -64,6 +64,10 @@ const AdminGCAITokenTab = () => {
             <BarChart3 className="w-4 h-4" />
             Tokenomics
           </TabsTrigger>
+          <TabsTrigger value="user-locks" className="flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            User Locks
+          </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
             Security
@@ -80,18 +84,10 @@ const AdminGCAITokenTab = () => {
 
         <TabsContent value="locks" className="space-y-6">
           <TokenLocksManagement />
-          <div className="mt-8">
-            <h3 className="text-xl font-bold mb-4">User Lock Tracking</h3>
-            <ActiveLocksSection />
-          </div>
         </TabsContent>
 
         <TabsContent value="referrals" className="space-y-6">
           <ReferralManagement />
-          <div className="mt-8">
-            <h3 className="text-xl font-bold mb-4">User Referral Interface</h3>
-            <ReferralSection />
-          </div>
         </TabsContent>
 
         <TabsContent value="activity">
@@ -100,6 +96,13 @@ const AdminGCAITokenTab = () => {
 
         <TabsContent value="tokenomics" className="space-y-6">
           <TokenomicsSection />
+        </TabsContent>
+
+        <TabsContent value="user-locks" className="space-y-6">
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold mb-4">User Lock Tracking</h3>
+            <ActiveLocksSection />
+          </div>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
