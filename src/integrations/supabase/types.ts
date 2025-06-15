@@ -3173,48 +3173,69 @@ export type Database = {
       stores: {
         Row: {
           address: Json | null
+          bank_name: string | null
+          bitcoin_wallet_address: string | null
           created_at: string
           description: string | null
           email: string | null
+          ethereum_wallet_address: string | null
+          iban: string | null
           id: string
           is_active: boolean | null
           logo_url: string | null
           name: string
           phone: string | null
           shipping_options: Json | null
+          solana_wallet_address: string | null
+          swift_bic: string | null
           updated_at: string
+          usdc_wallet_address: string | null
           user_id: string
           verified: boolean | null
           website: string | null
         }
         Insert: {
           address?: Json | null
+          bank_name?: string | null
+          bitcoin_wallet_address?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
+          ethereum_wallet_address?: string | null
+          iban?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
           name: string
           phone?: string | null
           shipping_options?: Json | null
+          solana_wallet_address?: string | null
+          swift_bic?: string | null
           updated_at?: string
+          usdc_wallet_address?: string | null
           user_id: string
           verified?: boolean | null
           website?: string | null
         }
         Update: {
           address?: Json | null
+          bank_name?: string | null
+          bitcoin_wallet_address?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
+          ethereum_wallet_address?: string | null
+          iban?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
           name?: string
           phone?: string | null
           shipping_options?: Json | null
+          solana_wallet_address?: string | null
+          swift_bic?: string | null
           updated_at?: string
+          usdc_wallet_address?: string | null
           user_id?: string
           verified?: boolean | null
           website?: string | null
