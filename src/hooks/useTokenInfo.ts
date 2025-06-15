@@ -14,6 +14,6 @@ export const useTokenInfo = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 30000, // Refresh every 30 seconds for real-time data
   });
 };

@@ -1,16 +1,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 export const useTokenLocks = () => {
-  const { user } = useAuth();
-
   return useQuery({
-    queryKey: ['token-locks', user?.id],
+    queryKey: ['token-locks'],
     queryFn: async () => {
-      if (!user?.id) return [];
-      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
       const { data, error } = await supabase
         .from('token_locks')
         .select('*')
@@ -20,6 +18,6 @@ export const useTokenLocks = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    refetchInterval: 10000,
   });
 };

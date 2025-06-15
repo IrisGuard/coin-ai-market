@@ -10,7 +10,7 @@ export const useLockOptions = () => {
         .from('lock_options')
         .select('*')
         .eq('is_active', true)
-        .order('display_order');
+        .order('display_order', { ascending: true });
       
       if (error) throw error;
       return data;
