@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Store, Upload, Save, Image, User, Phone, Mail, MapPin } from 'lucide-react';
 
-interface Store {
+interface StoreData {
   id: string;
   name: string;
   description?: string;
@@ -52,33 +52,36 @@ const StoreCustomizationSection = () => {
         .single();
       
       if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      return data as StoreData | null;
     },
     enabled: !!user?.id,
-    onSuccess: (data) => {
-      if (data) {
-        setFormData({
-          name: data.name || '',
-          store_description: data.store_description || '',
-          contact_info: data.contact_info || {
-            phone: '',
-            email: '',
-            address: '',
-            website: ''
-          }
-        });
-      }
-    }
   });
 
+  // Use useEffect to update form data when store data is loaded
+  useEffect(() => {
+    if (store) {
+      setFormData({
+        name: store.name || '',
+        store_description: store.store_description || '',
+        contact_info: store.contact_info || {
+          phone: '',
+          email: '',
+          address: '',
+          website: ''
+        }
+      });
+    }
+  }, [store]);
+
   const updateStoreMutation = useMutation({
-    mutationFn: async (updates: Partial<Store>) => {
+    mutationFn: async (updates: Partial<StoreData>) => {
       if (!user?.id) throw new Error('Not authenticated');
       
       const { error } = await supabase
         .from('stores')
         .upsert({
           user_id: user.id,
+          name: formData.name, // Always include required name field
           ...updates
         });
       
@@ -362,8 +365,8 @@ const StoreCustomizationSection = () => {
           />
         </div>
 
-        <Button onClick={handleSave} className="w-full" disabled={updateStoreMutation.isLoading}>
-          {updateStoreMutation.isLoading ? (
+        <Button onClick={handleSave} className="w-full" disabled={updateStoreMutation.isPending}>
+          {updateStoreMutation.isPending ? (
             <div className="animate-spin h-4 w-4 border-b-2 border-white mr-2" />
           ) : (
             <Save className="w-4 h-4 mr-2" />

@@ -6,6 +6,19 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCategoryStats } from '@/hooks/useCategoryStats';
 
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  image_url?: string;
+  display_order: number;
+  is_active: boolean;
+  color?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const CategoryNavigationFromDatabase = () => {
   const { stats, loading, error } = useCategoryStats();
 
@@ -19,7 +32,7 @@ const CategoryNavigationFromDatabase = () => {
         .order('display_order', { ascending: true });
       
       if (error) throw error;
-      return data || [];
+      return data as Category[] || [];
     }
   });
 

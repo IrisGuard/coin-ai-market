@@ -7,12 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCategories, useUpdateCategory, useDeleteCategory } from '@/hooks/useCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Grid3X3, Upload, Eye, TrendingUp, Image, Edit, Trash2, Move, Save } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface Category {
   id: string;
@@ -112,30 +111,6 @@ const EnhancedCategoryManagerWithUpload = () => {
     }
   };
 
-  const handleDragEnd = async (result: any) => {
-    if (!result.destination) return;
-
-    const items = Array.from(categories);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update display_order for all categories
-    const updates = items.map((category, index) => ({
-      categoryId: category.id,
-      updates: { display_order: index + 1 }
-    }));
-
-    try {
-      await Promise.all(updates.map(update => 
-        updateCategoryMutation.mutateAsync(update)
-      ));
-      toast.success('Category order updated');
-      refetch();
-    } catch (error: any) {
-      toast.error(`Failed to update order: ${error.message}`);
-    }
-  };
-
   const handleToggleActive = async (category: Category) => {
     try {
       await updateCategoryMutation.mutateAsync({
@@ -183,133 +158,117 @@ const EnhancedCategoryManagerWithUpload = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="categories">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                >
-                  {categories.map((category: Category, index) => (
-                    <Draggable key={category.id} draggableId={category.id} index={index}>
-                      {(provided, snapshot) => (
-                        <Card
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`relative overflow-hidden ${snapshot.isDragging ? 'shadow-lg' : ''} ${!category.is_active ? 'opacity-60' : ''}`}
-                        >
-                          <div {...provided.dragHandleProps} className="absolute top-2 right-2 cursor-move">
-                            <Move className="w-4 h-4 text-gray-400" />
-                          </div>
-                          
-                          <CardContent className="p-4">
-                            {/* Category Image */}
-                            <div className="relative mb-4">
-                              {category.image_url ? (
-                                <img
-                                  src={category.image_url}
-                                  alt={category.name}
-                                  className="w-full h-32 object-cover rounded-lg"
-                                />
-                              ) : (
-                                <div className={`w-full h-32 bg-gradient-to-br ${category.color || 'from-gray-200 to-gray-300'} rounded-lg flex items-center justify-center text-white`}>
-                                  <span className="text-lg font-semibold">{category.name}</span>
-                                </div>
-                              )}
-                              
-                              {/* Upload Button Overlay */}
-                              <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100">
-                                <label className="cursor-pointer">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => handleFileSelect(category.id, e)}
-                                    disabled={uploadingImageFor === category.id}
-                                  />
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="bg-white text-black hover:bg-gray-100"
-                                    disabled={uploadingImageFor === category.id}
-                                  >
-                                    {uploadingImageFor === category.id ? (
-                                      <div className="animate-spin h-4 w-4 border-b-2 border-gray-600" />
-                                    ) : (
-                                      <>
-                                        <Upload className="w-4 h-4 mr-1" />
-                                        Upload
-                                      </>
-                                    )}
-                                  </Button>
-                                </label>
-                              </div>
-                            </div>
-
-                            {/* Category Info */}
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium text-sm">{category.name}</h3>
-                                <Badge variant={category.is_active ? 'default' : 'secondary'}>
-                                  {category.is_active ? 'Active' : 'Inactive'}
-                                </Badge>
-                              </div>
-                              
-                              <p className="text-xs text-gray-600 line-clamp-2">
-                                {category.description || 'No description available'}
-                              </p>
-
-                              {/* Basic Stats */}
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="flex items-center gap-1">
-                                  <span>Order: {category.display_order}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <span>Icon: {category.icon || 'None'}</span>
-                                </div>
-                              </div>
-
-                              {/* Action Buttons */}
-                              <div className="flex gap-2 pt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditDialog(category)}
-                                  className="flex-1"
-                                >
-                                  <Edit className="w-3 h-3 mr-1" />
-                                  Edit
-                                </Button>
-                                
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleToggleActive(category)}
-                                >
-                                  <Eye className="w-3 h-3" />
-                                </Button>
-                                
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteCategory(category.id)}
-                                  className="text-red-600"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categories.map((category: Category, index) => (
+              <Card
+                key={category.id}
+                className={`relative overflow-hidden ${!category.is_active ? 'opacity-60' : ''}`}
+              >
+                <div className="absolute top-2 right-2 cursor-move">
+                  <Move className="w-4 h-4 text-gray-400" />
                 </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+                
+                <CardContent className="p-4">
+                  {/* Category Image */}
+                  <div className="relative mb-4">
+                    {category.image_url ? (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className={`w-full h-32 bg-gradient-to-br ${category.color || 'from-gray-200 to-gray-300'} rounded-lg flex items-center justify-center text-white`}>
+                        <span className="text-lg font-semibold">{category.name}</span>
+                      </div>
+                    )}
+                    
+                    {/* Upload Button Overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileSelect(category.id, e)}
+                          disabled={uploadingImageFor === category.id}
+                        />
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="bg-white text-black hover:bg-gray-100"
+                          disabled={uploadingImageFor === category.id}
+                        >
+                          {uploadingImageFor === category.id ? (
+                            <div className="animate-spin h-4 w-4 border-b-2 border-gray-600" />
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-1" />
+                              Upload
+                            </>
+                          )}
+                        </Button>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Category Info */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-sm">{category.name}</h3>
+                      <Badge variant={category.is_active ? 'default' : 'secondary'}>
+                        {category.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-xs text-gray-600 line-clamp-2">
+                      {category.description || 'No description available'}
+                    </p>
+
+                    {/* Basic Stats */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <span>Order: {category.display_order}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>Icon: {category.icon || 'None'}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(category)}
+                        className="flex-1"
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleActive(category)}
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteCategory(category.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
