@@ -6,15 +6,19 @@ export const useTokenActivity = () => {
   return useQuery({
     queryKey: ['token-activity'],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+
       const { data, error } = await supabase
         .from('token_activity')
         .select('*')
+        .eq('user_id', user.user.id)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(10);
       
       if (error) throw error;
       return data;
     },
-    refetchInterval: 5000, // Real-time activity feed
+    refetchInterval: 30000,
   });
 };

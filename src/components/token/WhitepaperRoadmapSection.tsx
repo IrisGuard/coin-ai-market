@@ -2,55 +2,75 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, CheckCircle, Clock, Circle } from 'lucide-react';
+import { FileText, MapPin, ExternalLink, CheckCircle, Clock, Circle } from 'lucide-react';
 
 export const WhitepaperRoadmapSection = () => {
   const roadmapItems = [
     {
-      quarter: 'Q1 2024',
-      title: 'Platform Launch',
-      description: 'Launch of GCAI token and initial platform features',
-      status: 'completed',
-      items: ['Token launch', 'Basic AI recognition', 'Wallet integration']
+      phase: "Q1 2024",
+      title: "Platform Foundation",
+      status: "completed",
+      items: [
+        "AI coin recognition system",
+        "Error detection algorithms",
+        "Basic marketplace functionality",
+        "User authentication system"
+      ]
     },
     {
-      quarter: 'Q2 2024',
-      title: 'Enhanced AI Features',
-      description: 'Advanced AI capabilities and error detection',
-      status: 'completed',
-      items: ['Error coin detection', 'Dual image analysis', 'Market intelligence']
+      phase: "Q2 2024",
+      title: "Advanced Features",
+      status: "completed",
+      items: [
+        "Enhanced AI accuracy",
+        "Dealer panel integration",
+        "Advanced search filters",
+        "Mobile app optimization"
+      ]
     },
     {
-      quarter: 'Q3 2024',
-      title: 'Token Locking & Staking',
-      description: 'Implementation of token locking mechanism',
-      status: 'in-progress',
-      items: ['Locking contracts', 'Reward distribution', 'Governance features']
+      phase: "Q3 2024",
+      title: "Token Launch",
+      status: "in-progress",
+      items: [
+        "GCAI token deployment",
+        "Token locking system",
+        "Referral program",
+        "Revenue sharing model"
+      ]
     },
     {
-      quarter: 'Q4 2024',
-      title: 'Platform Expansion',
-      description: 'Global expansion and partnership integrations',
-      status: 'planned',
-      items: ['Multi-language support', 'Exchange listings', 'Mobile app launch']
+      phase: "Q4 2024",
+      title: "Ecosystem Expansion",
+      status: "planned",
+      items: [
+        "Cross-platform integration",
+        "Advanced trading features",
+        "Partnership integrations",
+        "Global marketplace launch"
+      ]
     }
   ];
-
-  const handleDownloadWhitepaper = () => {
-    // In real implementation, this would download the actual whitepaper
-    console.log('Downloading GCAI Whitepaper...');
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-6 h-6 text-brand-success" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'in-progress':
-        return <Clock className="w-6 h-6 text-brand-warning" />;
-      case 'planned':
-        return <Circle className="w-6 h-6 text-text-muted" />;
+        return <Clock className="w-5 h-5 text-yellow-500" />;
       default:
-        return <Circle className="w-6 h-6 text-text-muted" />;
+        return <Circle className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'border-green-200 bg-green-50';
+      case 'in-progress':
+        return 'border-yellow-200 bg-yellow-50';
+      default:
+        return 'border-gray-200 bg-gray-50';
     }
   };
 
@@ -62,95 +82,102 @@ export const WhitepaperRoadmapSection = () => {
             Whitepaper & Roadmap
           </h2>
           <p className="text-xl text-text-secondary">
-            Learn about our vision and development milestones
+            Learn about our vision and track our progress
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Whitepaper */}
-          <Card className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Whitepaper Section */}
+          <Card className="h-fit">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-6 h-6 text-brand-primary" />
                 GCAI Whitepaper
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-text-secondary">
-                Download our comprehensive whitepaper to learn about GCAI's technology, 
-                tokenomics, and future roadmap.
-              </p>
-              
-              <div className="space-y-2 text-sm text-text-secondary">
-                <div>• AI Recognition Technology</div>
-                <div>• Tokenomics & Distribution</div>
-                <div>• Platform Architecture</div>
-                <div>• Market Analysis</div>
-                <div>• Technical Specifications</div>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-brand-primary/10 rounded-lg">
+                  <h3 className="font-semibold text-text-primary mb-2">Technical Overview</h3>
+                  <p className="text-sm text-text-secondary">
+                    Comprehensive documentation of our AI-powered numismatic recognition system, 
+                    tokenomics model, and platform architecture.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-brand-secondary/10 rounded-lg">
+                  <h3 className="font-semibold text-text-primary mb-2">Economic Model</h3>
+                  <p className="text-sm text-text-secondary">
+                    Detailed explanation of token utilities, revenue sharing mechanisms, 
+                    and platform governance structure.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-brand-success/10 rounded-lg">
+                  <h3 className="font-semibold text-text-primary mb-2">AI Technology</h3>
+                  <p className="text-sm text-text-secondary">
+                    In-depth analysis of our machine learning algorithms, error detection 
+                    capabilities, and continuous improvement processes.
+                  </p>
+                </div>
               </div>
 
-              <Button 
-                onClick={handleDownloadWhitepaper}
-                className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Whitepaper
+              <Button className="w-full" variant="outline">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Download Whitepaper (Coming Soon)
               </Button>
             </CardContent>
           </Card>
 
-          {/* Roadmap */}
-          <Card className="lg:col-span-2">
+          {/* Roadmap Section */}
+          <Card>
             <CardHeader>
-              <CardTitle>Development Roadmap</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-6 h-6 text-brand-primary" />
+                Development Roadmap
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 {roadmapItems.map((item, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      {getStatusIcon(item.status)}
-                      {index < roadmapItems.length - 1 && (
-                        <div className="w-px h-16 bg-border-custom-secondary mt-2"></div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 pb-8">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-semibold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded">
-                          {item.quarter}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          item.status === 'completed' ? 'bg-brand-success/10 text-brand-success' :
-                          item.status === 'in-progress' ? 'bg-brand-warning/10 text-brand-warning' :
-                          'bg-text-muted/10 text-text-muted'
-                        }`}>
-                          {item.status.replace('-', ' ').toUpperCase()}
-                        </span>
+                  <div key={index} className={`p-4 rounded-lg border-2 ${getStatusColor(item.status)}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(item.status)}
+                        <h3 className="font-semibold text-text-primary">{item.title}</h3>
                       </div>
-                      
-                      <h4 className="text-lg font-semibold text-text-primary mb-1">
-                        {item.title}
-                      </h4>
-                      
-                      <p className="text-text-secondary text-sm mb-3">
-                        {item.description}
-                      </p>
-                      
-                      <div className="space-y-1">
-                        {item.items.map((feature, idx) => (
-                          <div key={idx} className="text-sm text-text-secondary flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-brand-primary rounded-full"></div>
-                            {feature}
-                          </div>
-                        ))}
-                      </div>
+                      <span className="text-sm font-medium text-text-secondary">{item.phase}</span>
                     </div>
+                    <ul className="space-y-1">
+                      {item.items.map((subItem, subIndex) => (
+                        <li key={subIndex} className="text-sm text-text-secondary flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-brand-primary rounded-full"></div>
+                          {subItem}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mt-12 p-6 bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-lg text-center">
+          <h3 className="text-xl font-bold text-text-primary mb-2">Stay Updated</h3>
+          <p className="text-text-secondary mb-4">
+            Follow our progress and get notified about major milestones and token launch updates.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Button variant="outline">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Join Discord
+            </Button>
+            <Button variant="outline">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Follow Twitter
+            </Button>
+          </div>
         </div>
       </div>
     </section>

@@ -10,10 +10,11 @@ export const useLockOptions = () => {
         .from('lock_options')
         .select('*')
         .eq('is_active', true)
-        .order('display_order', { ascending: true });
+        .order('duration_months', { ascending: true });
       
       if (error) throw error;
       return data;
     },
+    refetchInterval: 60000, // Refresh every minute
   });
 };

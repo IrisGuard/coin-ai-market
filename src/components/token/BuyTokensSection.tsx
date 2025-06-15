@@ -6,40 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CreditCard, Copy, ExternalLink, Loader2 } from 'lucide-react';
 import { useTokenInfo } from '@/hooks/useTokenInfo';
+import { useCryptoPrices } from '@/hooks/useCryptoPrices';
 import { toast } from 'sonner';
 
 export const BuyTokensSection = () => {
   const [amount, setAmount] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
-  const [solPrice, setSolPrice] = useState<number | null>(null);
-  const [loadingPrice, setLoadingPrice] = useState(true);
   const { data: tokenInfo, isLoading: tokenLoading } = useTokenInfo();
+  const { data: cryptoPrices, isLoading: pricesLoading } = useCryptoPrices();
 
-  // Fetch real SOL price
-  useEffect(() => {
-    const fetchSolPrice = async () => {
-      try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-        const data = await response.json();
-        setSolPrice(data.solana?.usd || null);
-      } catch (error) {
-        console.error('Failed to fetch SOL price:', error);
-        setSolPrice(null);
-      } finally {
-        setLoadingPrice(false);
-      }
-    };
-
-    fetchSolPrice();
-    const interval = setInterval(fetchSolPrice, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const treasuryAddress = tokenInfo?.treasury_address || "Treasury address will be available when token is deployed";
+  const treasuryAddress = tokenInfo?.treasury_address;
+  const isTokenDeployed = !!tokenInfo?.current_price_usd;
 
   const handleCopyAddress = () => {
-    if (tokenInfo?.treasury_address) {
-      navigator.clipboard.writeText(tokenInfo.treasury_address);
+    if (treasuryAddress) {
+      navigator.clipboard.writeText(treasuryAddress);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
       toast.success('Treasury address copied to clipboard!');
@@ -49,7 +30,12 @@ export const BuyTokensSection = () => {
   };
 
   const handleTransakPurchase = () => {
-    toast.info('Transak integration will be activated when crypto token is deployed.');
+    if (isTokenDeployed) {
+      // Here you would integrate with actual Transak
+      toast.info('Transak purchase integration will be activated shortly.');
+    } else {
+      toast.info('Token purchase will be available when crypto token is deployed.');
+    }
   };
 
   return (
@@ -60,17 +46,20 @@ export const BuyTokensSection = () => {
             Buy GCAI Tokens
           </h2>
           <p className="text-xl text-text-secondary">
-            Purchase GCAI tokens using USDC, SOL, or bank transfer through Transak
+            {isTokenDeployed 
+              ? "Purchase GCAI tokens using USDC, SOL, or bank transfer through Transak"
+              : "Token purchase will be available when the GCAI token is deployed"}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Transak Integration */}
-          <Card>
+          <Card className={!isTokenDeployed ? 'opacity-60' : ''}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="w-6 h-6 text-brand-primary" />
                 Buy with Card/Bank Transfer
+                {!isTokenDeployed && <span className="text-sm text-brand-warning">(Coming Soon)</span>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -84,6 +73,7 @@ export const BuyTokensSection = () => {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="text-lg"
+                    disabled={!isTokenDeployed}
                   />
                 </div>
                 
@@ -94,9 +84,13 @@ export const BuyTokensSection = () => {
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Loading rates...</span>
                     </div>
-                  ) : (
+                  ) : isTokenDeployed && tokenInfo?.usdc_rate && amount ? (
                     <div className="text-2xl font-bold text-brand-primary">
-                      {amount ? (parseFloat(amount) * (tokenInfo?.usdc_rate || 10)).toLocaleString() : '0'} GCAI
+                      {(parseFloat(amount) * tokenInfo.usdc_rate).toLocaleString()} GCAI
+                    </div>
+                  ) : (
+                    <div className="text-lg text-text-secondary">
+                      Exchange rates will be available when token is deployed
                     </div>
                   )}
                 </div>
@@ -106,9 +100,10 @@ export const BuyTokensSection = () => {
                 onClick={handleTransakPurchase}
                 className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
                 size="lg"
+                disabled={!isTokenDeployed}
               >
                 <ExternalLink className="w-5 h-5 mr-2" />
-                Buy with Transak
+                {isTokenDeployed ? 'Buy with Transak' : 'Coming Soon'}
               </Button>
               
               <div className="text-xs text-text-secondary text-center">
@@ -118,17 +113,20 @@ export const BuyTokensSection = () => {
           </Card>
 
           {/* Manual Transfer */}
-          <Card>
+          <Card className={!isTokenDeployed ? 'opacity-60' : ''}>
             <CardHeader>
-              <CardTitle>Manual Transfer</CardTitle>
+              <CardTitle>
+                Manual Transfer
+                {!isTokenDeployed && <span className="text-sm text-brand-warning ml-2">(Coming Soon)</span>}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label>Treasury Address (Available when token is deployed):</Label>
+                  <Label>Treasury Address:</Label>
                   <div className="flex items-center gap-2 mt-2">
                     <Input
-                      value={treasuryAddress}
+                      value={treasuryAddress || "Will be available when token is deployed"}
                       readOnly
                       className="font-mono text-sm"
                     />
@@ -136,7 +134,7 @@ export const BuyTokensSection = () => {
                       onClick={handleCopyAddress}
                       variant="outline"
                       size="sm"
-                      disabled={!tokenInfo?.treasury_address}
+                      disabled={!treasuryAddress}
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
@@ -154,24 +152,28 @@ export const BuyTokensSection = () => {
                         <Loader2 className="w-3 h-3 animate-spin" />
                         Loading rates...
                       </div>
-                    ) : (
+                    ) : isTokenDeployed ? (
                       <>
                         <div className="text-sm text-text-secondary">
-                          1 USDC = {tokenInfo?.usdc_rate || 10} GCAI
+                          1 USDC = {tokenInfo?.usdc_rate || 'TBD'} GCAI
                         </div>
                         <div className="text-sm text-text-secondary">
-                          1 SOL = {tokenInfo?.sol_rate || 1000} GCAI
+                          1 SOL = {tokenInfo?.sol_rate || 'TBD'} GCAI
                         </div>
                       </>
+                    ) : (
+                      <div className="text-sm text-text-secondary">
+                        Exchange rates will be set when token is deployed
+                      </div>
                     )}
-                    {loadingPrice ? (
+                    {pricesLoading ? (
                       <div className="flex items-center gap-2 text-sm text-text-secondary">
                         <Loader2 className="w-3 h-3 animate-spin" />
                         Loading SOL price...
                       </div>
-                    ) : solPrice ? (
+                    ) : cryptoPrices?.solana ? (
                       <div className="text-sm text-text-secondary">
-                        SOL Price: ${solPrice.toFixed(2)} USD
+                        SOL Price: ${cryptoPrices.solana.usd.toFixed(2)} USD
                       </div>
                     ) : (
                       <div className="text-sm text-text-secondary">
@@ -184,16 +186,27 @@ export const BuyTokensSection = () => {
 
               <div className="p-4 bg-brand-warning/10 border border-brand-warning/20 rounded-lg">
                 <div className="text-sm text-brand-warning font-semibold mb-1">
-                  Important:
+                  {isTokenDeployed ? 'Important:' : 'Coming Soon:'}
                 </div>
                 <div className="text-xs text-text-secondary">
-                  Manual transfer functionality will be available when the crypto token is deployed. 
-                  Tokens will be credited to your connected wallet address.
+                  {isTokenDeployed 
+                    ? 'Send USDC or SOL to the treasury address above. Tokens will be credited to your connected wallet address.'
+                    : 'Manual transfer functionality will be available when the crypto token is deployed. Tokens will be credited to your connected wallet address.'}
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {!isTokenDeployed && (
+          <div className="mt-8 p-6 bg-brand-primary/10 border border-brand-primary/20 rounded-lg text-center">
+            <h3 className="text-xl font-bold text-brand-primary mb-2">Token Launch Coming Soon</h3>
+            <p className="text-text-secondary">
+              The GCAI token will be deployed and available for purchase once our smart contracts are finalized and audited. 
+              All platform infrastructure is ready and token functionality will be activated immediately upon deployment.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

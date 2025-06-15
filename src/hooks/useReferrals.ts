@@ -6,18 +6,18 @@ export const useReferrals = () => {
   return useQuery({
     queryKey: ['referrals'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return null;
 
       const { data, error } = await supabase
         .from('referrals')
         .select('*')
-        .eq('referrer_id', user.id)
+        .eq('user_id', user.user.id)
         .single();
       
       if (error && error.code !== 'PGRST116') throw error;
       return data;
     },
-    refetchInterval: 20000,
+    refetchInterval: 60000,
   });
 };

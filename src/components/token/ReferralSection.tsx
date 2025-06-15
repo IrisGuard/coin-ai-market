@@ -11,8 +11,8 @@ export const ReferralSection = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const { data: referralData, isLoading } = useReferrals();
   
-  const referralCode = referralData?.referral_code || '';
-  const referralLink = referralCode ? `${window.location.origin}/token?ref=${referralCode}` : '';
+  const referralCode = referralData?.referral_code;
+  const referralLink = referralCode ? `${window.location.origin}/token?ref=${referralCode}` : null;
 
   const handleCopyLink = () => {
     if (referralLink) {
@@ -87,7 +87,7 @@ export const ReferralSection = () => {
                 <div className="p-4 bg-brand-primary/10 rounded-lg text-center">
                   <Users className="w-8 h-8 mx-auto mb-2 text-brand-primary" />
                   <p className="text-sm text-text-secondary">
-                    Connect your wallet to generate your unique referral link
+                    Connect your wallet to generate your unique referral link and start earning commissions
                   </p>
                 </div>
               )}
@@ -96,9 +96,10 @@ export const ReferralSection = () => {
                 <div className="text-sm font-semibold text-brand-primary mb-2">How it works:</div>
                 <ul className="text-sm text-text-secondary space-y-1">
                   <li>• Share your unique referral link</li>
-                  <li>• Friends purchase GCAI tokens</li>
-                  <li>• You earn 5% commission in GCAI</li>
-                  <li>• No limit on referrals or earnings</li>
+                  <li>• Friends purchase GCAI tokens using your link</li>
+                  <li>• You earn 5% commission in GCAI tokens</li>
+                  <li>• No limit on referrals or total earnings</li>
+                  <li>• Instant commission payouts to your wallet</li>
                 </ul>
               </div>
             </CardContent>
@@ -153,6 +154,21 @@ export const ReferralSection = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </div>
+
+        <div className="mt-12 p-6 bg-gradient-to-r from-brand-success/10 to-brand-warning/10 rounded-lg">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-text-primary mb-2">Start Earning Today</h3>
+            <p className="text-text-secondary mb-4">
+              Connect your wallet to get your referral link and start earning 5% commission on all referred purchases. 
+              There's no limit to how much you can earn!
+            </p>
+            {!referralData && (
+              <Button className="bg-brand-primary hover:bg-brand-primary/90">
+                Connect Wallet to Start
+              </Button>
+            )}
           </div>
         </div>
       </div>
