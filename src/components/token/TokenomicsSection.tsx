@@ -39,18 +39,26 @@ export const TokenomicsSection = () => {
   // Calculate real locking data from actual locks
   const getLockingData = () => {
     const lockPeriods = [
-      { period: '3M', apy: 15 },
-      { period: '6M', apy: 25 },
-      { period: '12M', apy: 40 },
-      { period: '18M', apy: 55 },
-      { period: '24M', apy: 70 },
-      { period: '36M', apy: 100 },
+      { period: '3M', apy: 15, periodMonths: 3 },
+      { period: '6M', apy: 25, periodMonths: 6 },
+      { period: '12M', apy: 40, periodMonths: 12 },
+      { period: '18M', apy: 55, periodMonths: 18 },
+      { period: '24M', apy: 70, periodMonths: 24 },
+      { period: '36M', apy: 100, periodMonths: 36 },
     ];
 
     return lockPeriods.map(period => {
-      const lockedAmount = tokenLocks?.filter(lock => 
-        lock.lock_options?.duration_months === parseInt(period.period)
-      ).reduce((sum, lock) => sum + (lock.amount || 0), 0) || 0;
+      let lockedAmount = 0;
+      
+      if (tokenLocks && Array.isArray(tokenLocks)) {
+        lockedAmount = tokenLocks
+          .filter(lock => {
+            // Handle both direct duration_months and nested lock_options
+            const duration = lock.lock_options?.duration_months || lock.duration_months;
+            return duration === period.periodMonths;
+          })
+          .reduce((sum, lock) => sum + (lock.amount || 0), 0);
+      }
 
       return {
         ...period,
@@ -78,6 +86,8 @@ export const TokenomicsSection = () => {
       </section>
     );
   }
+
+  const totalLocked = tokenLocks?.reduce((sum, lock) => sum + (lock.amount || 0), 0) || 0;
 
   return (
     <section className="py-16 px-4 bg-bg-secondary">
@@ -168,7 +178,7 @@ export const TokenomicsSection = () => {
           <Card>
             <CardContent className="p-6 text-center">
               <div className="text-2xl font-bold text-text-primary">
-                {tokenLocks?.reduce((sum, lock) => sum + (lock.amount || 0), 0)?.toLocaleString() || '0'}
+                {totalLocked.toLocaleString()}
               </div>
               <div className="text-text-secondary">Total Locked</div>
             </CardContent>

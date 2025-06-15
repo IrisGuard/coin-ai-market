@@ -13,7 +13,7 @@ export const useReferrals = () => {
         .from('referrals')
         .select('*')
         .eq('user_id', user.user.id)
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') throw error;
       return data;

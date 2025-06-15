@@ -6,6 +6,9 @@ export const useTokenLocks = () => {
   return useQuery({
     queryKey: ['token-locks'],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+
       const { data, error } = await supabase
         .from('token_locks')
         .select(`
@@ -15,13 +18,13 @@ export const useTokenLocks = () => {
             benefit_percentage
           )
         `)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', user.user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
-    enabled: !!(await supabase.auth.getUser()).data.user,
+    enabled: true,
     refetchInterval: 30000,
   });
 };
