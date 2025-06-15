@@ -9,7 +9,7 @@ import { useLockOptions } from '@/hooks/useLockOptions';
 import { useTokenLocks } from '@/hooks/useTokenLocks';
 import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
-import { Lock, Star, Crown } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const TokenLocking = () => {
@@ -38,25 +38,37 @@ export const TokenLocking = () => {
     // e.g. const { data: balance } = useWalletBalance();
     // if (amount > balance.gcai) { toast.error("Insufficient GCAI balance."); return; }
 
-    const promise = supabase.from('token_locks').insert({
-      user_id: user.id,
-      lock_option_id: selectedOption.id,
-      amount: amount,
-    });
+    const lockPromise = async () => {
+      const lockDate = new Date();
+      const unlockDate = new Date(lockDate);
+      unlockDate.setMonth(unlockDate.getMonth() + selectedOption.duration_months);
 
-    toast.promise(promise, {
+      // The insert object is now aligned with the table schema based on the typescript error.
+      // It no longer uses 'lock_option_id'.
+      const { error: insertError } = await supabase.from('token_locks').insert({
+        user_id: user.id,
+        amount: amount,
+        duration_months: selectedOption.duration_months,
+        unlock_date: unlockDate.toISOString(),
+        benefit_percentage: selectedOption.benefit_percentage,
+      });
+
+      if (insertError) {
+        // Throwing the error will make the toast show the error message.
+        throw insertError;
+      }
+    };
+
+    toast.promise(lockPromise(), {
       loading: 'Processing transaction...',
-      success: (result) => {
-        if (result.error) {
-          console.error('Supabase error:', result.error);
-          throw new Error(result.error.message);
-        }
+      success: () => {
         refetchUserLocks();
         setLockAmount('');
         setSelectedOption(null);
         return `Successfully locked ${amount} GCAI for ${selectedOption.duration_months} months!`;
       },
-      error: (err) => {
+      error: (err: any) => {
+        console.error('Supabase error:', err);
         return `Error: ${err.message}`;
       },
     });
