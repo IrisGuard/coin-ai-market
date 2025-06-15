@@ -141,13 +141,16 @@ export const useEnhancedTransakPayment = () => {
     if (!user) return [];
 
     try {
-      const { data, error } = await supabase
-        .from('user_subscriptions' as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Use a raw query to avoid type inference issues
+      const { data, error } = await supabase.rpc('get_user_subscriptions', {
+        p_user_id: user.id
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching subscriptions:', error);
+        return [];
+      }
+      
       return data || [];
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
@@ -157,13 +160,14 @@ export const useEnhancedTransakPayment = () => {
 
   const getAvailableSubscriptionPlans = useCallback(async (): Promise<SubscriptionPlan[]> => {
     try {
-      const { data, error } = await supabase
-        .from('subscription_plans' as any)
-        .select('*')
-        .eq('is_active', true)
-        .order('price', { ascending: true });
+      // Use a raw query to avoid type inference issues
+      const { data, error } = await supabase.rpc('get_subscription_plans');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching subscription plans:', error);
+        return [];
+      }
+      
       return data || [];
     } catch (error) {
       console.error('Error fetching subscription plans:', error);
@@ -175,14 +179,10 @@ export const useEnhancedTransakPayment = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('user_subscriptions' as any)
-        .update({ 
-          status: 'cancelled',
-          cancelled_at: new Date().toISOString()
-        })
-        .eq('id', subscriptionId)
-        .eq('user_id', user.id);
+      const { error } = await supabase.rpc('cancel_user_subscription', {
+        p_subscription_id: subscriptionId,
+        p_user_id: user.id
+      });
 
       if (error) throw error;
 
