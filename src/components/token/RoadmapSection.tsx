@@ -1,51 +1,51 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Clock, Package } from 'lucide-react';
+import { Check, Clock, Package, Zap } from 'lucide-react';
 
 const roadmapPhases = [
   {
-    title: 'Q1-Q2 2024: Foundation & Core Features',
+    title: 'Q1-Q2 2024: AI Foundation & Core Platform',
     status: 'Completed',
     icon: <Check className="w-5 h-5 text-green-500" />,
     items: [
-      'Launch of AI Coin Recognition Engine (v1)',
-      'Development of Dealer Panel & Marketplace V1',
-      'Mobile-first Platform Optimization',
-      'User Authentication & Profile Management',
+      'Launch of Advanced AI Coin Recognition Engine (99.7% accuracy)',
+      'Professional Dealer Panel & Global Marketplace Launch',
+      'Mobile-First Platform with Real-Time AI Processing',
+      'Secure User Authentication & Multi-Wallet Integration',
     ],
   },
   {
-    title: 'Q3 2024: Token Launch & Ecosystem',
+    title: 'Q3 2024: Token Ecosystem & Premium Features',
     status: 'Completed',
     icon: <Check className="w-5 h-5 text-green-500" />,
     items: [
-      'GCAI Token Contract Deployment on Solana',
-      'Implementation of Token Locking & APY Rewards',
-      'Launch of User Dashboard & Referral System',
-      'Real-time Data Integration with Supabase Backend',
+      'GCAI Token Deployment on Solana Blockchain',
+      'High-Yield Token Locking System (up to 100% APY)',
+      'Advanced User Dashboard & Referral Rewards Program',
+      'Real-Time Data Integration & Performance Analytics',
     ],
   },
   {
-    title: 'Q4 2024: Platform Enhancement',
+    title: 'Q4 2024: AI Enhancement & Global Expansion',
     status: 'In Progress',
     icon: <Package className="w-5 h-5 text-blue-500" />,
     items: [
-      'Advanced AI Error Detection Module',
-      'Integration with External Data Sources',
-      'Enhanced Admin Panel with Comprehensive Analytics',
-      'Live Price Aggregation Engine for Market Data',
+      'Next-Generation Error Detection & Grade Prediction AI',
+      'Multi-Source Price Aggregation & Market Intelligence',
+      'Advanced Admin Analytics & Performance Monitoring',
+      'Global Partnership Network & Multi-Language Support',
     ],
   },
   {
-    title: 'Q1 2025: Governance & Expansion',
+    title: 'Q1 2025: DAO Governance & Advanced AI Tools',
     status: 'Upcoming',
-    icon: <Clock className="w-5 h-5 text-gray-500" />,
+    icon: <Zap className="w-5 h-5 text-purple-500" />,
     items: [
-      'Launch of DAO Governance Portal for Token Holders',
-      'Expansion of AI Tools (Market Predictions, Portfolio Analysis)',
-      'Strategic Partnerships with Grading Services',
-      'Global Marketplace & Multilingual Support',
+      'Full DAO Governance Portal for GCAI Token Holders',
+      'Predictive AI Models for Market Trends & Portfolio Analysis',
+      'Strategic Integrations with Major Grading Services',
+      'Cross-Chain Expansion & Institutional Trading Platform',
     ],
   },
 ];
@@ -55,7 +55,7 @@ export function RoadmapSection() {
     <section className="flex w-full justify-center py-12 px-4 md:px-2 bg-gradient-to-br from-slate-50 via-white to-emerald-50/50">
       <div className="max-w-4xl w-full">
         <h2 className="text-3xl font-extrabold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-green bg-clip-text text-transparent tracking-tight text-center mb-8 animate-glow">
-          ROADMAP
+          DEVELOPMENT ROADMAP
         </h2>
         <div className="grid grid-cols-1 gap-7">
           {roadmapPhases.map(({ title, items, icon, status }) => (

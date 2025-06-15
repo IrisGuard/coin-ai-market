@@ -19,7 +19,7 @@ export const LocksCard = () => {
 
   return (
     <div className="glass-card rounded-3xl bg-gradient-to-br from-[#ff00cc]/20 via-white/90 to-[#7c3aed]/20 border-2 border-[#ff00cc]/70 shadow-xl p-6 animate-fade-in">
-      <h3 className="font-extrabold text-xl mb-5 bg-gradient-to-r from-[#7c3aed] via-[#ff00cc] to-[#0070fa] bg-clip-text text-transparent animate-glow">Your Token Locks</h3>
+      <h3 className="font-extrabold text-xl mb-5 bg-gradient-to-r from-[#7c3aed] via-[#ff00cc] to-[#0070fa] bg-clip-text text-transparent animate-glow">Your Premium Staking Positions</h3>
       {locks && locks.length > 0 ? (
         <ul className="space-y-4">
           {locks.map((lock) => (
@@ -28,7 +28,7 @@ export const LocksCard = () => {
                 <Lock className="w-5 h-5 mr-4 text-[#7c3aed]" />
                 <div>
                   <span className="font-extrabold text-lg bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent">{Number(lock.amount).toLocaleString()} GCAI</span>
-                  <p className="text-sm font-semibold bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent">Unlocks in {formatDistanceToNow(new Date(lock.unlock_date))}</p>
+                  <p className="text-sm font-semibold bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent">Earning rewards • Unlocks in {formatDistanceToNow(new Date(lock.unlock_date))}</p>
                 </div>
               </div>
               <span className="font-extrabold text-lg bg-gradient-to-r from-[#00ff88] to-[#0070fa] bg-clip-text text-transparent animate-glow">+{lock.benefit_percentage}% APY</span>
@@ -36,7 +36,10 @@ export const LocksCard = () => {
           ))}
         </ul>
       ) : (
-        <p className="text-sm font-semibold bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent text-center py-4">You have no active token locks.</p>
+        <div className="text-center py-8">
+          <p className="text-sm font-semibold bg-gradient-to-r from-[#7c3aed] to-[#ff00cc] bg-clip-text text-transparent mb-4">No active staking positions found.</p>
+          <p className="text-xs font-medium bg-gradient-to-r from-[#0070fa] to-[#00d4ff] bg-clip-text text-transparent">Start staking GCAI tokens to earn premium rewards and unlock advanced AI features!</p>
+        </div>
       )}
     </div>
   );

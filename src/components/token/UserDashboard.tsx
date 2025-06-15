@@ -26,8 +26,11 @@ export const UserDashboard = () => {
     <section className="flex w-full justify-center py-12 px-4 bg-gradient-to-br from-[#00d4ff]/10 via-white/95 to-[#ff00cc]/10 border-t-2 border-b-2 border-[#00d4ff]/30">
       <div className="max-w-6xl w-full">
         <div className="section-title mb-8 text-4xl font-extrabold bg-gradient-to-r from-[#0070fa] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent tracking-tight text-center animate-glow drop-shadow">
-          MY DASHBOARD
+          PREMIUM AI DASHBOARD
         </div>
+        <p className="text-center text-lg font-bold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent mb-8 animate-glow">
+          Manage your GCAI tokens, track premium AI features usage, and monitor platform rewards
+        </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="flex flex-col gap-8 lg:col-span-1">
             <BalanceCard />

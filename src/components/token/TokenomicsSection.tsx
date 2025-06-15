@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -64,26 +65,28 @@ export const TokenomicsSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-3">
             <Card className="w-full glass-card shadow-lg border border-blue-100/70 rounded-3xl">
                 <CardHeader>
-                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">GCAI Utility</CardTitle>
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">GCAI Premium AI Utility</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc pl-5 space-y-2 text-text-secondary">
-                        <li><span className="font-semibold">Premium AI Access:</span> Unlock advanced coin recognition, error detection, and market analysis.</li>
-                        <li><span className="font-semibold">Reduced Marketplace Fees:</span> Enjoy lower transaction fees when using GCAI on our platform.</li>
-                        <li><span className="font-semibold">Staking & Locking Rewards:</span> Lock your tokens to earn high-yield APY bonuses.</li>
-                        <li><span className="font-semibold">DAO Governance:</span> Participate in key decisions shaping the future of the platform.</li>
+                        <li><span className="font-semibold">Advanced AI Recognition:</span> Unlock world's most accurate coin identification and error detection system.</li>
+                        <li><span className="font-semibold">Premium Market Analytics:</span> Access real-time price aggregation, trend analysis, and portfolio insights.</li>
+                        <li><span className="font-semibold">Zero Marketplace Fees:</span> Trade on our global marketplace with significantly reduced transaction costs.</li>
+                        <li><span className="font-semibold">High-Yield Staking:</span> Lock tokens for up to 100% APY while supporting platform development.</li>
+                        <li><span className="font-semibold">Governance Rights:</span> Vote on key platform decisions and new AI feature developments.</li>
                     </ul>
                 </CardContent>
             </Card>
             <Card className="w-full glass-card shadow-lg border border-blue-100/70 rounded-3xl">
                 <CardHeader>
-                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">Vesting & Security</CardTitle>
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">Security & Value Protection</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ul className="list-disc pl-5 space-y-2 text-text-secondary">
-                        <li><span className="font-semibold">Team & Advisor Vesting:</span> Tokens are vested over 24 months with a 6-month cliff to ensure long-term commitment.</li>
-                        <li><span className="font-semibold">Burn Mechanism:</span> A portion of platform fees and all unsold tokens are burned to reduce supply and increase value.</li>
-                        <li><span className="font-semibold">Locked Liquidity:</span> All initial liquidity is locked to provide maximum security and stability for token holders.</li>
+                        <li><span className="font-semibold">Smart Vesting Schedule:</span> Team tokens locked for 24 months ensuring long-term commitment to platform success.</li>
+                        <li><span className="font-semibold">Deflationary Mechanism:</span> Regular token burns from platform fees and unsold presale tokens reduce supply.</li>
+                        <li><span className="font-semibold">Audited Smart Contracts:</span> Fully audited Solana-based contracts with locked liquidity for maximum security.</li>
+                        <li><span className="font-semibold">Revenue Sharing:</span> Token holders receive portions of platform revenue through staking rewards.</li>
                     </ul>
                 </CardContent>
             </Card>
@@ -91,14 +94,14 @@ export const TokenomicsSection = () => {
         
         <Card className="w-full glass-card shadow-xl border border-blue-100/80 rounded-3xl mt-6 bg-white/80">
             <CardHeader>
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">Bonus Locking Schedule</CardTitle>
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-brand-primary via-electric-purple to-brand-success bg-clip-text text-transparent animate-glow">Premium Staking Rewards</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table className="glass-card rounded-2xl shadow-lg bg-white/80">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Lock Period</TableHead>
-                            <TableHead className="text-center">APY Bonus</TableHead>
+                            <TableHead className="text-center">Annual APY Bonus</TableHead>
                             <TableHead className="text-center">Vesting</TableHead>
                         </TableRow>
                     </TableHeader>

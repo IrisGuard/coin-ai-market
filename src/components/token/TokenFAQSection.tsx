@@ -10,24 +10,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const faqItems = [
   {
-    question: "What is the GCAI token?",
-    answer: "GCAI is the native utility token of our platform. It's used to access premium AI features, reduce marketplace fees, earn staking rewards, and participate in platform governance."
+    question: "What makes GCAI the world's most advanced AI coin platform?",
+    answer: "GCAI powers the industry's most sophisticated AI recognition system with 99.7% accuracy across 500,000+ coin varieties. Our platform features real-time error detection, advanced grade prediction, global price aggregation, and professional dealer tools - all accessible through GCAI token ownership."
   },
   {
-    question: "How can I buy GCAI tokens?",
-    answer: "You can purchase GCAI tokens directly on this page using our secure purchase terminal. We accept various payment methods, including credit/debit cards and major cryptocurrencies like SOL, USDC, and USDT."
+    question: "How do I access premium AI features with GCAI tokens?",
+    answer: "Simply hold GCAI tokens in your wallet to unlock premium features including advanced coin recognition, error detection algorithms, market analytics, reduced marketplace fees, and high-yield staking rewards up to 100% APY."
   },
   {
-    question: "What is token locking?",
-    answer: "Token locking allows you to stake your GCAI tokens for a fixed period (e.g., 3, 6, or 12 months) in exchange for a high Annual Percentage Yield (APY) bonus. It's a way to earn passive rewards while supporting the platform's stability."
+    question: "What are the benefits of GCAI token locking and staking?",
+    answer: "Lock your GCAI tokens for periods from 3 months to 3 years and earn substantial APY rewards (15%-100%). Longer lock periods provide higher returns while supporting platform stability and giving you greater governance voting power."
   },
   {
-    question: "Which blockchain is GCAI built on?",
-    answer: "GCAI is a token built on the Solana blockchain, known for its high speed, low transaction fees, and robust security."
+    question: "Why is GCAI built on Solana blockchain?",
+    answer: "Solana provides lightning-fast transaction speeds (50,000+ TPS), minimal fees, and robust security - essential for our real-time AI processing and global marketplace operations. This ensures smooth user experience even during high-volume trading periods."
   },
   {
-      question: "What happens to unsold tokens?",
-      answer: "To ensure deflationary pressure and reward early supporters, all tokens that remain unsold after the presale period will be permanently burned, reducing the total supply."
+    question: "How does the global marketplace benefit GCAI holders?",
+    answer: "GCAI holders enjoy zero listing fees, reduced transaction costs, priority customer support, access to exclusive dealer auctions, and advanced analytics tools. Our AI-powered price discovery ensures fair market valuations across all listings."
+  },
+  {
+    question: "What happens to unsold tokens and platform fees?",
+    answer: "All unsold presale tokens are permanently burned to create deflationary pressure. Additionally, a portion of platform transaction fees are used for regular token burns, continuously reducing supply and supporting long-term value appreciation."
   }
 ];
 

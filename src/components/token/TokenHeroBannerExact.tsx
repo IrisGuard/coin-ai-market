@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useTokenInfo } from "@/hooks/useTokenInfo";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
@@ -100,9 +101,12 @@ export default function TokenHeroBannerExact() {
   return (
     <div className="w-full bg-gradient-to-br from-[#00d4ff]/10 via-white/95 to-[#00ff88]/10 py-10 px-4 md:px-0 border-b-2 border-[#00d4ff]/30 shadow-lg">
       <div className="max-w-3xl mx-auto flex flex-col items-center">
-        <h2 className="font-extrabold text-2xl md:text-3xl mb-6 uppercase tracking-tight bg-gradient-to-r from-[#0070fa] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent animate-glow drop-shadow">
-          BUY NOW BEFORE PRICE RISE
+        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 uppercase tracking-tight bg-gradient-to-r from-[#0070fa] via-[#ff00cc] to-[#00ff88] bg-clip-text text-transparent animate-glow drop-shadow text-center">
+          JOIN THE WORLD'S #1 AI COIN PLATFORM
         </h2>
+        <p className="text-base md:text-lg font-bold bg-gradient-to-r from-[#0070fa] via-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent text-center mb-6 animate-glow">
+          Access premium AI coin recognition, error detection & global marketplace with GCAI tokens
+        </p>
         
         <CountdownTimer endDate={saleEndDate} />
         
