@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import EnhancedDealerPanel from "@/components/dealer/EnhancedDealerPanel";
+import FullyConnectedDealerPanel from "@/components/dealer/FullyConnectedDealerPanel";
 
 const DealerPage = () => {
   console.log('📄 DealerPage - ENHANCED DEALER PANEL with Full AI Brain Integration');
@@ -13,7 +13,7 @@ const DealerPage = () => {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <EnhancedDealerPanel />
+          <FullyConnectedDealerPanel />
         </div>
       </div>
     );
