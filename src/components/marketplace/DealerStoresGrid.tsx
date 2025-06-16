@@ -35,11 +35,12 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
   const filteredStores = stores.filter(store => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
+    const profile = store.profiles;
     return (
-      store.profiles?.username?.toLowerCase().includes(searchLower) ||
-      store.profiles?.full_name?.toLowerCase().includes(searchLower) ||
-      store.profiles?.bio?.toLowerCase().includes(searchLower) ||
-      store.profiles?.location?.toLowerCase().includes(searchLower) ||
+      profile?.username?.toLowerCase().includes(searchLower) ||
+      profile?.full_name?.toLowerCase().includes(searchLower) ||
+      profile?.bio?.toLowerCase().includes(searchLower) ||
+      profile?.location?.toLowerCase().includes(searchLower) ||
       store.name?.toLowerCase().includes(searchLower) ||
       store.description?.toLowerCase().includes(searchLower)
     );
@@ -79,22 +80,25 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredStores.map((store) => (
-        <DealerStoreCard
-          key={store.id}
-          id={store.profiles?.id || store.user_id}
-          avatar_url={store.profiles?.avatar_url}
-          username={store.profiles?.username}
-          full_name={store.profiles?.full_name}
-          bio={store.profiles?.bio}
-          rating={store.profiles?.rating}
-          location={store.profiles?.location}
-          verified_dealer={store.profiles?.verified_dealer}
-          totalCoins={storeCounts[store.user_id] || 0}
-          storeName={store.name}
-          storeDescription={store.description}
-        />
-      ))}
+      {filteredStores.map((store) => {
+        const profile = store.profiles;
+        return (
+          <DealerStoreCard
+            key={store.id}
+            id={profile?.id || store.user_id}
+            avatar_url={profile?.avatar_url}
+            username={profile?.username}
+            full_name={profile?.full_name}
+            bio={profile?.bio}
+            rating={profile?.rating}
+            location={profile?.location}
+            verified_dealer={profile?.verified_dealer}
+            totalCoins={storeCounts[store.user_id] || 0}
+            storeName={store.name}
+            storeDescription={store.description}
+          />
+        );
+      })}
     </div>
   );
 };
