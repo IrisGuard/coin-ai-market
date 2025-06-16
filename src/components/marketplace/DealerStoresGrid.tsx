@@ -35,8 +35,8 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
   const filteredStores = stores.filter(store => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
-    // Handle profiles as array - get first element
-    const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+    // Now profiles is a single object, not an array
+    const profile = store.profiles;
     return (
       profile?.username?.toLowerCase().includes(searchLower) ||
       profile?.full_name?.toLowerCase().includes(searchLower) ||
@@ -82,8 +82,8 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredStores.map((store) => {
-        // Handle profiles as array - get first element
-        const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+        // Now profiles is a single object
+        const profile = store.profiles;
         return (
           <DealerStoreCard
             key={store.id}
