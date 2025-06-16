@@ -30,20 +30,8 @@ export const AdminStoreProvider: React.FC<AdminStoreProviderProps> = ({ children
   const { user } = useAuth();
   const [selectedStoreId, setSelectedStoreIdState] = useState<string | null>(null);
 
-  // Fixed admin check with fallback - check multiple sources for admin role
-  const isAdminUser = 
-    user?.user_metadata?.role === 'admin' || 
-    user?.email === 'admin@coinai.com' ||  // Add your admin email here
-    user?.app_metadata?.role === 'admin' ||
-    false; // Default to false if none match
-
-  console.log('AdminStoreContext - Admin check:', {
-    userId: user?.id,
-    email: user?.email,
-    userMetadataRole: user?.user_metadata?.role,
-    appMetadataRole: user?.app_metadata?.role,
-    isAdminUser
-  });
+  // Check if user is admin - using user metadata since profile is not available
+  const isAdminUser = user?.user_metadata?.role === 'admin' || false;
 
   const setSelectedStoreId = (storeId: string | null) => {
     setSelectedStoreIdState(storeId);

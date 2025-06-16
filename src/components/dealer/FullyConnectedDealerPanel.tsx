@@ -1,9 +1,9 @@
 
 import React from 'react';
-import AdvancedDealerUploadPanel from './AdvancedDealerUploadPanel';
+import SimpleDealerPanel from './SimpleDealerPanel';
 
 const FullyConnectedDealerPanel = () => {
-  return <AdvancedDealerUploadPanel />;
+  return <SimpleDealerPanel />;
 };
 
 export default FullyConnectedDealerPanel;

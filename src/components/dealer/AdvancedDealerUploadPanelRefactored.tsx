@@ -4,21 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard, Store, AlertCircle } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle } from 'lucide-react';
+import { useAdminStore } from '@/contexts/AdminStoreContext';
 import AdvancedImageUploadManager from './AdvancedImageUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
 import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
 import ShippingPaymentManager from './ShippingPaymentManager';
-import StoreManager from './StoreManager';
 
-const AdvancedDealerUploadPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('stores');
-  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
+const AdvancedDealerUploadPanelRefactored: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('upload');
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [aiAnalysisResults, setAiAnalysisResults] = useState<any>(null);
   const [coinData, setCoinData] = useState<any>({});
+
+  const { selectedStoreId: adminSelectedStoreId, isAdminUser } = useAdminStore();
+
+  // Use admin store context if user is admin
+  const effectiveSelectedStoreId = isAdminUser ? adminSelectedStoreId : null;
 
   const handleImagesProcessed = (images: any[]) => {
     setUploadedImages(images);
@@ -38,51 +42,45 @@ const AdvancedDealerUploadPanel: React.FC = () => {
       estimatedValue: results.analysis?.estimated_value || '',
       errors: results.errors || [],
       rarity: results.analysis?.rarity || 'Common',
-      store_id: selectedStoreId // Connect to selected store
+      store_id: effectiveSelectedStoreId // Connect to selected store
     }));
-  };
-
-  const handleStoreSelect = (storeId: string) => {
-    setSelectedStoreId(storeId);
-    setCoinData(prev => ({ ...prev, store_id: storeId }));
   };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Advanced Dealer Panel</h1>
+          <h1 className="text-3xl font-bold">
+            {isAdminUser ? 'Advanced Admin Dealer Panel' : 'Advanced Dealer Panel'}
+          </h1>
           <p className="text-muted-foreground">
             Professional coin listing management with AI-powered analysis and global commerce features
+            {isAdminUser && ' - Admin Multi-Store Mode'}
           </p>
         </div>
         <Badge variant="outline" className="flex items-center gap-2">
           <Brain className="w-4 h-4" />
-          AI-Powered Platform
+          {isAdminUser ? 'Admin AI-Platform' : 'AI-Powered Platform'}
         </Badge>
       </div>
 
-      {/* Store Selection Alert */}
-      {!selectedStoreId && activeTab !== 'stores' && (
+      {/* Store Selection Alert for Admin users without selected store */}
+      {isAdminUser && !effectiveSelectedStoreId && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Please select a store first to upload coins. Go to the "Store Management" tab to create or select a store.
+            Please select a store from the dropdown in the header to upload coins.
           </AlertDescription>
         </Alert>
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="stores" className="flex items-center gap-2">
-            <Store className="w-4 h-4" />
-            Store Management
-          </TabsTrigger>
-          <TabsTrigger value="upload" className="flex items-center gap-2" disabled={!selectedStoreId}>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="upload" className="flex items-center gap-2" disabled={isAdminUser && !effectiveSelectedStoreId}>
             <Upload className="w-4 h-4" />
             Smart Upload
           </TabsTrigger>
-          <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={!selectedStoreId}>
+          <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={isAdminUser && !effectiveSelectedStoreId}>
             <Package className="w-4 h-4" />
             Bulk Operations
           </TabsTrigger>
@@ -104,15 +102,8 @@ const AdvancedDealerUploadPanel: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="stores" className="space-y-6">
-          <StoreManager 
-            onStoreSelect={handleStoreSelect}
-            selectedStoreId={selectedStoreId}
-          />
-        </TabsContent>
-
         <TabsContent value="upload" className="space-y-6">
-          {selectedStoreId && (
+          {(!isAdminUser || effectiveSelectedStoreId) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AdvancedImageUploadManager
                 onImagesProcessed={handleImagesProcessed}
@@ -130,7 +121,7 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="bulk">
-          {selectedStoreId && <BulkUploadManager />}
+          {(!isAdminUser || effectiveSelectedStoreId) && <BulkUploadManager />}
         </TabsContent>
 
         <TabsContent value="intelligence">
@@ -162,4 +153,4 @@ const AdvancedDealerUploadPanel: React.FC = () => {
   );
 };
 
-export default AdvancedDealerUploadPanel;
+export default AdvancedDealerUploadPanelRefactored;

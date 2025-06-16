@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { AdminStoreProvider } from "@/contexts/AdminStoreContext";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
+import DirectDealerButton from "@/components/DirectDealerButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
@@ -35,6 +35,7 @@ function App() {
             <AdminProvider>
               <AdminStoreProvider>
                 <AdminKeyboardHandler />
+                <DirectDealerButton />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />

@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useSmartUserRole } from '@/hooks/useSmartUserRole';
-import EnhancedCoinUploadManager from '@/components/dealer/EnhancedCoinUploadManager';
+import AdvancedDealerUploadPanelRefactored from '@/components/dealer/AdvancedDealerUploadPanelRefactored';
 import { Loader2 } from 'lucide-react';
 
 const CoinUpload = () => {
@@ -69,7 +69,7 @@ const CoinUpload = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <EnhancedCoinUploadManager />
+            <AdvancedDealerUploadPanelRefactored />
           </motion.div>
         </div>
       </div>

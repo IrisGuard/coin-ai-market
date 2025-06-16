@@ -1,13 +1,11 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
 import { 
   Database, Users, Coins, ShoppingCart, CreditCard, Brain, 
   BarChart3, Settings, Shield, AlertTriangle, Activity,
-  Rocket, Bot, Zap, TrendingUp, Store, Upload
+  Rocket, Bot, Zap, TrendingUp
 } from 'lucide-react';
 
 // Import existing admin components
@@ -24,7 +22,6 @@ import { useRealTimeSystemStatus } from '@/hooks/useRealTimeSystemStatus';
 
 const FullSystemAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('production');
-  const navigate = useNavigate();
   const systemStatus = useRealTimeSystemStatus();
 
   const adminTabs = [
@@ -99,26 +96,8 @@ const FullSystemAdminPanel = () => {
       color: 'text-red-500',
       component: AdminSecurityTab,
       badge: 'Secure'
-    },
-    {
-      id: 'dealer-panel',
-      name: 'Dealer Panel',
-      icon: Store,
-      color: 'text-blue-600',
-      component: null, // No component - this will navigate
-      badge: 'Multi-Store',
-      isNavigation: true
     }
   ];
-
-  const handleTabClick = (tabId: string) => {
-    const tab = adminTabs.find(t => t.id === tabId);
-    if (tab?.isNavigation && tabId === 'dealer-panel') {
-      navigate('/dealer');
-    } else {
-      setActiveTab(tabId);
-    }
-  };
 
   const activeTabData = adminTabs.find(tab => tab.id === activeTab);
   const ActiveComponent = activeTabData?.component || AdminProductionTab;
@@ -201,20 +180,18 @@ const FullSystemAdminPanel = () => {
                 <div className="space-y-1">
                   {adminTabs.map((tab) => {
                     const IconComponent = tab.icon;
-                    const isActive = activeTab === tab.id;
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => handleTabClick(tab.id)}
+                        onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 transition-colors ${
-                          isActive ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                        } ${tab.isNavigation ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700' : ''}`}
+                          activeTab === tab.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
+                        }`}
                       >
-                        <IconComponent className={`h-5 w-5 ${tab.isNavigation ? 'text-white' : tab.color}`} />
-                        {tab.id === 'dealer-panel' && <Upload className="h-4 w-4 text-white" />}
-                        <span className={`font-medium ${tab.isNavigation ? 'text-white' : ''}`}>{tab.name}</span>
+                        <IconComponent className={`h-5 w-5 ${tab.color}`} />
+                        <span className="font-medium">{tab.name}</span>
                         {tab.badge && (
-                          <Badge variant={tab.isNavigation ? "outline" : "secondary"} className={`ml-auto text-xs ${tab.isNavigation ? 'border-white text-white' : ''}`}>
+                          <Badge variant="secondary" className="ml-auto text-xs">
                             {tab.badge}
                           </Badge>
                         )}
