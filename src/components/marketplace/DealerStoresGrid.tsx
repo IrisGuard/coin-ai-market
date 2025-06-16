@@ -4,36 +4,14 @@ import { Loader2, Store } from 'lucide-react';
 import DealerStoreCard from './DealerStoreCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Profile {
-  id: string;
-  username?: string;
-  full_name?: string;
-  bio?: string;
-  avatar_url?: string;
-  rating?: number;
-  location?: string;
-  verified_dealer?: boolean;
-}
+import { useDealerStores } from '@/hooks/useDealerStores';
 
 interface DealerStoresGridProps {
   searchTerm: string;
 }
 
 const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
-  const { data: stores = [], isLoading } = useQuery({
-    queryKey: ['verified-dealers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('verified_dealer', true)
-        .order('rating', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  const { data: stores = [], isLoading } = useDealerStores();
 
   const { data: storeCounts = {} } = useQuery({
     queryKey: ['store-coin-counts'],
@@ -58,10 +36,12 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
-      store.username?.toLowerCase().includes(searchLower) ||
-      store.full_name?.toLowerCase().includes(searchLower) ||
-      store.bio?.toLowerCase().includes(searchLower) ||
-      store.location?.toLowerCase().includes(searchLower)
+      store.profiles?.username?.toLowerCase().includes(searchLower) ||
+      store.profiles?.full_name?.toLowerCase().includes(searchLower) ||
+      store.profiles?.bio?.toLowerCase().includes(searchLower) ||
+      store.profiles?.location?.toLowerCase().includes(searchLower) ||
+      store.name?.toLowerCase().includes(searchLower) ||
+      store.description?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -102,15 +82,17 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
       {filteredStores.map((store) => (
         <DealerStoreCard
           key={store.id}
-          id={store.id}
-          avatar_url={store.avatar_url}
-          username={store.username}
-          full_name={store.full_name}
-          bio={store.bio}
-          rating={store.rating}
-          location={store.location}
-          verified_dealer={store.verified_dealer}
-          totalCoins={storeCounts[store.id] || 0}
+          id={store.profiles?.id || store.user_id}
+          avatar_url={store.profiles?.avatar_url}
+          username={store.profiles?.username}
+          full_name={store.profiles?.full_name}
+          bio={store.profiles?.bio}
+          rating={store.profiles?.rating}
+          location={store.profiles?.location}
+          verified_dealer={store.profiles?.verified_dealer}
+          totalCoins={storeCounts[store.user_id] || 0}
+          storeName={store.name}
+          storeDescription={store.description}
         />
       ))}
     </div>
