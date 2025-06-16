@@ -27,11 +27,11 @@ interface AdminStoreProviderProps {
 }
 
 export const AdminStoreProvider: React.FC<AdminStoreProviderProps> = ({ children }) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [selectedStoreId, setSelectedStoreIdState] = useState<string | null>(null);
 
-  // Check if user is admin
-  const isAdminUser = profile?.role === 'admin' || false;
+  // Check if user is admin - using user metadata since profile is not available
+  const isAdminUser = user?.user_metadata?.role === 'admin' || false;
 
   const setSelectedStoreId = (storeId: string | null) => {
     setSelectedStoreIdState(storeId);

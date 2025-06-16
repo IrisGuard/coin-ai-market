@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Store, Upload, Wallet, Receipt, BarChart3, Settings, TrendingUp } from 'lucide-react';
 
@@ -11,6 +12,7 @@ import WalletManagementTab from './WalletManagementTab';
 import DealerSubscriptionUpgrade from './DealerSubscriptionUpgrade';
 import TransactionHistory from './TransactionHistory';
 import AdvancedDealerUploadPanelRefactored from './AdvancedDealerUploadPanelRefactored';
+import StoreCustomizationSection from './StoreCustomizationSection';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 
 const EnhancedDealerPanel = () => {
