@@ -23,7 +23,7 @@ export interface MarketplaceStore {
   phone?: string;
   website?: string;
   shipping_options?: any;
-  profiles?: StoreProfile[];
+  profiles?: StoreProfile; // Changed from StoreProfile[] to StoreProfile
 }
 
 export interface MarketplaceStats {
