@@ -12,12 +12,35 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Shield, Star, ArrowRight, MapPin, Plus } from 'lucide-react';
 import DealerSignupForm from '@/components/auth/DealerSignupForm';
+import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const ActiveMarketplace = () => {
   usePageView();
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
   const [isDealerSignupOpen, setIsDealerSignupOpen] = useState(false);
+
+  // Get coin counts for stores
+  const { data: storeCounts = {} } = useQuery({
+    queryKey: ['store-coin-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coins')
+        .select('user_id')
+        .eq('authentication_status', 'verified');
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data?.forEach(coin => {
+        counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
+      });
+      
+      return counts;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -96,71 +119,23 @@ const ActiveMarketplace = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {dealers?.map((dealer) => {
-                const profile = dealer.profiles?.[0];
+                const profile = dealer.profiles;
                 return (
-                  <Link key={dealer.id} to={`/dealer/${dealer.id}`}>
-                    <Card className="glass-card hover:shadow-lg transition-all duration-300 group cursor-pointer border border-electric-blue/10 hover:border-electric-blue/30">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4 mb-4">
-                          <Avatar className="w-16 h-16 border-2 border-electric-blue/20">
-                            <AvatarImage src={profile?.avatar_url || dealer.logo_url} />
-                            <AvatarFallback className="bg-electric-blue/10 text-electric-blue font-bold">
-                              {profile?.full_name?.[0] || dealer.name?.[0] || 'D'}
-                            </AvatarFallback>
-                          </Avatar>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-gray-800 truncate">
-                                {profile?.full_name || dealer.name}
-                              </h3>
-                              {profile?.verified_dealer && (
-                                <Shield className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-3 text-sm text-gray-600">
-                              {dealer.address && (
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" />
-                                  <span className="truncate">
-                                    {typeof dealer.address === 'object' && dealer.address !== null 
-                                      ? (dealer.address as any).city || 'Unknown'
-                                      : 'Unknown'
-                                    }
-                                  </span>
-                                </div>
-                              )}
-                              {profile?.rating && (
-                                <div className="flex items-center gap-1">
-                                  <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                                  <span>{Number(profile.rating).toFixed(1)}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <ArrowRight className="w-5 h-5 text-electric-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        </div>
-                        
-                        {dealer.description && (
-                          <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-                            {dealer.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center justify-between">
-                          <Badge 
-                            variant="secondary" 
-                            className="bg-electric-blue/10 text-electric-blue border-electric-blue/20"
-                          >
-                            <Store className="w-3 h-3 mr-1" />
-                            View Store
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <DealerStoreCard
+                    key={dealer.id}
+                    id={profile?.id || dealer.user_id}
+                    avatar_url={profile?.avatar_url || dealer.logo_url}
+                    username={profile?.username}
+                    full_name={profile?.full_name}
+                    bio={profile?.bio}
+                    rating={profile?.rating}
+                    location={profile?.location}
+                    verified_dealer={profile?.verified_dealer}
+                    totalCoins={storeCounts[dealer.user_id] || 0}
+                    storeName={dealer.name}
+                    storeDescription={dealer.description}
+                    created_at={dealer.created_at}
+                  />
                 );
               }) || []}
             </div>
