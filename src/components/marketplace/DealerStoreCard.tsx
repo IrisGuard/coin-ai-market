@@ -40,7 +40,7 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
   const navigate = useNavigate();
 
   const handleVisitStore = () => {
-    navigate(`/dealer/${id}`);
+    navigate(`/store/${id}`);
   };
 
   const displayName = storeName || full_name || username || 'Dealer Store';
@@ -59,8 +59,8 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
     if (!rating || rating === 0) {
       return (
         <div className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-electric-blue" />
-          <span className="text-sm text-electric-blue font-medium">Not yet rated</span>
+          <Star className="w-4 h-4 text-gray-300" />
+          <span className="text-sm text-brand-medium">Not yet rated</span>
         </div>
       );
     }
@@ -86,13 +86,16 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
           <Avatar className="w-16 h-16 border-2 border-electric-blue/30">
             <AvatarImage src={avatar_url} alt={displayName} />
             <AvatarFallback className="bg-gradient-to-br from-brand-primary to-electric-purple text-white text-lg font-semibold">
-              {displayName.charAt(0).toUpperCase()}
+              <Store className="w-8 h-8" />
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-lg text-brand-primary truncate">
+              <h3 
+                className="font-semibold text-lg text-brand-primary max-w-full" 
+                title={displayName}
+              >
                 {displayName}
               </h3>
               {verified_dealer && (
@@ -100,11 +103,7 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
               )}
             </div>
             
-            {username && storeName && (
-              <p className="text-sm text-brand-medium mb-1">@{username}</p>
-            )}
-            
-            <p className="text-sm text-brand-medium line-clamp-2">
+            <p className="text-sm text-brand-medium line-clamp-2 mb-2">
               {displayDescription}
             </p>
           </div>

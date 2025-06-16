@@ -21,6 +21,7 @@ import PaymentFailure from "./pages/PaymentFailure";
 import DealerUpgradePage from "./pages/DealerUpgradePage";
 import CategoryPage from "./pages/CategoryPage";
 import TokenPage from "./pages/TokenPage";
+import DealerStorePage from "./pages/DealerStorePage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,8 @@ function App() {
                 <Route path="/coin/:id" element={<CoinDetails />} />
                 <Route path="/dealer-direct" element={<DealerDirect />} />
                 <Route path="/dealer" element={<DealerDirect />} />
+                <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
+                <Route path="/store/:dealerId" element={<DealerStorePage />} />
                 <Route path="/dealer/upgrade" element={<DealerUpgradePage />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-failure" element={<PaymentFailure />} />

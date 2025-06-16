@@ -30,12 +30,15 @@ const StoreRatingSystem: React.FC<StoreRatingSystemProps> = ({
         className={`w-5 h-5 ${
           index < rating 
             ? 'fill-yellow-400 text-yellow-400' 
-            : 'text-brand-medium'
+            : 'text-gray-300'
         } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
         onClick={interactive ? () => setSelectedRating(index + 1) : undefined}
       />
     ));
   };
+
+  const displayRating = averageRating > 0 ? averageRating.toFixed(1) : 'Not yet rated';
+  const displayReviews = totalReviews > 0 ? `Based on ${totalReviews} reviews` : 'No reviews yet';
 
   const storeMetrics = [
     { label: 'Response Time', value: 'Coming Soon', icon: MessageCircle, color: 'text-electric-blue' },
@@ -53,13 +56,13 @@ const StoreRatingSystem: React.FC<StoreRatingSystemProps> = ({
             {/* Rating Overview */}
             <div className="text-center">
               <div className="text-4xl font-bold text-brand-primary mb-2">
-                {totalReviews > 0 ? averageRating.toFixed(1) : '0.0'}
+                {averageRating > 0 ? averageRating.toFixed(1) : '0.0'}
               </div>
               <div className="flex justify-center mb-2">
-                {renderStars(Math.round(averageRating))}
+                {renderStars(Math.round(averageRating || 0))}
               </div>
               <p className="text-brand-medium mb-4">
-                {totalReviews > 0 ? `Based on ${totalReviews} reviews` : 'Not yet rated'}
+                {displayReviews}
               </p>
               <Button 
                 className="bg-gradient-to-r from-brand-primary to-electric-purple hover:from-brand-primary/90 hover:to-electric-purple/90 text-white"
@@ -69,13 +72,13 @@ const StoreRatingSystem: React.FC<StoreRatingSystemProps> = ({
               </Button>
             </div>
 
-            {/* Rating Distribution Placeholder */}
+            {/* Rating Distribution */}
             <div className="space-y-2">
               <h4 className="font-semibold text-brand-primary mb-4">Rating Distribution</h4>
               {[5, 4, 3, 2, 1].map((stars) => (
                 <div key={stars} className="flex items-center gap-3">
                   <span className="text-sm w-6 text-brand-primary">{stars}</span>
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="w-4 h-4 text-gray-300" />
                   <div className="flex-1 bg-electric-blue/20 rounded-full h-2">
                     <div 
                       className="bg-gradient-to-r from-electric-blue to-electric-purple h-2 rounded-full" 

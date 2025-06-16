@@ -19,7 +19,12 @@ const DealerStorePage = () => {
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
   const { data: coins, isLoading: coinsLoading } = useDealerCoins(dealerId || '');
 
-  const dealer = dealers?.find(d => d.profiles?.id === dealerId);
+  // Find dealer by profile ID or user ID to support both /dealer/:id and /store/:id routes
+  const dealer = dealers?.find(d => 
+    d.profiles?.id === dealerId || 
+    d.user_id === dealerId ||
+    d.id === dealerId
+  );
   const profile = dealer?.profiles;
 
   const formatCreatedDate = (dateString?: string) => {
@@ -31,6 +36,24 @@ const DealerStorePage = () => {
     }
   };
 
+  const renderStoreRating = (rating?: number) => {
+    if (!rating || rating === 0) {
+      return (
+        <div className="flex items-center gap-1">
+          <Star className="w-4 h-4 text-gray-300" />
+          <span>Not yet rated</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1">
+        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+        <span>{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
   if (dealersLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -38,7 +61,7 @@ const DealerStorePage = () => {
         <div className="pt-20 flex items-center justify-center min-h-[60vh]">
           <div className="flex items-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-            <span className="text-brand-medium">Loading dealer...</span>
+            <span className="text-brand-medium">Loading store...</span>
           </div>
         </div>
       </div>
@@ -51,13 +74,15 @@ const DealerStorePage = () => {
         <Navbar />
         <div className="pt-20 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-brand-primary mb-4">Dealer Not Found</h2>
-            <p className="text-brand-medium">The dealer you're looking for doesn't exist.</p>
+            <h2 className="text-2xl font-bold text-brand-primary mb-4">Store Not Found</h2>
+            <p className="text-brand-medium">The store you're looking for doesn't exist.</p>
           </div>
         </div>
       </div>
     );
   }
+
+  const displayName = dealer.name || profile?.full_name || 'Dealer Store';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -65,21 +90,21 @@ const DealerStorePage = () => {
       
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Dealer Header */}
+          {/* Store Header */}
           <Card className="border-2 border-electric-blue/20 bg-gradient-to-br from-white to-electric-blue/5 mb-8">
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                 <Avatar className="w-24 h-24 border-2 border-electric-blue/30">
                   <AvatarImage src={profile?.avatar_url || dealer.logo_url} />
-                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-brand-primary to-electric-purple text-white">
-                    {profile?.full_name?.[0] || dealer.name?.[0] || 'D'}
+                  <AvatarFallback className="bg-gradient-to-br from-brand-primary to-electric-purple text-white">
+                    <Store className="w-12 h-12" />
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-brand-primary">
-                      {profile?.full_name || dealer.name}
+                    <h1 className="text-3xl font-bold text-brand-primary" title={displayName}>
+                      {displayName}
                     </h1>
                     {profile?.verified_dealer && (
                       <Badge className="bg-gradient-to-r from-electric-blue to-electric-purple text-white border-0">
@@ -100,10 +125,7 @@ const DealerStorePage = () => {
                         <span>{(dealer.address as any).city || 'Unknown Location'}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-electric-blue" />
-                      <span>Not yet rated</span>
-                    </div>
+                    {renderStoreRating(profile?.rating)}
                   </div>
                   
                   {dealer.description && (
@@ -152,7 +174,7 @@ const DealerStorePage = () => {
                     <div className="w-24 h-24 bg-gradient-to-br from-brand-primary to-electric-purple rounded-full flex items-center justify-center mx-auto mb-6">
                       <Store className="w-12 h-12 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-brand-primary mb-2">This store doesn't have any coins listed yet</h3>
+                    <h3 className="text-xl font-semibold text-brand-primary mb-2">This store has no coins listed yet</h3>
                     <p className="text-brand-medium">Please check back later for new additions.</p>
                   </CardContent>
                 </Card>
@@ -162,7 +184,7 @@ const DealerStorePage = () => {
             <TabsContent value="reviews" className="mt-6">
               <StoreRatingSystem
                 storeId={dealerId || ''}
-                averageRating={0}
+                averageRating={profile?.rating || 0}
                 totalReviews={0}
                 recentReviews={[]}
               />
