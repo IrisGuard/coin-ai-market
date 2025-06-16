@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Database, Users, Coins, ShoppingCart, CreditCard, Brain, 
   BarChart3, Settings, Shield, AlertTriangle, Activity,
-  Rocket, Bot, Zap, TrendingUp
+  Rocket, Bot, Zap, TrendingUp, Store
 } from 'lucide-react';
 
 // Import existing admin components
@@ -18,6 +18,7 @@ import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminProductionTab from '@/components/admin/tabs/AdminProductionTab';
 import AdminGCAITokenTab from '@/components/admin/tabs/AdminGCAITokenTab';
+import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
 import { useRealTimeSystemStatus } from '@/hooks/useRealTimeSystemStatus';
 
 const FullSystemAdminPanel = () => {
@@ -96,6 +97,14 @@ const FullSystemAdminPanel = () => {
       color: 'text-red-500',
       component: AdminSecurityTab,
       badge: 'Secure'
+    },
+    {
+      id: 'store-manager',
+      name: 'Store Manager',
+      icon: Store,
+      color: 'text-green-600',
+      component: AdminStoreManagerTab,
+      badge: 'Admin Stores'
     }
   ];
 
