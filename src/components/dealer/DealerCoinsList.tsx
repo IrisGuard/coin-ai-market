@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,8 +96,8 @@ const DealerCoinsList = () => {
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">Please select a store first</p>
-            <p className="text-sm">Go to the "Store Management" tab to select a store and view its inventory.</p>
+            <p className="text-lg font-medium">Please select a store from the dropdown above to continue.</p>
+            <p className="text-sm">Choose a store to view and manage its inventory.</p>
           </div>
         </CardContent>
       </Card>
