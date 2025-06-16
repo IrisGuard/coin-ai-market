@@ -17,7 +17,33 @@ export const useSmartUserRole = () => {
       console.log('🔍 useSmartUserRole: Checking role for user:', user.id);
       
       try {
-        // First try to get role from profiles table
+        // First check for admin role in user_roles table
+        const { data: adminRoleData, error: adminRoleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
+        
+        if (!adminRoleError && adminRoleData) {
+          console.log('✅ Admin role found in user_roles table');
+          return 'admin';
+        }
+
+        // Check for dealer role in user_roles table
+        const { data: dealerRoleData, error: dealerRoleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'dealer')
+          .single();
+        
+        if (!dealerRoleError && dealerRoleData) {
+          console.log('✅ Dealer role found in user_roles table');
+          return 'dealer';
+        }
+        
+        // Try to get role from profiles table
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role')
@@ -35,18 +61,6 @@ export const useSmartUserRole = () => {
         if (user.user_metadata?.role) {
           console.log('✅ Role found in user metadata:', user.user_metadata.role);
           return user.user_metadata.role;
-        }
-        
-        // Check user_roles table as additional fallback
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (!roleError && roleData?.role) {
-          console.log('✅ Role found in user_roles table:', roleData.role);
-          return roleData.role;
         }
         
         console.log('⚠️ No role found anywhere, defaulting to buyer');

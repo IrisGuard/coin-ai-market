@@ -5,17 +5,20 @@ import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useSmartUserRole } from '@/hooks/useSmartUserRole';
+import { useAdminStore } from '@/contexts/AdminStoreContext';
 import AdvancedDealerUploadPanelRefactored from '@/components/dealer/AdvancedDealerUploadPanelRefactored';
 import { Loader2 } from 'lucide-react';
 
 const CoinUpload = () => {
   const { isAuthenticated, user, loading: authLoading } = useAuth();
   const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
+  const { isAdminUser } = useAdminStore();
 
   console.log('🚀 CoinUpload page render:', {
     isAuthenticated,
     userId: user?.id,
     userRole,
+    isAdminUser,
     authLoading,
     roleLoading
   });
@@ -49,12 +52,13 @@ const CoinUpload = () => {
     );
   }
 
-  if (userRole !== 'dealer') {
-    console.log('❌ User is not a dealer, redirecting to marketplace. Role:', userRole);
+  // Allow access for both dealers and admins
+  if (userRole !== 'dealer' && !isAdminUser) {
+    console.log('❌ User is not a dealer or admin, redirecting to marketplace. Role:', userRole, 'IsAdmin:', isAdminUser);
     return <Navigate to="/marketplace" replace />;
   }
 
-  console.log('✅ Dealer access granted, rendering upload panel');
+  console.log('✅ Access granted (dealer or admin), rendering upload panel');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">

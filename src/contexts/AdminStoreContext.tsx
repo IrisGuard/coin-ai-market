@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Store {
   id: string;
@@ -29,10 +30,48 @@ interface AdminStoreProviderProps {
 export const AdminStoreProvider: React.FC<AdminStoreProviderProps> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
   const [selectedStoreId, setSelectedStoreIdState] = useState<string | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
-  // Check if user is admin - using user metadata since profile is not available
-  // Add guard to prevent undefined user checks
-  const isAdminUser = user?.user_metadata?.role === 'admin' || false;
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user?.id || authLoading) {
+        setIsAdminUser(false);
+        return;
+      }
+
+      try {
+        // Check user_roles table for admin role
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
+
+        if (!roleError && roleData) {
+          console.log('✅ AdminStoreContext: User is admin via user_roles');
+          setIsAdminUser(true);
+          return;
+        }
+
+        // Fallback: check user metadata
+        if (user.user_metadata?.role === 'admin') {
+          console.log('✅ AdminStoreContext: User is admin via metadata');
+          setIsAdminUser(true);
+          return;
+        }
+
+        console.log('❌ AdminStoreContext: User is not admin');
+        setIsAdminUser(false);
+      } catch (error) {
+        console.error('❌ AdminStoreContext: Error checking admin status:', error);
+        setIsAdminUser(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user?.id, authLoading]);
 
   const setSelectedStoreId = (storeId: string | null) => {
     setSelectedStoreIdState(storeId);
