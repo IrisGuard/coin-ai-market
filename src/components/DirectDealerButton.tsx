@@ -2,9 +2,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, Upload } from 'lucide-react';
+import { useAdminStore } from '@/contexts/AdminStoreContext';
 
 const DirectDealerButton = () => {
   const navigate = useNavigate();
+  const { isAdminUser } = useAdminStore();
+
+  // Hide the button for admin users - they should use the Admin Panel instead
+  if (isAdminUser) {
+    return null;
+  }
 
   const handleClick = () => {
     navigate('/dealer');

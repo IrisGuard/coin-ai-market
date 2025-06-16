@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Database, Users, Coins, ShoppingCart, CreditCard, Brain, 
   BarChart3, Settings, Shield, AlertTriangle, Activity,
-  Rocket, Bot, Zap, TrendingUp
+  Rocket, Bot, Zap, TrendingUp, Store
 } from 'lucide-react';
 
 // Import existing admin components
@@ -19,6 +19,7 @@ import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminProductionTab from '@/components/admin/tabs/AdminProductionTab';
 import AdminGCAITokenTab from '@/components/admin/tabs/AdminGCAITokenTab';
+import EnhancedDealerPanel from '@/components/dealer/EnhancedDealerPanel';
 import { useRealTimeSystemStatus } from '@/hooks/useRealTimeSystemStatus';
 
 const FullSystemAdminPanel = () => {
@@ -33,6 +34,14 @@ const FullSystemAdminPanel = () => {
       color: 'text-red-600',
       component: AdminProductionTab,
       badge: 'LIVE'
+    },
+    {
+      id: 'dealer-management',
+      name: 'Dealer Management',
+      icon: Store,
+      color: 'text-green-600',
+      component: EnhancedDealerPanel,
+      badge: 'ADMIN'
     },
     {
       id: 'gcai-token',

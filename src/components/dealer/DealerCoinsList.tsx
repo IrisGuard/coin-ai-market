@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useStoreFilteredCoins } from '@/hooks/useStoreFilteredCoins';
 import { toast } from 'sonner';
 import { Coins, Edit, Trash2, Eye, DollarSign } from 'lucide-react';
 
@@ -26,25 +28,12 @@ interface Coin {
 
 const DealerCoinsList = () => {
   const { user } = useAuth();
+  const { isAdminUser, selectedStoreId } = useAdminStore();
   const queryClient = useQueryClient();
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
 
-  const { data: coins = [], isLoading } = useQuery({
-    queryKey: ['dealer-coins', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('coins')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  // Use store-filtered coins for admin users, all coins for regular dealers
+  const { data: coins = [], isLoading } = useStoreFilteredCoins();
 
   const deleteMutation = useMutation({
     mutationFn: async (coinId: string) => {
@@ -57,6 +46,7 @@ const DealerCoinsList = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['store-filtered-coins'] });
       queryClient.invalidateQueries({ queryKey: ['dealer-coins', user?.id] });
       toast.success('Coin deleted successfully');
       setSelectedCoin(null);
@@ -94,19 +84,45 @@ const DealerCoinsList = () => {
     );
   }
 
+  // Show store selection message for admin users without selected store
+  if (isAdminUser && !selectedStoreId) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-6 w-6" />
+            Store Inventory
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">Please select a store first</p>
+            <p className="text-sm">Go to the "Store Management" tab to select a store and view its inventory.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Coins className="h-6 w-6" />
-          My Inventory ({coins.length} coins)
+          {isAdminUser ? 'Store Inventory' : 'My Inventory'} ({coins.length} coins)
+          {isAdminUser && selectedStoreId && (
+            <Badge variant="outline" className="ml-2">
+              Store Scoped
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {coins.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No coins in your inventory yet.</p>
+            <p>No coins in this {isAdminUser ? 'store' : 'inventory'} yet.</p>
             <p className="text-sm">Upload your first coin to get started!</p>
           </div>
         ) : (
