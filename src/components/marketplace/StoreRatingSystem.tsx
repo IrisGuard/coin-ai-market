@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Star, ThumbsUp, MessageCircle, Award, TrendingUp } from 'lucide-react';
+import { Star, MessageCircle, Award, TrendingUp, Clock } from 'lucide-react';
 
 interface StoreRatingSystemProps {
   storeId: string;
@@ -30,71 +30,59 @@ const StoreRatingSystem: React.FC<StoreRatingSystemProps> = ({
         className={`w-5 h-5 ${
           index < rating 
             ? 'fill-yellow-400 text-yellow-400' 
-            : 'text-gray-300'
+            : 'text-brand-medium'
         } ${interactive ? 'cursor-pointer hover:text-yellow-400' : ''}`}
         onClick={interactive ? () => setSelectedRating(index + 1) : undefined}
       />
     ));
   };
 
-  const getRatingDistribution = () => {
-    // Mock rating distribution - in real app, this would come from database
-    return [
-      { stars: 5, count: 45, percentage: 75 },
-      { stars: 4, count: 12, percentage: 20 },
-      { stars: 3, count: 2, percentage: 3 },
-      { stars: 2, count: 1, percentage: 2 },
-      { stars: 1, count: 0, percentage: 0 },
-    ];
-  };
-
   const storeMetrics = [
-    { label: 'Response Time', value: '< 2 hours', icon: MessageCircle, color: 'text-blue-600' },
-    { label: 'Shipping Speed', value: '4.8/5', icon: TrendingUp, color: 'text-green-600' },
-    { label: 'Item Accuracy', value: '4.9/5', icon: Award, color: 'text-purple-600' },
-    { label: 'Customer Service', value: '4.7/5', icon: ThumbsUp, color: 'text-orange-600' }
+    { label: 'Response Time', value: 'Coming Soon', icon: MessageCircle, color: 'text-electric-blue' },
+    { label: 'Customer Service', value: 'Coming Soon', icon: Award, color: 'text-electric-purple' },
+    { label: 'Item Accuracy', value: 'Coming Soon', icon: TrendingUp, color: 'text-brand-primary' },
+    { label: 'Shipping Speed', value: 'Coming Soon', icon: Clock, color: 'text-electric-blue' }
   ];
 
   return (
     <div className="space-y-6">
       {/* Overall Rating Summary */}
-      <Card>
+      <Card className="border-2 border-electric-blue/20 bg-gradient-to-br from-white to-electric-blue/5">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Rating Overview */}
             <div className="text-center">
-              <div className="text-4xl font-bold text-gray-800 mb-2">
-                {averageRating.toFixed(1)}
+              <div className="text-4xl font-bold text-brand-primary mb-2">
+                {totalReviews > 0 ? averageRating.toFixed(1) : '0.0'}
               </div>
               <div className="flex justify-center mb-2">
                 {renderStars(Math.round(averageRating))}
               </div>
-              <p className="text-gray-600">
-                Based on {totalReviews} reviews
+              <p className="text-brand-medium mb-4">
+                {totalReviews > 0 ? `Based on ${totalReviews} reviews` : 'Not yet rated'}
               </p>
               <Button 
-                className="mt-4"
+                className="bg-gradient-to-r from-brand-primary to-electric-purple hover:from-brand-primary/90 hover:to-electric-purple/90 text-white"
                 onClick={() => setShowReviewForm(!showReviewForm)}
               >
                 Write a Review
               </Button>
             </div>
 
-            {/* Rating Distribution */}
+            {/* Rating Distribution Placeholder */}
             <div className="space-y-2">
-              {getRatingDistribution().map((rating) => (
-                <div key={rating.stars} className="flex items-center gap-3">
-                  <span className="text-sm w-6">{rating.stars}</span>
+              <h4 className="font-semibold text-brand-primary mb-4">Rating Distribution</h4>
+              {[5, 4, 3, 2, 1].map((stars) => (
+                <div key={stars} className="flex items-center gap-3">
+                  <span className="text-sm w-6 text-brand-primary">{stars}</span>
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div className="flex-1 bg-electric-blue/20 rounded-full h-2">
                     <div 
-                      className="bg-yellow-400 h-2 rounded-full" 
-                      style={{ width: `${rating.percentage}%` }}
+                      className="bg-gradient-to-r from-electric-blue to-electric-purple h-2 rounded-full" 
+                      style={{ width: '0%' }}
                     />
                   </div>
-                  <span className="text-sm text-gray-600 w-12">
-                    {rating.count}
-                  </span>
+                  <span className="text-sm text-brand-medium w-12">0</span>
                 </div>
               ))}
             </div>
@@ -103,15 +91,15 @@ const StoreRatingSystem: React.FC<StoreRatingSystemProps> = ({
       </Card>
 
       {/* Store Performance Metrics */}
-      <Card>
+      <Card className="border-2 border-electric-blue/20 bg-gradient-to-br from-white to-electric-blue/5">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Store Performance</h3>
+          <h3 className="text-lg font-semibold text-brand-primary mb-4">Store Performance</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {storeMetrics.map((metric) => (
               <div key={metric.label} className="text-center">
                 <metric.icon className={`w-6 h-6 mx-auto mb-2 ${metric.color}`} />
-                <div className="font-semibold">{metric.value}</div>
-                <div className="text-sm text-gray-600">{metric.label}</div>
+                <div className="font-semibold text-brand-primary">{metric.value}</div>
+                <div className="text-sm text-brand-medium">{metric.label}</div>
               </div>
             ))}
           </div>
@@ -120,86 +108,53 @@ const StoreRatingSystem: React.FC<StoreRatingSystemProps> = ({
 
       {/* Review Form */}
       {showReviewForm && (
-        <Card>
+        <Card className="border-2 border-electric-blue/20 bg-gradient-to-br from-white to-electric-blue/5">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Write Your Review</h3>
+            <h3 className="text-lg font-semibold text-brand-primary mb-4">Write Your Review</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Rating</label>
+                <label className="block text-sm font-medium text-brand-primary mb-2">Rating</label>
                 <div className="flex gap-1">
                   {renderStars(selectedRating, true)}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Review</label>
+                <label className="block text-sm font-medium text-brand-primary mb-2">Review</label>
                 <Textarea
                   placeholder="Share your experience with this store..."
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   rows={4}
+                  className="border-electric-blue/20 focus:border-electric-blue"
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowReviewForm(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowReviewForm(false)}
+                  className="border-electric-blue/20 text-brand-primary hover:bg-electric-blue/10"
+                >
                   Cancel
                 </Button>
-                <Button>Submit Review</Button>
+                <Button className="bg-gradient-to-r from-brand-primary to-electric-purple hover:from-brand-primary/90 hover:to-electric-purple/90 text-white">
+                  Submit Review
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Recent Reviews */}
-      <Card>
+      {/* Reviews Section */}
+      <Card className="border-2 border-electric-blue/20 bg-gradient-to-br from-white to-electric-blue/5">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Recent Reviews</h3>
-          <div className="space-y-4">
-            {/* Mock reviews - in real app, these would come from database */}
-            {[
-              {
-                id: 1,
-                author: "John D.",
-                rating: 5,
-                date: "2 days ago",
-                comment: "Excellent service! Fast shipping and exactly as described. Highly recommended!",
-                verified: true
-              },
-              {
-                id: 2,
-                author: "Sarah M.",
-                rating: 4,
-                date: "1 week ago",
-                comment: "Great selection of coins. Professional packaging and quick response to questions.",
-                verified: true
-              },
-              {
-                id: 3,
-                author: "Mike R.",
-                rating: 5,
-                date: "2 weeks ago",
-                comment: "Outstanding dealer! Authentic coins, fair prices, and exceptional customer service.",
-                verified: true
-              }
-            ].map((review) => (
-              <div key={review.id} className="border-b pb-4 last:border-b-0">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{review.author}</span>
-                    {review.verified && (
-                      <Badge variant="secondary" className="text-xs">
-                        Verified Purchase
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-500">{review.date}</span>
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  {renderStars(review.rating)}
-                </div>
-                <p className="text-gray-700">{review.comment}</p>
-              </div>
-            ))}
+          <h3 className="text-lg font-semibold text-brand-primary mb-4">Customer Reviews</h3>
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-brand-primary to-electric-purple rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star className="w-8 h-8 text-white" />
+            </div>
+            <h4 className="text-xl font-semibold text-brand-primary mb-2">No reviews yet</h4>
+            <p className="text-brand-medium">Be the first to review this store and help other customers make informed decisions.</p>
           </div>
         </CardContent>
       </Card>

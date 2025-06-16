@@ -4,8 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Package, CheckCircle, Store } from 'lucide-react';
+import { Star, MapPin, Package, CheckCircle, Store, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 interface DealerStoreCardProps {
   id: string;
@@ -19,6 +20,7 @@ interface DealerStoreCardProps {
   totalCoins: number;
   storeName?: string;
   storeDescription?: string;
+  created_at?: string;
 }
 
 const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
@@ -32,7 +34,8 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
   verified_dealer,
   totalCoins,
   storeName,
-  storeDescription
+  storeDescription,
+  created_at
 }) => {
   const navigate = useNavigate();
 
@@ -43,75 +46,107 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
   const displayName = storeName || full_name || username || 'Dealer Store';
   const displayDescription = storeDescription || bio || 'Professional coin dealer';
 
+  const formatCreatedDate = (dateString?: string) => {
+    if (!dateString) return 'Recently created';
+    try {
+      return format(new Date(dateString), 'MMMM yyyy');
+    } catch {
+      return 'Recently created';
+    }
+  };
+
+  const renderStars = (rating?: number) => {
+    if (!rating || rating === 0) {
+      return (
+        <div className="flex items-center gap-1">
+          <Star className="w-4 h-4 text-electric-blue" />
+          <span className="text-sm text-electric-blue font-medium">Not yet rated</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1">
+        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+        <span className="text-sm font-medium text-brand-primary">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
+  const getCoinCountMessage = () => {
+    if (totalCoins === 0) return 'No coins listed';
+    if (totalCoins === 1) return '1 Coin';
+    return `${totalCoins} Coins`;
+  };
+
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={handleVisitStore}>
+    <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-electric-blue/20 hover:border-electric-blue/40 bg-gradient-to-br from-white to-electric-blue/5" onClick={handleVisitStore}>
       <CardContent className="p-6">
         <div className="flex items-start gap-4 mb-4">
-          <Avatar className="w-16 h-16">
+          <Avatar className="w-16 h-16 border-2 border-electric-blue/30">
             <AvatarImage src={avatar_url} alt={displayName} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-brand-primary to-electric-purple text-white text-lg font-semibold">
               {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-lg text-primary truncate">
+              <h3 className="font-semibold text-lg text-brand-primary truncate">
                 {displayName}
               </h3>
               {verified_dealer && (
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-electric-blue flex-shrink-0" />
               )}
             </div>
             
             {username && storeName && (
-              <p className="text-sm text-muted-foreground mb-1">@{username}</p>
+              <p className="text-sm text-brand-medium mb-1">@{username}</p>
             )}
             
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-sm text-brand-medium line-clamp-2">
               {displayDescription}
             </p>
           </div>
         </div>
 
         <div className="space-y-3">
-          {rating && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                <span className="text-sm font-medium ml-1">{rating.toFixed(1)}</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Rating</span>
-            </div>
-          )}
+          {renderStars(rating)}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">
-                {totalCoins} {totalCoins === 1 ? 'Coin' : 'Coins'}
+              <Package className="w-4 h-4 text-electric-purple" />
+              <span className="text-sm font-medium text-brand-primary">
+                {getCoinCountMessage()}
               </span>
             </div>
             
             {location && (
               <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground truncate max-w-20">
+                <MapPin className="w-4 h-4 text-electric-purple" />
+                <span className="text-xs text-brand-medium truncate max-w-20">
                   {location}
                 </span>
               </div>
             )}
           </div>
 
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-electric-blue" />
+            <span className="text-xs text-brand-medium">
+              Created: {formatCreatedDate(created_at)}
+            </span>
+          </div>
+
           <div className="flex gap-2 pt-2">
-            <Badge variant="secondary" className="text-xs">
+            <Badge className="bg-gradient-to-r from-electric-blue to-electric-purple text-white border-0">
               <Store className="w-3 h-3 mr-1" />
               Verified Dealer
             </Badge>
           </div>
 
           <Button 
-            className="w-full mt-3"
+            className="w-full mt-3 bg-gradient-to-r from-brand-primary to-electric-purple hover:from-brand-primary/90 hover:to-electric-purple/90 text-white"
             onClick={(e) => {
               e.stopPropagation();
               handleVisitStore();
