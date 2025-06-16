@@ -14,7 +14,7 @@ import DealerCoinsList from './DealerCoinsList';
 import WalletManagementTab from './WalletManagementTab';
 import DealerSubscriptionUpgrade from './DealerSubscriptionUpgrade';
 import TransactionHistory from './TransactionHistory';
-import AdvancedDealerUploadPanelRefactored from './AdvancedDealerUploadPanelRefactored';
+import EnhancedCoinUploadManager from './EnhancedCoinUploadManager';
 import StoreCustomizationSection from './StoreCustomizationSection';
 import CreateStoreForm from './store/CreateStoreForm';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
@@ -172,7 +172,7 @@ const EnhancedDealerPanel = () => {
         </TabsList>
 
         <TabsContent value="upload">
-          <AdvancedDealerUploadPanelRefactored />
+          <EnhancedCoinUploadManager />
         </TabsContent>
 
         <TabsContent value="inventory">
