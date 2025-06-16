@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard, Store, AlertCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard, Store, AlertCircle, Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAdminStore } from '@/contexts/AdminStoreContext';
 import AdvancedImageUploadManager from './AdvancedImageUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
@@ -12,13 +18,33 @@ import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
 import ShippingPaymentManager from './ShippingPaymentManager';
 import StoreManager from './StoreManager';
+import CreateStoreForm from './store/CreateStoreForm';
 
 const AdvancedDealerUploadPanel: React.FC = () => {
+  const { user } = useAuth();
+  const { isAdminUser, selectedStoreId, setSelectedStoreId } = useAdminStore();
   const [activeTab, setActiveTab] = useState('stores');
-  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [aiAnalysisResults, setAiAnalysisResults] = useState<any>(null);
   const [coinData, setCoinData] = useState<any>({});
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  // Fetch stores for admin users
+  const { data: adminStores = [] } = useQuery({
+    queryKey: ['admin-stores'],
+    queryFn: async () => {
+      if (!isAdminUser) return [];
+      
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: isAdminUser,
+  });
 
   const handleImagesProcessed = (images: any[]) => {
     setUploadedImages(images);
@@ -47,23 +73,61 @@ const AdvancedDealerUploadPanel: React.FC = () => {
     setCoinData(prev => ({ ...prev, store_id: storeId }));
   };
 
+  const handleCreateSuccess = (storeId: string) => {
+    setShowCreateForm(false);
+    setSelectedStoreId(storeId);
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Advanced Dealer Panel</h1>
+          <h1 className="text-3xl font-bold">
+            {isAdminUser ? 'Advanced Admin Dealer Panel' : 'Advanced Dealer Panel'}
+          </h1>
           <p className="text-muted-foreground">
             Professional coin listing management with AI-powered analysis and global commerce features
           </p>
         </div>
-        <Badge variant="outline" className="flex items-center gap-2">
-          <Brain className="w-4 h-4" />
-          AI-Powered Platform
-        </Badge>
+        
+        <div className="flex items-center gap-4">
+          {/* Admin Store Selector and Create Button - Only for admin users */}
+          {isAdminUser && (
+            <div className="flex items-center gap-3">
+              <Select value={selectedStoreId || ''} onValueChange={setSelectedStoreId}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select a store..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {adminStores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      <div className="flex items-center gap-2">
+                        <Store className="h-4 w-4" />
+                        <span>{store.name}</span>
+                        {store.verified && (
+                          <Badge variant="secondary" className="text-xs">Verified</Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={() => setShowCreateForm(true)} variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Store
+              </Button>
+            </div>
+          )}
+          
+          <Badge variant="outline" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            AI-Powered Platform
+          </Badge>
+        </div>
       </div>
 
       {/* Store Selection Alert */}
-      {!selectedStoreId && activeTab !== 'stores' && (
+      {isAdminUser && !selectedStoreId && activeTab !== 'stores' && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -72,17 +136,32 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         </Alert>
       )}
 
+      {/* Create Store Form Modal for Admin */}
+      {isAdminUser && showCreateForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Store</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CreateStoreForm
+              onCancel={() => setShowCreateForm(false)}
+              onSuccess={handleCreateSuccess}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="stores" className="flex items-center gap-2">
             <Store className="w-4 h-4" />
             Store Management
           </TabsTrigger>
-          <TabsTrigger value="upload" className="flex items-center gap-2" disabled={!selectedStoreId}>
+          <TabsTrigger value="upload" className="flex items-center gap-2" disabled={isAdminUser && !selectedStoreId}>
             <Upload className="w-4 h-4" />
             Smart Upload
           </TabsTrigger>
-          <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={!selectedStoreId}>
+          <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={isAdminUser && !selectedStoreId}>
             <Package className="w-4 h-4" />
             Bulk Operations
           </TabsTrigger>
@@ -112,7 +191,7 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">
-          {selectedStoreId && (
+          {(!isAdminUser || selectedStoreId) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AdvancedImageUploadManager
                 onImagesProcessed={handleImagesProcessed}
@@ -130,7 +209,7 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="bulk">
-          {selectedStoreId && <BulkUploadManager />}
+          {(!isAdminUser || selectedStoreId) && <BulkUploadManager />}
         </TabsContent>
 
         <TabsContent value="intelligence">
