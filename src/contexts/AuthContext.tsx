@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -229,7 +230,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const updateProfile = async (updates: Partial<User>) => {
-    if (!user) throw new Error('No user logged in');
+    if (!user?.id) {
+      console.error('❌ No user ID available for profile update');
+      throw new Error('No user logged in');
+    }
     
     const { error } = await supabase
       .from('profiles')
@@ -243,7 +247,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     session,
     loading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !!user.id,
     login,
     signup,
     signUp,

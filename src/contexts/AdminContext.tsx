@@ -22,7 +22,7 @@ export const useAdmin = () => {
 };
 
 export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,8 +31,9 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
     setIsAdmin(false);
     setIsLoading(true);
 
-    if (!user || !isAuthenticated) {
-      console.log('❌ AdminContext: No user or not authenticated');
+    // Guard against undefined user
+    if (!user?.id || !isAuthenticated || authLoading) {
+      console.log('❌ AdminContext: No user, not authenticated, or auth still loading');
       setIsAdmin(false);
       setIsLoading(false);
       return;
@@ -98,18 +99,22 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    // Only check admin status when auth is complete and user exists
+    if (!authLoading && isAuthenticated && user?.id) {
       console.log('🔄 AdminContext: User authenticated, checking admin status');
       checkAdminStatus();
     } else {
-      console.log('❌ AdminContext: User not authenticated, clearing admin status');
+      console.log('❌ AdminContext: User not authenticated or auth loading, clearing admin status');
       setIsAdmin(false);
       setIsLoading(false);
     }
-  }, [user, isAuthenticated]);
+  }, [user?.id, isAuthenticated, authLoading]);
 
   const updateAdminProfile = async (data: { fullName: string; email: string }) => {
-    if (!user) throw new Error('No user found');
+    if (!user?.id) {
+      console.error('❌ No user ID available for admin profile update');
+      throw new Error('No user found');
+    }
     
     const { error } = await supabase
       .from('profiles')

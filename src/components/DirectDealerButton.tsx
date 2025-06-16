@@ -2,14 +2,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, Upload } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 
 const DirectDealerButton = () => {
   const navigate = useNavigate();
-  const { isAdminUser } = useAdminStore();
+  const { user, loading: authLoading } = useAuth();
+  
+  // Only call useAdminStore if user is loaded to prevent undefined errors
+  const { isAdminUser } = authLoading || !user ? { isAdminUser: false } : useAdminStore();
 
   // Hide the button for admin users - they should use the Admin Panel instead
-  if (isAdminUser) {
+  // Also hide during auth loading to prevent flicker
+  if (authLoading || isAdminUser) {
     return null;
   }
 

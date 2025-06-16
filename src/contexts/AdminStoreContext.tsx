@@ -27,10 +27,11 @@ interface AdminStoreProviderProps {
 }
 
 export const AdminStoreProvider: React.FC<AdminStoreProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [selectedStoreId, setSelectedStoreIdState] = useState<string | null>(null);
 
   // Check if user is admin - using user metadata since profile is not available
+  // Add guard to prevent undefined user checks
   const isAdminUser = user?.user_metadata?.role === 'admin' || false;
 
   const setSelectedStoreId = (storeId: string | null) => {
@@ -47,13 +48,14 @@ export const AdminStoreProvider: React.FC<AdminStoreProviderProps> = ({ children
 
   // Load persisted store selection on mount for admin users
   useEffect(() => {
-    if (isAdminUser && user?.id) {
+    // Only proceed if auth is not loading and user exists
+    if (!authLoading && user?.id && isAdminUser) {
       const savedStoreId = localStorage.getItem(`admin_selected_store_${user.id}`);
       if (savedStoreId) {
         setSelectedStoreIdState(savedStoreId);
       }
     }
-  }, [isAdminUser, user?.id]);
+  }, [isAdminUser, user?.id, authLoading]);
 
   return (
     <AdminStoreContext.Provider
