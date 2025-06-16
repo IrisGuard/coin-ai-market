@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Store, Upload, Wallet, Receipt, BarChart3, Settings, TrendingUp, Plus } from 'lucide-react';
+import { Store, Upload, Wallet, Receipt, BarChart3, Settings, TrendingUp, Plus, AlertCircle } from 'lucide-react';
 
 import DealerCoinsList from './DealerCoinsList';
 import WalletManagementTab from './WalletManagementTab';
@@ -24,6 +24,8 @@ const EnhancedDealerPanel = () => {
   const { isAdminUser, selectedStoreId, setSelectedStoreId } = useAdminStore();
   const [activeTab, setActiveTab] = useState('upload');
   const [showCreateForm, setShowCreateForm] = useState(false);
+
+  console.log('EnhancedDealerPanel - Admin status:', { isAdminUser, selectedStoreId, userId: user?.id });
 
   // Fetch stores for admin users
   const { data: adminStores = [] } = useQuery({
@@ -60,35 +62,35 @@ const EnhancedDealerPanel = () => {
               {isAdminUser ? 'Manage multiple coin stores and inventory (Admin Mode)' : 'Manage your coin store and inventory'}
             </p>
           </div>
-          
-          {/* Admin Store Selector - Only for admin users */}
-          {isAdminUser && (
-            <div className="ml-auto flex items-center gap-3">
-              <Select value={selectedStoreId || ''} onValueChange={setSelectedStoreId}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Select a store..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {adminStores.map((store) => (
-                    <SelectItem key={store.id} value={store.id}>
-                      <div className="flex items-center gap-2">
-                        <Store className="h-4 w-4" />
-                        <span>{store.name}</span>
-                        {store.verified && (
-                          <Badge variant="secondary" className="text-xs">Verified</Badge>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={() => setShowCreateForm(true)} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Store
-              </Button>
-            </div>
-          )}
         </div>
+        
+        {/* Admin Store Selector and Create Button - Only for admin users */}
+        {isAdminUser && (
+          <div className="flex items-center gap-3">
+            <Select value={selectedStoreId || ''} onValueChange={setSelectedStoreId}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select a store..." />
+              </SelectTrigger>
+              <SelectContent>
+                {adminStores.map((store) => (
+                  <SelectItem key={store.id} value={store.id}>
+                    <div className="flex items-center gap-2">
+                      <Store className="h-4 w-4" />
+                      <span>{store.name}</span>
+                      {store.verified && (
+                        <Badge variant="secondary" className="text-xs">Verified</Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={() => setShowCreateForm(true)} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Store
+            </Button>
+          </div>
+        )}
         
         {!isAdminUser && (
           <Badge className="bg-blue-100 text-blue-800 border-blue-200">
@@ -102,6 +104,29 @@ const EnhancedDealerPanel = () => {
           </Badge>
         )}
       </div>
+
+      {/* Store Selection Warning for Admin */}
+      {isAdminUser && !selectedStoreId && adminStores.length === 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 text-amber-600">
+              <AlertCircle className="h-5 w-5" />
+              <p className="font-medium">No stores found. Create your first store to get started.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdminUser && !selectedStoreId && adminStores.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 text-blue-600">
+              <AlertCircle className="h-5 w-5" />
+              <p className="font-medium">Please select a store from the dropdown above to continue.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create Store Form Modal for Admin */}
       {isAdminUser && showCreateForm && (
