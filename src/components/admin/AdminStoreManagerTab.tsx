@@ -34,14 +34,14 @@ const AdminStoreManagerTab = () => {
   });
 
   const handleCreateNewStore = () => {
-    // Navigate to the existing Dealer Panel for store creation
-    navigate('/upload');
+    // Navigate to the real Dealer Panel for store creation
+    navigate('/dealer');
   };
 
   const handleAccessStore = (storeId: string) => {
-    // Set the selected store and navigate to the Dealer Panel
+    // Set the selected store and navigate to the real Dealer Panel
     setSelectedStoreId(storeId);
-    navigate('/upload');
+    navigate('/dealer');
   };
 
   if (isLoading) {
