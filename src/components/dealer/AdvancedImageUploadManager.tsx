@@ -78,6 +78,8 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
         const dataURL = await convertFileToDataURL(processedFile);
         
+        console.log('🖼️ DEBUG Preview URL:', dataURL.substring(0, 50) + '...');
+        
         processedImages.push({
           file: processedFile,
           preview: dataURL,
@@ -91,6 +93,8 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
       } catch (error) {
         console.error('Failed to process image:', error);
         const dataURL = await convertFileToDataURL(file);
+        console.log('🖼️ DEBUG Fallback Preview URL:', dataURL.substring(0, 50) + '...');
+        
         processedImages.push({
           file,
           preview: dataURL,
@@ -285,6 +289,15 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                       alt={image.itemType === 'coin' ? 'Coin' : 'Banknote'}
                       className="w-full h-full object-cover"
                       style={{ imageRendering: 'crisp-edges' }}
+                      onError={(e) => {
+                        console.error('❌ Image failed to load:', image.preview);
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=200&h=200&fit=crop&crop=center';
+                        target.style.opacity = '0.5';
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Image loaded successfully:', image.preview.substring(0, 50) + '...');
+                      }}
                     />
                   </div>
                   

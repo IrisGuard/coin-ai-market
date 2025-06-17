@@ -28,16 +28,30 @@ serve(async (req) => {
       );
     }
 
-    // PHASE 1: Enhanced API Key Authentication & Logging
+    // ENHANCED API Key Authentication & Validation
     const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
     console.log('=== ANTHROPIC API KEY VALIDATION ===');
     console.log('API Key available:', !!anthropicApiKey);
     console.log('API Key length:', anthropicApiKey?.length || 0);
     
     if (anthropicApiKey) {
-      // Log last 4 characters for verification (secure logging)
       const keyEndFragment = anthropicApiKey.slice(-4);
       console.log('API Key ends with: ****' + keyEndFragment);
+      
+      // Validate API key format (should start with 'sk-ant-')
+      if (!anthropicApiKey.startsWith('sk-ant-')) {
+        console.error('Invalid API key format - should start with sk-ant-');
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid API key format' 
+          }),
+          { 
+            status: 401, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
     }
     
     if (!anthropicApiKey) {
@@ -66,7 +80,7 @@ serve(async (req) => {
 
     console.log('Processing image data, length:', cleanImageData.length);
 
-    // PHASE 3: Universal Numismatic AI Prompt (Global, Language-Agnostic)
+    // Enhanced Universal Numismatic AI Prompt
     const universalNumismaticPrompt = `
 You are a world-class numismatist with expertise in coins from all countries, eras, and cultures. Analyze this coin image with precision and provide identification based solely on what you can observe.
 
@@ -108,40 +122,59 @@ If ANY element cannot be determined from the image:
 
 Be thorough but accurate. Only report what you can actually observe in the image.`;
 
-    console.log('Calling Anthropic API with universal prompt...');
+    console.log('Calling Anthropic API with enhanced Claude model...');
 
-    // Call Anthropic Claude API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2000,
-        messages: [
-          {
-            role: 'user',
-            content: [
+    // Call Anthropic Claude API with retry logic
+    let response;
+    let attempt = 1;
+    const maxAttempts = 2;
+    
+    while (attempt <= maxAttempts) {
+      try {
+        console.log(`Attempt ${attempt}: Calling Claude API...`);
+        
+        response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': anthropicApiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-opus-4-20250514', // Upgraded to newest Claude model
+            max_tokens: 2000,
+            messages: [
               {
-                type: 'text',
-                text: universalNumismaticPrompt
-              },
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: 'image/jpeg',
-                  data: cleanImageData
-                }
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: universalNumismaticPrompt
+                  },
+                  {
+                    type: 'image',
+                    source: {
+                      type: 'base64',
+                      media_type: 'image/jpeg',
+                      data: cleanImageData
+                    }
+                  }
+                ]
               }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
+        
+        break; // Success, exit retry loop
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+        attempt++;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      }
+    }
 
     console.log('Anthropic API response status:', response.status);
 
@@ -169,7 +202,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
 
     console.log('Anthropic raw response:', content);
 
-    // Parse AI response with global fallback handling
+    // Parse AI response with enhanced fallback handling
     let analysisResult;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -180,7 +213,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
-      // PHASE 2: Global Unidentified Coin Response (No Country-Specific Fallbacks)
+      // Enhanced fallback response
       analysisResult = {
         success: true,
         analysis: {
@@ -202,7 +235,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
 
     const processingTime = Date.now() - startTime;
 
-    // PHASE 2: Final Result Assembly (No Hardcoded Values)
+    // Final Result Assembly
     const finalResult = {
       success: true,
       analysis: {
@@ -224,7 +257,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
       },
       processing_time: processingTime,
       ai_provider: 'anthropic',
-      model: 'claude-3-5-sonnet',
+      model: 'claude-opus-4',
       timestamp: new Date().toISOString()
     };
 
