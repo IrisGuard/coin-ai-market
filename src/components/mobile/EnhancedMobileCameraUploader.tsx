@@ -15,9 +15,12 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
+import { ItemTypeSelector } from '@/components/ui/item-type-selector';
+import type { ItemType } from '@/types/upload';
 
 interface EnhancedMobileCameraUploaderProps {
-  onImagesSelected: (images: { file: File; preview: string }[]) => void;
+  onImagesSelected: (images: { file: File; preview: string; itemType: ItemType }[]) => void;
   maxImages?: number;
   onComplete: () => void;
 }
@@ -27,10 +30,12 @@ const EnhancedMobileCameraUploader = ({
   maxImages = 5,
   onComplete 
 }: EnhancedMobileCameraUploaderProps) => {
-  const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+  const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string; itemType: ItemType }[]>([]);
   const [isCapturing, setIsCapturing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { processImageWithItemType } = useEnhancedImageProcessing();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -44,17 +49,31 @@ const EnhancedMobileCameraUploader = ({
       return;
     }
 
-    const newImages: { file: File; preview: string }[] = [];
+    const newImages: { file: File; preview: string; itemType: ItemType }[] = [];
 
     for (const file of files) {
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        const preview = await new Promise<string>((resolve) => {
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.readAsDataURL(file);
-        });
-        
-        newImages.push({ file, preview });
+        try {
+          // Process image with selected item type
+          const processedBlob = await processImageWithItemType(file, selectedItemType);
+          const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
+          const preview = URL.createObjectURL(processedBlob);
+          
+          newImages.push({ 
+            file: processedFile, 
+            preview, 
+            itemType: selectedItemType 
+          });
+        } catch (error) {
+          console.error('Failed to process image:', error);
+          // Fallback to original
+          const preview = URL.createObjectURL(file);
+          newImages.push({ 
+            file, 
+            preview, 
+            itemType: selectedItemType 
+          });
+        }
       }
     }
 
@@ -116,6 +135,12 @@ const EnhancedMobileCameraUploader = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Item Type Selector */}
+        <ItemTypeSelector 
+          value={selectedItemType}
+          onValueChange={setSelectedItemType}
+        />
+
         {/* Camera Interface */}
         <div className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
@@ -123,7 +148,9 @@ const EnhancedMobileCameraUploader = ({
           </div>
           
           <div>
-            <h3 className="font-semibold mb-2">Capture Coin Images</h3>
+            <h3 className="font-semibold mb-2">
+              Capture {selectedItemType === 'coin' ? 'Coin' : 'Banknote'} Images
+            </h3>
             <p className="text-sm text-gray-600 mb-4">
               Take clear photos from multiple angles for best AI analysis
             </p>
@@ -174,11 +201,15 @@ const EnhancedMobileCameraUploader = ({
                 const quality = getQualityBadge(image.file);
                 return (
                   <div key={index} className="relative group">
-                    <img
-                      src={image.preview}
-                      alt={`Coin ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
-                    />
+                    <div className={`w-full border-2 border-gray-200 overflow-hidden ${
+                      image.itemType === 'coin' ? 'aspect-square rounded-full' : 'aspect-[2/1] rounded-lg'
+                    }`}>
+                      <img
+                        src={image.preview}
+                        alt={`${image.itemType} ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <button
                       onClick={() => removeImage(index)}
                       className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
@@ -190,6 +221,9 @@ const EnhancedMobileCameraUploader = ({
                       className={`absolute bottom-1 left-1 text-xs ${quality.color}`}
                     >
                       {quality.label}
+                    </Badge>
+                    <Badge variant="outline" className="absolute top-1 left-1 text-xs">
+                      {image.itemType === 'coin' ? '🪙' : '💵'}
                     </Badge>
                   </div>
                 );
@@ -238,8 +272,8 @@ const EnhancedMobileCameraUploader = ({
           <h4 className="text-sm font-medium mb-2">Photography Tips</h4>
           <ul className="text-xs text-gray-600 space-y-1">
             <li>• Use good lighting - natural light is best</li>
-            <li>• Keep the coin flat and centered</li>
-            <li>• Capture both obverse and reverse sides</li>
+            <li>• Keep the {selectedItemType} flat and centered</li>
+            <li>• Capture both sides for complete analysis</li>
             <li>• Avoid shadows and reflections</li>
             <li>• Higher resolution images give better results</li>
           </ul>

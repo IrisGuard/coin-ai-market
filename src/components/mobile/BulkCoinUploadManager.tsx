@@ -8,13 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { useAIAnalysis } from '@/hooks/upload/useAIAnalysis';
+import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
+import { ItemTypeSelector } from '@/components/ui/item-type-selector';
 import CameraSquareGuide from './CameraSquareGuide';
+import type { ItemType } from '@/types/upload';
 
 interface BulkUploadItem {
   id: string;
   files: File[];
   status: 'pending' | 'processing' | 'completed' | 'error';
   progress: number;
+  itemType: ItemType;
   results?: {
     coinName: string;
     confidence: number;
@@ -29,14 +33,23 @@ const BulkCoinUploadManager = () => {
   const [uploadItems, setUploadItems] = useState<BulkUploadItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSquareGuide, setShowSquareGuide] = useState(false);
+  const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
   const { performAnalysis, isAnalyzing } = useAIAnalysis();
+  const { processImageWithItemType } = useEnhancedImageProcessing();
 
-  const validateImageSquare = (file: File): Promise<boolean> => {
+  const validateImageFormat = (file: File, itemType: ItemType): Promise<boolean> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
-        const isSquare = Math.abs(img.width - img.height) < 50; // Allow 50px tolerance
-        resolve(isSquare);
+        if (itemType === 'coin') {
+          // For coins, prefer square images but allow some tolerance
+          const isSquareish = Math.abs(img.width - img.height) < 100;
+          resolve(isSquareish);
+        } else {
+          // For banknotes, prefer rectangular format
+          const isRectangular = Math.abs(img.width / img.height - 2) < 0.5; // Roughly 2:1 ratio
+          resolve(isRectangular);
+        }
       };
       img.onerror = () => resolve(false);
       img.src = URL.createObjectURL(file);
@@ -47,7 +60,7 @@ const BulkCoinUploadManager = () => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Validate file types and square dimensions
+    // Validate file types
     const validFiles: File[] = [];
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
@@ -55,9 +68,9 @@ const BulkCoinUploadManager = () => {
         continue;
       }
 
-      const isSquare = await validateImageSquare(file);
-      if (!isSquare) {
-        toast.error(`${file.name} must be a square image`);
+      const isValidFormat = await validateImageFormat(file, selectedItemType);
+      if (!isValidFormat && selectedItemType === 'coin') {
+        toast.error(`${file.name} should be square for coin processing`);
         continue;
       }
 
@@ -65,19 +78,19 @@ const BulkCoinUploadManager = () => {
     }
 
     if (validFiles.length === 0) {
-      toast.error('No valid square images found');
+      toast.error(`No valid ${selectedItemType} images found`);
       return;
     }
 
-    // Group files into batches of 2-6 images per coin
+    // Group files into batches
+    const batchSize = selectedItemType === 'coin' ? 3 : 2; // Coins: 3 images, Banknotes: 2 images
     const batches: File[][] = [];
     let currentBatch: File[] = [];
     
     validFiles.forEach((file, index) => {
       currentBatch.push(file);
       
-      // Create new batch every 3 files or if we reach the end
-      if (currentBatch.length >= 3 || index === validFiles.length - 1) {
+      if (currentBatch.length >= batchSize || index === validFiles.length - 1) {
         batches.push([...currentBatch]);
         currentBatch = [];
       }
@@ -87,11 +100,12 @@ const BulkCoinUploadManager = () => {
       id: `batch-${Date.now()}-${index}`,
       files: batch,
       status: 'pending',
-      progress: 0
+      progress: 0,
+      itemType: selectedItemType
     }));
 
     setUploadItems(prev => [...prev, ...newItems]);
-    toast.success(`Added ${batches.length} coin batches for processing`);
+    toast.success(`Added ${batches.length} ${selectedItemType} batches for processing`);
   };
 
   const processAllBatches = async () => {
@@ -107,7 +121,21 @@ const BulkCoinUploadManager = () => {
       ));
 
       try {
-        // Process with AI analysis
+        // Process images with correct item type
+        const processedFiles: File[] = [];
+        
+        for (const file of item.files) {
+          try {
+            const processedBlob = await processImageWithItemType(file, item.itemType);
+            const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
+            processedFiles.push(processedFile);
+          } catch (error) {
+            console.error('Failed to process image:', error);
+            processedFiles.push(file); // Fallback to original
+          }
+        }
+
+        // Update progress during processing
         for (let progress = 0; progress <= 80; progress += 20) {
           await new Promise(resolve => setTimeout(resolve, 200));
           setUploadItems(prev => prev.map((upload, idx) => 
@@ -115,8 +143,8 @@ const BulkCoinUploadManager = () => {
           ));
         }
 
-        // Perform AI analysis on the first image
-        const analysisResult = await performAnalysis(item.files[0]);
+        // Perform AI analysis on the first processed image
+        const analysisResult = await performAnalysis(processedFiles[0]);
         
         setUploadItems(prev => prev.map((upload, idx) => 
           idx === i ? { ...upload, progress: 100 } : upload
@@ -129,11 +157,11 @@ const BulkCoinUploadManager = () => {
             status: 'completed',
             progress: 100,
             results: {
-              coinName: analysisResult?.name || `Coin ${i + 1}`,
+              coinName: analysisResult?.name || `${item.itemType === 'coin' ? 'Coin' : 'Banknote'} ${i + 1}`,
               confidence: analysisResult?.confidence || 0.85 + Math.random() * 0.1,
               category: analysisResult?.country || 'Unknown',
               estimatedValue: analysisResult?.estimatedValue || Math.floor(Math.random() * 1000) + 50,
-              grade: analysisResult?.grade || 'VF',
+              grade: analysisResult?.grade || (item.itemType === 'coin' ? 'VF' : 'UNC'),
               errors: analysisResult?.errors || []
             }
           } : upload
@@ -192,10 +220,16 @@ const BulkCoinUploadManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5 text-purple-600" />
-            Bulk Coin Upload
+            Bulk Upload - Enhanced
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Item Type Selector */}
+          <ItemTypeSelector 
+            value={selectedItemType}
+            onValueChange={setSelectedItemType}
+          />
+
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
             <input
               type="file"
@@ -208,14 +242,19 @@ const BulkCoinUploadManager = () => {
             <label htmlFor="bulk-upload" className="cursor-pointer">
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg font-medium text-gray-600 mb-2">
-                Select Multiple Coin Images
+                Select Multiple {selectedItemType === 'coin' ? 'Coin' : 'Banknote'} Images
               </p>
               <p className="text-sm text-gray-500 mb-2">
-                Upload 2-6 images per coin. Images will be automatically grouped.
+                Upload 2-6 images per {selectedItemType}. Images will be automatically grouped and processed.
               </p>
               <div className="flex items-center justify-center gap-2 text-xs text-orange-600 bg-orange-50 p-2 rounded">
                 <Square className="w-4 h-4" />
-                <span>Only square images accepted (1:1 aspect ratio)</span>
+                <span>
+                  {selectedItemType === 'coin' 
+                    ? 'Square images preferred for coins (1:1 aspect ratio)'
+                    : 'Rectangular images preferred for banknotes (2:1 aspect ratio)'
+                  }
+                </span>
               </div>
             </label>
           </div>
@@ -264,7 +303,7 @@ const BulkCoinUploadManager = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium truncate">
-                        Batch {index + 1} ({item.files.length} images)
+                        {item.itemType === 'coin' ? '🪙' : '💵'} Batch {index + 1} ({item.files.length} images)
                       </h4>
                       <Badge className={getStatusColor(item.status)}>
                         {item.status}
@@ -277,7 +316,7 @@ const BulkCoinUploadManager = () => {
                     
                     {item.results && (
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p><strong>Coin:</strong> {item.results.coinName}</p>
+                        <p><strong>{item.itemType === 'coin' ? 'Coin:' : 'Banknote:'}</strong> {item.results.coinName}</p>
                         <p><strong>Category:</strong> {item.results.category}</p>
                         <p><strong>Confidence:</strong> {Math.round(item.results.confidence * 100)}%</p>
                         <p><strong>Estimated Value:</strong> ${item.results.estimatedValue}</p>

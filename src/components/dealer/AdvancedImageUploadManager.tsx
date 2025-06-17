@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useDualImageAnalysis } from '@/hooks/useDualImageAnalysis';
+import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
+import { ItemTypeSelector } from '@/components/ui/item-type-selector';
+import type { ItemType } from '@/types/upload';
 
 interface ProcessedImage {
   file: File;
@@ -28,6 +30,7 @@ interface ProcessedImage {
   aiAnalyzed: boolean;
   errors: string[];
   id: string;
+  itemType?: ItemType;
 }
 
 interface AdvancedImageUploadManagerProps {
@@ -45,10 +48,12 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
   
   const { performDualAnalysis, isAnalyzing, analysisProgress, currentStep } = useDualImageAnalysis();
+  const { processImageWithItemType, isProcessing } = useEnhancedImageProcessing();
 
-  const handleFiles = useCallback((files: FileList | File[]) => {
+  const handleFiles = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     
     if (images.length + fileArray.length > maxImages) {
@@ -56,18 +61,43 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
       return;
     }
 
-    const newImages: ProcessedImage[] = fileArray.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      uploaded: false,
-      uploading: false,
-      aiAnalyzed: false,
-      errors: [],
-      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    }));
+    // Process images with selected item type
+    const processedImages: ProcessedImage[] = [];
+    
+    for (const file of fileArray) {
+      try {
+        // Process image based on selected item type
+        const processedBlob = await processImageWithItemType(file, selectedItemType);
+        const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
+        
+        processedImages.push({
+          file: processedFile,
+          preview: URL.createObjectURL(processedBlob),
+          uploaded: false,
+          uploading: false,
+          aiAnalyzed: false,
+          errors: [],
+          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          itemType: selectedItemType
+        });
+      } catch (error) {
+        console.error('Failed to process image:', error);
+        // Fallback to original file
+        processedImages.push({
+          file,
+          preview: URL.createObjectURL(file),
+          uploaded: false,
+          uploading: false,
+          aiAnalyzed: false,
+          errors: ['Processing failed - using original'],
+          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          itemType: selectedItemType
+        });
+      }
+    }
 
-    setImages(prev => [...prev, ...newImages]);
-  }, [images.length, maxImages]);
+    setImages(prev => [...prev, ...processedImages]);
+  }, [images.length, maxImages, selectedItemType, processImageWithItemType]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -163,6 +193,12 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Item Type Selector */}
+        <ItemTypeSelector 
+          value={selectedItemType}
+          onValueChange={setSelectedItemType}
+        />
+
         {/* Drop Zone */}
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
@@ -176,7 +212,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         >
           <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">
-            Upload up to {maxImages} coin images
+            Upload up to {maxImages} {selectedItemType === 'coin' ? 'coin' : 'banknote'} images
           </h3>
           <p className="text-gray-600 mb-4">
             Drag & drop images here, or click to select files
@@ -236,11 +272,15 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                   exit={{ opacity: 0, scale: 0.8 }}
                   className="relative group"
                 >
-                  <img
-                    src={image.preview}
-                    alt="Coin"
-                    className="w-full aspect-square object-cover rounded-lg border-2 border-gray-200"
-                  />
+                  <div className={`w-full border-2 border-gray-200 overflow-hidden ${
+                    image.itemType === 'coin' ? 'aspect-square rounded-full' : 'aspect-[2/1] rounded-lg'
+                  }`}>
+                    <img
+                      src={image.preview}
+                      alt={image.itemType === 'coin' ? 'Coin' : 'Banknote'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   
                   {/* Status Indicators */}
                   <div className="absolute top-2 left-2 space-y-1">
@@ -264,6 +304,11 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                     )}
                   </div>
 
+                  {/* Item Type Badge */}
+                  <Badge variant="outline" className="absolute bottom-2 left-2 text-xs">
+                    {image.itemType === 'coin' ? '🪙' : '💵'}
+                  </Badge>
+
                   {/* Remove Button */}
                   <Button
                     size="sm"
@@ -275,7 +320,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                   </Button>
 
                   {/* Image Index */}
-                  <div className="absolute bottom-2 left-2">
+                  <div className="absolute bottom-2 right-2">
                     <Badge variant="outline" className="text-xs">
                       {images.indexOf(image) + 1}
                     </Badge>
@@ -355,8 +400,9 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         <Alert>
           <Eye className="h-4 w-4" />
           <AlertDescription>
-            <strong>Pro Tips:</strong> Upload front and back images first for best AI analysis. 
-            Additional images can show errors, details, or different angles (up to {maxImages} total).
+            <strong>Pro Tips:</strong> Select the correct item type before uploading. 
+            {selectedItemType === 'coin' ? 'Coins will be cropped to circular shape.' : 'Banknotes will maintain rectangular format.'}
+            All images get consistent #F5F5F5 background.
           </AlertDescription>
         </Alert>
       </CardContent>

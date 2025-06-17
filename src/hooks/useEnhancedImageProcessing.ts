@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { ItemType, ItemTypeProcessingOptions } from '@/types/upload';
 
 export interface BackgroundProcessingOptions {
   backgroundColor: string;
@@ -14,77 +15,94 @@ export const useEnhancedImageProcessing = () => {
   const [processedImages, setProcessedImages] = useState<any[]>([]);
   const [processingProgress, setProcessingProgress] = useState(0);
 
-  const processImageWithBackground = useCallback(async (
+  const processImageWithItemType = useCallback(async (
     file: File, 
-    options: BackgroundProcessingOptions
+    itemType: ItemType = 'coin'
   ) => {
     setIsProcessing(true);
     
     try {
-      console.log('🎨 REAL Image processing starting...', { fileName: file.name, options });
+      console.log('🎨 Processing image with item type:', { fileName: file.name, itemType });
       
-      // REAL Canvas-based image processing
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
       if (!ctx) throw new Error('Could not get canvas context');
       
-      // Load image
       const img = new Image();
       const imageUrl = URL.createObjectURL(file);
       
       return new Promise<Blob>((resolve, reject) => {
         img.onload = () => {
-          console.log('📷 Image loaded, processing...', { width: img.width, height: img.height });
+          console.log('📷 Image loaded, processing with type:', itemType);
           
-          // REAL Set canvas size
-          canvas.width = options.resizeToStandard ? 800 : img.width;
-          canvas.height = options.resizeToStandard ? 600 : img.height;
+          // Standard background color for all items
+          const backgroundColor = '#F5F5F5';
           
-          // REAL Apply background color
-          if (options.backgroundColor !== 'transparent') {
-            ctx.fillStyle = options.backgroundColor;
+          if (itemType === 'coin') {
+            // Circular crop for coins
+            const size = Math.min(img.width, img.height);
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Fill with background color
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Create circular clip
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            ctx.clip();
+            
+            // Center the image
+            const offsetX = (img.width - size) / 2;
+            const offsetY = (img.height - size) / 2;
+            ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+            ctx.restore();
+          } else {
+            // Rectangular crop for banknotes
+            canvas.width = 800; // Standard width
+            canvas.height = 400; // Standard height for banknotes
+            
+            // Fill with background color
+            ctx.fillStyle = backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
-          
-          // REAL Draw image with background processing
-          if (options.removeBackground) {
-            // Simplified background removal using edge detection
-            ctx.globalCompositeOperation = 'multiply';
-          }
-          
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          
-          // REAL Enhance contrast if requested
-          if (options.enhanceContrast) {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
             
-            console.log('✨ Applying REAL contrast enhancement...');
-            for (let i = 0; i < data.length; i += 4) {
-              // REAL Increase contrast algorithm
-              data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.3 + 128));     // Red
-              data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.3 + 128)); // Green  
-              data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.3 + 128)); // Blue
-            }
+            // Draw banknote maintaining aspect ratio
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            const scaledWidth = img.width * scale;
+            const scaledHeight = img.height * scale;
+            const x = (canvas.width - scaledWidth) / 2;
+            const y = (canvas.height - scaledHeight) / 2;
             
-            ctx.putImageData(imageData, 0, 0);
+            ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
           }
           
-          // REAL Convert to blob
-          const outputFormat = options.backgroundColor === 'transparent' ? 'image/png' : 'image/jpeg';
+          // Enhance contrast
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.2 + 128));     // Red
+            data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.2 + 128)); // Green  
+            data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.2 + 128)); // Blue
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          
           canvas.toBlob((blob) => {
             if (blob) {
-              console.log('✅ REAL Image processing complete:', { 
+              console.log('✅ Image processing complete:', { 
+                itemType,
                 originalSize: file.size, 
-                processedSize: blob.size,
-                format: outputFormat 
+                processedSize: blob.size
               });
               resolve(blob);
             } else {
               reject(new Error('Failed to process image'));
             }
-          }, outputFormat, 0.95);
+          }, 'image/jpeg', 0.95);
           
           URL.revokeObjectURL(imageUrl);
         };
@@ -93,38 +111,40 @@ export const useEnhancedImageProcessing = () => {
         img.src = imageUrl;
       });
     } catch (error) {
-      console.error('❌ REAL Image processing failed:', error);
+      console.error('❌ Image processing failed:', error);
       throw error;
     } finally {
       setIsProcessing(false);
     }
   }, []);
 
-  // REAL processImage method
-  const processImage = useCallback(async (file: File) => {
-    const options: BackgroundProcessingOptions = {
-      backgroundColor: '#FFFFFF',
-      removeBackground: false,
-      enhanceContrast: true,
-      resizeToStandard: true
-    };
-    return await processImageWithBackground(file, options);
-  }, [processImageWithBackground]);
+  // Legacy method for backward compatibility
+  const processImageWithBackground = useCallback(async (
+    file: File, 
+    options: BackgroundProcessingOptions
+  ) => {
+    // Default to coin processing for backward compatibility
+    return await processImageWithItemType(file, 'coin');
+  }, [processImageWithItemType]);
 
-  // REAL processBatchImages method
-  const processBatchImages = useCallback(async (files: File[]) => {
+  const processImage = useCallback(async (file: File) => {
+    // Default to coin processing
+    return await processImageWithItemType(file, 'coin');
+  }, [processImageWithItemType]);
+
+  const processBatchImages = useCallback(async (files: File[], itemType: ItemType = 'coin') => {
     setIsProcessing(true);
     setProcessingProgress(0);
     
-    console.log('🔄 REAL Batch processing starting...', { fileCount: files.length });
+    console.log('🔄 Batch processing starting...', { fileCount: files.length, itemType });
     const processed = [];
     
     for (let i = 0; i < files.length; i++) {
       try {
         const file = files[i];
-        console.log(`📸 Processing image ${i + 1}/${files.length}: ${file.name}`);
+        console.log(`📸 Processing ${itemType} ${i + 1}/${files.length}: ${file.name}`);
         
-        const processedBlob = await processImage(file);
+        const processedBlob = await processImageWithItemType(file, itemType);
         const processedUrl = URL.createObjectURL(processedBlob);
         
         processed.push({
@@ -134,10 +154,10 @@ export const useEnhancedImageProcessing = () => {
           filename: file.name,
           originalSize: file.size,
           processedSize: processedBlob.size,
-          processed: true
+          processed: true,
+          itemType
         });
         
-        // REAL Update progress
         const progress = ((i + 1) / files.length) * 100;
         setProcessingProgress(progress);
         console.log(`📊 Processing progress: ${progress.toFixed(1)}%`);
@@ -146,31 +166,31 @@ export const useEnhancedImageProcessing = () => {
       }
     }
     
-    console.log('✅ REAL Batch processing complete:', { processedCount: processed.length });
+    console.log('✅ Batch processing complete:', { processedCount: processed.length });
     setProcessedImages(processed);
     setIsProcessing(false);
     setProcessingProgress(0);
     
     return processed;
-  }, [processImage]);
+  }, [processImageWithItemType]);
 
   const processMultipleImages = useCallback(async (
     files: File[],
-    options: BackgroundProcessingOptions
+    itemType: ItemType = 'coin'
   ) => {
-    console.log('🎯 REAL Multiple images processing...', { fileCount: files.length, options });
+    console.log('🎯 Multiple images processing...', { fileCount: files.length, itemType });
     const processed = [];
     
     for (const file of files) {
       try {
-        const processedBlob = await processImageWithBackground(file, options);
+        const processedBlob = await processImageWithItemType(file, itemType);
         const processedUrl = URL.createObjectURL(processedBlob);
         
         processed.push({
           original: URL.createObjectURL(file),
           processed: processedUrl,
           filename: file.name,
-          options,
+          itemType,
           realProcessing: true
         });
       } catch (error) {
@@ -180,13 +200,14 @@ export const useEnhancedImageProcessing = () => {
     
     setProcessedImages(processed);
     return processed;
-  }, [processImageWithBackground]);
+  }, [processImageWithItemType]);
 
   return {
     isProcessing,
     processedImages,
     processingProgress,
     processImageWithBackground,
+    processImageWithItemType,
     processImage,
     processBatchImages,
     processMultipleImages,
