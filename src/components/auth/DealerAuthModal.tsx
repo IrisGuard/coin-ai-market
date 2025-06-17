@@ -31,7 +31,9 @@ const DealerAuthModal = ({ isOpen, onClose }: DealerAuthModalProps) => {
     password: '',
     confirmPassword: '',
     fullName: '',
-    username: ''
+    username: '',
+    storeName: '',
+    country: ''
   });
   
   const { errors, validateForm } = useDealerSignupValidation();

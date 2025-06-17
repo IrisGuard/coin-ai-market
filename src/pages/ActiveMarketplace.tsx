@@ -145,7 +145,6 @@ const ActiveMarketplace = () => {
 
       {/* Dealer Signup Modal */}
       <DealerSignupForm 
-        isOpen={isDealerSignupOpen}
         onClose={() => setIsDealerSignupOpen(false)}
       />
     </div>
