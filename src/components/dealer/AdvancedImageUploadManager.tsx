@@ -70,16 +70,12 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
       return;
     }
 
-    // Process images with selected item type and use data URLs for preview
     const processedImages: ProcessedImage[] = [];
     
     for (const file of fileArray) {
       try {
-        // Process image based on selected item type
         const processedBlob = await processImageWithItemType(file, selectedItemType);
         const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
-        
-        // Create data URL for preview (avoids CSP issues)
         const dataURL = await convertFileToDataURL(processedFile);
         
         processedImages.push({
@@ -94,7 +90,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        // Fallback to original file with data URL
         const dataURL = await convertFileToDataURL(file);
         processedImages.push({
           file,
@@ -179,14 +174,16 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
       const frontImage = images[0].file;
       const backImage = images[1].file;
       
+      console.log('Starting real Claude AI analysis...');
       const results = await performDualAnalysis(frontImage, backImage);
       
       if (results) {
         setImages(prev => prev.map(img => ({ ...img, aiAnalyzed: true })));
         onAIAnalysisComplete(results);
-        toast.success('AI analysis completed successfully!');
+        toast.success('Claude AI analysis completed successfully!');
       }
     } catch (error) {
+      console.error('Claude AI analysis failed:', error);
       toast.error('AI analysis failed. Please try again.');
     }
   };
@@ -392,7 +389,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
             ) : (
               <>
                 <Zap className="w-4 h-4 mr-2" />
-                AI Analysis
+                Claude AI Analysis
               </>
             )}
           </Button>
@@ -403,7 +400,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           <AlertDescription>
             <strong>Pro Tips:</strong> Select the correct item type before uploading. 
             {selectedItemType === 'coin' ? 'Coins will be cropped to circular shape.' : 'Banknotes will maintain rectangular format.'}
-            All images get consistent #F5F5F5 background and proper data URL format to avoid CSP issues.
+            All images get consistent #F5F5F5 background and proper data URL format.
           </AlertDescription>
         </Alert>
       </CardContent>
