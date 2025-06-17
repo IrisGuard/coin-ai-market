@@ -30,6 +30,7 @@ const PhotoBackgroundSelector = () => {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
+    console.log('🔍 DEBUG PhotoBackgroundSelector - Processing files:', fileArray.length);
     await processMultipleImages(fileArray, selectedItemType);
   };
 
@@ -51,11 +52,28 @@ const PhotoBackgroundSelector = () => {
 
   const clearProcessedImages = () => {
     processedImages.forEach(img => {
-      URL.revokeObjectURL(img.original);
-      URL.revokeObjectURL(img.processed);
+      // Only revoke blob URLs, not data URLs
+      if (img.original?.startsWith('blob:')) {
+        URL.revokeObjectURL(img.original);
+      }
+      if (img.processed?.startsWith('blob:')) {
+        URL.revokeObjectURL(img.processed);
+      }
     });
     setProcessedImages([]);
   };
+
+  // Debug logging for processed images
+  console.log('🔍 DEBUG PhotoBackgroundSelector - processedImages:', processedImages);
+  processedImages.forEach((img, index) => {
+    console.log(`🔍 DEBUG Image ${index}:`, {
+      filename: img.filename,
+      original: img.original?.substring(0, 50) + '...',
+      processed: img.processed?.substring(0, 50) + '...',
+      originalType: img.original?.startsWith('data:') ? 'DATA_URL' : img.original?.startsWith('blob:') ? 'BLOB_URL' : 'OTHER',
+      processedType: img.processed?.startsWith('data:') ? 'DATA_URL' : img.processed?.startsWith('blob:') ? 'BLOB_URL' : 'OTHER'
+    });
+  });
 
   return (
     <div className="space-y-6">
@@ -165,6 +183,14 @@ const PhotoBackgroundSelector = () => {
                             src={img.original}
                             alt={`Original ${index + 1}`}
                             className="w-full h-24 object-cover rounded border"
+                            onError={(e) => {
+                              console.error('🚨 Original image failed to load:', img.original);
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                            onLoad={() => {
+                              console.log('✅ Original image loaded successfully:', img.original?.substring(0, 50));
+                            }}
                           />
                         </div>
                         <div>
@@ -173,6 +199,14 @@ const PhotoBackgroundSelector = () => {
                             src={img.processed}
                             alt={`Processed ${index + 1}`}
                             className="w-full h-24 object-cover rounded border"
+                            onError={(e) => {
+                              console.error('🚨 Processed image failed to load:', img.processed);
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                            onLoad={() => {
+                              console.log('✅ Processed image loaded successfully:', img.processed?.substring(0, 50));
+                            }}
                           />
                         </div>
                       </div>
