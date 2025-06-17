@@ -24,7 +24,7 @@ interface AnalysisResultsProps {
 }
 
 const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysis }) => {
-  const { analysisResults, frontImage, backImage } = results;
+  const { anthropic_analysis, openai_analysis, comparison } = results;
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.8) return 'bg-green-500';
@@ -36,6 +36,27 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
     if (confidence >= 0.8) return 'High Confidence';
     if (confidence >= 0.6) return 'Medium Confidence';
     return 'Low Confidence';
+  };
+
+  // Use comparison data as the primary analysis results
+  const analysisResults = {
+    coinName: comparison.consensus_name,
+    year: comparison.consensus_year,
+    country: comparison.consensus_country,
+    denomination: anthropic_analysis?.denomination || openai_analysis?.denomination || 'Unknown',
+    grade: anthropic_analysis?.grade || openai_analysis?.grade || 'Ungraded',
+    rarity: anthropic_analysis?.rarity || openai_analysis?.rarity || 'Common',
+    composition: anthropic_analysis?.composition || openai_analysis?.composition || 'Unknown',
+    mint: anthropic_analysis?.mint || openai_analysis?.mint,
+    diameter: anthropic_analysis?.diameter || openai_analysis?.diameter,
+    weight: anthropic_analysis?.weight || openai_analysis?.weight,
+    estimatedValue: {
+      min: Math.min(anthropic_analysis?.estimated_value || 0, openai_analysis?.estimated_value || 0),
+      average: comparison.consensus_value,
+      max: Math.max(anthropic_analysis?.estimated_value || 0, openai_analysis?.estimated_value || 0)
+    },
+    confidence: comparison.confidence_score,
+    errors: comparison.discrepancies
   };
 
   return (
@@ -58,31 +79,31 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
         </div>
       </div>
 
-      {/* Image Preview */}
+      {/* Dual AI Analysis Comparison */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Analyzed Images
+            Dual AI Analysis Results
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <h3 className="font-medium text-center">Front Side (Obverse)</h3>
-              <img 
-                src={`data:image/jpeg;base64,${frontImage}`}
-                alt="Front side" 
-                className="w-full max-w-sm mx-auto rounded-lg shadow-md"
-              />
+              <h3 className="font-medium text-center">Claude AI Analysis</h3>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p><strong>Name:</strong> {anthropic_analysis?.name || 'Unknown'}</p>
+                <p><strong>Confidence:</strong> {anthropic_analysis?.confidence ? Math.round(anthropic_analysis.confidence * 100) : 0}%</p>
+                <p><strong>Value:</strong> ${anthropic_analysis?.estimated_value || 0}</p>
+              </div>
             </div>
             <div className="space-y-2">
-              <h3 className="font-medium text-center">Back Side (Reverse)</h3>
-              <img 
-                src={`data:image/jpeg;base64,${backImage}`}
-                alt="Back side" 
-                className="w-full max-w-sm mx-auto rounded-lg shadow-md"
-              />
+              <h3 className="font-medium text-center">OpenAI Analysis</h3>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <p><strong>Name:</strong> {openai_analysis?.name || 'Unknown'}</p>
+                <p><strong>Confidence:</strong> {openai_analysis?.confidence ? Math.round(openai_analysis.confidence * 100) : 0}%</p>
+                <p><strong>Value:</strong> ${openai_analysis?.estimated_value || 0}</p>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -93,7 +114,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-yellow-600" />
-            Coin Identification
+            Consensus Coin Identification
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -187,7 +208,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-600" />
-              Estimated Value
+              Consensus Estimated Value
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -199,7 +220,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600">Average Estimate</p>
+                <p className="text-sm text-gray-600">Consensus Value</p>
                 <p className="text-3xl font-bold text-green-600">
                   ${analysisResults.estimatedValue.average.toFixed(2)}
                 </p>
@@ -215,21 +236,21 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
         </Card>
       )}
 
-      {/* Errors and Issues */}
+      {/* Discrepancies */}
       {analysisResults.errors && analysisResults.errors.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
-              Detected Issues
+              AI Analysis Discrepancies
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {analysisResults.errors.map((error, index) => (
+              {analysisResults.errors.map((discrepancy, index) => (
                 <div key={index} className="flex items-center gap-2 p-2 bg-orange-50 rounded">
                   <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                  <span>{error}</span>
+                  <span>{discrepancy}</span>
                 </div>
               ))}
             </div>
@@ -249,20 +270,19 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <span className="font-medium">Analysis Method</span>
-              <p>Dual-side Claude AI Recognition</p>
+              <p>Dual AI Consensus (Claude + OpenAI)</p>
             </div>
             <div className="space-y-2">
-              <span className="font-medium">AI Provider</span>
-              <p>Anthropic Claude (Sonnet)</p>
+              <span className="font-medium">Processing Time</span>
+              <p>{(results.processing_time / 1000).toFixed(1)} seconds</p>
             </div>
           </div>
           
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> This analysis was performed using advanced AI recognition 
-              on both sides of your coin. Results are based on visual analysis and may vary 
-              from professional grading services. For investment decisions, consider getting 
-              a professional appraisal.
+              <strong>Note:</strong> This analysis combines results from Claude AI and OpenAI Vision 
+              to provide a consensus identification. Discrepancies between AI models are highlighted 
+              above. For investment decisions, consider getting a professional appraisal.
             </p>
           </div>
         </CardContent>
