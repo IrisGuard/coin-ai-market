@@ -54,10 +54,10 @@ export const useRealAICoinRecognition = () => {
         }
       }
 
-      console.log('Starting global AI coin analysis...');
+      console.log('Starting Claude AI coin analysis...');
       console.log('Image data length:', imageData.length);
       
-      // Call the global anthropic coin recognition edge function
+      // Call the anthropic coin recognition edge function
       const { data, error: functionError } = await supabase.functions.invoke(
         'anthropic-coin-recognition',
         {
@@ -72,17 +72,17 @@ export const useRealAICoinRecognition = () => {
 
       if (functionError) {
         console.error('Edge function error:', functionError);
-        throw new Error(`AI Analysis failed: ${functionError.message}`);
+        throw new Error(`Claude AI Analysis failed: ${functionError.message}`);
       }
 
       if (!data || !data.success) {
-        console.error('AI analysis unsuccessful:', data);
-        throw new Error(data?.error || 'AI analysis was unsuccessful');
+        console.error('Claude analysis unsuccessful:', data);
+        throw new Error(data?.error || 'Claude analysis was unsuccessful');
       }
 
-      console.log('Global AI analysis successful:', data);
+      console.log('Claude AI analysis successful:', data);
 
-      // Transform the response to match our interface (no hardcoded fallbacks)
+      // Transform the response to match our interface
       const analysis = data.analysis;
       const recognitionResult: AIRecognitionResult = {
         name: analysis.name || 'Unidentified Coin',
@@ -120,9 +120,9 @@ export const useRealAICoinRecognition = () => {
       return recognitionResult;
 
     } catch (err: any) {
-      console.error('AI recognition error:', err);
+      console.error('Claude AI recognition error:', err);
       setError(err.message);
-      toast.error(`AI Analysis failed: ${err.message}`);
+      toast.error(`Claude AI Analysis failed: ${err.message}`);
       return null;
     } finally {
       setIsAnalyzing(false);
