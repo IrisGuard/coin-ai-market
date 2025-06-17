@@ -122,16 +122,16 @@ If ANY element cannot be determined from the image:
 
 Be thorough but accurate. Only report what you can actually observe in the image.`;
 
-    console.log('Calling Anthropic API with enhanced Claude model...');
+    console.log('Calling Anthropic API with correct Claude model...');
 
-    // Call Anthropic Claude API with retry logic
+    // Call Anthropic Claude API with correct model and retry logic
     let response;
     let attempt = 1;
     const maxAttempts = 2;
     
     while (attempt <= maxAttempts) {
       try {
-        console.log(`Attempt ${attempt}: Calling Claude API...`);
+        console.log(`Attempt ${attempt}: Calling Claude API with claude-3-5-sonnet-20241022...`);
         
         response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -141,7 +141,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
             'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            model: 'claude-opus-4-20250514', // Upgraded to newest Claude model
+            model: 'claude-3-5-sonnet-20241022', // CORRECTED MODEL NAME
             max_tokens: 2000,
             messages: [
               {
@@ -165,6 +165,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
           })
         });
         
+        console.log('Claude API response status:', response.status);
         break; // Success, exit retry loop
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
@@ -176,16 +177,18 @@ Be thorough but accurate. Only report what you can actually observe in the image
       }
     }
 
-    console.log('Anthropic API response status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API Error:', errorText);
+      console.error('Anthropic API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
       
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: `AI service error: ${response.status}`,
+          error: `Claude AI analysis failed: ${response.status} - ${response.statusText}`,
           details: errorText,
           processing_time: Date.now() - startTime,
           ai_provider: 'anthropic'
@@ -198,9 +201,9 @@ Be thorough but accurate. Only report what you can actually observe in the image
     }
 
     const aiResponse = await response.json();
+    console.log('Raw Claude response:', JSON.stringify(aiResponse, null, 2));
+    
     const content = aiResponse.content[0]?.text;
-
-    console.log('Anthropic raw response:', content);
 
     // Parse AI response with enhanced fallback handling
     let analysisResult;
@@ -212,7 +215,10 @@ Be thorough but accurate. Only report what you can actually observe in the image
         analysisResult = JSON.parse(content);
       }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
+      console.error('Failed to parse Claude response:', {
+        content: content,
+        parseError: parseError.message
+      });
       // Enhanced fallback response
       analysisResult = {
         success: true,
@@ -257,11 +263,11 @@ Be thorough but accurate. Only report what you can actually observe in the image
       },
       processing_time: processingTime,
       ai_provider: 'anthropic',
-      model: 'claude-opus-4',
+      model: 'claude-3-5-sonnet-20241022',
       timestamp: new Date().toISOString()
     };
 
-    console.log('=== FINAL AI ANALYSIS RESULT ===');
+    console.log('=== FINAL CLAUDE ANALYSIS RESULT ===');
     console.log('Coin identified as:', finalResult.analysis.name);
     console.log('Country:', finalResult.analysis.country);
     console.log('Confidence score:', finalResult.analysis.confidence);
@@ -280,8 +286,9 @@ Be thorough but accurate. Only report what you can actually observe in the image
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: 'AI analysis failed',
+        error: 'Claude AI analysis failed',
         message: error.message,
+        stack: error.stack,
         processing_time: 0,
         ai_provider: 'anthropic'
       }),
