@@ -1,4 +1,3 @@
-
 import { 
   extractMarketPrices, 
   extractTechnicalSpecs, 
@@ -120,7 +119,7 @@ export const mergeAnalysisData = async (claudeResult: any, webResults: any[]) =>
   mergedData.final_confidence = sources.reduce((sum, conf) => sum + conf, 0) / sources.length;
   
   // Generate comprehensive auto-description with marketplace insights
-  mergedData.auto_description = generateStructuredDescription(mergedData, webResults, marketplaceIntelligence);
+  mergedData.auto_description = generateStructuredDescription(mergedData, webResults);
   
   console.log('✅ Enhanced data merge complete with marketplace intelligence auto-fill ready data');
   return mergedData;

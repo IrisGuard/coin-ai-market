@@ -76,7 +76,7 @@ export const validateCoinCategory = (proposedCategory: string, coinData: any, ma
   const categoryStats = marketHistory.categoryInsights.get(coinIdentifier) || {};
   
   const categoryFrequency = Object.entries(categoryStats)
-    .sort(([,a], [,b]) => (b as number) - (a as number));
+    .sort(([,a], [,b]) => (Number(b) || 0) - (Number(a) || 0));
   
   if (categoryFrequency.length === 0) {
     return {
@@ -88,7 +88,8 @@ export const validateCoinCategory = (proposedCategory: string, coinData: any, ma
   }
   
   const mostCommonCategory = categoryFrequency[0][0];
-  const categoryPercentage = (categoryStats[mostCommonCategory] / Object.values(categoryStats).reduce((sum: number, count) => sum + (count as number), 0)) * 100;
+  const totalCount = Object.values(categoryStats).reduce((sum: number, count) => sum + (Number(count) || 0), 0);
+  const categoryPercentage = ((Number(categoryStats[mostCommonCategory]) || 0) / totalCount) * 100;
   
   const isConsistent = proposedCategory === mostCommonCategory || categoryPercentage < 60;
   
@@ -99,7 +100,7 @@ export const validateCoinCategory = (proposedCategory: string, coinData: any, ma
     marketPreference: `${categoryPercentage.toFixed(1)}% of similar coins are in ${mostCommonCategory}`,
     alternatives: categoryFrequency.slice(0, 3).map(([cat, count]) => ({
       category: cat,
-      percentage: ((count as number) / Object.values(categoryStats).reduce((sum: number, c) => sum + (c as number), 0)) * 100
+      percentage: ((Number(count) || 0) / totalCount) * 100
     }))
   };
 };
@@ -119,12 +120,12 @@ export const assessGradeReliability = (proposedGrade: string, coinData: any, mar
     };
   }
   
-  const totalGrades = Object.values(gradeData).reduce((sum: number, count) => sum + (count as number), 0);
-  const gradePercentage = ((gradeData[proposedGrade] || 0) / totalGrades) * 100;
+  const totalGrades = Object.values(gradeData).reduce((sum: number, count) => sum + (Number(count) || 0), 0);
+  const gradePercentage = ((Number(gradeData[proposedGrade]) || 0) / totalGrades) * 100;
   
   // Check for grade inflation (too many high grades)
   const highGrades = ['MS-70', 'MS-69', 'MS-68', 'PR-70', 'PR-69'];
-  const highGradeCount = highGrades.reduce((sum, grade) => sum + (gradeData[grade] || 0), 0);
+  const highGradeCount = highGrades.reduce((sum, grade) => sum + (Number(gradeData[grade]) || 0), 0);
   const highGradePercentage = (highGradeCount / totalGrades) * 100;
   
   let warning = null;
@@ -145,7 +146,7 @@ export const assessGradeReliability = (proposedGrade: string, coinData: any, mar
     marketDistribution: Object.entries(gradeData)
       .map(([grade, count]) => ({
         grade,
-        percentage: ((count as number) / totalGrades) * 100
+        percentage: ((Number(count) || 0) / totalGrades) * 100
       }))
       .sort((a, b) => b.percentage - a.percentage),
     warning,
