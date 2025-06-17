@@ -1,18 +1,93 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface TranslationResult {
   translatedText: string;
-  detectedLanguage: string;
+  detectedLanguage?: string;
+  originalText: string;
+  targetLanguage: string;
+}
+
+interface LanguageDetectionResult {
+  language: string;
   confidence: number;
 }
 
 export const useGoogleTranslate = () => {
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
 
-  const detectLanguage = useCallback(async (text: string): Promise<string> => {
+  const translateText = useCallback(async (
+    text: string, 
+    targetLang: string = 'en', 
+    sourceLang?: string
+  ): Promise<TranslationResult | null> => {
+    if (!text.trim()) {
+      toast.error('Please provide text to translate');
+      return null;
+    }
+
+    setIsTranslating(true);
+    
     try {
+      console.log('🌐 Calling Google Translate API...');
+      console.log('Text to translate:', text.substring(0, 100) + '...');
+      console.log('Target language:', targetLang);
+      console.log('Source language:', sourceLang || 'auto-detect');
+
+      const { data, error } = await supabase.functions.invoke('google-translate', {
+        body: {
+          text,
+          action: 'translate',
+          targetLang,
+          sourceLang
+        }
+      });
+
+      if (error) {
+        console.error('❌ Google Translate API error:', error);
+        throw new Error(`Translation failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No translation data received');
+      }
+
+      console.log('✅ Translation completed:', data);
+
+      const result: TranslationResult = {
+        translatedText: data.translatedText,
+        detectedLanguage: data.detectedLanguage,
+        originalText: text,
+        targetLanguage: targetLang
+      };
+
+      toast.success('Text translated successfully!');
+      return result;
+
+    } catch (error) {
+      console.error('💥 Translation failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Translation failed';
+      toast.error(errorMessage);
+      return null;
+    } finally {
+      setIsTranslating(false);
+    }
+  }, []);
+
+  const detectLanguage = useCallback(async (text: string): Promise<LanguageDetectionResult | null> => {
+    if (!text.trim()) {
+      toast.error('Please provide text for language detection');
+      return null;
+    }
+
+    setIsDetecting(true);
+    
+    try {
+      console.log('🔍 Detecting language for text:', text.substring(0, 100) + '...');
+
       const { data, error } = await supabase.functions.invoke('google-translate', {
         body: {
           text,
@@ -20,96 +95,47 @@ export const useGoogleTranslate = () => {
         }
       });
 
-      if (error) throw error;
-      return data.language || 'en';
-    } catch (error) {
-      console.error('Language detection error:', error);
-      return 'en'; // Fallback to English
-    }
-  }, []);
+      if (error) {
+        console.error('❌ Language detection error:', error);
+        throw new Error(`Language detection failed: ${error.message}`);
+      }
 
-  const translateText = useCallback(async (
-    text: string, 
-    targetLang: string = 'en',
-    sourceLang?: string
-  ): Promise<TranslationResult> => {
-    setIsTranslating(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('google-translate', {
-        body: {
-          text,
-          targetLang,
-          sourceLang,
-          action: 'translate'
-        }
-      });
+      if (!data) {
+        throw new Error('No detection data received');
+      }
 
-      if (error) throw error;
+      console.log('✅ Language detected:', data);
 
-      return {
-        translatedText: data.translatedText || text,
-        detectedLanguage: data.detectedLanguage || sourceLang || 'en',
-        confidence: data.confidence || 0.9
+      const result: LanguageDetectionResult = {
+        language: data.language,
+        confidence: data.confidence
       };
+
+      return result;
+
     } catch (error) {
-      console.error('Translation error:', error);
-      return {
-        translatedText: text,
-        detectedLanguage: sourceLang || 'en',
-        confidence: 0
-      };
+      console.error('💥 Language detection failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Language detection failed';
+      toast.error(errorMessage);
+      return null;
     } finally {
-      setIsTranslating(false);
+      setIsDetecting(false);
     }
   }, []);
 
-  const getLanguageCode = useCallback((language: string): string => {
-    const languageMap: Record<string, string> = {
-      'greek': 'el-GR',
-      'english': 'en-US',
-      'spanish': 'es-ES',
-      'french': 'fr-FR',
-      'german': 'de-DE',
-      'italian': 'it-IT',
-      'portuguese': 'pt-PT',
-      'russian': 'ru-RU',
-      'chinese': 'zh-CN',
-      'japanese': 'ja-JP',
-      'korean': 'ko-KR',
-      'arabic': 'ar-SA',
-      'hindi': 'hi-IN',
-      'turkish': 'tr-TR',
-      'dutch': 'nl-NL',
-      'polish': 'pl-PL',
-      'czech': 'cs-CZ',
-      'swedish': 'sv-SE',
-      'norwegian': 'no-NO',
-      'danish': 'da-DK',
-      'finnish': 'fi-FI',
-      'hebrew': 'he-IL',
-      'thai': 'th-TH',
-      'vietnamese': 'vi-VN',
-      'ukrainian': 'uk-UA',
-      'romanian': 'ro-RO',
-      'hungarian': 'hu-HU',
-      'bulgarian': 'bg-BG',
-      'croatian': 'hr-HR',
-      'serbian': 'sr-RS',
-      'slovenian': 'sl-SI',
-      'slovak': 'sk-SK',
-      'lithuanian': 'lt-LT',
-      'latvian': 'lv-LV',
-      'estonian': 'et-EE'
-    };
-
-    return languageMap[language.toLowerCase()] || 'en-US';
-  }, []);
+  const translateCoinDescription = useCallback(async (
+    description: string,
+    targetLanguage: string
+  ): Promise<string | null> => {
+    const result = await translateText(description, targetLanguage);
+    return result?.translatedText || null;
+  }, [translateText]);
 
   return {
-    detectLanguage,
     translateText,
-    getLanguageCode,
-    isTranslating
+    detectLanguage,
+    translateCoinDescription,
+    isTranslating,
+    isDetecting
   };
 };

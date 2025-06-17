@@ -1,71 +1,21 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface DualImageAnalysisResult {
-  id: string;
-  frontImage: string;
-  backImage: string;
-  analysisResults: {
-    coinName: string;
-    year: number | null;
-    country: string;
-    denomination: string;
-    composition: string;
-    grade: string;
-    estimatedValue: {
-      min: number;
-      max: number;
-      average: number;
-    };
-    rarity: string;
-    errors: string[];
-    mint?: string;
-    diameter?: number;
-    weight?: number;
-    confidence: number;
+export interface DualAnalysisResult {
+  anthropic_analysis: any;
+  openai_analysis: any;
+  comparison: {
+    consensus_name: string;
+    consensus_year: number | null;
+    consensus_country: string;
+    consensus_value: number;
+    confidence_score: number;
+    discrepancies: string[];
   };
-  webDiscoveryResults: WebDiscoveryResult[];
-  visualMatches: VisualMatch[];
-  errorPatterns: ErrorPattern[];
-  marketAnalysis: MarketAnalysis;
-}
-
-export interface WebDiscoveryResult {
-  sourceUrl: string;
-  sourceType: string;
-  coinMatchConfidence: number;
-  priceData: any;
-  auctionData: any;
-  imageUrls: string[];
-  extractedData: any;
-}
-
-export interface VisualMatch {
-  matchedImageUrl: string;
-  similarityScore: number;
-  sourceUrl: string;
-  coinDetails: any;
-  priceInfo: any;
-}
-
-export interface ErrorPattern {
-  errorType: string;
-  errorDescription: string;
-  confidenceScore: number;
-  referenceImages: string[];
-  rarityMultiplier: number;
-  estimatedPremium: number;
-}
-
-export interface MarketAnalysis {
-  currentMarketValue: any;
-  priceTrends: any;
-  recentSales: any;
-  populationData: any;
-  investmentRecommendation: string;
-  marketOutlook: string;
+  processing_time: number;
+  timestamp: string;
 }
 
 export const useDualImageAnalysis = () => {
@@ -73,173 +23,183 @@ export const useDualImageAnalysis = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
 
-  const performDualAnalysis = async (
-    frontImageFile: File,
-    backImageFile: File
-  ): Promise<DualImageAnalysisResult | null> => {
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const performDualAnalysis = useCallback(async (frontImage: File, backImage: File): Promise<DualAnalysisResult | null> => {
     setIsAnalyzing(true);
     setAnalysisProgress(0);
-    setCurrentStep('Preparing images...');
+    setCurrentStep('Preparing images for analysis...');
 
     try {
       // Convert images to base64
-      const frontImageBase64 = await fileToBase64(frontImageFile);
-      const backImageBase64 = await fileToBase64(backImageFile);
-      
-      setAnalysisProgress(20);
-      setCurrentStep('Analyzing front side with Claude AI...');
+      setAnalysisProgress(10);
+      const frontImageData = await convertFileToBase64(frontImage);
+      const backImageData = await convertFileToBase64(backImage);
 
-      // Call anthropic-coin-recognition for front image
-      const { data: frontAnalysis, error: frontError } = await supabase.functions.invoke('anthropic-coin-recognition', {
+      console.log('🔄 Starting dual AI analysis with real API connections...');
+
+      // Step 1: Claude Analysis (Anthropic)
+      setCurrentStep('Analyzing with Claude AI...');
+      setAnalysisProgress(30);
+
+      console.log('📞 Calling Anthropic API...');
+      const { data: anthropicData, error: anthropicError } = await supabase.functions.invoke('anthropic-coin-recognition', {
         body: {
-          image: frontImageBase64,
+          image: frontImageData.split(',')[1], // Remove data:image/jpeg;base64, prefix
           analysis_type: 'comprehensive',
           include_valuation: true,
           include_errors: true
         }
       });
 
-      if (frontError) {
-        console.error('Front image analysis failed:', frontError);
-        throw new Error(`Front analysis failed: ${frontError.message}`);
+      if (anthropicError) {
+        console.error('❌ Anthropic analysis failed:', anthropicError);
+        throw new Error(`Claude AI analysis failed: ${anthropicError.message}`);
       }
 
-      if (!frontAnalysis || !frontAnalysis.success) {
-        console.error('Front analysis unsuccessful:', frontAnalysis);
-        throw new Error(frontAnalysis?.error || 'Front analysis was unsuccessful');
-      }
+      console.log('✅ Claude analysis completed:', anthropicData);
 
-      setAnalysisProgress(50);
-      setCurrentStep('Analyzing back side with Claude AI...');
+      // Step 2: OpenAI Analysis
+      setCurrentStep('Analyzing with OpenAI Vision...');
+      setAnalysisProgress(60);
 
-      // Call anthropic-coin-recognition for back image
-      const { data: backAnalysis, error: backError } = await supabase.functions.invoke('anthropic-coin-recognition', {
+      console.log('📞 Calling OpenAI API...');
+      const { data: openaiData, error: openaiError } = await supabase.functions.invoke('ai-coin-recognition', {
         body: {
-          image: backImageBase64,
-          analysis_type: 'comprehensive',
-          include_valuation: true,
-          include_errors: true
+          image: frontImageData,
+          additionalImages: [backImageData]
         }
       });
 
-      if (backError) {
-        console.error('Back image analysis failed:', backError);
-        throw new Error(`Back analysis failed: ${backError.message}`);
+      if (openaiError) {
+        console.error('❌ OpenAI analysis failed:', openaiError);
+        throw new Error(`OpenAI analysis failed: ${openaiError.message}`);
       }
 
-      if (!backAnalysis || !backAnalysis.success) {
-        console.error('Back analysis unsuccessful:', backAnalysis);
-        throw new Error(backAnalysis?.error || 'Back analysis was unsuccessful');
-      }
+      console.log('✅ OpenAI analysis completed:', openaiData);
 
+      // Step 3: Compare and create consensus
+      setCurrentStep('Comparing results and creating consensus...');
       setAnalysisProgress(80);
-      setCurrentStep('Combining analysis results...');
 
-      // Combine both analyses - use front as primary, back as additional confirmation
-      const primaryAnalysis = frontAnalysis.analysis;
-      const secondaryAnalysis = backAnalysis.analysis;
+      const consensus = createConsensus(anthropicData.analysis, openaiData);
+      
+      const dualResult: DualAnalysisResult = {
+        anthropic_analysis: anthropicData.analysis,
+        openai_analysis: openaiData,
+        comparison: consensus,
+        processing_time: (anthropicData.processing_time || 0) + (openaiData.processing_time || 0),
+        timestamp: new Date().toISOString()
+      };
 
-      // Calculate combined confidence (average of both sides)
-      const combinedConfidence = (primaryAnalysis.confidence + secondaryAnalysis.confidence) / 2;
-
-      // Combine errors from both sides
-      const combinedErrors = [
-        ...(primaryAnalysis.errors || []),
-        ...(secondaryAnalysis.errors || [])
-      ];
-
+      // Step 4: Store results
+      setCurrentStep('Storing analysis results...');
       setAnalysisProgress(90);
-      setCurrentStep('Saving analysis results...');
 
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        console.warn('User authentication failed:', userError);
-      }
+      const { error: storeError } = await supabase
+        .from('dual_ai_analyses')
+        .insert({
+          anthropic_analysis: anthropicData.analysis,
+          openai_analysis: openaiData,
+          consensus_result: consensus,
+          processing_time_ms: dualResult.processing_time,
+          confidence_score: consensus.confidence_score
+        });
 
-      // Create analysis record ID
-      const analysisId = `dual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      // Try to save to database, but don't fail if it doesn't work
-      try {
-        const { error: dbError } = await supabase
-          .from('dual_image_analysis')
-          .insert({
-            id: analysisId,
-            front_image_url: frontImageBase64,
-            back_image_url: backImageBase64,
-            user_id: user?.id,
-            analysis_results: primaryAnalysis,
-            confidence_score: combinedConfidence,
-            detected_errors: combinedErrors,
-            grade_assessment: primaryAnalysis.grade,
-            rarity_score: getRarityScore(primaryAnalysis.rarity),
-            estimated_value_range: {
-              min: primaryAnalysis.estimated_value * 0.8,
-              max: primaryAnalysis.estimated_value * 1.2,
-              average: primaryAnalysis.estimated_value
-            }
-          });
-
-        if (dbError) {
-          console.warn('Database save failed, continuing with analysis:', dbError);
-        }
-      } catch (dbError) {
-        console.warn('Database operation failed:', dbError);
+      if (storeError) {
+        console.warn('⚠️ Failed to store analysis results:', storeError);
       }
 
       setAnalysisProgress(100);
       setCurrentStep('Analysis complete!');
 
-      // Return real Claude analysis results only
-      const completeResults: DualImageAnalysisResult = {
-        id: analysisId,
-        frontImage: frontImageBase64,
-        backImage: backImageBase64,
-        analysisResults: {
-          coinName: primaryAnalysis.name || 'Unidentified Coin',
-          year: primaryAnalysis.year || null,
-          country: primaryAnalysis.country || 'Unknown',
-          denomination: primaryAnalysis.denomination || 'Unknown',
-          composition: primaryAnalysis.composition || 'Unknown',
-          grade: primaryAnalysis.grade || 'Unknown',
-          estimatedValue: {
-            min: (primaryAnalysis.estimated_value || 0) * 0.8,
-            max: (primaryAnalysis.estimated_value || 0) * 1.2,
-            average: primaryAnalysis.estimated_value || 0
-          },
-          rarity: primaryAnalysis.rarity || 'Unknown',
-          errors: combinedErrors,
-          mint: primaryAnalysis.mint,
-          diameter: primaryAnalysis.diameter,
-          weight: primaryAnalysis.weight,
-          confidence: combinedConfidence
-        },
-        webDiscoveryResults: [],
-        visualMatches: [],
-        errorPatterns: [],
-        marketAnalysis: {
-          currentMarketValue: null,
-          priceTrends: null,
-          recentSales: null,
-          populationData: null,
-          investmentRecommendation: '',
-          marketOutlook: ''
-        }
-      };
+      console.log('🎯 Dual analysis completed successfully:', dualResult);
       
-      toast.success(`Dual-side analysis complete! Confidence: ${Math.round(combinedConfidence * 100)}%`);
-      
-      return completeResults;
+      return dualResult;
 
-    } catch (error: any) {
-      console.error('Dual analysis failed:', error);
-      toast.error(`Analysis failed: ${error.message}`);
-      return null;
+    } catch (error) {
+      console.error('💥 Dual analysis failed:', error);
+      toast.error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
     } finally {
       setIsAnalyzing(false);
+      setAnalysisProgress(0);
       setCurrentStep('');
     }
+  }, []);
+
+  const createConsensus = (anthropicResult: any, openaiResult: any) => {
+    const discrepancies: string[] = [];
+    
+    // Compare names
+    const anthropicName = anthropicResult?.name || 'Unknown';
+    const openaiName = openaiResult?.name || 'Unknown';
+    
+    let consensusName = anthropicName;
+    if (anthropicName !== openaiName && openaiName !== 'Unknown') {
+      discrepancies.push(`Name mismatch: Claude says "${anthropicName}", OpenAI says "${openaiName}"`);
+      // Use the one with higher confidence
+      if ((openaiResult?.confidence || 0) > (anthropicResult?.confidence || 0)) {
+        consensusName = openaiName;
+      }
+    }
+
+    // Compare years
+    const anthropicYear = anthropicResult?.year;
+    const openaiYear = openaiResult?.year;
+    
+    let consensusYear = anthropicYear;
+    if (anthropicYear !== openaiYear && openaiYear) {
+      discrepancies.push(`Year mismatch: Claude says ${anthropicYear}, OpenAI says ${openaiYear}`);
+      if ((openaiResult?.confidence || 0) > (anthropicResult?.confidence || 0)) {
+        consensusYear = openaiYear;
+      }
+    }
+
+    // Compare countries
+    const anthropicCountry = anthropicResult?.country || 'Unknown';
+    const openaiCountry = openaiResult?.country || 'Unknown';
+    
+    let consensusCountry = anthropicCountry;
+    if (anthropicCountry !== openaiCountry && openaiCountry !== 'Unknown') {
+      discrepancies.push(`Country mismatch: Claude says "${anthropicCountry}", OpenAI says "${openaiCountry}"`);
+      if ((openaiResult?.confidence || 0) > (anthropicResult?.confidence || 0)) {
+        consensusCountry = openaiCountry;
+      }
+    }
+
+    // Average values
+    const anthropicValue = anthropicResult?.estimated_value || 0;
+    const openaiValue = openaiResult?.estimated_value || 0;
+    const consensusValue = (anthropicValue + openaiValue) / 2;
+
+    if (Math.abs(anthropicValue - openaiValue) > anthropicValue * 0.2) {
+      discrepancies.push(`Value mismatch: Claude says $${anthropicValue}, OpenAI says $${openaiValue}`);
+    }
+
+    // Calculate confidence (average of both, reduced if discrepancies exist)
+    const avgConfidence = ((anthropicResult?.confidence || 0.5) + (openaiResult?.confidence || 0.5)) / 2;
+    const confidenceReduction = discrepancies.length * 0.1;
+    const consensusConfidence = Math.max(0.1, avgConfidence - confidenceReduction);
+
+    return {
+      consensus_name: consensusName,
+      consensus_year: consensusYear,
+      consensus_country: consensusCountry,
+      consensus_value: consensusValue,
+      confidence_score: consensusConfidence,
+      discrepancies
+    };
   };
 
   return {
@@ -248,29 +208,4 @@ export const useDualImageAnalysis = () => {
     analysisProgress,
     currentStep
   };
-};
-
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(',')[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
-const getRarityScore = (rarity: string): number => {
-  const rarityMap: Record<string, number> = {
-    'Common': 1,
-    'Uncommon': 2,
-    'Rare': 3,
-    'Very Rare': 4,
-    'Ultra Rare': 5,
-    'Extremely Rare': 6,
-    'Unknown': 1
-  };
-  return rarityMap[rarity] || 1;
 };

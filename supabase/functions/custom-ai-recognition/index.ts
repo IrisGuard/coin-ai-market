@@ -20,9 +20,9 @@ serve(async (req) => {
   }
 
   try {
-    const { image, additionalImages = [], aiProvider = 'custom' } = await req.json();
+    const { image, additionalImages = [], aiProvider = 'openai' } = await req.json();
 
-    // Get AI provider configuration from environment or database
+    // Get AI provider configuration from environment
     const providers: Record<string, AIProvider> = {
       custom: {
         name: 'Custom AI',
@@ -34,21 +34,39 @@ serve(async (req) => {
         name: 'OpenAI',
         endpoint: 'https://api.openai.com/v1/chat/completions',
         apiKey: Deno.env.get('OPENAI_API_KEY') || '',
-        model: 'gpt-4-vision-preview'
+        model: 'gpt-4o'
       }
     };
 
     const provider = providers[aiProvider];
+    
+    console.log('=== CUSTOM AI PROVIDER VALIDATION ===');
+    console.log('Provider:', provider.name);
+    console.log('API Key available:', !!provider.apiKey);
+    console.log('Endpoint configured:', !!provider.endpoint);
+    
     if (!provider || !provider.apiKey) {
-      throw new Error(`AI provider ${aiProvider} not configured`);
+      console.error(`AI provider ${aiProvider} not configured properly`);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `AI provider ${aiProvider} not configured - missing API key`,
+          provider: aiProvider
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     console.log(`Using AI provider: ${provider.name}`);
 
     let response;
     
-    if (aiProvider === 'custom') {
+    if (aiProvider === 'custom' && provider.endpoint) {
       // Custom AI API call
+      console.log('Calling custom AI endpoint...');
       response = await fetch(provider.endpoint, {
         method: 'POST',
         headers: {
@@ -64,7 +82,8 @@ serve(async (req) => {
         }),
       });
     } else {
-      // OpenAI API call (fallback)
+      // OpenAI API call (fallback or primary)
+      console.log('Calling OpenAI API...');
       response = await fetch(provider.endpoint, {
         method: 'POST',
         headers: {
@@ -83,7 +102,7 @@ serve(async (req) => {
                 },
                 {
                   type: "image_url",
-                  image_url: { url: `data:image/jpeg;base64,${image}` }
+                  image_url: { url: image }
                 }
               ]
             }
@@ -93,8 +112,23 @@ serve(async (req) => {
       });
     }
 
+    console.log('AI Provider response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`AI API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('AI Provider Error:', errorText);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `AI API error: ${response.status} ${response.statusText}`,
+          details: errorText,
+          provider: provider.name
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const aiResult = await response.json();
@@ -137,6 +171,10 @@ serve(async (req) => {
       sources_consulted: [provider.name]
     });
 
+    console.log('=== CUSTOM AI ANALYSIS COMPLETE ===');
+    console.log('Provider used:', provider.name);
+    console.log('Analysis successful:', !!normalizedResult);
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -149,7 +187,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('AI recognition error:', error);
+    console.error('Custom AI recognition error:', error);
     return new Response(
       JSON.stringify({
         success: false,

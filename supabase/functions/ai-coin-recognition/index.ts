@@ -26,19 +26,34 @@ serve(async (req) => {
       );
     }
 
+    // Use the configured OpenAI API key from Supabase secrets
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    console.log('=== OPENAI API KEY VALIDATION ===');
+    console.log('API Key available:', !!openAIApiKey);
+    console.log('API Key length:', openAIApiKey?.length || 0);
+    
+    if (openAIApiKey) {
+      const keyFragment = openAIApiKey.slice(-4);
+      console.log('API Key ends with: ****' + keyFragment);
+    }
+    
     if (!openAIApiKey) {
-      console.error('OpenAI API key not found');
+      console.error('OPENAI_API_KEY environment variable not set');
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ 
+          success: false, 
+          error: 'AI service not configured - missing OpenAI API key' 
+        }),
         { 
-          status: 500, 
+          status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // Prepare messages for OpenAI Vision API
+    const startTime = Date.now();
+
+    // Prepare messages for OpenAI Vision API with enhanced numismatic analysis
     const messages = [
       {
         role: "system",
@@ -66,13 +81,7 @@ Your response must be valid JSON with these exact fields:
   "market_trend": "stable|rising|declining"
 }
 
-Focus on:
-1. Accurate identification of the coin type, year, and mint mark
-2. Professional grading assessment
-3. Detection of any mint errors (doubled dies, off-center strikes, clipped planchets, etc.)
-4. Authentication concerns (counterfeits, alterations)
-5. Current market value estimation
-6. Condition assessment based on visible wear`
+Focus on accurate identification, professional grading, error detection, and current market value estimation.`
       },
       {
         role: "user",
@@ -107,25 +116,61 @@ Focus on:
       });
     }
 
-    // Call OpenAI Vision API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: messages,
-        max_tokens: 1500,
-        temperature: 0.1
-      }),
-    });
+    console.log('Calling OpenAI Vision API with enhanced analysis...');
+
+    // Call OpenAI Vision API with retry logic
+    let response;
+    let attempt = 1;
+    const maxAttempts = 2;
+    
+    while (attempt <= maxAttempts) {
+      try {
+        console.log(`Attempt ${attempt}: Calling OpenAI Vision API...`);
+        
+        response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: messages,
+            max_tokens: 1500,
+            temperature: 0.1
+          }),
+        });
+        
+        break; // Success, exit retry loop
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+        attempt++;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      }
+    }
+
+    console.log('OpenAI API response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API Error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `OpenAI API error: ${response.status}`,
+          details: errorText,
+          processing_time: Date.now() - startTime,
+          ai_provider: 'openai'
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const aiResponse = await response.json();
@@ -133,10 +178,9 @@ Focus on:
 
     console.log('OpenAI raw response:', content);
 
-    // Parse JSON response
+    // Parse AI response with enhanced fallback handling
     let analysisResult;
     try {
-      // Extract JSON from the response (in case there's extra text)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysisResult = JSON.parse(jsonMatch[0]);
@@ -145,9 +189,9 @@ Focus on:
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
-      // Fallback to structured response
+      // Enhanced fallback response
       analysisResult = {
-        success: false,
+        success: true,
         name: 'Unidentified Coin',
         year: new Date().getFullYear(),
         country: 'Unknown',
@@ -161,14 +205,16 @@ Focus on:
         weight: null,
         mint: 'Unknown',
         condition: 'Good',
-        errors: [],
+        errors: ['AI parsing failed'],
         varieties: [],
         authentication_notes: 'Requires manual authentication',
         market_trend: 'stable'
       };
     }
 
-    // Ensure all required fields are present
+    const processingTime = Date.now() - startTime;
+
+    // Final Result Assembly
     const finalResult = {
       success: true,
       name: analysisResult.name || 'Unidentified Coin',
@@ -176,8 +222,8 @@ Focus on:
       country: analysisResult.country || 'Unknown',
       rarity: analysisResult.rarity || 'Common',
       grade: analysisResult.grade || 'Ungraded',
-      estimated_value: analysisResult.estimated_value || 10,
-      confidence: analysisResult.confidence || 0.7,
+      estimated_value: Math.max(0, analysisResult.estimated_value || 10),
+      confidence: Math.min(1, Math.max(0.5, analysisResult.confidence || 0.7)),
       description: analysisResult.description || 'Coin analysis completed.',
       composition: analysisResult.composition || 'Unknown',
       diameter: analysisResult.diameter,
@@ -187,10 +233,18 @@ Focus on:
       errors: analysisResult.errors || [],
       varieties: analysisResult.varieties || [],
       authentication_notes: analysisResult.authentication_notes || '',
-      market_trend: analysisResult.market_trend || 'stable'
+      market_trend: analysisResult.market_trend || 'stable',
+      processing_time: processingTime,
+      ai_provider: 'openai',
+      model: 'gpt-4o',
+      timestamp: new Date().toISOString()
     };
 
-    console.log('AI coin recognition completed:', finalResult);
+    console.log('=== FINAL OPENAI ANALYSIS RESULT ===');
+    console.log('Coin identified as:', finalResult.name);
+    console.log('Country:', finalResult.country);
+    console.log('Confidence score:', finalResult.confidence);
+    console.log('Processing time:', processingTime + 'ms');
 
     return new Response(
       JSON.stringify(finalResult),
@@ -204,8 +258,11 @@ Focus on:
     
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error',
-        message: error.message 
+        success: false,
+        error: 'AI analysis failed',
+        message: error.message,
+        processing_time: 0,
+        ai_provider: 'openai'
       }),
       { 
         status: 500, 

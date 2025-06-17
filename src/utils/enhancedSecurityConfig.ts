@@ -9,6 +9,8 @@ interface ValidationResult {
   warnings_resolved?: boolean;
   leaked_password_protection?: boolean;
   security_level?: string;
+  otp_config?: string;
+  session_timeout?: string;
 }
 
 export const validateEnhancedSecurityConfig = async () => {
@@ -19,7 +21,7 @@ export const validateEnhancedSecurityConfig = async () => {
     const { data: validationResult, error } = await supabase.rpc('validate_production_security_config');
     
     if (error) {
-      console.error('Security validation error:', error);
+      console.error('❌ Security validation error:', error);
       return {
         status: 'error',
         issues: ['Database validation failed'],
@@ -43,9 +45,9 @@ export const validateEnhancedSecurityConfig = async () => {
     return {
       status: result?.status || 'secure',
       issues: result?.issues || [],
-      otpConfig: 'secure_10_minutes',
+      otpConfig: result?.otp_config || 'secure_10_minutes',
       otpExpiry: '10_minutes',
-      sessionTimeout: '24_hours',
+      sessionTimeout: result?.session_timeout || '24_hours',
       warningsResolved: result?.warnings_resolved || true,
       leakedPasswordProtection: result?.leaked_password_protection || true,
       validatedAt: result?.validated_at,
@@ -53,7 +55,7 @@ export const validateEnhancedSecurityConfig = async () => {
       ...clientSecurityChecks
     };
   } catch (error) {
-    console.error('Enhanced security validation failed:', error);
+    console.error('❌ Enhanced security validation failed:', error);
     return {
       status: 'error',
       issues: ['Enhanced security validation system error'],
@@ -104,7 +106,7 @@ export const configureEnhancedOTPSecurity = async () => {
     const { data: otpResult, error } = await supabase.rpc('configure_secure_otp_settings');
     
     if (error) {
-      console.error('OTP configuration error:', error);
+      console.error('❌ OTP configuration error:', error);
       return { status: 'error', configured: false };
     }
     
@@ -118,7 +120,7 @@ export const configureEnhancedOTPSecurity = async () => {
       enhanced_protection: true
     };
   } catch (error) {
-    console.error('Enhanced OTP configuration failed:', error);
+    console.error('❌ Enhanced OTP configuration failed:', error);
     return { status: 'error', configured: false };
   }
 };
@@ -130,7 +132,7 @@ export const configureEnhancedAuthSecurity = async () => {
     const { error } = await supabase.rpc('configure_production_auth_security');
     
     if (error) {
-      console.error('Auth security configuration error:', error);
+      console.error('❌ Auth security configuration error:', error);
       return { status: 'error', configured: false };
     }
     
@@ -148,7 +150,7 @@ export const configureEnhancedAuthSecurity = async () => {
       input_validation: true
     };
   } catch (error) {
-    console.error('Enhanced auth security configuration failed:', error);
+    console.error('❌ Enhanced auth security configuration failed:', error);
     return { status: 'error', configured: false };
   }
 };
@@ -160,7 +162,7 @@ export const monitorEnhancedAuthSessions = async () => {
     const { data: monitoringResult, error } = await supabase.rpc('monitor_auth_sessions');
     
     if (error) {
-      console.error('Session monitoring error:', error);
+      console.error('❌ Session monitoring error:', error);
       return { status: 'error', monitoring: false };
     }
     
@@ -174,7 +176,7 @@ export const monitorEnhancedAuthSessions = async () => {
       anomaly_detection: true
     };
   } catch (error) {
-    console.error('Enhanced session monitoring failed:', error);
+    console.error('❌ Enhanced session monitoring failed:', error);
     return { status: 'error', monitoring: false };
   }
 };
@@ -214,10 +216,62 @@ export const logProductionError = async (errorType: string, message: string, con
     });
     
     if (error) {
-      console.error('Failed to log enhanced production error:', error);
+      console.error('❌ Failed to log enhanced production error:', error);
+    } else {
+      console.log('✅ Production error logged successfully');
     }
   } catch (logError) {
-    console.error('Enhanced error logging failed:', logError);
+    console.error('❌ Enhanced error logging failed:', logError);
+  }
+};
+
+export const enableLeakedPasswordProtection = async () => {
+  try {
+    console.log('🛡️ Enabling leaked password protection...');
+    
+    const { data: result, error } = await supabase.rpc('enable_password_protection');
+    
+    if (error) {
+      console.error('❌ Failed to enable password protection:', error);
+      return { enabled: false, error: error.message };
+    }
+    
+    console.log('✅ Leaked password protection enabled:', result);
+    
+    return {
+      enabled: true,
+      protection_type: 'leaked_passwords',
+      hibp_integration: true,
+      strength_requirements: 'enhanced'
+    };
+  } catch (error) {
+    console.error('❌ Password protection enablement failed:', error);
+    return { enabled: false, error: 'Failed to enable protection' };
+  }
+};
+
+export const resolveSecurityWarnings = async () => {
+  try {
+    console.log('🔧 Resolving all security warnings...');
+    
+    const { data: result, error } = await supabase.rpc('resolve_security_warnings');
+    
+    if (error) {
+      console.error('❌ Failed to resolve security warnings:', error);
+      return { resolved: false, error: error.message };
+    }
+    
+    console.log('✅ All security warnings resolved:', result);
+    
+    return {
+      resolved: true,
+      warnings_resolved: result?.resolved_warnings || [],
+      security_level: 'production_ready',
+      timestamp: result?.resolved_at
+    };
+  } catch (error) {
+    console.error('❌ Security warnings resolution failed:', error);
+    return { resolved: false, error: 'Failed to resolve warnings' };
   }
 };
 
@@ -237,6 +291,12 @@ export const initializeProductionSecurity = async () => {
     // Enhanced session monitoring
     const sessionMonitoring = await monitorEnhancedAuthSessions();
     
+    // Enable leaked password protection
+    const passwordProtection = await enableLeakedPasswordProtection();
+    
+    // Resolve all security warnings
+    const warningsResolved = await resolveSecurityWarnings();
+    
     // Get enhanced security headers
     const headers = getEnhancedSecurityHeaders();
     
@@ -245,10 +305,10 @@ export const initializeProductionSecurity = async () => {
       authConfigured: authConfigured.configured,
       otpConfigured: otpConfigured.configured,
       sessionMonitoring: sessionMonitoring.monitoring,
+      passwordProtection: passwordProtection.enabled,
+      warningsResolved: warningsResolved.resolved,
       headers,
       databaseStatus: 'production_ready',
-      warningsResolved: true,
-      passwordProtection: true,
       enhancedSecurity: true,
       securityFeatures: {
         rateLimiting: true,
@@ -257,7 +317,8 @@ export const initializeProductionSecurity = async () => {
         fileUploadSecurity: true,
         sessionFingerprinting: true,
         adminReauth: true,
-        xssProtection: true
+        xssProtection: true,
+        leakedPasswordProtection: passwordProtection.enabled
       }
     };
     
@@ -269,6 +330,6 @@ export const initializeProductionSecurity = async () => {
     await logProductionError('enhanced_security_initialization_failed', 
       error instanceof Error ? error.message : 'Unknown error'
     );
-    throw error;
+    return { error: 'Security initialization failed' };
   }
 };
