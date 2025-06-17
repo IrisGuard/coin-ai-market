@@ -48,16 +48,15 @@ export const useRealAICoinRecognition = () => {
 
       console.log('Starting real AI analysis...');
       
-      // Call the advanced coin analyzer edge function
+      // Call the anthropic coin recognition edge function
       const { data, error: functionError } = await supabase.functions.invoke(
-        'advanced-coin-analyzer',
+        'anthropic-coin-recognition',
         {
           body: {
-            commandType: 'coin_condition_expert',
-            coinData: {
-              image: imageData,
-              analysisLevel: 'comprehensive'
-            }
+            image: imageData,
+            analysis_type: 'comprehensive',
+            include_valuation: true,
+            include_errors: true
           }
         }
       );
@@ -77,21 +76,21 @@ export const useRealAICoinRecognition = () => {
       // Transform the response to match our interface
       const analysis = data.analysis;
       const recognitionResult: AIRecognitionResult = {
-        name: analysis.grade?.split(' ')[0] + ' Coin' || 'Unknown Coin',
-        year: new Date().getFullYear() - Math.floor(Math.random() * 100),
-        country: 'United States',
-        denomination: 'Unknown',
-        composition: analysis.factors?.surface?.composition || 'Unknown',
+        name: analysis.name || 'Unknown Coin',
+        year: analysis.year || new Date().getFullYear(),
+        country: analysis.country || 'Unknown',
+        denomination: analysis.denomination || 'Unknown',
+        composition: analysis.composition || 'Unknown',
         grade: analysis.grade || 'Ungraded',
-        estimatedValue: analysis.marketComparison?.averagePrice || 0,
-        rarity: analysis.factors?.rarity || 'Common',
-        mint: analysis.factors?.mint,
-        diameter: analysis.factors?.diameter,
-        weight: analysis.factors?.weight,
-        errors: analysis.detailedAnalysis?.issues || [],
+        estimatedValue: analysis.estimated_value || 0,
+        rarity: analysis.rarity || 'Common',
+        mint: analysis.mint,
+        diameter: analysis.diameter,
+        weight: analysis.weight,
+        errors: analysis.errors || [],
         confidence: analysis.confidence || 0.85,
-        aiProvider: 'advanced_analyzer',
-        processingTime: 2500
+        aiProvider: data.ai_provider || 'anthropic',
+        processingTime: data.processing_time || 2500
       };
 
       // Cache the result in our recognition cache
