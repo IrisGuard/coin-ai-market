@@ -8,10 +8,8 @@ import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
 import BackButton from '@/components/navigation/BackButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Store, Shield, Star, ArrowRight, MapPin, Plus } from 'lucide-react';
-import DealerSignupForm from '@/components/auth/DealerSignupForm';
+import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +18,6 @@ const ActiveMarketplace = () => {
   usePageView();
   
   const { data: dealers, isLoading: dealersLoading } = useDealerStores();
-  const [isDealerSignupOpen, setIsDealerSignupOpen] = useState(false);
 
   // Get coin counts for stores
   const { data: storeCounts = {} } = useQuery({
@@ -48,19 +45,9 @@ const ActiveMarketplace = () => {
       
       <NavigationBreadcrumb />
       
-      {/* Back Button and Open Store Button Row */}
+      {/* Back Button Row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div className="flex justify-between items-center">
-          <BackButton to="/" label="Back to Home" />
-          <Button 
-            onClick={() => setIsDealerSignupOpen(true)}
-            size="sm"
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-medium border-2 border-green-700 shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Open Store
-          </Button>
-        </div>
+        <BackButton to="/" label="Back to Home" />
       </div>
       
       {/* Simple Marketplace Header */}
@@ -142,11 +129,6 @@ const ActiveMarketplace = () => {
           )}
         </div>
       </div>
-
-      {/* Dealer Signup Modal */}
-      <DealerSignupForm 
-        onClose={() => setIsDealerSignupOpen(false)}
-      />
     </div>
   );
 };

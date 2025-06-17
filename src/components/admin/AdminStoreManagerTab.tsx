@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
+import CreateStoreModal from '@/components/dealer/store/CreateStoreModal';
 
 // Country flag mapping for common countries
 const countryFlags: Record<string, string> = {
@@ -64,6 +65,7 @@ const AdminStoreManagerTab = () => {
   const { setSelectedStoreId } = useAdminStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isCreateStoreModalOpen, setIsCreateStoreModalOpen] = useState(false);
 
   // Fetch ALL admin stores (no verified filter for admin panel)
   const { data: stores, isLoading } = useQuery({
@@ -84,14 +86,18 @@ const AdminStoreManagerTab = () => {
   });
 
   const handleCreateNewStore = () => {
-    // Direct navigation to dealer panel for store creation
-    navigate('/dealer');
+    setIsCreateStoreModalOpen(true);
   };
 
   const handleAccessStore = (storeId: string) => {
     // Set the selected store and navigate to the Dealer Panel
     setSelectedStoreId(storeId);
     navigate('/dealer');
+  };
+
+  const handleStoreCreated = () => {
+    // Refresh the stores list
+    queryClient.invalidateQueries({ queryKey: ['admin-stores', user?.id] });
   };
 
   const getCountryDisplay = (address: any) => {
@@ -227,6 +233,13 @@ const AdminStoreManagerTab = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Store Modal */}
+      <CreateStoreModal 
+        isOpen={isCreateStoreModalOpen}
+        onClose={() => setIsCreateStoreModalOpen(false)}
+        onStoreCreated={handleStoreCreated}
+      />
     </div>
   );
 };
