@@ -4,6 +4,8 @@ export interface UploadedImage {
   preview: string;
   uploaded: boolean;
   uploading: boolean;
+  error?: string;
+  url?: string;
 }
 
 export interface CoinData {
@@ -21,6 +23,8 @@ export interface CoinData {
   price: string;
   isAuction: boolean;
   startingBid: string;
+  condition: string;
+  auctionDuration: string;
 }
 
 export type ItemType = 'coin' | 'banknote';

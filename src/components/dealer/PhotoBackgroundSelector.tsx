@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Palette, Check, Upload, Zap, Download } from 'lucide-react';
 import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
+import type { ItemType } from '@/types/upload';
 
 const PhotoBackgroundSelector = () => {
   const [selectedBackground, setSelectedBackground] = useState('#FFFFFF');
+  const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
   const { 
     isProcessing, 
     processedImages, 
@@ -28,14 +30,7 @@ const PhotoBackgroundSelector = () => {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    const options = {
-      backgroundColor: selectedBackground,
-      removeBackground: false,
-      enhanceContrast: true,
-      resizeToStandard: true
-    };
-
-    await processMultipleImages(fileArray, options);
+    await processMultipleImages(fileArray, selectedItemType);
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,7 +182,7 @@ const PhotoBackgroundSelector = () => {
                         <div className="text-sm">
                           <div className="font-medium truncate">{img.filename}</div>
                           <div className="text-muted-foreground text-xs">
-                            Background: {backgrounds.find(b => b.color === img.options.backgroundColor)?.name}
+                            Background: {backgrounds.find(b => b.color === selectedBackground)?.name}
                           </div>
                         </div>
                         <Button
