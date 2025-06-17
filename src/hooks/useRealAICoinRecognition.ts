@@ -34,19 +34,30 @@ export const useRealAICoinRecognition = () => {
     try {
       let imageData: string;
       
-      // Convert File to base64 if needed
+      // Convert File to clean base64 string
       if (imageFile instanceof File) {
         imageData = await new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
+          reader.onload = () => {
+            const result = reader.result as string;
+            // Extract only the base64 part, removing the data URL prefix
+            const base64Data = result.split('base64,')[1];
+            resolve(base64Data);
+          };
           reader.onerror = reject;
           reader.readAsDataURL(imageFile);
         });
       } else {
-        imageData = imageFile;
+        // Clean existing string data
+        if (imageFile.includes('base64,')) {
+          imageData = imageFile.split('base64,')[1];
+        } else {
+          imageData = imageFile;
+        }
       }
 
       console.log('Starting real AI analysis...');
+      console.log('Image data length:', imageData.length);
       
       // Call the anthropic coin recognition edge function
       const { data, error: functionError } = await supabase.functions.invoke(
@@ -123,10 +134,9 @@ export const useRealAICoinRecognition = () => {
 
   const cacheRecognitionResult = async (imageHash: string, result: AIRecognitionResult) => {
     try {
-      // Fix: Convert AIRecognitionResult to Json and use correct column name
       const { error } = await supabase.from('ai_recognition_cache').upsert({
         image_hash: imageHash,
-        recognition_results: result as any, // Cast to Json type
+        recognition_results: result as any,
         confidence_score: result.confidence,
         processing_time_ms: result.processingTime,
         sources_consulted: [result.aiProvider]

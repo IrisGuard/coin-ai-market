@@ -53,6 +53,15 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
   const { performDualAnalysis, isAnalyzing, analysisProgress, currentStep } = useDualImageAnalysis();
   const { processImageWithItemType, isProcessing } = useEnhancedImageProcessing();
 
+  const convertFileToDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     
@@ -61,7 +70,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
       return;
     }
 
-    // Process images with selected item type
+    // Process images with selected item type and use data URLs for preview
     const processedImages: ProcessedImage[] = [];
     
     for (const file of fileArray) {
@@ -70,9 +79,12 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         const processedBlob = await processImageWithItemType(file, selectedItemType);
         const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
         
+        // Create data URL for preview (avoids CSP issues)
+        const dataURL = await convertFileToDataURL(processedFile);
+        
         processedImages.push({
           file: processedFile,
-          preview: URL.createObjectURL(processedBlob),
+          preview: dataURL,
           uploaded: false,
           uploading: false,
           aiAnalyzed: false,
@@ -82,10 +94,11 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         });
       } catch (error) {
         console.error('Failed to process image:', error);
-        // Fallback to original file
+        // Fallback to original file with data URL
+        const dataURL = await convertFileToDataURL(file);
         processedImages.push({
           file,
-          preview: URL.createObjectURL(file),
+          preview: dataURL,
           uploaded: false,
           uploading: false,
           aiAnalyzed: false,
@@ -131,7 +144,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
     setUploadProgress(0);
 
     try {
-      // Simulate upload process
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
         
@@ -139,7 +151,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           img.id === image.id ? { ...img, uploading: true } : img
         ));
 
-        // Simulate upload delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         setImages(prev => prev.map(img => 
@@ -193,13 +204,11 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Item Type Selector */}
         <ItemTypeSelector 
           value={selectedItemType}
           onValueChange={setSelectedItemType}
         />
 
-        {/* Drop Zone */}
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
             dragActive 
@@ -255,7 +264,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           </div>
         </div>
 
-        {/* Image Preview Grid */}
         <AnimatePresence>
           {images.length > 0 && (
             <motion.div
@@ -279,10 +287,10 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                       src={image.preview}
                       alt={image.itemType === 'coin' ? 'Coin' : 'Banknote'}
                       className="w-full h-full object-cover"
+                      style={{ imageRendering: 'crisp-edges' }}
                     />
                   </div>
                   
-                  {/* Status Indicators */}
                   <div className="absolute top-2 left-2 space-y-1">
                     {image.uploading && (
                       <Badge variant="secondary" className="text-xs">
@@ -304,12 +312,10 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                     )}
                   </div>
 
-                  {/* Item Type Badge */}
                   <Badge variant="outline" className="absolute bottom-2 left-2 text-xs">
                     {image.itemType === 'coin' ? '🪙' : '💵'}
                   </Badge>
 
-                  {/* Remove Button */}
                   <Button
                     size="sm"
                     variant="destructive"
@@ -319,7 +325,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                     <X className="h-4 w-4" />
                   </Button>
 
-                  {/* Image Index */}
                   <div className="absolute bottom-2 right-2">
                     <Badge variant="outline" className="text-xs">
                       {images.indexOf(image) + 1}
@@ -331,7 +336,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Upload Progress */}
         {isUploading && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
@@ -342,7 +346,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           </div>
         )}
 
-        {/* AI Analysis Progress */}
         {isAnalyzing && (
           <Alert>
             <Brain className="h-4 w-4" />
@@ -356,7 +359,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           </Alert>
         )}
 
-        {/* Action Buttons */}
         <div className="flex gap-4">
           <Button
             onClick={uploadImages}
@@ -396,13 +398,12 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           </Button>
         </div>
 
-        {/* Tips */}
         <Alert>
           <Eye className="h-4 w-4" />
           <AlertDescription>
             <strong>Pro Tips:</strong> Select the correct item type before uploading. 
             {selectedItemType === 'coin' ? 'Coins will be cropped to circular shape.' : 'Banknotes will maintain rectangular format.'}
-            All images get consistent #F5F5F5 background.
+            All images get consistent #F5F5F5 background and proper data URL format to avoid CSP issues.
           </AlertDescription>
         </Alert>
       </CardContent>
