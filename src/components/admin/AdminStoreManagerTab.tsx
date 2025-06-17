@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -141,18 +142,6 @@ const AdminStoreManagerTab = () => {
     );
   }
 
-  // Show loading while waiting for context update
-  if (isWaitingForNavigation) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-green-600 mb-4" />
-          <p className="text-gray-600">Creating store and preparing dealer panel...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-6">
@@ -166,10 +155,20 @@ const AdminStoreManagerTab = () => {
               </div>
               <Button 
                 onClick={handleCreateNewStore}
+                disabled={isWaitingForNavigation}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
               >
-                <Plus className="w-4 h-4" />
-                Create New Store
+                {isWaitingForNavigation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Create New Store
+                  </>
+                )}
               </Button>
             </CardTitle>
           </CardHeader>
@@ -178,6 +177,14 @@ const AdminStoreManagerTab = () => {
               Create and access complete Dealer Panel stores with full AI-powered features, 
               global market intelligence, and multi-country capabilities.
             </p>
+            {isWaitingForNavigation && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 text-green-700">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Creating store and preparing dealer panel...</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -198,8 +205,10 @@ const AdminStoreManagerTab = () => {
                   return (
                     <div 
                       key={store.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => handleAccessStore(store.id)}
+                      className={`flex items-center justify-between p-4 border rounded-lg transition-colors cursor-pointer ${
+                        isWaitingForNavigation ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => !isWaitingForNavigation && handleAccessStore(store.id)}
                     >
                       <div className="flex items-center gap-3">
                         <Store className="w-5 h-5 text-green-600" />
@@ -242,10 +251,20 @@ const AdminStoreManagerTab = () => {
                 <p className="text-sm mb-4">Create your first store to start managing coins with the full Dealer Panel</p>
                 <Button 
                   onClick={handleCreateNewStore}
+                  disabled={isWaitingForNavigation}
                   className="flex items-center gap-2"
                 >
-                  <Plus className="w-4 h-4" />
-                  Create First Store
+                  {isWaitingForNavigation ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create First Store
+                    </>
+                  )}
                 </Button>
               </div>
             )}
