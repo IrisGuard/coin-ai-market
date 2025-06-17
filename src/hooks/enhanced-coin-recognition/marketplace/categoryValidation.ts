@@ -18,7 +18,9 @@ export const validateCoinCategory = (proposedCategory: string, coinData: any, ma
   }
   
   const mostCommonCategory = categoryFrequency[0][0];
-  const totalCount = Object.values(categoryStats).reduce((sum: number, count: any) => sum + (Number(count) || 0), 0);
+  const totalCount = Object.values(categoryStats).reduce((sum: number, count: any) => {
+    return sum + (typeof count === 'number' ? count : Number(count) || 0);
+  }, 0);
   const categoryPercentage = ((Number(categoryStats[mostCommonCategory]) || 0) / totalCount) * 100;
   
   const isConsistent = proposedCategory === mostCommonCategory || categoryPercentage < 60;
