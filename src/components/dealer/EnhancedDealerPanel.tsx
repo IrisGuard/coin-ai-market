@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,19 +47,6 @@ const EnhancedDealerPanel = () => {
     setSelectedStoreId(storeId);
   };
 
-  // Add loading state for admin users without selected store
-  if (isAdminUser && selectedStoreId === null) {
-    console.log('⏳ Admin user waiting for store selection...');
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
-          <p className="text-gray-600">Loading admin store...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -76,24 +64,31 @@ const EnhancedDealerPanel = () => {
           {/* Admin Store Selector - Only for admin users */}
           {isAdminUser && (
             <div className="ml-auto flex items-center gap-3">
-              <Select value={selectedStoreId || ''} onValueChange={setSelectedStoreId}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Select a store..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {adminStores.map((store) => (
-                    <SelectItem key={store.id} value={store.id}>
-                      <div className="flex items-center gap-2">
-                        <Store className="h-4 w-4" />
-                        <span>{store.name}</span>
-                        {store.verified && (
-                          <Badge variant="secondary" className="text-xs">Verified</Badge>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {selectedStoreId === null ? (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading store selection...</span>
+                </div>
+              ) : (
+                <Select value={selectedStoreId || ''} onValueChange={setSelectedStoreId}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Select a store..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {adminStores.map((store) => (
+                      <SelectItem key={store.id} value={store.id}>
+                        <div className="flex items-center gap-2">
+                          <Store className="h-4 w-4" />
+                          <span>{store.name}</span>
+                          {store.verified && (
+                            <Badge variant="secondary" className="text-xs">Verified</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <Button onClick={() => setShowCreateForm(true)} variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Store
