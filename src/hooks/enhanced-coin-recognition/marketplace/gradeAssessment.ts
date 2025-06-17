@@ -15,7 +15,7 @@ export const assessGradeReliability = (proposedGrade: string, coinData: any, mar
     };
   }
   
-  const totalGrades = Object.values(gradeData).reduce((sum: number, count: any) => {
+  const totalGrades: number = Object.values(gradeData).reduce((sum: number, count: any) => {
     return sum + (typeof count === 'number' ? count : Number(count) || 0);
   }, 0);
   const proposedGradeCount = Number(gradeData[proposedGrade]) || 0;
@@ -23,7 +23,7 @@ export const assessGradeReliability = (proposedGrade: string, coinData: any, mar
   
   // Check for grade inflation (too many high grades)
   const highGrades = ['MS-70', 'MS-69', 'MS-68', 'PR-70', 'PR-69'];
-  const highGradeCount = highGrades.reduce((sum, grade) => {
+  const highGradeCount: number = highGrades.reduce((sum, grade) => {
     const gradeCount = Number(gradeData[grade]) || 0;
     return sum + gradeCount;
   }, 0);
