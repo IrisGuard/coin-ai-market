@@ -152,6 +152,12 @@ const AdminStoreManagerTab = () => {
               <div className="flex items-center gap-2">
                 <Store className="w-6 h-6 text-green-600" />
                 Admin Store Manager
+                {isWaitingForNavigation && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <Loader2 className="w-4 h-4 animate-spin text-green-600" />
+                    <span className="text-sm text-green-600">Creating store...</span>
+                  </div>
+                )}
               </div>
               <Button 
                 onClick={handleCreateNewStore}
@@ -177,14 +183,6 @@ const AdminStoreManagerTab = () => {
               Create and access complete Dealer Panel stores with full AI-powered features, 
               global market intelligence, and multi-country capabilities.
             </p>
-            {isWaitingForNavigation && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 text-green-700">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Creating store and preparing dealer panel...</span>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -205,10 +203,8 @@ const AdminStoreManagerTab = () => {
                   return (
                     <div 
                       key={store.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg transition-colors cursor-pointer ${
-                        isWaitingForNavigation ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50'
-                      }`}
-                      onClick={() => !isWaitingForNavigation && handleAccessStore(store.id)}
+                      className="flex items-center justify-between p-4 border rounded-lg transition-colors cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleAccessStore(store.id)}
                     >
                       <div className="flex items-center gap-3">
                         <Store className="w-5 h-5 text-green-600" />
