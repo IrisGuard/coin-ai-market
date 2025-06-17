@@ -1,5 +1,4 @@
 
-
 export const validateCoinCategory = (proposedCategory: string, coinData: any, marketHistory: any) => {
   console.log('📂 Validating category with marketplace intelligence...');
   
@@ -19,7 +18,7 @@ export const validateCoinCategory = (proposedCategory: string, coinData: any, ma
   }
   
   const mostCommonCategory = categoryFrequency[0][0];
-  const totalCount: number = Object.values(categoryStats).reduce((sum: number, count: any) => {
+  const totalCount = Object.values(categoryStats).reduce<number>((sum: number, count: any) => {
     return sum + (typeof count === 'number' ? count : Number(count) || 0);
   }, 0);
   const mostCommonCategoryCount = Number(categoryStats[mostCommonCategory]) || 0;
@@ -38,4 +37,3 @@ export const validateCoinCategory = (proposedCategory: string, coinData: any, ma
     }))
   };
 };
-
