@@ -6,10 +6,10 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, Camera, RotateCw, Zap, Eye, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDualImageAnalysis } from '@/hooks/useDualImageAnalysis';
-import type { DualImageAnalysisResult } from '@/hooks/useDualImageAnalysis';
+import type { DualAnalysisResult } from '@/hooks/useDualImageAnalysis';
 
 interface DualImageUploaderProps {
-  onAnalysisComplete?: (result: DualImageAnalysisResult) => void;
+  onAnalysisComplete?: (result: DualAnalysisResult) => void;
 }
 
 const DualImageUploader: React.FC<DualImageUploaderProps> = ({ onAnalysisComplete }) => {

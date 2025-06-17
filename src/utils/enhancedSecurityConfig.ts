@@ -263,11 +263,20 @@ export const resolveSecurityWarnings = async () => {
     
     console.log('✅ All security warnings resolved:', result);
     
+    // Safe JSON property access with type checking
+    const resolvedWarnings = result && typeof result === 'object' && 'resolved_warnings' in result 
+      ? (result as any).resolved_warnings 
+      : [];
+    
+    const resolvedAt = result && typeof result === 'object' && 'resolved_at' in result
+      ? (result as any).resolved_at
+      : new Date().toISOString();
+    
     return {
       resolved: true,
-      warnings_resolved: result?.resolved_warnings || [],
+      warnings_resolved: resolvedWarnings,
       security_level: 'production_ready',
-      timestamp: result?.resolved_at
+      timestamp: resolvedAt
     };
   } catch (error) {
     console.error('❌ Security warnings resolution failed:', error);

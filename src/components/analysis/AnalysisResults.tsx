@@ -16,10 +16,10 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import type { DualImageAnalysisResult } from '@/hooks/useDualImageAnalysis';
+import type { DualAnalysisResult } from '@/hooks/useDualImageAnalysis';
 
 interface AnalysisResultsProps {
-  results: DualImageAnalysisResult;
+  results: DualAnalysisResult;
   onNewAnalysis: () => void;
 }
 

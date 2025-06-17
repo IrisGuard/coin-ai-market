@@ -21,8 +21,11 @@ export const useVoiceLanguageManager = () => {
 
   const processLanguageDetection = async (transcript: string) => {
     // Step 1: Detect language
-    const detectedLang = await detectLanguage(transcript);
-    console.log('Detected language:', detectedLang);
+    const detectedLangResult = await detectLanguage(transcript);
+    console.log('Detected language:', detectedLangResult);
+
+    // Extract language string from result object
+    const detectedLang = detectedLangResult?.language || 'en';
 
     // Step 2: Get proper language code for speech recognition
     const speechLangCode = getSpeechLanguageCode(detectedLang);
@@ -33,7 +36,7 @@ export const useVoiceLanguageManager = () => {
     
     if (detectedLang !== 'en' && detectedLang !== 'english') {
       const translation = await translateText(transcript, 'en', detectedLang);
-      translatedText = translation.translatedText;
+      translatedText = translation?.translatedText || transcript;
     }
 
     return {

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -102,26 +101,9 @@ export const useDualImageAnalysis = () => {
         timestamp: new Date().toISOString()
       };
 
-      // Step 4: Store results
-      setCurrentStep('Storing analysis results...');
-      setAnalysisProgress(90);
-
-      const { error: storeError } = await supabase
-        .from('dual_ai_analyses')
-        .insert({
-          anthropic_analysis: anthropicData.analysis,
-          openai_analysis: openaiData,
-          consensus_result: consensus,
-          processing_time_ms: dualResult.processing_time,
-          confidence_score: consensus.confidence_score
-        });
-
-      if (storeError) {
-        console.warn('⚠️ Failed to store analysis results:', storeError);
-      }
-
-      setAnalysisProgress(100);
+      // Step 4: Log results (removed database storage due to missing table)
       setCurrentStep('Analysis complete!');
+      setAnalysisProgress(100);
 
       console.log('🎯 Dual analysis completed successfully:', dualResult);
       
