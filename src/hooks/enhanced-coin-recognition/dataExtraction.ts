@@ -4,7 +4,7 @@ import {
   validateCoinCategory, 
   assessGradeReliability,
   generateMarketplaceInsights 
-} from './marketplaceIntelligence';
+} from './marketplace';
 
 export const extractMarketPrices = (webResults: any[]) => {
   const prices = webResults
