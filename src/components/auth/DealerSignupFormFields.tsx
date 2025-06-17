@@ -2,6 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 interface SignupData {
@@ -10,6 +11,8 @@ interface SignupData {
   confirmPassword: string;
   fullName: string;
   username: string;
+  storeName: string;
+  country: string;
 }
 
 interface DealerSignupFormFieldsProps {
@@ -23,6 +26,31 @@ interface DealerSignupFormFieldsProps {
   isLoading: boolean;
   onSubmit: (e: React.FormEvent) => void;
 }
+
+// Country options with flags
+const countryOptions = [
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'IT', name: 'Italy', flag: '🇮🇹' },
+  { code: 'ES', name: 'Spain', flag: '🇪🇸' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'CH', name: 'Switzerland', flag: '🇨🇭' },
+  { code: 'AT', name: 'Austria', flag: '🇦🇹' },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+  { code: 'BE', name: 'Belgium', flag: '🇧🇪' },
+  { code: 'DK', name: 'Denmark', flag: '🇩🇰' },
+  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+  { code: 'NO', name: 'Norway', flag: '🇳🇴' },
+  { code: 'FI', name: 'Finland', flag: '🇫🇮' },
+  { code: 'GR', name: 'Greece', flag: '🇬🇷' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'GI', name: 'Gibraltar', flag: '🇬🇮' }
+];
 
 const DealerSignupFormFields: React.FC<DealerSignupFormFieldsProps> = ({
   signupData,
@@ -65,6 +93,53 @@ const DealerSignupFormFields: React.FC<DealerSignupFormFieldsProps> = ({
               <span>{errors.username}</span>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Store Information Section */}
+      <div className="border-t pt-4 mt-4">
+        <h3 className="text-sm font-medium text-gray-700 mb-3">Store Information</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Input
+              placeholder="Store Name"
+              value={signupData.storeName}
+              onChange={(e) => onSignupDataChange({ ...signupData, storeName: e.target.value })}
+              className={errors.storeName ? 'border-red-300' : ''}
+            />
+            {errors.storeName && (
+              <div className="flex items-center gap-1 text-sm text-red-600">
+                <AlertCircle size={14} />
+                <span>{errors.storeName}</span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-1">
+            <Select 
+              value={signupData.country} 
+              onValueChange={(value) => onSignupDataChange({ ...signupData, country: value })}
+            >
+              <SelectTrigger className={errors.country ? 'border-red-300' : ''}>
+                <SelectValue placeholder="Select Country" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryOptions.map((country) => (
+                  <SelectItem key={country.code} value={country.code}>
+                    <div className="flex items-center gap-2">
+                      <span>{country.flag}</span>
+                      <span>{country.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.country && (
+              <div className="flex items-center gap-1 text-sm text-red-600">
+                <AlertCircle size={14} />
+                <span>{errors.country}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -14,10 +13,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   session: Session | null;
-  signUp: (email: string, password: string, userData: { fullName: string; username: string }) => Promise<any>;
+  signUp: (email: string, password: string, userData: { fullName: string; username: string; storeName?: string; country?: string }) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   resetPassword: (email: string) => Promise<any>;
-  dealerSignup: (email: string, password: string, userData: { fullName: string; username: string }) => Promise<any>;
+  dealerSignup: (email: string, password: string, userData: { fullName: string; username: string; storeName?: string; country?: string }) => Promise<any>;
 }
 
 interface AuthProviderProps {
@@ -122,7 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, [navigate]);
 
-  const dealerSignup = async (email: string, password: string, userData: { fullName: string; username: string }) => {
+  const dealerSignup = async (email: string, password: string, userData: { fullName: string; username: string; storeName?: string; country?: string }) => {
     console.log('🏪 Dealer signup initiated for:', email);
     
     const { data, error } = await supabase.auth.signUp({
@@ -133,7 +132,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           full_name: userData.fullName,
           name: userData.fullName,
           username: userData.username,
-          role: 'dealer'
+          role: 'dealer',
+          store_name: userData.storeName,
+          store_country: userData.country
         }
       }
     });

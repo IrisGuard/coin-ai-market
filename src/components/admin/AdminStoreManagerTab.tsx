@@ -3,13 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, Plus, ArrowRight, ExternalLink, Globe, Loader2 } from 'lucide-react';
+import { Store, Plus, ArrowRight, ExternalLink, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
-import CreateStoreModal from './CreateStoreModal';
 
 // Country flag mapping for common countries
 const countryFlags: Record<string, string> = {
@@ -62,12 +61,9 @@ const countryNames: Record<string, string> = {
 
 const AdminStoreManagerTab = () => {
   const { user } = useAuth();
-  const { setSelectedStoreId, selectedStoreId } = useAdminStore();
+  const { setSelectedStoreId } = useAdminStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isWaitingForNavigation, setIsWaitingForNavigation] = useState(false);
-  const [pendingStoreId, setPendingStoreId] = useState<string | null>(null);
 
   // Fetch ALL admin stores (no verified filter for admin panel)
   const { data: stores, isLoading } = useQuery({
@@ -87,33 +83,9 @@ const AdminStoreManagerTab = () => {
     enabled: !!user?.id,
   });
 
-  // Watch for selectedStoreId updates and navigate when ready
-  useEffect(() => {
-    if (isWaitingForNavigation && pendingStoreId && selectedStoreId === pendingStoreId) {
-      console.log('✅ Context updated, navigating to dealer panel with store:', selectedStoreId);
-      setIsWaitingForNavigation(false);
-      setPendingStoreId(null);
-      navigate('/dealer');
-    }
-  }, [selectedStoreId, isWaitingForNavigation, pendingStoreId, navigate]);
-
   const handleCreateNewStore = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleStoreCreated = (storeId: string) => {
-    console.log('🏪 Store created successfully, ID:', storeId);
-    
-    // Refresh the stores list
-    queryClient.invalidateQueries({ queryKey: ['admin-stores', user?.id] });
-    
-    // Set the selected store
-    console.log('📋 Setting selected store ID:', storeId);
-    setSelectedStoreId(storeId);
-    
-    // Set flags to wait for context update before navigation
-    setPendingStoreId(storeId);
-    setIsWaitingForNavigation(true);
+    // Direct navigation to dealer panel for store creation
+    navigate('/dealer');
   };
 
   const handleAccessStore = (storeId: string) => {
@@ -143,153 +115,119 @@ const AdminStoreManagerTab = () => {
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header with Create Button */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Store className="w-6 h-6 text-green-600" />
-                Admin Store Manager
-                {isWaitingForNavigation && (
-                  <div className="flex items-center gap-2 ml-4">
-                    <Loader2 className="w-4 h-4 animate-spin text-green-600" />
-                    <span className="text-sm text-green-600">Creating store...</span>
-                  </div>
-                )}
-              </div>
-              <Button 
-                onClick={handleCreateNewStore}
-                disabled={isWaitingForNavigation}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-              >
-                {isWaitingForNavigation ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    Create New Store
-                  </>
-                )}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Create and access complete Dealer Panel stores with full AI-powered features, 
-              global market intelligence, and multi-country capabilities.
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      {/* Header with Create Button */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Store className="w-6 h-6 text-green-600" />
+              Admin Store Manager
+            </div>
+            <Button 
+              onClick={handleCreateNewStore}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="w-4 h-4" />
+              Create New Store
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Create and access complete Dealer Panel stores with full AI-powered features, 
+            global market intelligence, and multi-country capabilities.
+          </p>
+        </CardContent>
+      </Card>
 
-        {/* Admin Stores List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Store className="w-5 h-5" />
-              Your Admin Stores ({stores?.length || 0})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stores && stores.length > 0 ? (
-              <div className="space-y-3">
-                {stores.map((store) => {
-                  const countryInfo = getCountryDisplay(store.address);
-                  
-                  return (
-                    <div 
-                      key={store.id}
-                      className="flex items-center justify-between p-4 border rounded-lg transition-colors cursor-pointer hover:bg-gray-50"
-                      onClick={() => handleAccessStore(store.id)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Store className="w-5 h-5 text-green-600" />
-                        <div>
-                          <h4 className="font-medium">{store.name}</h4>
-                          <p className="text-sm text-gray-600">{store.description}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            {store.verified && (
-                              <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
-                                Verified
-                              </Badge>
-                            )}
-                            {store.is_active && (
-                              <Badge variant="outline" className="text-xs">
-                                Active
-                              </Badge>
-                            )}
-                            {countryInfo && (
-                              <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                                {countryInfo.flag && <span>{countryInfo.flag}</span>}
-                                <Globe className="w-3 h-3" />
-                                {countryInfo.name}
-                              </Badge>
-                            )}
-                          </div>
+      {/* Admin Stores List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Store className="w-5 h-5" />
+            Your Admin Stores ({stores?.length || 0})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stores && stores.length > 0 ? (
+            <div className="space-y-3">
+              {stores.map((store) => {
+                const countryInfo = getCountryDisplay(store.address);
+                
+                return (
+                  <div 
+                    key={store.id}
+                    className="flex items-center justify-between p-4 border rounded-lg transition-colors cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleAccessStore(store.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Store className="w-5 h-5 text-green-600" />
+                      <div>
+                        <h4 className="font-medium">{store.name}</h4>
+                        <p className="text-sm text-gray-600">{store.description}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {store.verified && (
+                            <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                              Verified
+                            </Badge>
+                          )}
+                          {store.is_active && (
+                            <Badge variant="outline" className="text-xs">
+                              Active
+                            </Badge>
+                          )}
+                          {countryInfo && (
+                            <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                              {countryInfo.flag && <span>{countryInfo.flag}</span>}
+                              <Globe className="w-3 h-3" />
+                              {countryInfo.name}
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="w-4 h-4 text-gray-400" />
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Store className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium mb-2">No stores created yet</p>
-                <p className="text-sm mb-4">Create your first store to start managing coins with the full Dealer Panel</p>
-                <Button 
-                  onClick={handleCreateNewStore}
-                  disabled={isWaitingForNavigation}
-                  className="flex items-center gap-2"
-                >
-                  {isWaitingForNavigation ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      Create First Store
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick Access Info */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div>
-                <h4 className="font-medium text-green-800">Direct Access to Dealer Panel</h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  Each store gives you access to the complete "brain" of the Dealer Panel with AI analysis, 
-                  global price intelligence, error detection, visual matching, and multi-country management.
-                </p>
-              </div>
+                    <div className="flex items-center gap-2">
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Store className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-lg font-medium mb-2">No stores created yet</p>
+              <p className="text-sm mb-4">Create your first store to start managing coins with the full Dealer Panel</p>
+              <Button 
+                onClick={handleCreateNewStore}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create First Store
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <CreateStoreModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onStoreCreated={handleStoreCreated}
-      />
-    </>
+      {/* Quick Access Info */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+            <div>
+              <h4 className="font-medium text-green-800">Direct Access to Dealer Panel</h4>
+              <p className="text-sm text-gray-600 mt-1">
+                Each store gives you access to the complete "brain" of the Dealer Panel with AI analysis, 
+                global price intelligence, error detection, visual matching, and multi-country management.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

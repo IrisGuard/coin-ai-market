@@ -10,6 +10,8 @@ interface SignupData {
   confirmPassword: string;
   fullName: string;
   username: string;
+  storeName: string;
+  country: string;
 }
 
 export const useDealerSignup = (onClose: () => void) => {
@@ -25,7 +27,9 @@ export const useDealerSignup = (onClose: () => void) => {
     try {
       const response = await dealerSignup(signupData.email, signupData.password, {
         fullName: signupData.fullName,
-        username: signupData.username
+        username: signupData.username,
+        storeName: signupData.storeName,
+        country: signupData.country
       });
       
       if (response.error) {
@@ -34,14 +38,14 @@ export const useDealerSignup = (onClose: () => void) => {
         // Better error handling for common cases
         if (response.error.message?.includes('already registered')) {
           toast({
-            title: "Το email υπάρχει ήδη",
-            description: "Αυτό το email είναι ήδη εγγεγραμμένο. Δοκιμάστε να συνδεθείτε ή χρησιμοποιήστε άλλο email.",
+            title: "Email already exists",
+            description: "This email is already registered. Try logging in or use a different email.",
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Αποτυχία Εγγραφής",
-            description: response.error.message || 'Παρουσιάστηκε σφάλμα κατά την εγγραφή',
+            title: "Signup Failed",
+            description: response.error.message || 'An error occurred during signup',
             variant: "destructive",
           });
         }
@@ -63,8 +67,8 @@ export const useDealerSignup = (onClose: () => void) => {
     } catch (error: any) {
       console.error('❌ Dealer signup error:', error);
       toast({
-        title: "Αποτυχία Εγγραφής",
-        description: error.message || 'Παρουσιάστηκε σφάλμα κατά την εγγραφή',
+        title: "Signup Failed",
+        description: error.message || 'An error occurred during signup',
         variant: "destructive",
       });
     } finally {
