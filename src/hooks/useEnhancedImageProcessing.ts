@@ -2,8 +2,15 @@
 import { useState } from 'react';
 import type { ItemType } from '@/types/upload';
 
+interface ProcessedImageData {
+  original: string;
+  processed: string;
+  filename: string;
+}
+
 export const useEnhancedImageProcessing = () => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processedImages, setProcessedImages] = useState<ProcessedImageData[]>([]);
 
   const processImageWithItemType = async (file: File, itemType: ItemType): Promise<Blob> => {
     setIsProcessing(true);
@@ -70,8 +77,36 @@ export const useEnhancedImageProcessing = () => {
     }
   };
 
+  const processMultipleImages = async (files: File[], itemType: ItemType) => {
+    setIsProcessing(true);
+    const newProcessedImages: ProcessedImageData[] = [];
+
+    try {
+      for (const file of files) {
+        const originalUrl = URL.createObjectURL(file);
+        const processedBlob = await processImageWithItemType(file, itemType);
+        const processedUrl = URL.createObjectURL(processedBlob);
+
+        newProcessedImages.push({
+          original: originalUrl,
+          processed: processedUrl,
+          filename: file.name
+        });
+      }
+
+      setProcessedImages(prev => [...prev, ...newProcessedImages]);
+    } catch (error) {
+      console.error('Multiple image processing failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return {
     processImageWithItemType,
+    processMultipleImages,
+    processedImages,
+    setProcessedImages,
     isProcessing
   };
 };
