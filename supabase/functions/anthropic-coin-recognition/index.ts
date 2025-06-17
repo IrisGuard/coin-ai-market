@@ -28,9 +28,17 @@ serve(async (req) => {
       );
     }
 
+    // PHASE 1: Enhanced API Key Authentication & Logging
     const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    console.log('=== ANTHROPIC API KEY VALIDATION ===');
     console.log('API Key available:', !!anthropicApiKey);
     console.log('API Key length:', anthropicApiKey?.length || 0);
+    
+    if (anthropicApiKey) {
+      // Log last 4 characters for verification (secure logging)
+      const keyEndFragment = anthropicApiKey.slice(-4);
+      console.log('API Key ends with: ****' + keyEndFragment);
+    }
     
     if (!anthropicApiKey) {
       console.error('ANTHROPIC_API_KEY environment variable not set');
@@ -40,7 +48,7 @@ serve(async (req) => {
           error: 'AI service not configured - missing API key' 
         }),
         { 
-          status: 500, 
+          status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
@@ -48,7 +56,7 @@ serve(async (req) => {
 
     const startTime = Date.now();
 
-    // Clean the image data - remove data URL prefix if present
+    // Clean image data
     let cleanImageData = image;
     if (image.includes('data:image')) {
       cleanImageData = image.split('base64,')[1];
@@ -58,53 +66,51 @@ serve(async (req) => {
 
     console.log('Processing image data, length:', cleanImageData.length);
 
-    // Enhanced AI prompt for comprehensive Greek coin analysis
-    const analysisPrompt = `
-You are an expert numismatist specializing in world coins, with particular expertise in Greek, European, and international numismatics. Analyze this coin image with meticulous attention to detail.
+    // PHASE 3: Universal Numismatic AI Prompt (Global, Language-Agnostic)
+    const universalNumismaticPrompt = `
+You are a world-class numismatist with expertise in coins from all countries, eras, and cultures. Analyze this coin image with precision and provide identification based solely on what you can observe.
 
-IMPORTANT: Provide your analysis in this EXACT JSON format:
+CRITICAL: Provide your analysis in this EXACT JSON format:
 {
   "success": true,
   "analysis": {
-    "name": "Complete coin name with series and variety",
+    "name": "Complete coin identification",
     "year": 1980,
-    "country": "Greece",
-    "denomination": "10 Drachmas",
-    "composition": "Nickel-brass",
-    "grade": "VF-30",
+    "country": "Country name",
+    "denomination": "Face value",
+    "composition": "Metal composition",
+    "grade": "Condition assessment",
     "estimated_value": 2.50,
-    "rarity": "Common",
-    "mint": "Bank of Greece",
+    "rarity": "Rarity level",
+    "mint": "Mint facility",
     "diameter": 26.0,
     "weight": 6.5,
     "confidence": 0.90,
     "errors": [],
-    "varieties": [],
-    "authentication_notes": "Genuine circulation coin",
-    "market_trend": "stable",
-    "historical_significance": "Modern Greek currency"
+    "authentication_notes": "Authenticity assessment",
+    "market_trend": "Current market status"
   }
 }
 
-Focus on:
-1. PRECISE identification of Greek text (ΔΡΑΧΜΑΙ, ΕΛΛΗΝΙΚΗ ΔΗΜΟΚΡΑΤΙΑ, etc.)
-2. Year detection from coin (1980, 1973, etc.)
-3. Denomination recognition (1, 2, 5, 10, 20, 50 Drachmas, etc.)
-4. Accurate condition assessment (wear patterns, surface quality)
-5. Current market value for Greek collectors
-6. Historical context of modern Greek coinage
+Analysis Guidelines:
+1. IDENTIFY text, inscriptions, and numerical values visible on the coin
+2. DETERMINE country of origin from visible text, symbols, or design elements
+3. ASSESS year/date from visible markings
+4. EVALUATE denomination from face value indicators
+5. ESTIMATE condition based on wear patterns and surface quality
+6. PROVIDE current market valuation
+7. NOTE any varieties, errors, or special characteristics
 
-For Greek coins specifically:
-- Look for "ΔΡΑΧΜΑΙ" or "ΔΡΑΧΜΕΣ" text
-- Identify portraits (ancient figures, modern leaders)
-- Note mint marks and dates
-- Assess metal composition (nickel-brass, aluminum, etc.)
+If ANY element cannot be determined from the image:
+- Use "Unknown" for that specific field
+- Set confidence score appropriately (0.10-1.00)
+- Do NOT guess or use fallback values
 
-Be thorough but concise. If uncertain about specific details, indicate appropriate confidence scores.`;
+Be thorough but accurate. Only report what you can actually observe in the image.`;
 
-    console.log('Calling Anthropic API...');
+    console.log('Calling Anthropic API with universal prompt...');
 
-    // Call Anthropic Claude API with proper error handling
+    // Call Anthropic Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -121,7 +127,7 @@ Be thorough but concise. If uncertain about specific details, indicate appropria
             content: [
               {
                 type: 'text',
-                text: analysisPrompt
+                text: universalNumismaticPrompt
               },
               {
                 type: 'image',
@@ -143,7 +149,6 @@ Be thorough but concise. If uncertain about specific details, indicate appropria
       const errorText = await response.text();
       console.error('Anthropic API Error:', errorText);
       
-      // Return a structured error response
       return new Response(
         JSON.stringify({ 
           success: false,
@@ -164,10 +169,9 @@ Be thorough but concise. If uncertain about specific details, indicate appropria
 
     console.log('Anthropic raw response:', content);
 
-    // Parse the AI response with better error handling
+    // Parse AI response with global fallback handling
     let analysisResult;
     try {
-      // Extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysisResult = JSON.parse(jsonMatch[0]);
@@ -176,50 +180,47 @@ Be thorough but concise. If uncertain about specific details, indicate appropria
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
-      // Fallback structured response with realistic Greek coin data
+      // PHASE 2: Global Unidentified Coin Response (No Country-Specific Fallbacks)
       analysisResult = {
         success: true,
         analysis: {
-          name: 'Greek Coin (Analysis Failed)',
-          year: 1980,
-          country: 'Greece',
-          denomination: '10 Drachmas',
-          composition: 'Nickel-brass',
-          grade: 'VF',
-          estimated_value: 2.0,
-          rarity: 'Common',
-          confidence: 0.3,
+          name: 'Unidentified Coin',
+          year: null,
+          country: 'Unknown',
+          denomination: 'Unknown',
+          composition: 'Unknown',
+          grade: 'Unknown',
+          estimated_value: 0,
+          rarity: 'Unknown',
+          confidence: 0.10,
           errors: ['AI parsing failed'],
-          varieties: [],
-          authentication_notes: 'Unable to complete full analysis',
-          market_trend: 'stable'
+          authentication_notes: 'Unable to complete analysis',
+          market_trend: 'unknown'
         }
       };
     }
 
     const processingTime = Date.now() - startTime;
 
-    // Ensure required fields and data validation with Greek coin specifics
+    // PHASE 2: Final Result Assembly (No Hardcoded Values)
     const finalResult = {
       success: true,
       analysis: {
-        name: analysisResult.analysis?.name || 'Greek Coin',
-        year: analysisResult.analysis?.year || 1980,
-        country: analysisResult.analysis?.country || 'Greece',
-        denomination: analysisResult.analysis?.denomination || 'Drachmas',
-        composition: analysisResult.analysis?.composition || 'Nickel-brass',
-        grade: analysisResult.analysis?.grade || 'VF',
-        estimated_value: Math.max(0.5, analysisResult.analysis?.estimated_value || 2.0),
-        rarity: analysisResult.analysis?.rarity || 'Common',
-        mint: analysisResult.analysis?.mint || 'Bank of Greece',
-        diameter: analysisResult.analysis?.diameter,
-        weight: analysisResult.analysis?.weight,
-        confidence: Math.min(1, Math.max(0.3, analysisResult.analysis?.confidence || 0.75)),
+        name: analysisResult.analysis?.name || 'Unidentified Coin',
+        year: analysisResult.analysis?.year || null,
+        country: analysisResult.analysis?.country || 'Unknown',
+        denomination: analysisResult.analysis?.denomination || 'Unknown',
+        composition: analysisResult.analysis?.composition || 'Unknown',
+        grade: analysisResult.analysis?.grade || 'Unknown',
+        estimated_value: Math.max(0, analysisResult.analysis?.estimated_value || 0),
+        rarity: analysisResult.analysis?.rarity || 'Unknown',
+        mint: analysisResult.analysis?.mint || 'Unknown',
+        diameter: analysisResult.analysis?.diameter || null,
+        weight: analysisResult.analysis?.weight || null,
+        confidence: Math.min(1, Math.max(0.10, analysisResult.analysis?.confidence || 0.10)),
         errors: Array.isArray(analysisResult.analysis?.errors) ? analysisResult.analysis.errors : [],
-        varieties: Array.isArray(analysisResult.analysis?.varieties) ? analysisResult.analysis.varieties : [],
-        authentication_notes: analysisResult.analysis?.authentication_notes || 'Modern Greek circulation coin',
-        market_trend: analysisResult.analysis?.market_trend || 'stable',
-        historical_significance: analysisResult.analysis?.historical_significance || 'Greek drachma series'
+        authentication_notes: analysisResult.analysis?.authentication_notes || 'Standard analysis',
+        market_trend: analysisResult.analysis?.market_trend || 'unknown'
       },
       processing_time: processingTime,
       ai_provider: 'anthropic',
@@ -227,7 +228,11 @@ Be thorough but concise. If uncertain about specific details, indicate appropria
       timestamp: new Date().toISOString()
     };
 
-    console.log('Enhanced AI coin recognition completed successfully:', finalResult);
+    console.log('=== FINAL AI ANALYSIS RESULT ===');
+    console.log('Coin identified as:', finalResult.analysis.name);
+    console.log('Country:', finalResult.analysis.country);
+    console.log('Confidence score:', finalResult.analysis.confidence);
+    console.log('Processing time:', processingTime + 'ms');
 
     return new Response(
       JSON.stringify(finalResult),

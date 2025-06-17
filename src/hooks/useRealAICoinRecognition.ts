@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 export interface AIRecognitionResult {
   name: string;
-  year: number;
+  year: number | null;
   country: string;
   denomination: string;
   composition: string;
@@ -40,7 +40,6 @@ export const useRealAICoinRecognition = () => {
           const reader = new FileReader();
           reader.onload = () => {
             const result = reader.result as string;
-            // Extract only the base64 part, removing the data URL prefix
             const base64Data = result.split('base64,')[1];
             resolve(base64Data);
           };
@@ -48,7 +47,6 @@ export const useRealAICoinRecognition = () => {
           reader.readAsDataURL(imageFile);
         });
       } else {
-        // Clean existing string data
         if (imageFile.includes('base64,')) {
           imageData = imageFile.split('base64,')[1];
         } else {
@@ -56,10 +54,10 @@ export const useRealAICoinRecognition = () => {
         }
       }
 
-      console.log('Starting real AI analysis...');
+      console.log('Starting global AI coin analysis...');
       console.log('Image data length:', imageData.length);
       
-      // Call the anthropic coin recognition edge function
+      // Call the global anthropic coin recognition edge function
       const { data, error: functionError } = await supabase.functions.invoke(
         'anthropic-coin-recognition',
         {
@@ -82,26 +80,26 @@ export const useRealAICoinRecognition = () => {
         throw new Error(data?.error || 'AI analysis was unsuccessful');
       }
 
-      console.log('Real AI analysis successful:', data);
+      console.log('Global AI analysis successful:', data);
 
-      // Transform the response to match our interface
+      // Transform the response to match our interface (no hardcoded fallbacks)
       const analysis = data.analysis;
       const recognitionResult: AIRecognitionResult = {
-        name: analysis.name || 'Unknown Coin',
-        year: analysis.year || new Date().getFullYear(),
+        name: analysis.name || 'Unidentified Coin',
+        year: analysis.year,
         country: analysis.country || 'Unknown',
         denomination: analysis.denomination || 'Unknown',
         composition: analysis.composition || 'Unknown',
-        grade: analysis.grade || 'Ungraded',
+        grade: analysis.grade || 'Unknown',
         estimatedValue: analysis.estimated_value || 0,
-        rarity: analysis.rarity || 'Common',
+        rarity: analysis.rarity || 'Unknown',
         mint: analysis.mint,
         diameter: analysis.diameter,
         weight: analysis.weight,
         errors: analysis.errors || [],
-        confidence: analysis.confidence || 0.85,
+        confidence: analysis.confidence || 0.10,
         aiProvider: data.ai_provider || 'anthropic',
-        processingTime: data.processing_time || 2500
+        processingTime: data.processing_time || 0
       };
 
       // Cache the result in our recognition cache
@@ -111,7 +109,13 @@ export const useRealAICoinRecognition = () => {
       }
 
       setResult(recognitionResult);
-      toast.success('Real AI analysis completed successfully!');
+      
+      // Display success message based on confidence
+      if (recognitionResult.confidence > 0.7) {
+        toast.success(`Coin identified: ${recognitionResult.name} (${Math.round(recognitionResult.confidence * 100)}% confidence)`);
+      } else {
+        toast.warning(`Analysis complete with ${Math.round(recognitionResult.confidence * 100)}% confidence`);
+      }
       
       return recognitionResult;
 
