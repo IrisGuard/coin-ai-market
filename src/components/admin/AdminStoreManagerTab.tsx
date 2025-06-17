@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, Plus, ArrowRight, ExternalLink, Globe } from 'lucide-react';
+import { Store, Plus, ArrowRight, ExternalLink, Globe, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 import CreateStoreModal from '@/components/dealer/store/CreateStoreModal';
+import { useToast } from '@/hooks/use-toast';
 
 // Country flag mapping for common countries
 const countryFlags: Record<string, string> = {
@@ -65,7 +66,9 @@ const AdminStoreManagerTab = () => {
   const { setSelectedStoreId } = useAdminStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isCreateStoreModalOpen, setIsCreateStoreModalOpen] = useState(false);
+  const [storeToDelete, setStoreToDelete] = useState<string | null>(null);
 
   // Fetch ALL admin stores (no verified filter for admin panel)
   const { data: stores, isLoading } = useQuery({
@@ -85,6 +88,36 @@ const AdminStoreManagerTab = () => {
     enabled: !!user?.id,
   });
 
+  // Delete store mutation
+  const deleteStoreMutation = useMutation({
+    mutationFn: async (storeId: string) => {
+      const { error } = await supabase
+        .from('stores')
+        .delete()
+        .eq('id', storeId)
+        .eq('user_id', user?.id); // Ensure user can only delete their own stores
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stores', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['dealer-stores'] });
+      toast({
+        title: "Store Deleted",
+        description: "The store has been successfully deleted.",
+      });
+      setStoreToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to delete store',
+        variant: "destructive",
+      });
+      setStoreToDelete(null);
+    },
+  });
+
   const handleCreateNewStore = () => {
     setIsCreateStoreModalOpen(true);
   };
@@ -95,9 +128,20 @@ const AdminStoreManagerTab = () => {
     navigate('/dealer');
   };
 
+  const handleDeleteStore = (storeId: string) => {
+    setStoreToDelete(storeId);
+  };
+
+  const confirmDeleteStore = () => {
+    if (storeToDelete) {
+      deleteStoreMutation.mutate(storeToDelete);
+    }
+  };
+
   const handleStoreCreated = () => {
-    // Refresh the stores list
+    // Refresh the stores list and marketplace
     queryClient.invalidateQueries({ queryKey: ['admin-stores', user?.id] });
+    queryClient.invalidateQueries({ queryKey: ['dealer-stores'] });
   };
 
   const getCountryDisplay = (address: any) => {
@@ -164,8 +208,7 @@ const AdminStoreManagerTab = () => {
                 return (
                   <div 
                     key={store.id}
-                    className="flex items-center justify-between p-4 border rounded-lg transition-colors cursor-pointer hover:bg-gray-50"
-                    onClick={() => handleAccessStore(store.id)}
+                    className="flex items-center justify-between p-4 border rounded-lg transition-colors hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-3">
                       <Store className="w-5 h-5 text-green-600" />
@@ -194,8 +237,24 @@ const AdminStoreManagerTab = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
-                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAccessStore(store.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                        Access
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteStore(store.id)}
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 );
@@ -240,6 +299,38 @@ const AdminStoreManagerTab = () => {
         onClose={() => setIsCreateStoreModalOpen(false)}
         onStoreCreated={handleStoreCreated}
       />
+
+      {/* Delete Confirmation Modal */}
+      {storeToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-red-600">Delete Store</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this store? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setStoreToDelete(null)}
+                  disabled={deleteStoreMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDeleteStore}
+                  disabled={deleteStoreMutation.isPending}
+                >
+                  {deleteStoreMutation.isPending ? 'Deleting...' : 'Delete Store'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

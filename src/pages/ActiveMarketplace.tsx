@@ -117,10 +117,11 @@ const ActiveMarketplace = () => {
                     bio={profile?.bio}
                     rating={profile?.rating}
                     location={profile?.location}
-                    verified_dealer={profile?.verified_dealer}
+                    verified_dealer={profile?.verified_dealer || dealer.verified}
                     totalCoins={storeCounts[dealer.user_id] || 0}
                     storeName={dealer.name}
                     storeDescription={dealer.description}
+                    storeAddress={dealer.address}
                     created_at={dealer.created_at}
                   />
                 );
