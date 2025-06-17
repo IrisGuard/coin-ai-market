@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Store, Upload, Wallet, Receipt, BarChart3, Settings, TrendingUp, Plus } from 'lucide-react';
+import { Store, Upload, Wallet, Receipt, BarChart3, Settings, TrendingUp, Plus, Loader2 } from 'lucide-react';
 
 import DealerCoinsList from './DealerCoinsList';
 import WalletManagementTab from './WalletManagementTab';
@@ -46,6 +45,19 @@ const EnhancedDealerPanel = () => {
     setShowCreateForm(false);
     setSelectedStoreId(storeId);
   };
+
+  // Add loading state for admin users without selected store
+  if (isAdminUser && selectedStoreId === null) {
+    console.log('⏳ Admin user waiting for store selection...');
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
+          <p className="text-gray-600">Loading admin store...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

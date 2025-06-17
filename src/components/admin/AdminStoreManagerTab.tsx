@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,12 +89,20 @@ const AdminStoreManagerTab = () => {
   };
 
   const handleStoreCreated = (storeId: string) => {
+    console.log('🏪 Store created successfully, ID:', storeId);
+    
     // Refresh the stores list
     queryClient.invalidateQueries({ queryKey: ['admin-stores', user?.id] });
     
-    // Set the selected store and navigate to the Dealer Panel
+    // Set the selected store
+    console.log('📋 Setting selected store ID:', storeId);
     setSelectedStoreId(storeId);
-    navigate('/dealer');
+    
+    // Add delay to ensure context is updated before navigation
+    setTimeout(() => {
+      console.log('🚀 Navigating to dealer panel with store:', storeId);
+      navigate('/dealer');
+    }, 200);
   };
 
   const handleAccessStore = (storeId: string) => {
