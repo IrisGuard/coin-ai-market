@@ -3,19 +3,68 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, Plus, ArrowRight, ExternalLink } from 'lucide-react';
+import { Store, Plus, ArrowRight, ExternalLink, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 
+// Country flag mapping for common countries
+const countryFlags: Record<string, string> = {
+  'US': '🇺🇸',
+  'GB': '🇬🇧', 
+  'CA': '🇨🇦',
+  'DE': '🇩🇪',
+  'FR': '🇫🇷',
+  'IT': '🇮🇹',
+  'ES': '🇪🇸',
+  'JP': '🇯🇵',
+  'AU': '🇦🇺',
+  'NZ': '🇳🇿',
+  'CH': '🇨🇭',
+  'AT': '🇦🇹',
+  'NL': '🇳🇱',
+  'BE': '🇧🇪',
+  'DK': '🇩🇰',
+  'SE': '🇸🇪',
+  'NO': '🇳🇴',
+  'FI': '🇫🇮',
+  'GR': '🇬🇷',
+  'IN': '🇮🇳',
+  'GI': '🇬🇮'
+};
+
+const countryNames: Record<string, string> = {
+  'US': 'United States',
+  'GB': 'United Kingdom',
+  'CA': 'Canada',
+  'DE': 'Germany',
+  'FR': 'France',
+  'IT': 'Italy',
+  'ES': 'Spain',
+  'JP': 'Japan',
+  'AU': 'Australia',
+  'NZ': 'New Zealand',
+  'CH': 'Switzerland',
+  'AT': 'Austria',
+  'NL': 'Netherlands',
+  'BE': 'Belgium',
+  'DK': 'Denmark',
+  'SE': 'Sweden',
+  'NO': 'Norway',
+  'FI': 'Finland',
+  'GR': 'Greece',
+  'IN': 'India',
+  'GI': 'Gibraltar'
+};
+
 const AdminStoreManagerTab = () => {
   const { user } = useAuth();
   const { setSelectedStoreId } = useAdminStore();
   const navigate = useNavigate();
 
-  // Fetch admin's stores
+  // Fetch ALL admin stores (no verified filter for admin panel)
   const { data: stores, isLoading } = useQuery({
     queryKey: ['admin-stores', user?.id],
     queryFn: async () => {
@@ -42,6 +91,18 @@ const AdminStoreManagerTab = () => {
     // Set the selected store and navigate to the real Dealer Panel
     setSelectedStoreId(storeId);
     navigate('/dealer');
+  };
+
+  const getCountryDisplay = (address: any) => {
+    if (!address || typeof address !== 'object') return null;
+    
+    const countryCode = address.country;
+    if (!countryCode) return null;
+    
+    const flag = countryFlags[countryCode];
+    const name = countryNames[countryCode] || countryCode;
+    
+    return { flag, name, code: countryCode };
   };
 
   if (isLoading) {
@@ -91,42 +152,48 @@ const AdminStoreManagerTab = () => {
         <CardContent>
           {stores && stores.length > 0 ? (
             <div className="space-y-3">
-              {stores.map((store) => (
-                <div 
-                  key={store.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => handleAccessStore(store.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <Store className="w-5 h-5 text-green-600" />
-                    <div>
-                      <h4 className="font-medium">{store.name}</h4>
-                      <p className="text-sm text-gray-600">{store.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {store.verified && (
-                          <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
-                            Verified
-                          </Badge>
-                        )}
-                        {store.is_active && (
-                          <Badge variant="outline" className="text-xs">
-                            Active
-                          </Badge>
-                        )}
-                        {store.address && typeof store.address === 'object' && (store.address as any).country && (
-                          <Badge variant="secondary" className="text-xs">
-                            {(store.address as any).country}
-                          </Badge>
-                        )}
+              {stores.map((store) => {
+                const countryInfo = getCountryDisplay(store.address);
+                
+                return (
+                  <div 
+                    key={store.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleAccessStore(store.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Store className="w-5 h-5 text-green-600" />
+                      <div>
+                        <h4 className="font-medium">{store.name}</h4>
+                        <p className="text-sm text-gray-600">{store.description}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {store.verified && (
+                            <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                              Verified
+                            </Badge>
+                          )}
+                          {store.is_active && (
+                            <Badge variant="outline" className="text-xs">
+                              Active
+                            </Badge>
+                          )}
+                          {countryInfo && (
+                            <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                              {countryInfo.flag && <span>{countryInfo.flag}</span>}
+                              <Globe className="w-3 h-3" />
+                              {countryInfo.name}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <ArrowRight className="w-4 h-4 text-gray-400" />
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
