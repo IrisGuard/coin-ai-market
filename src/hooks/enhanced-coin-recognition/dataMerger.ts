@@ -4,16 +4,22 @@ import {
   extractTechnicalSpecs, 
   extractGradingData, 
   extractPopulationData, 
-  extractRecentSales 
+  extractRecentSales,
+  extractMarketplaceIntelligence,
+  enhanceWithMarketplaceData
 } from './dataExtraction';
 import { determineMarketTrend, confirmAnalysis } from './analysisHelpers';
 import { generateStructuredDescription } from './autoDescriptionGenerator';
 
 export const mergeAnalysisData = async (claudeResult: any, webResults: any[]) => {
-  console.log('🔗 Merging Claude + Web Discovery data for complete auto-fill...');
+  console.log('🔗 Merging Claude + Web Discovery + Marketplace Intelligence for complete auto-fill...');
   
   // Start with Claude's base analysis
-  const mergedData = { ...claudeResult };
+  let mergedData = { ...claudeResult };
+  
+  // Step 1: Extract marketplace intelligence from user stores
+  console.log('🏪 Analyzing marketplace intelligence...');
+  const marketplaceIntelligence = await extractMarketplaceIntelligence(claudeResult);
   
   if (webResults.length > 0) {
     // Extract market data from web results
@@ -78,7 +84,6 @@ export const mergeAnalysisData = async (claudeResult: any, webResults: any[]) =>
         if (item.extracted_data?.errors) {
           detectedErrors.push(...item.extracted_data.errors);
         }
-        // Extract error keywords from titles/descriptions
         const errorKeywords = ['double die', 'off center', 'blank planchet', 'clipped', 'broadstrike'];
         errorKeywords.forEach(keyword => {
           if (item.extracted_data?.title?.toLowerCase().includes(keyword) ||
@@ -94,6 +99,29 @@ export const mergeAnalysisData = async (claudeResult: any, webResults: any[]) =>
     }
   }
   
-  console.log('✅ Enhanced data merge complete with auto-fill ready data');
+  // Step 2: Enhance with marketplace intelligence
+  console.log('🧠 Applying marketplace intelligence enhancements...');
+  mergedData = enhanceWithMarketplaceData(claudeResult, webResults, marketplaceIntelligence);
+  
+  // Add marketplace intelligence data
+  mergedData.marketplace_analysis = {
+    price_intelligence: marketplaceIntelligence.priceIntelligence,
+    category_validation: marketplaceIntelligence.categoryValidation,
+    grade_assessment: marketplaceIntelligence.gradeAssessment,
+    insights: marketplaceIntelligence.insights,
+    confidence: marketplaceIntelligence.overallConfidence
+  };
+  
+  // Final confidence adjustment based on all sources
+  const sources = [claudeResult.confidence];
+  if (webResults.length > 0) sources.push(0.8);
+  if (marketplaceIntelligence.overallConfidence > 0.5) sources.push(marketplaceIntelligence.overallConfidence);
+  
+  mergedData.final_confidence = sources.reduce((sum, conf) => sum + conf, 0) / sources.length;
+  
+  // Generate comprehensive auto-description with marketplace insights
+  mergedData.auto_description = generateStructuredDescription(mergedData, webResults, marketplaceIntelligence);
+  
+  console.log('✅ Enhanced data merge complete with marketplace intelligence auto-fill ready data');
   return mergedData;
 };
