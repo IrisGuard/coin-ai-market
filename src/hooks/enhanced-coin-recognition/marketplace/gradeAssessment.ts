@@ -1,4 +1,5 @@
 
+
 export const assessGradeReliability = (proposedGrade: string, coinData: any, marketHistory: any) => {
   console.log('🏆 Assessing grade reliability with user data...');
   
@@ -17,14 +18,16 @@ export const assessGradeReliability = (proposedGrade: string, coinData: any, mar
   const totalGrades = Object.values(gradeData).reduce((sum: number, count: any) => {
     return sum + (typeof count === 'number' ? count : Number(count) || 0);
   }, 0);
-  const gradePercentage = ((Number(gradeData[proposedGrade]) || 0) / totalGrades) * 100;
+  const proposedGradeCount = Number(gradeData[proposedGrade]) || 0;
+  const gradePercentage = totalGrades > 0 ? (proposedGradeCount / totalGrades) * 100 : 0;
   
   // Check for grade inflation (too many high grades)
   const highGrades = ['MS-70', 'MS-69', 'MS-68', 'PR-70', 'PR-69'];
   const highGradeCount = highGrades.reduce((sum, grade) => {
-    return sum + (typeof gradeData[grade] === 'number' ? gradeData[grade] : Number(gradeData[grade]) || 0);
+    const gradeCount = Number(gradeData[grade]) || 0;
+    return sum + gradeCount;
   }, 0);
-  const highGradePercentage = (highGradeCount / totalGrades) * 100;
+  const highGradePercentage = totalGrades > 0 ? (highGradeCount / totalGrades) * 100 : 0;
   
   let warning = null;
   let confidence = 0.8;
@@ -44,10 +47,11 @@ export const assessGradeReliability = (proposedGrade: string, coinData: any, mar
     marketDistribution: Object.entries(gradeData)
       .map(([grade, count]) => ({
         grade,
-        percentage: ((Number(count) || 0) / totalGrades) * 100
+        percentage: totalGrades > 0 ? ((Number(count) || 0) / totalGrades) * 100 : 0
       }))
       .sort((a, b) => b.percentage - a.percentage),
     warning,
     totalSamples: totalGrades
   };
 };
+
