@@ -20,38 +20,28 @@ serve(async (req) => {
   }
 
   try {
-    const { image, additionalImages = [], aiProvider = 'openai' } = await req.json();
+    const { image, additionalImages = [], aiProvider = 'custom' } = await req.json();
 
-    // Get AI provider configuration from environment
-    const providers: Record<string, AIProvider> = {
-      custom: {
-        name: 'Custom AI',
-        endpoint: Deno.env.get('CUSTOM_AI_ENDPOINT') || '',
-        apiKey: Deno.env.get('CUSTOM_AI_API_KEY') || '',
-        model: Deno.env.get('CUSTOM_AI_MODEL') || 'default'
-      },
-      openai: {
-        name: 'OpenAI',
-        endpoint: 'https://api.openai.com/v1/chat/completions',
-        apiKey: Deno.env.get('OPENAI_API_KEY') || '',
-        model: 'gpt-4o'
-      }
+    // Only support custom AI provider now
+    const provider: AIProvider = {
+      name: 'Custom AI',
+      endpoint: Deno.env.get('CUSTOM_AI_ENDPOINT') || '',
+      apiKey: Deno.env.get('CUSTOM_AI_API_KEY') || '',
+      model: Deno.env.get('CUSTOM_AI_MODEL') || 'default'
     };
-
-    const provider = providers[aiProvider];
     
     console.log('=== CUSTOM AI PROVIDER VALIDATION ===');
     console.log('Provider:', provider.name);
     console.log('API Key available:', !!provider.apiKey);
     console.log('Endpoint configured:', !!provider.endpoint);
     
-    if (!provider || !provider.apiKey) {
-      console.error(`AI provider ${aiProvider} not configured properly`);
+    if (!provider.apiKey || !provider.endpoint) {
+      console.error('Custom AI provider not configured properly');
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: `AI provider ${aiProvider} not configured - missing API key`,
-          provider: aiProvider
+          error: 'Custom AI provider not configured - missing API key or endpoint',
+          provider: 'custom'
         }),
         { 
           status: 401, 
@@ -60,67 +50,34 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Using AI provider: ${provider.name}`);
+    console.log('Using Custom AI provider:', provider.name);
 
-    let response;
-    
-    if (aiProvider === 'custom' && provider.endpoint) {
-      // Custom AI API call
-      console.log('Calling custom AI endpoint...');
-      response = await fetch(provider.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${provider.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: provider.model,
-          image: image,
-          additional_images: additionalImages,
-          task: 'coin_recognition',
-          instructions: 'Analyze this coin image and provide identification, grade estimation, and value assessment.'
-        }),
-      });
-    } else {
-      // OpenAI API call (fallback or primary)
-      console.log('Calling OpenAI API...');
-      response = await fetch(provider.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${provider.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: provider.model,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Analyze this coin image and provide: 1) Coin identification (name, year, country), 2) Grade estimation, 3) Estimated value range, 4) Confidence score (0-1). Respond in JSON format."
-                },
-                {
-                  type: "image_url",
-                  image_url: { url: image }
-                }
-              ]
-            }
-          ],
-          max_tokens: 1000
-        }),
-      });
-    }
+    // Custom AI API call
+    console.log('Calling custom AI endpoint...');
+    const response = await fetch(provider.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${provider.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: provider.model,
+        image: image,
+        additional_images: additionalImages,
+        task: 'coin_recognition',
+        instructions: 'Analyze this coin image and provide identification, grade estimation, and value assessment.'
+      }),
+    });
 
-    console.log('AI Provider response status:', response.status);
+    console.log('Custom AI Provider response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Provider Error:', errorText);
+      console.error('Custom AI Provider Error:', errorText);
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: `AI API error: ${response.status} ${response.statusText}`,
+          error: `Custom AI API error: ${response.status} ${response.statusText}`,
           details: errorText,
           provider: provider.name
         }),
@@ -133,26 +90,6 @@ serve(async (req) => {
 
     const aiResult = await response.json();
     
-    // Normalize response format
-    let normalizedResult;
-    if (aiProvider === 'custom') {
-      normalizedResult = aiResult;
-    } else {
-      // Parse OpenAI response
-      const content = aiResult.choices[0]?.message?.content;
-      try {
-        normalizedResult = JSON.parse(content);
-      } catch (e) {
-        normalizedResult = {
-          name: 'Unknown Coin',
-          confidence: 0.5,
-          grade: 'Ungraded',
-          estimated_value: 'Unable to determine',
-          provider: provider.name
-        };
-      }
-    }
-
     // Cache the result
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -165,21 +102,21 @@ serve(async (req) => {
 
     await supabase.from('ai_recognition_cache').upsert({
       image_hash: hashHex,
-      recognition_results: normalizedResult,
-      confidence_score: normalizedResult.confidence || 0.5,
+      recognition_results: aiResult,
+      confidence_score: aiResult.confidence || 0.5,
       processing_time_ms: Date.now(),
       sources_consulted: [provider.name]
     });
 
     console.log('=== CUSTOM AI ANALYSIS COMPLETE ===');
     console.log('Provider used:', provider.name);
-    console.log('Analysis successful:', !!normalizedResult);
+    console.log('Analysis successful:', !!aiResult);
 
     return new Response(
       JSON.stringify({
         success: true,
         provider: provider.name,
-        ...normalizedResult
+        ...aiResult
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -192,7 +129,7 @@ serve(async (req) => {
       JSON.stringify({
         success: false,
         error: error.message,
-        provider: 'unknown'
+        provider: 'custom'
       }),
       {
         status: 500,

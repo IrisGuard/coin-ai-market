@@ -24,7 +24,7 @@ interface AnalysisResultsProps {
 }
 
 const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysis }) => {
-  const { anthropic_analysis, openai_analysis, comparison } = results;
+  const { anthropic_analysis, claude_analysis, comparison } = results;
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.8) return 'bg-green-500';
@@ -43,17 +43,17 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
     coinName: comparison.consensus_name,
     year: comparison.consensus_year,
     country: comparison.consensus_country,
-    denomination: anthropic_analysis?.denomination || openai_analysis?.denomination || 'Unknown',
-    grade: anthropic_analysis?.grade || openai_analysis?.grade || 'Ungraded',
-    rarity: anthropic_analysis?.rarity || openai_analysis?.rarity || 'Common',
-    composition: anthropic_analysis?.composition || openai_analysis?.composition || 'Unknown',
-    mint: anthropic_analysis?.mint || openai_analysis?.mint,
-    diameter: anthropic_analysis?.diameter || openai_analysis?.diameter,
-    weight: anthropic_analysis?.weight || openai_analysis?.weight,
+    denomination: anthropic_analysis?.denomination || claude_analysis?.denomination || 'Unknown',
+    grade: anthropic_analysis?.grade || claude_analysis?.grade || 'Ungraded',
+    rarity: anthropic_analysis?.rarity || claude_analysis?.rarity || 'Common',
+    composition: anthropic_analysis?.composition || claude_analysis?.composition || 'Unknown',
+    mint: anthropic_analysis?.mint || claude_analysis?.mint,
+    diameter: anthropic_analysis?.diameter || claude_analysis?.diameter,
+    weight: anthropic_analysis?.weight || claude_analysis?.weight,
     estimatedValue: {
-      min: Math.min(anthropic_analysis?.estimated_value || 0, openai_analysis?.estimated_value || 0),
+      min: Math.min(anthropic_analysis?.estimated_value || 0, claude_analysis?.estimated_value || 0),
       average: comparison.consensus_value,
-      max: Math.max(anthropic_analysis?.estimated_value || 0, openai_analysis?.estimated_value || 0)
+      max: Math.max(anthropic_analysis?.estimated_value || 0, claude_analysis?.estimated_value || 0)
     },
     confidence: comparison.confidence_score,
     errors: comparison.discrepancies
@@ -64,7 +64,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-gray-900">
-          Analysis Complete
+          Claude AI Analysis Complete
         </h1>
         <div className="flex items-center justify-center gap-3">
           <Badge 
@@ -79,18 +79,18 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
         </div>
       </div>
 
-      {/* Dual AI Analysis Comparison */}
+      {/* Dual Claude AI Analysis Comparison */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Dual AI Analysis Results
+            Dual Claude AI Analysis Results
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <h3 className="font-medium text-center">Claude AI Analysis</h3>
+              <h3 className="font-medium text-center">Front Image Analysis</h3>
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p><strong>Name:</strong> {anthropic_analysis?.name || 'Unknown'}</p>
                 <p><strong>Confidence:</strong> {anthropic_analysis?.confidence ? Math.round(anthropic_analysis.confidence * 100) : 0}%</p>
@@ -98,11 +98,11 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
               </div>
             </div>
             <div className="space-y-2">
-              <h3 className="font-medium text-center">OpenAI Analysis</h3>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p><strong>Name:</strong> {openai_analysis?.name || 'Unknown'}</p>
-                <p><strong>Confidence:</strong> {openai_analysis?.confidence ? Math.round(openai_analysis.confidence * 100) : 0}%</p>
-                <p><strong>Value:</strong> ${openai_analysis?.estimated_value || 0}</p>
+              <h3 className="font-medium text-center">Back Image Analysis</h3>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <p><strong>Name:</strong> {claude_analysis?.name || 'Unknown'}</p>
+                <p><strong>Confidence:</strong> {claude_analysis?.confidence ? Math.round(claude_analysis.confidence * 100) : 0}%</p>
+                <p><strong>Value:</strong> ${claude_analysis?.estimated_value || 0}</p>
               </div>
             </div>
           </div>
@@ -242,7 +242,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
-              AI Analysis Discrepancies
+              Analysis Discrepancies
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -270,7 +270,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <span className="font-medium">Analysis Method</span>
-              <p>Dual AI Consensus (Claude + OpenAI)</p>
+              <p>Dual Claude AI Analysis (Front + Back)</p>
             </div>
             <div className="space-y-2">
               <span className="font-medium">Processing Time</span>
@@ -280,9 +280,10 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results, onNewAnalysi
           
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> This analysis combines results from Claude AI and OpenAI Vision 
-              to provide a consensus identification. Discrepancies between AI models are highlighted 
-              above. For investment decisions, consider getting a professional appraisal.
+              <strong>Note:</strong> This analysis combines results from Claude AI analyzing both sides
+              of the coin to provide a comprehensive identification. Any discrepancies between 
+              front and back analysis are highlighted above. For investment decisions, 
+              consider getting a professional appraisal.
             </p>
           </div>
         </CardContent>
