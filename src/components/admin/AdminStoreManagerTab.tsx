@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, Plus, ArrowRight, ExternalLink, Globe } from 'lucide-react';
+import { Store, Plus, ArrowRight, ExternalLink, Globe, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,10 +61,12 @@ const countryNames: Record<string, string> = {
 
 const AdminStoreManagerTab = () => {
   const { user } = useAuth();
-  const { setSelectedStoreId } = useAdminStore();
+  const { setSelectedStoreId, selectedStoreId } = useAdminStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isWaitingForNavigation, setIsWaitingForNavigation] = useState(false);
+  const [pendingStoreId, setPendingStoreId] = useState<string | null>(null);
 
   // Fetch ALL admin stores (no verified filter for admin panel)
   const { data: stores, isLoading } = useQuery({
@@ -84,6 +86,16 @@ const AdminStoreManagerTab = () => {
     enabled: !!user?.id,
   });
 
+  // Watch for selectedStoreId updates and navigate when ready
+  useEffect(() => {
+    if (isWaitingForNavigation && pendingStoreId && selectedStoreId === pendingStoreId) {
+      console.log('✅ Context updated, navigating to dealer panel with store:', selectedStoreId);
+      setIsWaitingForNavigation(false);
+      setPendingStoreId(null);
+      navigate('/dealer');
+    }
+  }, [selectedStoreId, isWaitingForNavigation, pendingStoreId, navigate]);
+
   const handleCreateNewStore = () => {
     setShowCreateModal(true);
   };
@@ -98,11 +110,9 @@ const AdminStoreManagerTab = () => {
     console.log('📋 Setting selected store ID:', storeId);
     setSelectedStoreId(storeId);
     
-    // Add delay to ensure context is updated before navigation
-    setTimeout(() => {
-      console.log('🚀 Navigating to dealer panel with store:', storeId);
-      navigate('/dealer');
-    }, 200);
+    // Set flags to wait for context update before navigation
+    setPendingStoreId(storeId);
+    setIsWaitingForNavigation(true);
   };
 
   const handleAccessStore = (storeId: string) => {
@@ -127,6 +137,18 @@ const AdminStoreManagerTab = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">Loading admin stores...</div>
+      </div>
+    );
+  }
+
+  // Show loading while waiting for context update
+  if (isWaitingForNavigation) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-green-600 mb-4" />
+          <p className="text-gray-600">Creating store and preparing dealer panel...</p>
+        </div>
       </div>
     );
   }
