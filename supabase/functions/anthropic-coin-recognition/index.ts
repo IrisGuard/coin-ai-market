@@ -80,9 +80,9 @@ serve(async (req) => {
 
     console.log('Processing image data, length:', cleanImageData.length);
 
-    // Enhanced Universal Numismatic AI Prompt
+    // Enhanced Universal Numismatic AI Prompt for Claude 4
     const universalNumismaticPrompt = `
-You are a world-class numismatist with expertise in coins from all countries, eras, and cultures. Analyze this coin image with precision and provide identification based solely on what you can observe.
+You are a world-class numismatic expert with deep knowledge of coins from all countries, eras, and cultures. Analyze this coin image with maximum precision and provide identification based solely on what you can observe.
 
 CRITICAL: Provide your analysis in this EXACT JSON format:
 {
@@ -107,31 +107,32 @@ CRITICAL: Provide your analysis in this EXACT JSON format:
 }
 
 Analysis Guidelines:
-1. IDENTIFY text, inscriptions, and numerical values visible on the coin
-2. DETERMINE country of origin from visible text, symbols, or design elements
+1. IDENTIFY all visible text, inscriptions, dates, and numerical values
+2. DETERMINE country of origin from text, symbols, or design elements
 3. ASSESS year/date from visible markings
 4. EVALUATE denomination from face value indicators
 5. ESTIMATE condition based on wear patterns and surface quality
-6. PROVIDE current market valuation
+6. PROVIDE current market valuation based on condition and rarity
 7. NOTE any varieties, errors, or special characteristics
+8. AUTHENTICATE based on design elements and manufacturing quality
 
 If ANY element cannot be determined from the image:
 - Use "Unknown" for that specific field
 - Set confidence score appropriately (0.10-1.00)
-- Do NOT guess or use fallback values
+- Do NOT guess or fabricate information
 
-Be thorough but accurate. Only report what you can actually observe in the image.`;
+Be thorough, accurate, and only report what you can actually observe in the image.`;
 
-    console.log('Calling Anthropic API with correct Claude model...');
+    console.log('Calling Anthropic API with Claude 4 Sonnet model...');
 
-    // Call Anthropic Claude API with correct model and retry logic
+    // Call Anthropic Claude API with latest model and enhanced retry logic
     let response;
     let attempt = 1;
-    const maxAttempts = 2;
+    const maxAttempts = 3;
     
     while (attempt <= maxAttempts) {
       try {
-        console.log(`Attempt ${attempt}: Calling Claude API with claude-3-5-sonnet-20241022...`);
+        console.log(`Attempt ${attempt}: Calling Claude API with claude-sonnet-4-20250514...`);
         
         response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -141,7 +142,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
             'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022', // CORRECTED MODEL NAME
+            model: 'claude-sonnet-4-20250514', // UPGRADED TO CLAUDE 4 SONNET
             max_tokens: 2000,
             messages: [
               {
@@ -166,20 +167,49 @@ Be thorough but accurate. Only report what you can actually observe in the image
         });
         
         console.log('Claude API response status:', response.status);
-        break; // Success, exit retry loop
+        
+        if (response.ok) {
+          break; // Success, exit retry loop
+        } else {
+          const errorText = await response.text();
+          console.error(`Attempt ${attempt} failed with status ${response.status}:`, errorText);
+          
+          if (response.status === 401) {
+            // Authentication error - don't retry
+            return new Response(
+              JSON.stringify({ 
+                success: false,
+                error: `Claude API authentication failed. Please verify your API key.`,
+                details: errorText,
+                processing_time: Date.now() - startTime,
+                ai_provider: 'anthropic'
+              }),
+              { 
+                status: 401, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+          
+          if (attempt === maxAttempts) {
+            throw new Error(`API call failed after ${maxAttempts} attempts: ${errorText}`);
+          }
+        }
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         if (attempt === maxAttempts) {
           throw error;
         }
         attempt++;
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
       }
+      
+      attempt++;
     }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API Error Details:', {
+      console.error('Claude API Error Details:', {
         status: response.status,
         statusText: response.statusText,
         error: errorText
@@ -201,7 +231,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
     }
 
     const aiResponse = await response.json();
-    console.log('Raw Claude response:', JSON.stringify(aiResponse, null, 2));
+    console.log('Raw Claude 4 response:', JSON.stringify(aiResponse, null, 2));
     
     const content = aiResponse.content[0]?.text;
 
@@ -215,7 +245,7 @@ Be thorough but accurate. Only report what you can actually observe in the image
         analysisResult = JSON.parse(content);
       }
     } catch (parseError) {
-      console.error('Failed to parse Claude response:', {
+      console.error('Failed to parse Claude 4 response:', {
         content: content,
         parseError: parseError.message
       });
@@ -263,11 +293,11 @@ Be thorough but accurate. Only report what you can actually observe in the image
       },
       processing_time: processingTime,
       ai_provider: 'anthropic',
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       timestamp: new Date().toISOString()
     };
 
-    console.log('=== FINAL CLAUDE ANALYSIS RESULT ===');
+    console.log('=== FINAL CLAUDE 4 ANALYSIS RESULT ===');
     console.log('Coin identified as:', finalResult.analysis.name);
     console.log('Country:', finalResult.analysis.country);
     console.log('Confidence score:', finalResult.analysis.confidence);
