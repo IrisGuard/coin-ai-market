@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { toast } from 'sonner';
@@ -7,9 +6,9 @@ import { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
 import { triggerWebDiscovery } from './enhanced-coin-recognition/webDiscovery';
 import { mergeAnalysisData } from './enhanced-coin-recognition/dataMerger';
 import { saveEnhancedResults } from './enhanced-coin-recognition/storageHelpers';
-import { extractDataSources, calculateEnrichmentScore } from './enhanced-coin-recognition/analysisHelpers';
+import { extractDataSources, calculateEnrichmentScore } from './enhanced-coin-recognition/dataExtraction';
 
-export { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
+export type { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
 
 export const useEnhancedCoinRecognition = () => {
   const { analyzeImage, isAnalyzing, result, error, clearResults } = useRealAICoinRecognition();

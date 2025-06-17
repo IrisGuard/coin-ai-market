@@ -85,3 +85,14 @@ export const extractRecentSales = (webResults: any[]) => {
 export const extractDataSources = (webResults: any[]): string[] => {
   return [...new Set(webResults.map(result => result.source_type))];
 };
+
+export const calculateEnrichmentScore = (claudeResult: any, webResults: any[]): number => {
+  let score = 0.5; // Base score from Claude
+  
+  if (webResults.length > 0) score += 0.2;
+  if (webResults.length > 5) score += 0.1;
+  if (webResults.some(r => r.source_type === 'pcgs' || r.source_type === 'ngc')) score += 0.1;
+  if (webResults.some(r => r.price_data && r.price_data.current_price)) score += 0.1;
+  
+  return Math.min(1.0, score);
+};
