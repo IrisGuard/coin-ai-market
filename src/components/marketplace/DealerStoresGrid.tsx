@@ -97,6 +97,7 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
             storeName={store.name}
             storeDescription={store.description}
             created_at={store.created_at}
+            storeAddress={store.address}
           />
         );
       })}

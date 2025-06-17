@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Package, CheckCircle, Store, Calendar } from 'lucide-react';
+import { Star, MapPin, Package, CheckCircle, Store, Calendar, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
@@ -21,7 +21,57 @@ interface DealerStoreCardProps {
   storeName?: string;
   storeDescription?: string;
   created_at?: string;
+  storeAddress?: any;
 }
+
+// Country flag mapping for common countries
+const countryFlags: Record<string, string> = {
+  'US': '🇺🇸',
+  'GB': '🇬🇧', 
+  'CA': '🇨🇦',
+  'DE': '🇩🇪',
+  'FR': '🇫🇷',
+  'IT': '🇮🇹',
+  'ES': '🇪🇸',
+  'JP': '🇯🇵',
+  'AU': '🇦🇺',
+  'NZ': '🇳🇿',
+  'CH': '🇨🇭',
+  'AT': '🇦🇹',
+  'NL': '🇳🇱',
+  'BE': '🇧🇪',
+  'DK': '🇩🇰',
+  'SE': '🇸🇪',
+  'NO': '🇳🇴',
+  'FI': '🇫🇮',
+  'GR': '🇬🇷',
+  'IN': '🇮🇳',
+  'GI': '🇬🇮'
+};
+
+const countryNames: Record<string, string> = {
+  'US': 'United States',
+  'GB': 'United Kingdom',
+  'CA': 'Canada',
+  'DE': 'Germany',
+  'FR': 'France',
+  'IT': 'Italy',
+  'ES': 'Spain',
+  'JP': 'Japan',
+  'AU': 'Australia',
+  'NZ': 'New Zealand',
+  'CH': 'Switzerland',
+  'AT': 'Austria',
+  'NL': 'Netherlands',
+  'BE': 'Belgium',
+  'DK': 'Denmark',
+  'SE': 'Sweden',
+  'NO': 'Norway',
+  'FI': 'Finland',
+  'GR': 'Greece',
+  'IN': 'India',
+  'GI': 'Gibraltar'
+};
 
 const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
   id,
@@ -35,7 +85,8 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
   totalCoins,
   storeName,
   storeDescription,
-  created_at
+  created_at,
+  storeAddress
 }) => {
   const navigate = useNavigate();
 
@@ -53,6 +104,18 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
     } catch {
       return 'Recently created';
     }
+  };
+
+  const getCountryDisplay = () => {
+    if (!storeAddress || typeof storeAddress !== 'object') return null;
+    
+    const countryCode = storeAddress.country;
+    if (!countryCode) return null;
+    
+    const flag = countryFlags[countryCode];
+    const name = countryNames[countryCode] || countryCode;
+    
+    return { flag, name, code: countryCode };
   };
 
   const renderStars = (rating?: number) => {
@@ -78,6 +141,8 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
     if (totalCoins === 1) return '1 Coin';
     return `${totalCoins} Coins`;
   };
+
+  const countryInfo = getCountryDisplay();
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-electric-blue/20 hover:border-electric-blue/40 bg-gradient-to-br from-white to-electric-blue/5" onClick={handleVisitStore}>
@@ -129,6 +194,19 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
               </div>
             )}
           </div>
+
+          {/* Country Display */}
+          {countryInfo && (
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-electric-blue" />
+              <div className="flex items-center gap-1">
+                {countryInfo.flag && <span>{countryInfo.flag}</span>}
+                <span className="text-sm text-brand-medium">
+                  {countryInfo.name}
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-electric-blue" />
