@@ -12,10 +12,10 @@ serve(async (req) => {
   }
 
   try {
-    const { image, analysis_type = 'comprehensive', include_valuation = true, include_errors = true } = await req.json();
+    const { image, analysis_type = 'comprehensive', include_valuation = true, include_errors = true, image_format = 'jpeg' } = await req.json();
 
     if (!image) {
-      console.error('No image provided in request');
+      console.error('❌ No image provided in request');
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -28,9 +28,9 @@ serve(async (req) => {
       );
     }
 
-    // ENHANCED API Key Authentication & Validation
+    // Enhanced API Key Authentication & Validation
     const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-    console.log('=== ANTHROPIC API KEY VALIDATION ===');
+    console.log('🔑 ANTHROPIC API KEY VALIDATION');
     console.log('API Key available:', !!anthropicApiKey);
     console.log('API Key length:', anthropicApiKey?.length || 0);
     
@@ -40,7 +40,7 @@ serve(async (req) => {
       
       // Validate API key format (should start with 'sk-ant-')
       if (!anthropicApiKey.startsWith('sk-ant-')) {
-        console.error('Invalid API key format - should start with sk-ant-');
+        console.error('❌ Invalid API key format - should start with sk-ant-');
         return new Response(
           JSON.stringify({ 
             success: false, 
@@ -55,7 +55,7 @@ serve(async (req) => {
     }
     
     if (!anthropicApiKey) {
-      console.error('ANTHROPIC_API_KEY environment variable not set');
+      console.error('❌ ANTHROPIC_API_KEY environment variable not set');
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -70,15 +70,36 @@ serve(async (req) => {
 
     const startTime = Date.now();
 
-    // Clean image data
+    // Enhanced image data cleaning and validation
     let cleanImageData = image;
-    if (image.includes('data:image')) {
-      cleanImageData = image.split('base64,')[1];
-    } else if (image.includes('base64,')) {
-      cleanImageData = image.split('base64,')[1];
+    if (typeof image === 'string') {
+      // Remove any data URL prefixes
+      if (image.includes('data:image')) {
+        cleanImageData = image.split('base64,')[1];
+      } else if (image.includes('base64,')) {
+        cleanImageData = image.split('base64,')[1];
+      }
+      
+      // Clean whitespace
+      cleanImageData = cleanImageData.replace(/\s/g, '');
+      
+      // Validate base64
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(cleanImageData)) {
+        console.error('❌ Invalid base64 format');
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid image format - corrupted base64' 
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
     }
 
-    console.log('Processing image data, length:', cleanImageData.length);
+    console.log('🖼️ Processing image data, length:', cleanImageData.length);
 
     // Enhanced Universal Numismatic AI Prompt for Claude 4
     const universalNumismaticPrompt = `
@@ -123,16 +144,16 @@ If ANY element cannot be determined from the image:
 
 Be thorough, accurate, and only report what you can actually observe in the image.`;
 
-    console.log('Calling Anthropic API with Claude 4 Sonnet model...');
+    console.log('📞 Calling Anthropic API with Claude 4 Sonnet model...');
 
-    // Call Anthropic Claude API with latest model and enhanced retry logic
+    // Enhanced API call with better error handling
     let response;
     let attempt = 1;
     const maxAttempts = 3;
     
     while (attempt <= maxAttempts) {
       try {
-        console.log(`Attempt ${attempt}: Calling Claude API with claude-sonnet-4-20250514...`);
+        console.log(`🔄 Attempt ${attempt}: Calling Claude API with claude-sonnet-4-20250514...`);
         
         response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -142,7 +163,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
             'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', // UPGRADED TO CLAUDE 4 SONNET
+            model: 'claude-sonnet-4-20250514',
             max_tokens: 2000,
             messages: [
               {
@@ -156,7 +177,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
                     type: 'image',
                     source: {
                       type: 'base64',
-                      media_type: 'image/jpeg',
+                      media_type: `image/${image_format}`,
                       data: cleanImageData
                     }
                   }
@@ -166,20 +187,20 @@ Be thorough, accurate, and only report what you can actually observe in the imag
           })
         });
         
-        console.log('Claude API response status:', response.status);
+        console.log('📡 Claude API response status:', response.status);
         
         if (response.ok) {
           break; // Success, exit retry loop
         } else {
           const errorText = await response.text();
-          console.error(`Attempt ${attempt} failed with status ${response.status}:`, errorText);
+          console.error(`❌ Attempt ${attempt} failed with status ${response.status}:`, errorText);
           
+          // Enhanced error categorization
           if (response.status === 401) {
-            // Authentication error - don't retry
             return new Response(
               JSON.stringify({ 
                 success: false,
-                error: `Claude API authentication failed. Please verify your API key.`,
+                error: `Claude API authentication failed. Please verify your API key has sufficient credits.`,
                 details: errorText,
                 processing_time: Date.now() - startTime,
                 ai_provider: 'anthropic'
@@ -191,12 +212,44 @@ Be thorough, accurate, and only report what you can actually observe in the imag
             );
           }
           
+          if (response.status === 400 && errorText.includes('credit balance')) {
+            return new Response(
+              JSON.stringify({ 
+                success: false,
+                error: `Insufficient API credits. Please add credits to your Anthropic account.`,
+                details: errorText,
+                processing_time: Date.now() - startTime,
+                ai_provider: 'anthropic'
+              }),
+              { 
+                status: 400, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+          
+          if (response.status === 400 && errorText.includes('Image does not match')) {
+            return new Response(
+              JSON.stringify({ 
+                success: false,
+                error: `Image format error. Please ensure the image is a valid ${image_format.toUpperCase()} file.`,
+                details: errorText,
+                processing_time: Date.now() - startTime,
+                ai_provider: 'anthropic'
+              }),
+              { 
+                status: 400, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+          
           if (attempt === maxAttempts) {
             throw new Error(`API call failed after ${maxAttempts} attempts: ${errorText}`);
           }
         }
       } catch (error) {
-        console.error(`Attempt ${attempt} failed:`, error);
+        console.error(`❌ Attempt ${attempt} failed:`, error);
         if (attempt === maxAttempts) {
           throw error;
         }
@@ -209,7 +262,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Claude API Error Details:', {
+      console.error('❌ Claude API Error Details:', {
         status: response.status,
         statusText: response.statusText,
         error: errorText
@@ -231,11 +284,11 @@ Be thorough, accurate, and only report what you can actually observe in the imag
     }
 
     const aiResponse = await response.json();
-    console.log('Raw Claude 4 response:', JSON.stringify(aiResponse, null, 2));
+    console.log('📋 Raw Claude 4 response:', JSON.stringify(aiResponse, null, 2));
     
     const content = aiResponse.content[0]?.text;
 
-    // Parse AI response with enhanced fallback handling
+    // Enhanced AI response parsing with better fallback handling
     let analysisResult;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -245,7 +298,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
         analysisResult = JSON.parse(content);
       }
     } catch (parseError) {
-      console.error('Failed to parse Claude 4 response:', {
+      console.error('❌ Failed to parse Claude 4 response:', {
         content: content,
         parseError: parseError.message
       });
@@ -262,8 +315,8 @@ Be thorough, accurate, and only report what you can actually observe in the imag
           estimated_value: 0,
           rarity: 'Unknown',
           confidence: 0.10,
-          errors: ['AI parsing failed'],
-          authentication_notes: 'Unable to complete analysis',
+          errors: ['AI parsing failed - please try with a clearer image'],
+          authentication_notes: 'Unable to complete analysis due to parsing error',
           market_trend: 'unknown'
         }
       };
@@ -271,7 +324,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
 
     const processingTime = Date.now() - startTime;
 
-    // Final Result Assembly
+    // Enhanced Final Result Assembly
     const finalResult = {
       success: true,
       analysis: {
@@ -288,7 +341,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
         weight: analysisResult.analysis?.weight || null,
         confidence: Math.min(1, Math.max(0.10, analysisResult.analysis?.confidence || 0.10)),
         errors: Array.isArray(analysisResult.analysis?.errors) ? analysisResult.analysis.errors : [],
-        authentication_notes: analysisResult.analysis?.authentication_notes || 'Standard analysis',
+        authentication_notes: analysisResult.analysis?.authentication_notes || 'Standard analysis completed',
         market_trend: analysisResult.analysis?.market_trend || 'unknown'
       },
       processing_time: processingTime,
@@ -297,7 +350,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
       timestamp: new Date().toISOString()
     };
 
-    console.log('=== FINAL CLAUDE 4 ANALYSIS RESULT ===');
+    console.log('✅ FINAL CLAUDE 4 ANALYSIS RESULT');
     console.log('Coin identified as:', finalResult.analysis.name);
     console.log('Country:', finalResult.analysis.country);
     console.log('Confidence score:', finalResult.analysis.confidence);
@@ -311,7 +364,7 @@ Be thorough, accurate, and only report what you can actually observe in the imag
     );
 
   } catch (error) {
-    console.error('Error in anthropic-coin-recognition function:', error);
+    console.error('💥 Error in anthropic-coin-recognition function:', error);
     
     return new Response(
       JSON.stringify({ 
