@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@integrations/supabase/client';
 
 export const useDealerStores = () => {
   return useQuery({
@@ -26,8 +26,15 @@ export const useDealerStores = () => {
         return [];
       }
 
-      // Get user IDs from stores
-      const userIds = stores.map(store => store.user_id);
+      // Filter out any stores without proper name or with null description AND null address
+      const validStores = stores.filter(store => 
+        store.name && 
+        store.name.trim() !== '' &&
+        !(store.description === null && store.address === null)
+      );
+
+      // Get user IDs from valid stores
+      const userIds = validStores.map(store => store.user_id);
 
       // Check which users are admins
       const { data: adminRoles, error: adminError } = await supabase
@@ -54,7 +61,7 @@ export const useDealerStores = () => {
       }
 
       // Combine stores with their profiles
-      const storesWithProfiles = stores
+      const storesWithProfiles = validStores
         .map(store => {
           const profile = profiles?.find(p => p.id === store.user_id);
           const isAdminStore = adminUserIds.includes(store.user_id);
@@ -78,10 +85,11 @@ export const useDealerStores = () => {
         })
         .filter(Boolean);
 
-      console.log(`Found ${storesWithProfiles.length} verified dealer stores (including admin stores)`);
+      console.log(`Found ${storesWithProfiles.length} verified dealer stores (cleaned)`);
       return storesWithProfiles;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes (reduced for better refresh)
     refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
   });
 };

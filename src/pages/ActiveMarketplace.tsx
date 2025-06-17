@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
@@ -11,13 +11,20 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const ActiveMarketplace = () => {
   usePageView();
+  const queryClient = useQueryClient();
   
-  const { data: dealers, isLoading: dealersLoading } = useDealerStores();
+  const { data: dealers, isLoading: dealersLoading, refetch: refetchDealers } = useDealerStores();
+
+  // Force refresh on component mount to ensure clean data
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['dealer-stores'] });
+    queryClient.invalidateQueries({ queryKey: ['store-coin-counts'] });
+  }, [queryClient]);
 
   // Get coin counts for stores
   const { data: storeCounts = {} } = useQuery({
@@ -71,7 +78,7 @@ const ActiveMarketplace = () => {
           <div className="flex items-center gap-3 mb-6">
             <Store className="w-6 h-6 text-electric-orange" />
             <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-              User Stores
+              Verified Stores
             </h2>
             <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
               {dealers?.length || 0} Active Stores
@@ -98,9 +105,9 @@ const ActiveMarketplace = () => {
           ) : dealers?.length === 0 ? (
             <div className="text-center py-16">
               <Store className="w-16 h-16 mx-auto mb-6 text-gray-300" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No User Stores Yet</h3>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Verified Stores Yet</h3>
               <p className="text-gray-500">
-                User stores will appear here when dealers join and get verified.
+                Verified stores will appear here when dealers join and get verified.
               </p>
             </div>
           ) : (
