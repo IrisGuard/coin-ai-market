@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,23 +55,54 @@ const LiveMarketplaceGrid = () => {
       }
 
       console.log('✅ Fetched coins with images:', data?.length || 0);
+      
+      // Debug logging for the specific coin
+      const greeceCoin = data?.find(coin => coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR'));
+      if (greeceCoin) {
+        console.log('🔍 DEBUG - Greece coin found:', {
+          id: greeceCoin.id,
+          name: greeceCoin.name,
+          images: greeceCoin.images,
+          imagesLength: greeceCoin.images?.length || 0,
+          imageField: greeceCoin.image
+        });
+      }
+      
       return data as Coin[] || [];
     },
     refetchInterval: 10000 // Refresh every 10 seconds
   });
 
-  // Prepare all available images for a coin
+  // Fixed: Prepare all available images for a coin
   const getAllImages = (coin: Coin): string[] => {
+    console.log('🔍 getAllImages called for coin:', coin.name);
+    console.log('🔍 coin.images:', coin.images);
+    console.log('🔍 coin.image:', coin.image);
+    
     const allImages: string[] = [];
     
-    // Add from images array if available
+    // FIXED: Check if coin.images exists and is a valid array with items
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
-    } else {
-      // Fallback to single image field
-      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
+      console.log('✅ Using coin.images array with length:', coin.images.length);
+      // Filter out invalid URLs and blob URLs
+      const validImages = coin.images.filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        !img.startsWith('blob:') &&
+        (img.startsWith('http') || img.startsWith('/'))
+      );
+      allImages.push(...validImages);
+      console.log('✅ Valid images from array:', validImages);
     }
     
+    // Fallback to single image field if no valid images from array
+    if (allImages.length === 0 && coin.image && !coin.image.startsWith('blob:')) {
+      console.log('⚠️ Fallback to single image field:', coin.image);
+      allImages.push(coin.image);
+    }
+    
+    console.log('🔍 Final allImages for', coin.name, ':', allImages);
     return allImages;
   };
 
