@@ -75,9 +75,9 @@ const MyCoinsTab: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            Τα Νομίσματά Μου - Διαχείριση Εικόνων
+            My Coins - Image Management
             <Badge variant="outline">
-              {myCoins.length} νομίσματα
+              {myCoins.length} coins
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -86,10 +86,10 @@ const MyCoinsTab: React.FC = () => {
             <div className="text-center py-12">
               <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Δεν έχετε ανεβάσει νομίσματα ακόμα
+                No coins uploaded yet
               </h3>
               <p className="text-gray-500">
-                Μεταβείτε στο "Smart Upload" για να προσθέσετε το πρώτο σας νόμισμα
+                Go to "Smart Upload" to add your first coin
               </p>
             </div>
           ) : (
@@ -159,11 +159,11 @@ const MyCoinsTab: React.FC = () => {
                           size="sm"
                         >
                           <Edit className="h-4 w-4" />
-                          Επεξεργασία Εικόνων ({validImages.length})
+                          Edit Images ({validImages.length})
                         </Button>
                         
                         <div className="text-xs text-center text-gray-500">
-                          Προσθήκη • Διαγραφή • Αντικατάσταση
+                          Add • Delete • Replace
                         </div>
                       </div>
                     </div>

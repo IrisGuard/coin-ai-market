@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -69,14 +70,6 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
     
     console.log('🔍 Final allImages for', coin.name, ':', allImages);
     
-    // Special debug for the Greece coin
-    if (coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR')) {
-      console.log('🏛️ GREECE COIN DEBUG:');
-      console.log('🏛️ Raw coin.images:', coin.images);
-      console.log('🏛️ Final allImages:', allImages);
-      console.log('🏛️ Length:', allImages.length);
-    }
-    
     return allImages;
   };
 
@@ -108,10 +101,10 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
       transition={{ delay: index * 0.1 }}
     >
       <Card 
-        className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+        className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer bg-white"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Multi-Image Gallery */}
+        {/* Square Image Gallery */}
         <div className="relative">
           <ImageGallery 
             images={allImages}
@@ -150,7 +143,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
           </div>
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="p-4 bg-white">
           {/* Title and Grade */}
           <div className="mb-2">
             <h3 className="font-semibold text-lg truncate" title={coin.name}>

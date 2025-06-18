@@ -36,11 +36,16 @@ const CoinImageManagerModal: React.FC<CoinImageManagerModalProps> = ({
     return allImages;
   };
 
+  const handleImagesUpdated = () => {
+    // Don't close the modal or redirect - just refresh the data
+    onImagesUpdated();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogHeader className="bg-white">
+          <DialogTitle className="flex items-center gap-2 text-gray-900">
             <Camera className="w-5 h-5 text-blue-600" />
             Image Management - {coin.name}
             <span className="text-sm text-gray-500">
@@ -48,16 +53,15 @@ const CoinImageManagerModal: React.FC<CoinImageManagerModalProps> = ({
             </span>
           </DialogTitle>
         </DialogHeader>
-        <EnhancedCoinImageManager
-          coinId={coin.id}
-          coinName={coin.name}
-          currentImages={getValidImages(coin)}
-          onImagesUpdated={() => {
-            onImagesUpdated();
-            onClose();
-          }}
-          maxImages={10}
-        />
+        <div className="bg-white">
+          <EnhancedCoinImageManager
+            coinId={coin.id}
+            coinName={coin.name}
+            currentImages={getValidImages(coin)}
+            onImagesUpdated={handleImagesUpdated}
+            maxImages={10}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

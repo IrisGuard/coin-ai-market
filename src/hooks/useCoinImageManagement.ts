@@ -114,6 +114,7 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
       await deleteImageFromStorage(imageUrl);
       
       console.log('✅ Image deleted successfully');
+      toast.success('Image deleted successfully');
       return newImages;
     } catch (error) {
       console.error('Delete image error:', error);
@@ -147,6 +148,7 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
       await deleteImageFromStorage(oldImageUrl);
       
       console.log('✅ Image replaced successfully');
+      toast.success('Image replaced successfully');
       return newImages;
     } catch (error) {
       console.error('Replace image error:', error);
@@ -175,6 +177,7 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
       await updateCoinImages(newImages);
       
       console.log('✅ Image added successfully');
+      toast.success('Image added successfully');
       return newImages;
     } catch (error) {
       console.error('Add image error:', error);
