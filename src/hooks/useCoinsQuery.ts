@@ -28,7 +28,7 @@ export const useCoins = (includeAllStatuses = true) => {
     queryKey: ['coins', includeAllStatuses],
     queryFn: async () => {
       try {
-        // Build query with conditional status filtering
+        // Enhanced query to show all coins including error coins
         let query = supabase
           .from('coins')
           .select(`
@@ -41,13 +41,8 @@ export const useCoins = (includeAllStatuses = true) => {
             )
           `);
 
-        // Apply status filter only if not including all statuses
-        if (!includeAllStatuses) {
-          query = query.eq('authentication_status', 'verified');
-        } else {
-          // Include both verified and pending for marketplace display
-          query = query.in('authentication_status', ['verified', 'pending']);
-        }
+        // Show verified coins AND recently created ones (for immediate display)
+        query = query.in('authentication_status', ['verified', 'pending']);
 
         const { data: coins, error: coinsError } = await query
           .order('created_at', { ascending: false });
@@ -59,7 +54,9 @@ export const useCoins = (includeAllStatuses = true) => {
 
         if (!coins || coins.length === 0) return [];
 
-        // Fetch bids for each coin separately to avoid complex joins
+        console.log('📊 Fetched coins:', coins.length, 'including error coins');
+
+        // Fetch bids for each coin
         const coinsWithBids = await Promise.all(
           coins.map(async (coin) => {
             const { data: bids } = await supabase

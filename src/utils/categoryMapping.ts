@@ -1,5 +1,5 @@
 
-// Category mapping utility to convert UI categories to database enum values
+// Enhanced category mapping for error coins and all categories
 type CoinCategory = 'american' | 'european' | 'ancient' | 'silver' | 'gold' | 'modern' | 'asian' | 'error_coin' | 'greek' | 'british' | 'commemorative' | 'unclassified';
 
 export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
@@ -17,8 +17,27 @@ export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
     'CHINESE COINS': 'asian',
     'BRITISH COINS': 'british',
     'CANADIAN COINS': 'american',
+    
+    // Enhanced error coin detection
     'Double Die': 'error_coin',
     'Off-Center': 'error_coin',
+    'Doubled Die': 'error_coin',
+    'Double Strike': 'error_coin',
+    'Clipped Planchet': 'error_coin',
+    'Wrong Planchet': 'error_coin',
+    'Broad Strike': 'error_coin',
+    'Missing Edge Lettering': 'error_coin',
+    'Rotated Die': 'error_coin',
+    'Cud Error': 'error_coin',
+    'Die Break': 'error_coin',
+    'Die Crack': 'error_coin',
+    'Filled Die': 'error_coin',
+    'Struck Through': 'error_coin',
+    'Mint Error': 'error_coin',
+    'Planchet Error': 'error_coin',
+    'Die Error': 'error_coin',
+    
+    // General categories
     'Ancient': 'ancient',
     'Modern': 'modern',
     'Error': 'error_coin',
@@ -31,7 +50,21 @@ export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
     'Rare': 'modern'
   };
 
-  return categoryMap[uiCategory] || 'unclassified'; // Default fallback
+  // Enhanced detection for error coins
+  const lowerCategory = uiCategory.toLowerCase();
+  if (lowerCategory.includes('double') || 
+      lowerCategory.includes('die') ||
+      lowerCategory.includes('error') ||
+      lowerCategory.includes('strike') ||
+      lowerCategory.includes('planchet') ||
+      lowerCategory.includes('clip') ||
+      lowerCategory.includes('broad') ||
+      lowerCategory.includes('cud') ||
+      lowerCategory.includes('crack')) {
+    return 'error_coin';
+  }
+
+  return categoryMap[uiCategory] || 'modern'; // Default to modern instead of unclassified
 };
 
 export const getValidDatabaseCategories = (): CoinCategory[] => {
