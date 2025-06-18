@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Image as ImageIcon, Sparkles, Zap, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +58,7 @@ const UltraFastImageGallery = ({
         if (index === 0) {
           img.loading = 'eager';
           // Apply ultra-high quality rendering
-          img.style.imageRendering = 'high-quality';
+          img.style.imageRendering = 'crisp-edges';
         }
       });
     });
@@ -117,7 +116,7 @@ const UltraFastImageGallery = ({
           className="w-full h-full object-cover transition-all duration-300"
           style={{ 
             opacity: isCurrentImageLoaded ? 1 : 0.7,
-            imageRendering: 'high-quality',
+            imageRendering: 'crisp-edges',
             filter: isEnhanced ? 'none' : 'unset'
           }}
           loading="eager"
@@ -198,7 +197,7 @@ const UltraFastImageGallery = ({
                   alt={`${coinName} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover bg-white"
                   loading="lazy"
-                  style={{ imageRendering: 'high-quality' }}
+                  style={{ imageRendering: 'crisp-edges' }}
                 />
                 
                 {/* Enhanced indicator on thumbnail */}

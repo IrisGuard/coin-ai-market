@@ -6,7 +6,7 @@ import { Upload, Camera, Trash2, Plus, RotateCcw, CheckCircle, AlertTriangle, Cl
 import { useCoinImageManagement } from '@/hooks/useCoinImageManagement';
 import { toast } from 'sonner';
 import UltraFastBulkUploadSystem from './UltraFastBulkUploadSystem';
-import UltraFastImageGallery from './UltraFastImageGallery';
+import UltraFastImageGallery from '@/components/ui/UltraFastImageGallery';
 
 interface EnhancedCoinImageManagerProps {
   coinId: string;
@@ -235,7 +235,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                         src={imageUrl}
                         alt={`${coinName} image ${index + 1}`}
                         className="w-full h-full object-cover"
-                        style={{ imageRendering: 'high-quality' }}
+                        style={{ imageRendering: 'crisp-edges' }}
                         loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
