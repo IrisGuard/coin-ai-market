@@ -1,3 +1,4 @@
+
 export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Legendary';
 
 export type CoinCondition = 'Poor' | 'Fair' | 'Good' | 'Very Good' | 'Fine' | 'Very Fine' | 'Extremely Fine' | 'About Uncirculated' | 'Uncirculated' | 'Proof';
@@ -42,6 +43,7 @@ export interface Coin {
   grade: string;
   condition?: CoinCondition;
   image: string;
+  images?: string[]; // Multi-image support
   obverse_image?: string;
   reverse_image?: string;
   model_3d_url?: string;
@@ -72,7 +74,7 @@ export interface Coin {
   ai_provider?: string;
   created_at?: string;
   updated_at?: string;
-  profiles?: CoinProfile; // Add profiles property
+  profiles?: CoinProfile;
 }
 
 // Supabase raw data type (more flexible)
@@ -92,6 +94,7 @@ export interface SupabaseCoin {
   grade: string;
   condition?: string;
   image: string;
+  images?: string[]; // Multi-image support
   obverse_image?: string;
   reverse_image?: string;
   model_3d_url?: string;
@@ -122,7 +125,7 @@ export interface SupabaseCoin {
   ai_provider?: string;
   created_at?: string;
   updated_at?: string;
-  profiles?: any; // Add profiles for Supabase data
+  profiles?: any;
 }
 
 // Utility function to convert Supabase data to Coin interface

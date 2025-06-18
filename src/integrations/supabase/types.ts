@@ -1182,6 +1182,7 @@ export type Database = {
           grade: string
           id: string
           image: string
+          images: string[] | null
           is_auction: boolean | null
           listing_type: string | null
           mint: string | null
@@ -1229,6 +1230,7 @@ export type Database = {
           grade: string
           id?: string
           image: string
+          images?: string[] | null
           is_auction?: boolean | null
           listing_type?: string | null
           mint?: string | null
@@ -1276,6 +1278,7 @@ export type Database = {
           grade?: string
           id?: string
           image?: string
+          images?: string[] | null
           is_auction?: boolean | null
           listing_type?: string | null
           mint?: string | null
@@ -4203,6 +4206,10 @@ export type Database = {
       get_ai_brain_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_coin_images: {
+        Args: { coin_row: Database["public"]["Tables"]["coins"]["Row"] }
+        Returns: string[]
       }
       get_dashboard_stats: {
         Args: Record<PropertyKey, never>
