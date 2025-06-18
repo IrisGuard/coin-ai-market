@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Heart, Eye, Clock, DollarSign, Star, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import EnhancedCoinDetailsModal from './EnhancedCoinDetailsModal';
+import ImageGallery from '@/components/ui/ImageGallery';
 
 interface Coin {
   id: string;
   name: string;
   image: string;
+  images?: string[];
   price: number;
   grade: string;
   year: number;
@@ -40,11 +42,11 @@ const LiveMarketplaceGrid = () => {
   const { data: coins = [], isLoading, error } = useQuery({
     queryKey: ['live-marketplace-coins'],
     queryFn: async (): Promise<Coin[]> => {
-      console.log('🔍 Fetching live marketplace coins...');
+      console.log('🔍 Fetching live marketplace coins with images...');
       
       const { data, error } = await supabase
         .from('coins')
-        .select('*')
+        .select('*, images')
         .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false });
 
@@ -53,11 +55,26 @@ const LiveMarketplaceGrid = () => {
         throw error;
       }
 
-      console.log('✅ Fetched coins:', data?.length || 0);
+      console.log('✅ Fetched coins with images:', data?.length || 0);
       return data as Coin[] || [];
     },
     refetchInterval: 10000 // Refresh every 10 seconds
   });
+
+  // Prepare all available images for a coin
+  const getAllImages = (coin: Coin): string[] => {
+    const allImages: string[] = [];
+    
+    // Add from images array if available
+    if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
+      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
+    } else {
+      // Fallback to single image field
+      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
+    }
+    
+    return allImages;
+  };
 
   const handleCoinClick = (coin: Coin) => {
     setSelectedCoin(coin);
@@ -150,164 +167,167 @@ const LiveMarketplaceGrid = () => {
 
         {/* Coins Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {coins.map((coin, index) => (
-            <motion.div
-              key={coin.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card 
-                className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
-                onClick={() => handleCoinClick(coin)}
+          {coins.map((coin, index) => {
+            const allImages = getAllImages(coin);
+            
+            return (
+              <motion.div
+                key={coin.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
-                {/* Image */}
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={coin.image}
-                    alt={coin.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=300&fit=crop';
-                    }}
-                  />
-                  
-                  {/* Badges */}
-                  <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    {coin.featured && (
-                      <Badge className="bg-yellow-100 text-yellow-800">
-                        <Star className="h-3 w-3 mr-1" />
-                        Featured
-                      </Badge>
-                    )}
-                    {coin.is_auction && isAuctionActive(coin) && (
-                      <Badge className="bg-red-100 text-red-800">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Auction
-                      </Badge>
-                    )}
-                    {coin.ai_confidence && coin.ai_confidence > 0.9 && (
-                      <Badge className="bg-blue-100 text-blue-800">
-                        <Zap className="h-3 w-3 mr-1" />
-                        AI Verified
-                      </Badge>
-                    )}
-                  </div>
+                <Card 
+                  className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+                  onClick={() => handleCoinClick(coin)}
+                >
+                  {/* Multi-Image Gallery */}
+                  <div className="relative">
+                    <ImageGallery 
+                      images={allImages}
+                      coinName={coin.name}
+                      className="aspect-square"
+                    />
+                    
+                    {/* Overlay Badges */}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      {coin.featured && (
+                        <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                          <Star className="h-3 w-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      {isAuctionActive(coin) && (
+                        <Badge className="bg-red-100 text-red-800 text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Auction
+                        </Badge>
+                      )}
+                      {coin.ai_confidence && coin.ai_confidence > 0.9 && (
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">
+                          <Zap className="h-3 w-3 mr-1" />
+                          AI Verified
+                        </Badge>
+                      )}
+                    </div>
 
-                  {/* Views */}
-                  <div className="absolute top-2 right-2">
-                    <Badge variant="secondary" className="bg-black/50 text-white">
-                      <Eye className="h-3 w-3 mr-1" />
-                      {coin.views}
-                    </Badge>
-                  </div>
-                </div>
-
-                <CardContent className="p-4">
-                  {/* Title and Grade */}
-                  <div className="mb-2">
-                    <h3 className="font-semibold text-lg truncate" title={coin.name}>
-                      {coin.name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>{coin.year}</span>
-                      <span>•</span>
-                      <span>{coin.grade}</span>
-                      <span>•</span>
-                      <span>{coin.country}</span>
+                    {/* Views */}
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="secondary" className="bg-black/50 text-white text-xs">
+                        <Eye className="h-3 w-3 mr-1" />
+                        {coin.views}
+                      </Badge>
                     </div>
                   </div>
 
-                  {/* Rarity */}
-                  <div className="mb-3">
-                    <Badge 
-                      variant="outline" 
-                      className={`
-                        ${coin.rarity === 'Key Date' ? 'border-red-200 text-red-700' : ''}
-                        ${coin.rarity === 'Very Rare' ? 'border-purple-200 text-purple-700' : ''}
-                        ${coin.rarity === 'Rare' ? 'border-orange-200 text-orange-700' : ''}
-                        ${coin.rarity === 'Scarce' ? 'border-yellow-200 text-yellow-700' : ''}
-                        ${coin.rarity === 'Common' ? 'border-green-200 text-green-700' : ''}
-                      `}
-                    >
-                      {coin.rarity}
-                    </Badge>
-                  </div>
+                  <CardContent className="p-4">
+                    {/* Title and Grade */}
+                    <div className="mb-2">
+                      <h3 className="font-semibold text-lg truncate" title={coin.name}>
+                        {coin.name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{coin.year}</span>
+                        <span>•</span>
+                        <span>{coin.grade}</span>
+                        <span>•</span>
+                        <span>{coin.country}</span>
+                      </div>
+                    </div>
 
-                  {/* Price/Bid Info */}
-                  <div className="mb-4">
-                    {coin.is_auction && isAuctionActive(coin) ? (
-                      <div>
+                    {/* Rarity */}
+                    <div className="mb-3">
+                      <Badge 
+                        variant="outline" 
+                        className={`
+                          ${coin.rarity === 'Key Date' ? 'border-red-200 text-red-700' : ''}
+                          ${coin.rarity === 'Ultra Rare' ? 'border-purple-200 text-purple-700' : ''}
+                          ${coin.rarity === 'Rare' ? 'border-orange-200 text-orange-700' : ''}
+                          ${coin.rarity === 'Scarce' ? 'border-yellow-200 text-yellow-700' : ''}
+                          ${coin.rarity === 'Common' ? 'border-green-200 text-green-700' : ''}
+                        `}
+                      >
+                        {coin.rarity}
+                      </Badge>
+                    </div>
+
+                    {/* Price/Bid Info */}
+                    <div className="mb-4">
+                      {coin.is_auction && isAuctionActive(coin) ? (
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Current Bid:</span>
+                            <span className="font-semibold text-lg text-green-600">
+                              ${coin.starting_bid?.toFixed(2) || '0.00'}
+                            </span>
+                          </div>
+                          {coin.auction_end && (
+                            <div className="text-sm text-red-600 mt-1">
+                              Ends in: {getTimeRemaining(coin.auction_end)}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Current Bid:</span>
-                          <span className="font-semibold text-lg text-green-600">
-                            ${coin.starting_bid?.toFixed(2) || '0.00'}
+                          <span className="text-sm text-muted-foreground">Price:</span>
+                          <span className="font-semibold text-xl text-blue-600">
+                            ${coin.price.toFixed(2)}
                           </span>
                         </div>
-                        {coin.auction_end && (
-                          <div className="text-sm text-red-600 mt-1">
-                            Ends in: {getTimeRemaining(coin.auction_end)}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Price:</span>
-                        <span className="font-semibold text-xl text-blue-600">
-                          ${coin.price.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    {coin.is_auction && isAuctionActive(coin) ? (
-                      <Button 
-                        className="flex-1 bg-red-600 hover:bg-red-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle bid action
-                        }}
-                      >
-                        <Clock className="h-4 w-4 mr-2" />
-                        Place Bid
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle buy action
-                        }}
-                      >
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Buy Now
-                      </Button>
-                    )}
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Handle favorite action
-                      }}
-                    >
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* AI Confidence */}
-                  {coin.ai_confidence && (
-                    <div className="mt-3 text-xs text-muted-foreground">
-                      AI Confidence: {Math.round(coin.ai_confidence * 100)}%
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      {coin.is_auction && isAuctionActive(coin) ? (
+                        <Button 
+                          className="flex-1 bg-red-600 hover:bg-red-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle bid action
+                          }}
+                        >
+                          <Clock className="h-4 w-4 mr-2" />
+                          Place Bid
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle buy action
+                          }}
+                        >
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Buy Now
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle favorite action
+                        }}
+                      >
+                        <Heart className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* AI Confidence & Image Count */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
+                      {coin.ai_confidence && (
+                        <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
+                      )}
+                      {allImages.length > 1 && (
+                        <span className="text-green-600">{allImages.length} photos</span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 

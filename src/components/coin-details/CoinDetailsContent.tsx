@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
 import RelatedCoins from './RelatedCoins';
+import ImageGallery from '@/components/ui/ImageGallery';
 
 interface CoinDetailsContentProps {
   coin: {
@@ -87,6 +88,23 @@ const CoinDetailsContent = ({
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
+  // Prepare all available images for the gallery
+  const getAllImages = (): string[] => {
+    const allImages: string[] = [];
+    
+    // Add from images array if available
+    if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
+      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
+    } else {
+      // Fallback to individual image fields
+      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
+    }
+    
+    return allImages;
+  };
+
+  const allImages = getAllImages();
+
   // Function to render rich text HTML safely
   const renderRichText = (htmlContent: string) => {
     return { __html: htmlContent };
@@ -95,30 +113,17 @@ const CoinDetailsContent = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Images */}
+        {/* Left Column - Multi-Image Gallery */}
         <div className="space-y-4">
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <img
-                src={coin.image || '/placeholder.svg'}
-                alt={coin.name}
-                className="w-full h-96 object-cover"
+              <ImageGallery 
+                images={allImages}
+                coinName={coin.name}
+                className="w-full h-96"
               />
             </CardContent>
           </Card>
-          
-          {coin.images && coin.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {coin.images.slice(1, 5).map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`${coin.name} ${index + 2}`}
-                  className="w-full h-20 object-cover rounded-lg border"
-                />
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Right Column - Details & Purchase */}

@@ -12,10 +12,13 @@ export const useCoinDetails = (id: string) => {
   const { data: coin, isLoading, error } = useQuery({
     queryKey: ['coin', id],
     queryFn: async () => {
+      console.log('🔍 Fetching coin details with images for ID:', id);
+      
       const { data, error } = await supabase
         .from('coins')
         .select(`
           *,
+          images,
           profiles!coins_user_id_fkey (
             name,
             username,
@@ -25,7 +28,12 @@ export const useCoinDetails = (id: string) => {
         .eq('id', id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching coin:', error);
+        throw error;
+      }
+      
+      console.log('✅ Fetched coin with images:', data?.name, 'Images count:', data?.images?.length || 0);
       return data;
     },
     enabled: !!id
