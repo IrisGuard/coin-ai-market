@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,8 +56,8 @@ const MyCoinsTab: React.FC = () => {
   };
 
   const handleImagesUpdated = () => {
+    // Only refresh the data - don't close the modal
     refetchCoins();
-    setEditingCoin(null);
   };
 
   if (isLoading) {
@@ -163,7 +162,7 @@ const MyCoinsTab: React.FC = () => {
                         </Button>
                         
                         <div className="text-xs text-center text-gray-500">
-                          Add • Delete • Replace
+                          Bulk Upload • Replace • Delete
                         </div>
                       </div>
                     </div>
@@ -175,7 +174,7 @@ const MyCoinsTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Image Manager Modal */}
+      {/* Image Manager Modal - Enhanced with explicit close button */}
       <CoinImageManagerModal
         isOpen={!!editingCoin}
         onClose={() => setEditingCoin(null)}

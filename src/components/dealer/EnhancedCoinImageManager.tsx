@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Camera, Trash2, Plus, RotateCcw, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Upload, Camera, Trash2, Plus, RotateCcw, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import { useCoinImageManagement } from '@/hooks/useCoinImageManagement';
 import { toast } from 'sonner';
 
@@ -13,6 +13,13 @@ interface EnhancedCoinImageManagerProps {
   currentImages: string[];
   onImagesUpdated: () => void;
   maxImages?: number;
+}
+
+interface UploadProgress {
+  total: number;
+  completed: number;
+  failed: number;
+  currentFile?: string;
 }
 
 const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
@@ -25,6 +32,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [images, setImages] = useState(currentImages);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ total: 0, completed: 0, failed: 0 });
   
   const {
     isLoading,
@@ -34,7 +42,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
     addNewImageToCoin
   } = useCoinImageManagement({ coinId, currentImages: images });
 
-  const handleFileUpload = async (files: FileList | null) => {
+  const handleBulkFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     const remainingSlots = maxImages - images.length;
@@ -44,25 +52,85 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
     }
 
     setUploading(true);
+    const fileArray = Array.from(files);
     
+    // Initialize progress tracking
+    setUploadProgress({
+      total: fileArray.length,
+      completed: 0,
+      failed: 0
+    });
+
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        console.log(`📸 Uploading image ${i + 1} for coin: ${coinName}`);
-        
-        const newImages = await addNewImageToCoin(file);
-        setImages(newImages);
-        
-        toast.success(`Image ${i + 1} uploaded successfully`);
-      }
+      console.log(`🚀 Starting bulk upload of ${fileArray.length} images for coin: ${coinName}`);
       
+      // Process all files in parallel using Promise.allSettled
+      const uploadPromises = fileArray.map(async (file, index) => {
+        try {
+          setUploadProgress(prev => ({ ...prev, currentFile: file.name }));
+          console.log(`📸 Uploading image ${index + 1}/${fileArray.length}: ${file.name}`);
+          
+          const newImages = await addNewImageToCoin(file);
+          
+          // Update progress
+          setUploadProgress(prev => ({
+            ...prev,
+            completed: prev.completed + 1,
+            currentFile: undefined
+          }));
+          
+          return { success: true, newImages, fileName: file.name };
+        } catch (error) {
+          console.error(`❌ Failed to upload ${file.name}:`, error);
+          
+          setUploadProgress(prev => ({
+            ...prev,
+            failed: prev.failed + 1,
+            currentFile: undefined
+          }));
+          
+          return { success: false, error, fileName: file.name };
+        }
+      });
+
+      // Wait for all uploads to complete
+      const results = await Promise.allSettled(uploadPromises);
+      
+      // Process results
+      let successCount = 0;
+      let failCount = 0;
+      let latestImages = images;
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value.success) {
+          successCount++;
+          latestImages = result.value.newImages;
+        } else {
+          failCount++;
+        }
+      });
+
+      // Update final state
+      setImages(latestImages);
       onImagesUpdated();
-      toast.success(`${files.length} images uploaded successfully!`);
+
+      // Show final results
+      if (successCount > 0 && failCount === 0) {
+        toast.success(`🎉 All ${successCount} images uploaded successfully!`);
+      } else if (successCount > 0 && failCount > 0) {
+        toast.success(`✅ ${successCount} images uploaded successfully, ${failCount} failed`);
+      } else {
+        toast.error(`❌ All ${failCount} uploads failed`);
+      }
+
+      console.log(`✅ Bulk upload complete: ${successCount} success, ${failCount} failed`);
+      
     } catch (error) {
-      console.error('Upload failed:', error);
-      toast.error('Failed to upload images');
+      console.error('❌ Bulk upload error:', error);
+      toast.error('Failed to complete bulk upload');
     } finally {
       setUploading(false);
+      setUploadProgress({ total: 0, completed: 0, failed: 0 });
     }
   };
 
@@ -70,7 +138,6 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
     try {
       const newImages = await deleteImageFromCoin(images[index], index);
       setImages(newImages);
-      // Don't close modal or redirect - just update the data
       onImagesUpdated();
     } catch (error) {
       console.error('Failed to remove image:', error);
@@ -102,7 +169,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer.files;
-    handleFileUpload(files);
+    handleBulkFileUpload(files);
   };
 
   return (
@@ -111,21 +178,22 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
         <CardHeader className="bg-white">
           <CardTitle className="flex items-center gap-2 text-gray-900">
             <Camera className="h-5 w-5" />
-            Image Management - {coinName}
+            Bulk Image Management - {coinName}
             <Badge variant="outline" className="border-gray-300 text-gray-700">
               {images.length}/{maxImages} images
             </Badge>
-            {isUpdating && (
+            {(isUpdating || uploading) && (
               <Badge variant="secondary" className="animate-pulse bg-blue-100 text-blue-800">
-                Updating...
+                <Clock className="h-3 w-3 mr-1" />
+                Processing...
               </Badge>
             )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 bg-white">
-          {/* Upload Area */}
+          {/* Bulk Upload Area */}
           <div 
-            className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors bg-white ${
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors bg-white ${
               dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
             }`}
             onDragOver={handleDragOver}
@@ -136,28 +204,73 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
               type="file"
               multiple
               accept="image/*"
-              onChange={(e) => handleFileUpload(e.target.files)}
+              onChange={(e) => handleBulkFileUpload(e.target.files)}
               className="hidden"
-              id="image-upload"
+              id="bulk-image-upload"
               disabled={uploading || images.length >= maxImages || isLoading}
             />
             <label
-              htmlFor="image-upload"
-              className={`cursor-pointer flex flex-col items-center gap-2 ${
+              htmlFor="bulk-image-upload"
+              className={`cursor-pointer flex flex-col items-center gap-3 ${
                 uploading || images.length >= maxImages || isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              <Upload className="h-6 w-6 text-gray-400" />
-              <span className="text-sm text-gray-600">
-                {uploading ? 'Uploading...' : 
-                 images.length >= maxImages ? 'Maximum number of images reached' :
-                 'Click or drag images here'}
-              </span>
-              <span className="text-xs text-gray-500">
-                PNG, JPG, JPEG up to 10MB each
-              </span>
+              <Upload className="h-8 w-8 text-gray-400" />
+              <div className="space-y-1">
+                <span className="text-lg font-medium text-gray-600">
+                  {uploading ? 'Uploading...' : 
+                   images.length >= maxImages ? 'Maximum number of images reached' :
+                   'Bulk Upload Images'}
+                </span>
+                <span className="text-sm text-gray-500 block">
+                  Drop multiple images here or click to select up to {maxImages - images.length} files
+                </span>
+                <span className="text-xs text-gray-400 block">
+                  PNG, JPG, JPEG up to 10MB each • Parallel processing for faster uploads
+                </span>
+              </div>
             </label>
           </div>
+
+          {/* Upload Progress */}
+          {uploading && uploadProgress.total > 0 && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-blue-900">
+                      Bulk Upload Progress
+                    </span>
+                    <span className="text-blue-700">
+                      {uploadProgress.completed + uploadProgress.failed}/{uploadProgress.total}
+                    </span>
+                  </div>
+                  
+                  <div className="w-full bg-blue-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${((uploadProgress.completed + uploadProgress.failed) / uploadProgress.total) * 100}%` 
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-between text-sm text-blue-700">
+                    <span>✅ Success: {uploadProgress.completed}</span>
+                    {uploadProgress.failed > 0 && (
+                      <span>❌ Failed: {uploadProgress.failed}</span>
+                    )}
+                  </div>
+                  
+                  {uploadProgress.currentFile && (
+                    <div className="text-sm text-blue-600">
+                      📸 Uploading: {uploadProgress.currentFile}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Images Grid */}
           {images.length > 0 && (
@@ -187,7 +300,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                         }}
                         className="hidden"
                         id={`replace-${index}`}
-                        disabled={isLoading || isUpdating}
+                        disabled={isLoading || isUpdating || uploading}
                       />
                       <label
                         htmlFor={`replace-${index}`}
@@ -203,7 +316,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                         size="sm"
                         className="p-1.5 h-auto rounded-full shadow-lg"
                         onClick={() => handleRemoveImage(index)}
-                        disabled={isLoading || isUpdating}
+                        disabled={isLoading || isUpdating || uploading}
                         title="Delete image"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -228,7 +341,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
               {/* Add more images button */}
               {images.length < maxImages && (
                 <label
-                  htmlFor="image-upload"
+                  htmlFor="bulk-image-upload"
                   className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50 hover:bg-gray-100"
                 >
                   <div className="text-center">
@@ -254,24 +367,24 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
               </div>
             )}
             
-            {isUpdating && (
+            {(isUpdating || uploading) && (
               <div className="flex items-center gap-2 text-sm text-blue-600">
                 <div className="animate-spin h-4 w-4 border-b-2 border-blue-600 rounded-full"></div>
-                <span>Updating...</span>
+                <span>{uploading ? 'Bulk uploading...' : 'Updating...'}</span>
               </div>
             )}
           </div>
 
-          {/* Instructions */}
+          {/* Enhanced Instructions */}
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Image Management Guidelines:</h4>
+              <h4 className="font-medium text-blue-900 mb-2">Bulk Image Management Guidelines:</h4>
               <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Upload multiple images simultaneously for faster processing</li>
                 <li>• The first image becomes the primary display image</li>
-                <li>• Use high-quality images for better coin identification</li>
-                <li>• Include both front and back views when possible</li>
-                <li>• Maximum {maxImages} images per coin</li>
+                <li>• Drag & drop multiple files or click to select up to {maxImages} images</li>
                 <li>• Each image can be replaced or deleted individually</li>
+                <li>• Modal stays open after operations - click "Done" when finished</li>
               </ul>
             </CardContent>
           </Card>

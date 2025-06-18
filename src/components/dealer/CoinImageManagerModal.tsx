@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Camera } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Camera, X } from 'lucide-react';
 import EnhancedCoinImageManager from './EnhancedCoinImageManager';
 
 interface CoinImageManagerModalProps {
@@ -37,14 +38,14 @@ const CoinImageManagerModal: React.FC<CoinImageManagerModalProps> = ({
   };
 
   const handleImagesUpdated = () => {
-    // Don't close the modal or redirect - just refresh the data
+    // Just refresh the data - don't close the modal
     onImagesUpdated();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader className="bg-white">
+        <DialogHeader className="bg-white flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2 text-gray-900">
             <Camera className="w-5 h-5 text-blue-600" />
             Image Management - {coin.name}
@@ -52,6 +53,15 @@ const CoinImageManagerModal: React.FC<CoinImageManagerModalProps> = ({
               ({getValidImages(coin).length} images)
             </span>
           </DialogTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="flex items-center gap-2 hover:bg-gray-100"
+          >
+            <X className="h-4 w-4" />
+            Done
+          </Button>
         </DialogHeader>
         <div className="bg-white">
           <EnhancedCoinImageManager
