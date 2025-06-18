@@ -1,7 +1,28 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { DualAnalysisResult } from '@/types/upload';
+
+export interface DualAnalysisResult {
+  name?: string;
+  confidence?: number;
+  grade?: string;
+  estimatedValue?: number;
+  errors?: string[];
+  errorDetected?: boolean;
+  category?: string;
+  rarity?: string;
+  featured?: boolean;
+  country?: string;
+  denomination?: string;
+  year?: number;
+  condition?: string;
+  composition?: string;
+  mint?: string;
+  anthropic_analysis?: any;
+  claude_analysis?: any;
+  comparison?: any;
+  processing_time?: number;
+}
 
 export const useDualImageAnalysis = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -57,7 +78,11 @@ export const useDualImageAnalysis = () => {
         year: data.year || new Date().getFullYear(),
         condition: data.condition || 'Good',
         composition: data.composition || 'Unknown',
-        mint: data.mint || 'Unknown'
+        mint: data.mint || 'Unknown',
+        anthropic_analysis: data.anthropic_analysis,
+        claude_analysis: data.claude_analysis,
+        comparison: data.comparison,
+        processing_time: data.processing_time || 0
       };
 
       setAnalysisProgress(100);
