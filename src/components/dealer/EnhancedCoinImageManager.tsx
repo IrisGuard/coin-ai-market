@@ -166,19 +166,19 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map((imageUrl, index) => (
               <div key={index} className="relative group">
-                <img
-                  src={imageUrl}
-                  alt={`${coinName} image ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-lg border"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder.svg';
-                  }}
-                />
-                
-                {/* Image overlay with actions */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="flex gap-2">
+                <div className="relative">
+                  <img
+                    src={imageUrl}
+                    alt={`${coinName} image ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border-2 border-gray-200 bg-white"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
+                  
+                  {/* Always visible action buttons */}
+                  <div className="absolute top-1 right-1 flex gap-1">
                     {/* Replace button */}
                     <input
                       type="file"
@@ -193,28 +193,30 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                     />
                     <label
                       htmlFor={`replace-${index}`}
-                      className="cursor-pointer bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+                      className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full shadow-lg transition-colors flex items-center justify-center"
+                      title="Replace image"
                     >
-                      <RotateCcw className="h-4 w-4" />
+                      <RotateCcw className="h-3 w-3" />
                     </label>
                     
                     {/* Delete button */}
                     <Button
                       variant="destructive"
                       size="sm"
-                      className="p-2 rounded-full"
+                      className="p-1.5 h-auto rounded-full shadow-lg"
                       onClick={() => handleRemoveImage(index)}
                       disabled={isLoading || isUpdating}
+                      title="Delete image"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
+                  
+                  {/* Image index badge */}
+                  <Badge className="absolute top-1 left-1 bg-black/70 text-white text-xs">
+                    {index + 1}
+                  </Badge>
                 </div>
-                
-                {/* Image index badge */}
-                <Badge className="absolute top-2 left-2 bg-black/70 text-white">
-                  {index + 1}
-                </Badge>
               </div>
             ))}
             
@@ -222,7 +224,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
             {images.length < maxImages && (
               <label
                 htmlFor="image-upload"
-                className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+                className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50 hover:bg-gray-100"
               >
                 <div className="text-center">
                   <Plus className="h-6 w-6 text-gray-400 mx-auto mb-1" />
