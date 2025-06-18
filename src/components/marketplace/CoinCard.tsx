@@ -111,15 +111,17 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer bg-white"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Ultra-Fast Image Gallery */}
+        {/* Ultra-Fast Image Gallery with Enhancement */}
         <div className="relative">
           <UltraFastImageGallery 
             images={allImages}
             coinName={coin.name}
             className="aspect-square"
+            enableEnhancement={isAdmin}
+            showQualityAnalysis={isAdmin}
           />
           
-          {/* Overlay Badges - Admin gets VERIFIED badge, no ERROR badges */}
+          {/* Enhanced Overlay Badges - Fixed Admin Status */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -139,11 +141,18 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 AI Verified
               </Badge>
             )}
-            {/* Show VERIFIED badge for admin users instead of error badges */}
+            {/* FIXED: Show VERIFIED badge for admin users - no more error badges */}
             {isAdmin && (
+              <Badge className="bg-green-100 text-green-800 text-xs font-bold">
+                <Star className="h-3 w-3 mr-1" />
+                ADMIN VERIFIED
+              </Badge>
+            )}
+            {/* Show authentication status for regular users */}
+            {!isAdmin && coin.authentication_status === 'verified' && (
               <Badge className="bg-green-100 text-green-800 text-xs">
                 <Star className="h-3 w-3 mr-1" />
-                VERIFIED
+                Verified
               </Badge>
             )}
           </div>
@@ -251,16 +260,21 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             </Button>
           </div>
 
-          {/* AI Confidence & Image Count */}
+          {/* Enhanced AI Confidence & Image Count with Admin Benefits */}
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
             {coin.ai_confidence && (
               <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
             )}
             {allImages.length > 1 && (
-              <span className="text-green-600">{allImages.length} photos</span>
+              <span className="text-green-600 font-semibold">
+                {allImages.length} HD photos
+                {isAdmin && ' • Ultra-Enhanced'}
+              </span>
             )}
             {isAdmin && (
-              <span className="text-green-600 font-semibold">ADMIN VERIFIED</span>
+              <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">
+                ADMIN VERIFIED ✓
+              </span>
             )}
           </div>
         </CardContent>

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Camera, Trash2, Plus, RotateCcw, CheckCircle, AlertTriangle, Clock, Zap } from 'lucide-react';
+import { Upload, Camera, Trash2, Plus, RotateCcw, CheckCircle, AlertTriangle, Clock, Zap, Sparkles, Star } from 'lucide-react';
 import { useCoinImageManagement } from '@/hooks/useCoinImageManagement';
 import { toast } from 'sonner';
 import UltraFastBulkUploadSystem from './UltraFastBulkUploadSystem';
+import UltraFastImageGallery from './UltraFastImageGallery';
 
 interface EnhancedCoinImageManagerProps {
   coinId: string;
@@ -179,7 +180,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
         <CardHeader className="bg-white">
           <CardTitle className="flex items-center gap-2 text-gray-900">
             <Camera className="h-5 w-5" />
-            ULTRA-FAST Image Management - {coinName}
+            ULTRA-FAST Image Management with AI Enhancement - {coinName}
             <Badge variant="outline" className="border-gray-300 text-gray-700">
               {images.length}/{maxImages} images
             </Badge>
@@ -199,88 +200,114 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
             currentImages={images}
             onImagesUpdated={() => {
               onImagesUpdated();
-              // Refresh local images state
               setImages(currentImages);
             }}
             maxImages={maxImages}
           />
 
-          {/* Images Grid with Ultra-Fast Gallery */}
+          {/* Enhanced Images Grid with Ultra-Fast Gallery and AI Enhancement */}
           {images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {images.map((imageUrl, index) => (
-                <div key={index} className="relative group">
-                  <div className="relative aspect-square rounded-lg overflow-hidden bg-white border-2 border-gray-200">
-                    <img
-                      src={imageUrl}
-                      alt={`${coinName} image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      style={{ imageRendering: 'crisp-edges' }}
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder.svg';
-                      }}
-                    />
-                    
-                    {/* Action buttons */}
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      {/* Replace button */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleReplaceImage(index, file);
-                        }}
-                        className="hidden"
-                        id={`replace-${index}`}
-                        disabled={isLoading || isUpdating || uploading}
-                      />
-                      <label
-                        htmlFor={`replace-${index}`}
-                        className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full shadow-lg transition-colors flex items-center justify-center"
-                        title="Replace image"
-                      >
-                        <RotateCcw className="h-3 w-3" />
-                      </label>
-                      
-                      {/* Delete button */}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="p-1.5 h-auto rounded-full shadow-lg"
-                        onClick={() => handleRemoveImage(index)}
-                        disabled={isLoading || isUpdating || uploading}
-                        title="Delete image"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    
-                    {/* Image index badge */}
-                    <Badge className="absolute top-2 left-2 bg-white/90 text-gray-800 text-xs">
-                      {index + 1}
-                    </Badge>
+            <div className="space-y-4">
+              {/* Ultra-Fast Gallery Preview */}
+              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    Ultra-Enhanced Gallery Preview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UltraFastImageGallery
+                    images={images}
+                    coinName={coinName}
+                    enableEnhancement={true}
+                    showQualityAnalysis={true}
+                  />
+                </CardContent>
+              </Card>
 
-                    {/* Primary image indicator */}
-                    {index === 0 && (
-                      <Badge className="absolute bottom-2 left-2 bg-green-600 text-white text-xs">
-                        Primary
+              {/* Individual Image Management Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {images.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <div className="relative aspect-square rounded-lg overflow-hidden bg-white border-2 border-gray-200">
+                      <img
+                        src={imageUrl}
+                        alt={`${coinName} image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        style={{ imageRendering: 'high-quality' }}
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
+                      />
+                      
+                      {/* Enhanced Action buttons */}
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        {/* Replace button */}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleReplaceImage(index, file);
+                          }}
+                          className="hidden"
+                          id={`replace-${index}`}
+                          disabled={isLoading || isUpdating || uploading}
+                        />
+                        <label
+                          htmlFor={`replace-${index}`}
+                          className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full shadow-lg transition-colors flex items-center justify-center"
+                          title="Replace with AI-enhanced image"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                        </label>
+                        
+                        {/* Delete button */}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="p-1.5 h-auto rounded-full shadow-lg"
+                          onClick={() => handleRemoveImage(index)}
+                          disabled={isLoading || isUpdating || uploading}
+                          title="Delete image"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      
+                      {/* Enhanced Image index badge */}
+                      <Badge className="absolute top-2 left-2 bg-white/90 text-gray-800 text-xs">
+                        #{index + 1}
                       </Badge>
-                    )}
+
+                      {/* Primary image indicator with enhancement */}
+                      {index === 0 && (
+                        <Badge className="absolute bottom-2 left-2 bg-green-600 text-white text-xs flex items-center gap-1">
+                          <Star className="h-3 w-3" />
+                          Primary
+                        </Badge>
+                      )}
+
+                      {/* Quality indicator */}
+                      <Badge className="absolute bottom-2 right-2 bg-purple-600 text-white text-xs">
+                        HD
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Status */}
+          {/* Enhanced Status */}
           <div className="flex items-center justify-between">
             {images.length > 0 ? (
               <div className="flex items-center gap-2 text-sm text-green-600">
                 <CheckCircle className="h-4 w-4" />
-                <span>{images.length} images ready • ULTRA-FAST system active</span>
+                <span>{images.length} ultra-enhanced images ready • AI-powered system active</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-sm text-orange-600">
@@ -292,24 +319,26 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
             {(isUpdating || uploading) && (
               <div className="flex items-center gap-2 text-sm text-blue-600">
                 <div className="animate-spin h-4 w-4 border-b-2 border-blue-600 rounded-full"></div>
-                <span>{uploading ? 'ULTRA-FAST processing...' : 'Updating...'}</span>
+                <span>{uploading ? 'ULTRA-FAST processing with AI enhancement...' : 'Updating...'}</span>
               </div>
             )}
           </div>
 
-          {/* Enhanced Instructions */}
+          {/* Ultra-Enhanced Instructions */}
           <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
             <CardContent className="p-4">
               <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
                 <Zap className="h-4 w-4 text-yellow-500" />
-                ULTRA-FAST Bulk Image Management:
+                ULTRA-ENHANCED Image Management Features:
               </h4>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• 🚀 Upload up to 20,000+ images simultaneously</li>
-                <li>• ⚡ Parallel processing for maximum speed</li>
-                <li>• 🎯 Enterprise-grade performance optimization</li>
-                <li>• 📸 Each image processes at ultra-speed</li>
-                <li>• 💪 Built for professional dealers and admins</li>
+                <li>• 🚀 Upload up to 20,000+ images with AI enhancement</li>
+                <li>• ⚡ Real-time quality analysis and automatic improvement</li>
+                <li>• 🎯 Professional coin photography optimization</li>
+                <li>• 📸 Ultra-high resolution upscaling and noise reduction</li>
+                <li>• 🪙 Specialized metallic surface enhancement</li>
+                <li>• 💎 Museum-quality image processing</li>
+                <li>• 🧠 AI-powered detail enhancement and color correction</li>
               </ul>
             </CardContent>
           </Card>
