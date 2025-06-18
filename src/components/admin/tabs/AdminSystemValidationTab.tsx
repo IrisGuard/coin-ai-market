@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,7 @@ const AdminSystemValidationTab = () => {
       ]);
 
       return {
-        validation: validationResult as ValidationResult,
+        validation: (validationResult || {}) as ValidationResult,
         totalCoins: coins.count || 0,
         totalUsers: users.count || 0,
         totalStores: stores.count || 0,
