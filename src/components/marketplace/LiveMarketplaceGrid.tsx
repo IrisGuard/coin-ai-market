@@ -62,7 +62,7 @@ const LiveMarketplaceGrid = () => {
         ];
         
         if (validCategories.includes(categoryFilter as CoinCategory)) {
-          query = query.eq('category', categoryFilter);
+          query = query.eq('category', categoryFilter as CoinCategory);
         }
       }
 
