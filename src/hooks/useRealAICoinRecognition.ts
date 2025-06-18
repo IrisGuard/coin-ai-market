@@ -43,14 +43,12 @@ export const useRealAICoinRecognition = () => {
     try {
       console.log('🧠 Starting complete AI coin recognition with full auto-fill...');
       
-      // Convert image to base64
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(imageFile);
       });
 
-      // Step 1: Claude AI Analysis
       console.log('🎯 Phase 1: Complete Claude AI Analysis...');
       const claudeResult = await recognizeCoin({
         image: base64,
@@ -61,15 +59,12 @@ export const useRealAICoinRecognition = () => {
         throw new Error('Claude AI analysis failed');
       }
 
-      // Step 2: Enhanced data processing with marketplace intelligence
       console.log('🏪 Phase 2: Marketplace Intelligence Integration...');
       const marketplaceIntelligence = await extractMarketplaceIntelligence(claudeResult.analysis);
       
-      // Step 3: Merge all data sources for complete auto-fill
       console.log('🔗 Phase 3: Complete Data Merger for Full Auto-Fill...');
       const mergedData = await mergeAnalysisData(claudeResult.analysis, []);
       
-      // Step 4: Create comprehensive result with ALL fields
       const enhancedResult: EnhancedAIResult = {
         name: mergedData.name || claudeResult.analysis.name || 'Unknown Coin',
         year: mergedData.year || claudeResult.analysis.year || new Date().getFullYear(),
@@ -86,7 +81,7 @@ export const useRealAICoinRecognition = () => {
         confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75,
         aiProvider: 'claude-enhanced',
         processingTime: Date.now() - startTime,
-        description: mergedData.auto_description || `${mergedData.name || 'Coin'} from ${mergedData.year || 'unknown year'}. Grade: ${mergedData.grade || 'Ungraded'}. ${mergedData.composition || 'Composition unknown'}.`,
+        description: generateAutoDescription(mergedData, claudeResult.analysis),
         structured_description: generateStructuredDescription(mergedData, claudeResult.analysis),
         category: mergedData.suggested_category || determineCategory(mergedData.country, mergedData.denomination),
         market_intelligence: marketplaceIntelligence
@@ -125,7 +120,16 @@ export const useRealAICoinRecognition = () => {
   };
 };
 
-// Enhanced structured description generator
+const generateAutoDescription = (mergedData: any, claudeData: any): string => {
+  const name = mergedData.name || claudeData.name || 'Coin';
+  const year = mergedData.year || claudeData.year || 'unknown year';
+  const grade = mergedData.grade || claudeData.grade || 'Ungraded';
+  const composition = mergedData.composition || claudeData.composition || 'Unknown composition';
+  const rarity = mergedData.rarity || claudeData.rarity || 'Common';
+  
+  return `${name} from ${year}. Grade: ${grade}. Composition: ${composition}. ${rarity} rarity coin with professional AI analysis.`;
+};
+
 const generateStructuredDescription = (mergedData: any, claudeData: any): string => {
   const name = mergedData.name || claudeData.name || 'Unknown Coin';
   const year = mergedData.year || claudeData.year || 'Unknown';
@@ -134,11 +138,12 @@ const generateStructuredDescription = (mergedData: any, claudeData: any): string
   const country = mergedData.country || claudeData.country || 'Unknown origin';
   const rarity = mergedData.rarity || claudeData.rarity || 'Common';
   const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
+  const weight = mergedData.weight || claudeData.weight || 0;
+  const diameter = mergedData.diameter || claudeData.diameter || 0;
   
-  return `Professional Analysis: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}. Rarity: ${rarity}. Current market estimate: $${estimatedValue}. This coin has been professionally analyzed using advanced AI recognition and marketplace intelligence data.`;
+  return `Professional Analysis: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}. Rarity: ${rarity}. Physical specifications: ${weight}g weight, ${diameter}mm diameter. Current market estimate: $${estimatedValue}. This coin has been professionally analyzed using advanced AI recognition and verified marketplace intelligence data.`;
 };
 
-// Helper function to determine category
 const determineCategory = (country?: string, denomination?: string): string => {
   if (!country) return 'WORLD COINS';
   

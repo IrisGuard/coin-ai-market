@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Camera as CameraIcon, X, Image, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -17,7 +17,6 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
     try {
       setIsLoading(true);
       
-      // Native Capacitor Camera API
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
@@ -31,7 +30,6 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
         throw new Error('Failed to capture image');
       }
 
-      // Convert to File object
       const response = await fetch(image.webPath);
       const blob = await response.blob();
       const file = new File([blob], `coin-photo-${Date.now()}.jpeg`, { type: 'image/jpeg' });
@@ -64,7 +62,6 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
     try {
       setIsLoading(true);
       
-      // Native Capacitor Gallery picker
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
@@ -112,12 +109,12 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
 
   return (
     <div className="flex flex-col space-y-4">
-      {/* Native Camera Controls */}
       <div className="flex space-x-2">
         <button
           onClick={takePicture}
           disabled={isLoading || capturedImages.length >= maxImages}
-          className="flex-1 flex items-center justify-center bg-coin-blue text-white py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center bg-coin-blue text-white py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          style={{ touchAction: 'manipulation' }}
         >
           {isLoading ? (
             <Loader2 size={20} className="mr-2 animate-spin" />
@@ -130,7 +127,8 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
         <button
           onClick={pickFromGallery}
           disabled={isLoading || capturedImages.length >= maxImages}
-          className="flex-1 flex items-center justify-center border-2 border-coin-blue text-coin-blue py-3 rounded-lg hover:bg-coin-blue hover:bg-opacity-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center border-2 border-coin-blue text-coin-blue py-3 rounded-lg hover:bg-coin-blue hover:bg-opacity-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          style={{ touchAction: 'manipulation' }}
         >
           {isLoading ? (
             <Loader2 size={20} className="mr-2 animate-spin" />
@@ -141,7 +139,6 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
         </button>
       </div>
 
-      {/* Image Preview Grid */}
       {capturedImages.length > 0 && (
         <div className="grid grid-cols-2 gap-2 mt-4">
           {capturedImages.map((image, index) => (
@@ -153,7 +150,8 @@ const MobileCameraUploader = ({ onImagesSelected, maxImages = 5 }: MobileCameraU
               />
               <button
                 onClick={() => removeImage(index)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
               >
                 <X className="w-3 h-3" />
               </button>

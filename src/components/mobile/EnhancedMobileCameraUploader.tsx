@@ -4,16 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Camera, 
-  Upload, 
-  CheckCircle, 
-  AlertTriangle, 
-  X,
-  RotateCcw,
-  FlipHorizontal,
-  Zap
-} from 'lucide-react';
+import { Camera, CheckCircle, X, Zap } from 'lucide-react';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { toast } from '@/hooks/use-toast';
 import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
 import { ItemTypeSelector } from '@/components/ui/item-type-selector';
@@ -34,57 +26,105 @@ const EnhancedMobileCameraUploader = ({
   const [isCapturing, setIsCapturing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { processImageWithItemType } = useEnhancedImageProcessing();
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    
-    if (files.length + selectedImages.length > maxImages) {
+  const handleNativeCamera = async () => {
+    try {
+      setIsCapturing(true);
+      
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        width: 1024,
+        height: 1024
+      });
+      
+      if (!image.webPath) {
+        throw new Error('Failed to capture image');
+      }
+
+      const response = await fetch(image.webPath);
+      const blob = await response.blob();
+      
+      const processedBlob = await processImageWithItemType(new File([blob], 'camera-image.jpg'), selectedItemType);
+      const processedFile = new File([processedBlob], `${selectedItemType}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
+      const preview = URL.createObjectURL(processedBlob);
+      
+      const newImage = { 
+        file: processedFile, 
+        preview, 
+        itemType: selectedItemType 
+      };
+      
+      const updatedImages = [...selectedImages, newImage];
+      setSelectedImages(updatedImages);
+      onImagesSelected(updatedImages);
+
       toast({
-        title: "Too many images",
-        description: `Maximum ${maxImages} images allowed`,
+        title: "Photo captured!",
+        description: "Image captured and processed successfully",
+      });
+      
+    } catch (error: any) {
+      console.error('Native camera failed:', error);
+      toast({
+        title: "Camera Error",
+        description: error.message || "Failed to capture photo. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsCapturing(false);
     }
-
-    const newImages: { file: File; preview: string; itemType: ItemType }[] = [];
-
-    for (const file of files) {
-      if (file.type.startsWith('image/')) {
-        try {
-          // Process image with selected item type
-          const processedBlob = await processImageWithItemType(file, selectedItemType);
-          const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
-          const preview = URL.createObjectURL(processedBlob);
-          
-          newImages.push({ 
-            file: processedFile, 
-            preview, 
-            itemType: selectedItemType 
-          });
-        } catch (error) {
-          console.error('Failed to process image:', error);
-          // Fallback to original
-          const preview = URL.createObjectURL(file);
-          newImages.push({ 
-            file, 
-            preview, 
-            itemType: selectedItemType 
-          });
-        }
-      }
-    }
-
-    const updatedImages = [...selectedImages, ...newImages];
-    setSelectedImages(updatedImages);
-    onImagesSelected(updatedImages);
   };
 
-  const handleCameraCapture = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  const handleNativeGallery = async () => {
+    try {
+      setIsCapturing(true);
+      
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Photos
+      });
+      
+      if (!image.webPath) {
+        throw new Error('Failed to select image');
+      }
+
+      const response = await fetch(image.webPath);
+      const blob = await response.blob();
+      
+      const processedBlob = await processImageWithItemType(new File([blob], 'gallery-image.jpg'), selectedItemType);
+      const processedFile = new File([processedBlob], `${selectedItemType}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
+      const preview = URL.createObjectURL(processedBlob);
+      
+      const newImage = { 
+        file: processedFile, 
+        preview, 
+        itemType: selectedItemType 
+      };
+      
+      const updatedImages = [...selectedImages, newImage];
+      setSelectedImages(updatedImages);
+      onImagesSelected(updatedImages);
+
+      toast({
+        title: "Image selected!",
+        description: "Image selected and processed successfully",
+      });
+      
+    } catch (error: any) {
+      console.error('Native gallery failed:', error);
+      toast({
+        title: "Gallery Error",
+        description: error.message || "Failed to select image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -104,7 +144,6 @@ const EnhancedMobileCameraUploader = ({
       return;
     }
 
-    // Simulate upload progress
     setUploadProgress(0);
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
@@ -135,13 +174,11 @@ const EnhancedMobileCameraUploader = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Item Type Selector */}
         <ItemTypeSelector 
           value={selectedItemType}
           onValueChange={setSelectedItemType}
         />
 
-        {/* Camera Interface */}
         <div className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
             <Camera className="w-10 h-10 text-blue-600" />
@@ -158,35 +195,27 @@ const EnhancedMobileCameraUploader = ({
 
           <div className="grid grid-cols-2 gap-3">
             <Button 
-              onClick={handleCameraCapture}
-              disabled={selectedImages.length >= maxImages}
-              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleNativeCamera}
+              disabled={isCapturing || selectedImages.length >= maxImages}
+              className="bg-blue-600 hover:bg-blue-700 touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             >
               <Camera className="w-4 h-4 mr-2" />
               Camera
             </Button>
             <Button 
               variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={selectedImages.length >= maxImages}
+              onClick={handleNativeGallery}
+              disabled={isCapturing || selectedImages.length >= maxImages}
+              className="touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             >
-              <Upload className="w-4 h-4 mr-2" />
+              <CheckCircle className="w-4 h-4 mr-2" />
               Gallery
             </Button>
           </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
         </div>
 
-        {/* Image Preview Grid */}
         {selectedImages.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -212,7 +241,8 @@ const EnhancedMobileCameraUploader = ({
                     </div>
                     <button
                       onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 touch-manipulation"
+                      style={{ touchAction: 'manipulation' }}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -232,24 +262,23 @@ const EnhancedMobileCameraUploader = ({
           </div>
         )}
 
-        {/* Upload Progress */}
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span>Uploading images...</span>
+              <span>Processing images...</span>
               <span>{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} className="h-2" />
           </div>
         )}
 
-        {/* Action Buttons */}
         {selectedImages.length > 0 && (
           <div className="flex gap-3">
             <Button 
               onClick={handleComplete}
               disabled={uploadProgress > 0 && uploadProgress < 100}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-green-600 hover:bg-green-700 touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             >
               <Zap className="w-4 h-4 mr-2" />
               Start Analysis
@@ -260,14 +289,14 @@ const EnhancedMobileCameraUploader = ({
                 setSelectedImages([]);
                 onImagesSelected([]);
               }}
-              className="flex-1"
+              className="flex-1 touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             >
               Clear All
             </Button>
           </div>
         )}
 
-        {/* Guidelines */}
         <div className="bg-gray-50 rounded-lg p-3">
           <h4 className="text-sm font-medium mb-2">Photography Tips</h4>
           <ul className="text-xs text-gray-600 space-y-1">
