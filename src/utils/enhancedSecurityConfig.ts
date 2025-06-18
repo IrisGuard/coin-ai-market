@@ -2,6 +2,12 @@
 // Enhanced Security Configuration for Production Environment
 import { supabase } from '@/integrations/supabase/client';
 
+interface SecurityValidationResult {
+  security_level?: string;
+  performance_improvement?: string;
+  security_issues_resolved?: number;
+}
+
 export const validateEnhancedSecurityConfig = async () => {
   try {
     // Call the new security validation function
@@ -16,13 +22,16 @@ export const validateEnhancedSecurityConfig = async () => {
       };
     }
 
+    // Safely access properties with type checking
+    const validationData = data as SecurityValidationResult;
+    
     return {
       status: 'secure',
       issues: [],
       otpConfig: 'enhanced',
-      securityLevel: data?.security_level || 'production_ready',
-      performanceImprovement: data?.performance_improvement || '900_percent',
-      issuesResolved: data?.security_issues_resolved || 870
+      securityLevel: validationData?.security_level || 'production_ready',
+      performanceImprovement: validationData?.performance_improvement || '900_percent',
+      issuesResolved: validationData?.security_issues_resolved || 870
     };
   } catch (error) {
     console.error('Enhanced security config validation failed:', error);

@@ -10,6 +10,7 @@ interface UseCoinImageManagementProps {
 
 export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageManagementProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const uploadImageToStorage = useCallback(async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
@@ -49,6 +50,7 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
   const deleteImageFromCoin = useCallback(async (imageUrl: string, index: number): Promise<string[]> => {
     try {
       setIsLoading(true);
+      setIsUpdating(true);
       
       // Remove image from array
       const newImages = currentImages.filter((_, i) => i !== index);
@@ -72,12 +74,14 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
       throw error;
     } finally {
       setIsLoading(false);
+      setIsUpdating(false);
     }
   }, [currentImages, updateCoinImages]);
 
   const replaceImageInCoin = useCallback(async (file: File, index: number): Promise<string[]> => {
     try {
       setIsLoading(true);
+      setIsUpdating(true);
       
       // Upload new image
       const newImageUrl = await uploadImageToStorage(file);
@@ -106,12 +110,14 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
       throw error;
     } finally {
       setIsLoading(false);
+      setIsUpdating(false);
     }
   }, [currentImages, uploadImageToStorage, updateCoinImages]);
 
   const addNewImageToCoin = useCallback(async (file: File): Promise<string[]> => {
     try {
       setIsLoading(true);
+      setIsUpdating(true);
       
       // Upload new image
       const newImageUrl = await uploadImageToStorage(file);
@@ -128,11 +134,13 @@ export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageMa
       throw error;
     } finally {
       setIsLoading(false);
+      setIsUpdating(false);
     }
   }, [currentImages, uploadImageToStorage, updateCoinImages]);
 
   return {
     isLoading,
+    isUpdating,
     deleteImageFromCoin,
     replaceImageInCoin,
     addNewImageToCoin
