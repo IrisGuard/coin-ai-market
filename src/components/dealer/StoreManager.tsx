@@ -9,7 +9,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Camera, Store, Package, TrendingUp } from 'lucide-react';
 import CoinImageEditor from './CoinImageEditor';
 
-const StoreManager = () => {
+interface StoreManagerProps {
+  onStoreSelect?: (storeId: string) => void;
+  selectedStoreId?: string;
+}
+
+const StoreManager: React.FC<StoreManagerProps> = ({ 
+  onStoreSelect, 
+  selectedStoreId 
+}) => {
   const { user } = useAuth();
   const [editingCoin, setEditingCoin] = useState<any>(null);
 
