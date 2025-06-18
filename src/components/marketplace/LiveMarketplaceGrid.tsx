@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,12 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, Filter, Star, Eye, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { mapSupabaseCoinToCoin, type Coin } from '@/types/coin';
+import { mapSupabaseCoinToCoin, type Coin, type CoinCategory } from '@/types/coin';
 import CoinVerificationDisplay from './CoinVerificationDisplay';
 
 const LiveMarketplaceGrid = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priceFilter, setPriceFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
@@ -54,9 +53,17 @@ const LiveMarketplaceGrid = () => {
         query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`);
       }
 
-      // Apply category filter
+      // Apply category filter with proper type checking
       if (categoryFilter !== 'all') {
-        query = query.eq('category', categoryFilter);
+        // Map UI category to valid database category
+        const validCategories: CoinCategory[] = [
+          'ancient', 'modern', 'error_coin', 'greek', 'american', 'british', 
+          'asian', 'european', 'silver', 'gold', 'commemorative', 'unclassified'
+        ];
+        
+        if (validCategories.includes(categoryFilter as CoinCategory)) {
+          query = query.eq('category', categoryFilter);
+        }
       }
 
       // Apply price filter
