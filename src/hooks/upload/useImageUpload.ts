@@ -7,12 +7,16 @@ export const useImageUpload = () => {
   const [dragActive, setDragActive] = useState(false);
 
   const handleFiles = useCallback((files: File[]) => {
-    const newImages: UploadedImage[] = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      uploaded: false,
-      uploading: false
-    }));
+    const newImages: UploadedImage[] = files.map(file => {
+      const preview = URL.createObjectURL(file);
+      return {
+        file,
+        url: preview, // Use preview URL as the initial url
+        preview: preview,
+        uploaded: false,
+        uploading: false
+      };
+    });
     setImages(prev => [...prev, ...newImages]);
   }, []);
 
