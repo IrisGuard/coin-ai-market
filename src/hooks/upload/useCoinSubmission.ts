@@ -43,7 +43,11 @@ export const useCoinSubmission = () => {
       const permanentImageUrls: string[] = [];
       
       for (const image of images) {
-        if (image.url && !image.url.startsWith('blob:')) {
+        if (image.permanentUrl && !image.permanentUrl.startsWith('blob:')) {
+          // Use existing permanent URL
+          permanentImageUrls.push(image.permanentUrl);
+          console.log('✅ Using existing permanent URL:', image.permanentUrl);
+        } else if (image.url && !image.url.startsWith('blob:')) {
           // Already has permanent URL
           permanentImageUrls.push(image.url);
           console.log('✅ Using existing permanent URL:', image.url);
@@ -106,7 +110,7 @@ export const useCoinSubmission = () => {
         image: permanentImageUrls[0], // Primary image
         obverse_image: permanentImageUrls[1] || null, // Second image as obverse
         reverse_image: permanentImageUrls[2] || null, // Third image as reverse
-        images: permanentImageUrls, // ALL images array (1-10 support)
+        images: permanentImageUrls, // CRITICAL: ALL images array (1-10 support) - THIS IS THE KEY FIX
         user_id: user.id,
         condition: coinData.condition || coinData.grade || 'Good',
         composition: coinData.composition || 'Unknown',
@@ -134,7 +138,8 @@ export const useCoinSubmission = () => {
         totalImages: permanentImageUrls.length,
         category: mappedCategory,
         isErrorCoin: mappedCategory === 'error_coin',
-        allImagesStored: true
+        allImagesStored: true,
+        imageArrayLength: coinPayload.images.length
       });
 
       // Step 4: Submit to database
@@ -155,7 +160,8 @@ export const useCoinSubmission = () => {
         category: data.category,
         imageCount: permanentImageUrls.length,
         images: data.images,
-        isErrorCoin: data.category === 'error_coin'
+        isErrorCoin: data.category === 'error_coin',
+        databaseImagesField: data.images
       });
 
       // Enhanced success notification

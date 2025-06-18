@@ -2,496 +2,449 @@
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Camera, Zap, CheckCircle, AlertCircle, DollarSign, Clock } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Upload, 
+  Camera, 
+  X, 
+  Check, 
+  AlertTriangle, 
+  Zap, 
+  Eye,
+  RotateCw,
+  Brain
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { useDualImageAnalysis } from '@/hooks/useDualImageAnalysis';
+import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
+import { ItemTypeSelector } from '@/components/ui/item-type-selector';
+import { uploadImage } from '@/utils/imageUpload';
+import type { ItemType } from '@/types/upload';
 
-interface CoinFormData {
-  name: string;
-  description: string;
-  year: string;
-  grade: string;
-  price: string;
-  country: string;
-  denomination: string;
-  rarity: string;
-  condition: string;
-  composition: string;
-  mint: string;
-  isAuction: boolean;
-  startingBid: string;
-  auctionDuration: string;
+interface ProcessedImage {
+  file: File;
+  preview: string;
+  uploaded: boolean;
+  uploading: boolean;
+  aiAnalyzed: boolean;
+  errors: string[];
+  id: string;
+  itemType?: ItemType;
+  permanentUrl?: string; // Added for permanent URL tracking
 }
 
-const EnhancedCoinUploadManager = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+interface AdvancedImageUploadManagerProps {
+  onImagesProcessed: (images: ProcessedImage[]) => void;
+  onAIAnalysisComplete: (results: any) => void;
+  maxImages?: number;
+}
+
+const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
+  onImagesProcessed,
+  onAIAnalysisComplete,
+  maxImages = 10
+}) => {
+  const [images, setImages] = useState<ProcessedImage[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [images, setImages] = useState<File[]>([]);
-  const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const [formData, setFormData] = useState<CoinFormData>({
-    name: '',
-    description: '',
-    year: '',
-    grade: '',
-    price: '',
-    country: 'United States',
-    denomination: '',
-    rarity: 'Common',
-    condition: '',
-    composition: '',
-    mint: '',
-    isAuction: false,
-    startingBid: '',
-    auctionDuration: '7'
-  });
+  const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
+  
+  const { performDualAnalysis, isAnalyzing, analysisProgress, currentStep } = useDualImageAnalysis();
+  const { processImageWithItemType, isProcessing } = useEnhancedImageProcessing();
 
-  const uploadImageToStorage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `coin-images/${fileName}`;
-
-    const { data, error } = await supabase.storage
-      .from('coin-images')
-      .upload(filePath, file);
-
-    if (error) throw error;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('coin-images')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
+  const convertFileToDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
-  const analyzeImagesMutation = useMutation({
-    mutationFn: async (imageFiles: File[]) => {
-      setUploadProgress(10);
-      
-      // Upload images to storage
-      const uploadedUrls = [];
-      for (let i = 0; i < imageFiles.length; i++) {
-        const url = await uploadImageToStorage(imageFiles[i]);
-        uploadedUrls.push(url);
-        setUploadProgress(20 + (i * 30 / imageFiles.length));
-      }
-
-      setUploadProgress(60);
-
-      // Call AI analysis
-      const { data, error } = await supabase.functions.invoke('advanced-coin-analyzer', {
-        body: {
-          images: uploadedUrls,
-          analysisType: 'enhanced_dual_recognition'
-        }
-      });
-
-      if (error) throw error;
-
-      setUploadProgress(90);
-
-      // Auto-fill form data from AI results
-      if (data && data.identification) {
-        setFormData(prev => ({
-          ...prev,
-          name: data.identification.coin_name || '',
-          year: data.identification.year?.toString() || '',
-          grade: data.identification.grade || '',
-          country: data.identification.country || 'United States',
-          denomination: data.identification.denomination || '',
-          rarity: data.identification.rarity || 'Common',
-          composition: data.identification.composition || '',
-          mint: data.identification.mint || '',
-          price: data.market_analysis?.estimated_value?.toString() || ''
-        }));
-      }
-
-      setUploadProgress(100);
-      return { ...data, uploadedImages: uploadedUrls };
-    },
-    onSuccess: (data) => {
-      setAnalysisResults(data);
-      toast({
-        title: "✅ AI Analysis Complete!",
-        description: "Coin identified and form auto-filled. Review and submit listing.",
-      });
-      setTimeout(() => setUploadProgress(0), 2000);
-    },
-    onError: (error: any) => {
-      console.error('Analysis failed:', error);
-      toast({
-        title: "❌ Analysis Failed",
-        description: error.message || "Please try again",
-        variant: "destructive"
-      });
-      setUploadProgress(0);
+  const handleFiles = useCallback(async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    
+    if (images.length + fileArray.length > maxImages) {
+      toast.error(`Maximum ${maxImages} images allowed`);
+      return;
     }
-  });
 
-  const submitCoinMutation = useMutation({
-    mutationFn: async () => {
-      if (!user || !analysisResults?.uploadedImages) {
-        throw new Error('Missing user or images');
+    const processedImages: ProcessedImage[] = [];
+    
+    for (const file of fileArray) {
+      try {
+        const processedBlob = await processImageWithItemType(file, selectedItemType);
+        const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
+        const dataURL = await convertFileToDataURL(processedFile);
+        
+        console.log('🖼️ DEBUG Preview URL:', dataURL.substring(0, 50) + '...');
+        
+        processedImages.push({
+          file: processedFile,
+          preview: dataURL,
+          uploaded: false,
+          uploading: false,
+          aiAnalyzed: false,
+          errors: [],
+          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          itemType: selectedItemType
+        });
+      } catch (error) {
+        console.error('Failed to process image:', error);
+        const dataURL = await convertFileToDataURL(file);
+        console.log('🖼️ DEBUG Fallback Preview URL:', dataURL.substring(0, 50) + '...');
+        
+        processedImages.push({
+          file,
+          preview: dataURL,
+          uploaded: false,
+          uploading: false,
+          aiAnalyzed: false,
+          errors: ['Processing failed - using original'],
+          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          itemType: selectedItemType
+        });
       }
-
-      const coinData = {
-        name: formData.name,
-        description: formData.description,
-        year: parseInt(formData.year) || new Date().getFullYear(),
-        grade: formData.grade,
-        price: formData.isAuction ? parseFloat(formData.startingBid) : parseFloat(formData.price),
-        country: formData.country,
-        denomination: formData.denomination,
-        rarity: formData.rarity,
-        condition: formData.condition,
-        composition: formData.composition,
-        mint: formData.mint,
-        image: analysisResults.uploadedImages[0],
-        obverse_image: analysisResults.uploadedImages[0],
-        reverse_image: analysisResults.uploadedImages[1] || analysisResults.uploadedImages[0],
-        user_id: user.id,
-        is_auction: formData.isAuction,
-        auction_end: formData.isAuction 
-          ? new Date(Date.now() + (parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000)).toISOString()
-          : null,
-        starting_bid: formData.isAuction ? parseFloat(formData.startingBid) : null,
-        featured: true,
-        authentication_status: 'verified',
-        ai_confidence: analysisResults.confidence_score || 0.85,
-        ai_provider: 'enhanced_dual_recognition'
-      };
-
-      const { data, error } = await supabase
-        .from('coins')
-        .insert([coinData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "🚀 COIN LISTED SUCCESSFULLY!",
-        description: `${formData.name} is now live in the marketplace!`,
-      });
-      
-      // Reset form
-      setFormData({
-        name: '', description: '', year: '', grade: '', price: '', country: 'United States',
-        denomination: '', rarity: 'Common', condition: '', composition: '', mint: '',
-        isAuction: false, startingBid: '', auctionDuration: '7'
-      });
-      setImages([]);
-      setAnalysisResults(null);
-      
-      // Refresh marketplace data
-      queryClient.invalidateQueries({ queryKey: ['coins'] });
-      queryClient.invalidateQueries({ queryKey: ['marketplace-coins'] });
-    },
-    onError: (error: any) => {
-      console.error('Coin submission failed:', error);
-      toast({
-        title: "❌ Listing Failed",
-        description: error.message || "Please try again",
-        variant: "destructive"
-      });
     }
-  });
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    setImages(prev => [...prev, ...processedImages]);
+  }, [images.length, maxImages, selectedItemType, processImageWithItemType]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const files = e.dataTransfer.files;
     if (files.length > 0) {
-      setImages(files);
+      handleFiles(files);
     }
+  }, [handleFiles]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
   }, []);
 
-  const handleFormChange = useCallback((field: keyof CoinFormData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
   }, []);
+
+  const removeImage = useCallback((id: string) => {
+    setImages(prev => prev.filter(img => img.id !== id));
+  }, []);
+
+  const uploadImages = async () => {
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const uploadedImages: ProcessedImage[] = [];
+      
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        
+        setImages(prev => prev.map(img => 
+          img.id === image.id ? { ...img, uploading: true } : img
+        ));
+
+        console.log(`📸 Uploading image ${i + 1}/${images.length} to Supabase Storage...`);
+        
+        // Upload to Supabase Storage for permanent URL
+        const permanentUrl = await uploadImage(image.file, 'coin-images');
+        
+        if (permanentUrl.startsWith('blob:')) {
+          throw new Error('Upload failed: temporary URL returned instead of permanent');
+        }
+        
+        console.log(`✅ Image ${i + 1} uploaded with permanent URL:`, permanentUrl);
+        
+        const uploadedImage = {
+          ...image,
+          uploading: false,
+          uploaded: true,
+          permanentUrl: permanentUrl
+        };
+        
+        uploadedImages.push(uploadedImage);
+        
+        setImages(prev => prev.map(img => 
+          img.id === image.id ? uploadedImage : img
+        ));
+
+        setUploadProgress(((i + 1) / images.length) * 100);
+      }
+
+      console.log(`🎉 All ${images.length} images uploaded successfully with permanent URLs`);
+      toast.success('All images uploaded successfully!');
+      
+      // CRITICAL FIX: Pass images with permanent URLs for proper storage
+      onImagesProcessed(uploadedImages);
+    } catch (error) {
+      console.error('❌ Upload failed:', error);
+      toast.error('Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const performAIAnalysis = async () => {
+    if (images.length < 2) {
+      toast.error('Please upload at least 2 images (front and back) for AI analysis');
+      return;
+    }
+
+    try {
+      const frontImage = images[0].file;
+      const backImage = images[1].file;
+      
+      console.log('Starting enhanced Claude AI analysis with error coin detection...');
+      const results = await performDualAnalysis(frontImage, backImage);
+      
+      if (results) {
+        // Enhanced AI categorization for error coins
+        if (results.errorDetected || results.category === 'error_coin') {
+          results.category = 'error_coin';
+          results.rarity = 'Ultra Rare';
+          results.featured = true;
+          console.log('🚨 ERROR COIN DETECTED by AI - Auto-categorized as error_coin');
+        }
+        
+        setImages(prev => prev.map(img => ({ ...img, aiAnalyzed: true })));
+        onAIAnalysisComplete(results);
+        toast.success('Enhanced AI analysis completed successfully!');
+      }
+    } catch (error) {
+      console.error('Enhanced AI analysis failed:', error);
+      toast.error('AI analysis failed. Please try again.');
+    }
+  };
+
+  const canUpload = images.length > 0 && !isUploading;
+  const canAnalyze = images.length >= 2 && images.some(img => img.uploaded) && !isAnalyzing;
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="h-6 w-6 text-blue-600" />
-            LIVE Coin Upload & AI Analysis
-            <Badge className="bg-green-100 text-green-800">FULLY OPERATIONAL</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Image Upload */}
-          <div className="space-y-4">
-            <Label>Upload Coin Images (Front & Back)</Label>
-            <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
-              <Upload className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-              <Input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="coin-images"
-              />
-              <Label htmlFor="coin-images" className="cursor-pointer">
-                <Button type="button" className="bg-blue-600 hover:bg-blue-700">
-                  Select Coin Images
-                </Button>
-              </Label>
-              {images.length > 0 && (
-                <p className="mt-2 text-sm text-green-600">
-                  {images.length} image(s) selected
-                </p>
-              )}
-            </div>
+    <Card className="h-fit">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Camera className="w-5 h-5 text-blue-600" />
+          Enhanced Image Upload Manager
+          <Badge variant="outline">{images.length}/{maxImages}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <ItemTypeSelector 
+          value={selectedItemType}
+          onValueChange={setSelectedItemType}
+        />
+
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+            dragActive 
+              ? 'border-blue-500 bg-blue-50' 
+              : 'border-gray-300 hover:border-gray-400'
+          }`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">
+            Upload up to {maxImages} {selectedItemType === 'coin' ? 'coin' : 'banknote'} images
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Drag & drop images here, or click to select files
+          </p>
+          
+          <div className="flex gap-4 justify-center">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => e.target.files && handleFiles(e.target.files)}
+              className="hidden"
+              id="file-upload"
+            />
+            <label htmlFor="file-upload">
+              <Button asChild>
+                <span>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Choose Files
+                </span>
+              </Button>
+            </label>
+            
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => e.target.files && handleFiles(e.target.files)}
+              className="hidden"
+              id="camera-upload"
+            />
+            <label htmlFor="camera-upload">
+              <Button variant="outline" asChild>
+                <span>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Camera
+                </span>
+              </Button>
+            </label>
           </div>
+        </div>
 
-          {/* AI Analysis Button */}
-          {images.length > 0 && !analysisResults && (
-            <Button 
-              onClick={() => analyzeImagesMutation.mutate(images)}
-              disabled={analyzeImagesMutation.isPending}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              size="lg"
+        <AnimatePresence>
+          {images.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
             >
-              {analyzeImagesMutation.isPending ? (
-                <>
-                  <Zap className="h-5 w-5 mr-2 animate-spin" />
-                  AI Analyzing... {uploadProgress}%
-                </>
-              ) : (
-                <>
-                  <Zap className="h-5 w-5 mr-2" />
-                  START AI ANALYSIS
-                </>
-              )}
-            </Button>
-          )}
-
-          {/* Progress Bar */}
-          {analyzeImagesMutation.isPending && (
-            <Progress value={uploadProgress} className="h-3" />
-          )}
-
-          {/* AI Results */}
-          {analysisResults && (
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="font-semibold text-green-800">AI Analysis Complete</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <strong>Confidence:</strong> {Math.round((analysisResults.confidence_score || 0.85) * 100)}%
-                  </div>
-                  <div>
-                    <strong>Market Value:</strong> ${analysisResults.market_analysis?.estimated_value || 'Analyzing...'}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Coin Details Form */}
-          {analysisResults && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div>
-                  <Label>Coin Name</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => handleFormChange('name', e.target.value)}
-                    placeholder="e.g., 1921 Morgan Silver Dollar"
-                  />
-                </div>
-                
-                <div>
-                  <Label>Year</Label>
-                  <Input
-                    value={formData.year}
-                    onChange={(e) => handleFormChange('year', e.target.value)}
-                    placeholder="e.g., 1921"
-                  />
-                </div>
-
-                <div>
-                  <Label>Grade</Label>
-                  <Select value={formData.grade} onValueChange={(value) => handleFormChange('grade', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select grade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MS-70">MS-70</SelectItem>
-                      <SelectItem value="MS-69">MS-69</SelectItem>
-                      <SelectItem value="MS-65">MS-65</SelectItem>
-                      <SelectItem value="MS-63">MS-63</SelectItem>
-                      <SelectItem value="AU-58">AU-58</SelectItem>
-                      <SelectItem value="XF-45">XF-45</SelectItem>
-                      <SelectItem value="VF-20">VF-20</SelectItem>
-                      <SelectItem value="F-12">F-12</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Country</Label>
-                  <Input
-                    value={formData.country}
-                    onChange={(e) => handleFormChange('country', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label>Denomination</Label>
-                  <Input
-                    value={formData.denomination}
-                    onChange={(e) => handleFormChange('denomination', e.target.value)}
-                    placeholder="e.g., Silver Dollar"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => handleFormChange('description', e.target.value)}
-                    placeholder="Detailed description of the coin..."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label>Rarity</Label>
-                  <Select value={formData.rarity} onValueChange={(value) => handleFormChange('rarity', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Common">Common</SelectItem>
-                      <SelectItem value="Scarce">Scarce</SelectItem>
-                      <SelectItem value="Rare">Rare</SelectItem>
-                      <SelectItem value="Very Rare">Very Rare</SelectItem>
-                      <SelectItem value="Key Date">Key Date</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Composition</Label>
-                  <Input
-                    value={formData.composition}
-                    onChange={(e) => handleFormChange('composition', e.target.value)}
-                    placeholder="e.g., Silver"
-                  />
-                </div>
-
-                <div>
-                  <Label>Mint</Label>
-                  <Input
-                    value={formData.mint}
-                    onChange={(e) => handleFormChange('mint', e.target.value)}
-                    placeholder="e.g., Philadelphia"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isAuction"
-                    checked={formData.isAuction}
-                    onChange={(e) => handleFormChange('isAuction', e.target.checked)}
-                  />
-                  <Label htmlFor="isAuction">List as Auction</Label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Pricing */}
-          {analysisResults && (
-            <div className="space-y-4">
-              {formData.isAuction ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Starting Bid ($)</Label>
-                    <Input
-                      type="number"
-                      value={formData.startingBid}
-                      onChange={(e) => handleFormChange('startingBid', e.target.value)}
-                      placeholder="0.00"
+              {images.map((image) => (
+                <motion.div
+                  key={image.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="relative group"
+                >
+                  <div className={`w-full border-2 border-gray-200 overflow-hidden ${
+                    image.itemType === 'coin' ? 'aspect-square rounded-full' : 'aspect-[2/1] rounded-lg'
+                  }`}>
+                    <img
+                      src={image.preview}
+                      alt={image.itemType === 'coin' ? 'Coin' : 'Banknote'}
+                      className="w-full h-full object-cover"
+                      style={{ imageRendering: 'crisp-edges' }}
+                      onError={(e) => {
+                        console.error('❌ Image failed to load:', image.preview);
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=200&h=200&fit=crop&crop=center';
+                        target.style.opacity = '0.5';
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Image loaded successfully:', image.preview.substring(0, 50) + '...');
+                      }}
                     />
                   </div>
-                  <div>
-                    <Label>Auction Duration (days)</Label>
-                    <Select value={formData.auctionDuration} onValueChange={(value) => handleFormChange('auctionDuration', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 Day</SelectItem>
-                        <SelectItem value="3">3 Days</SelectItem>
-                        <SelectItem value="7">7 Days</SelectItem>
-                        <SelectItem value="10">10 Days</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  
+                  <div className="absolute top-2 left-2 space-y-1">
+                    {image.uploading && (
+                      <Badge variant="secondary" className="text-xs">
+                        <RotateCw className="w-3 h-3 mr-1 animate-spin" />
+                        Uploading...
+                      </Badge>
+                    )}
+                    {image.uploaded && (
+                      <Badge variant="default" className="text-xs bg-green-500">
+                        <Check className="w-3 h-3 mr-1" />
+                        Uploaded
+                      </Badge>
+                    )}
+                    {image.aiAnalyzed && (
+                      <Badge variant="default" className="text-xs bg-purple-500">
+                        <Brain className="w-3 h-3 mr-1" />
+                        AI Analyzed
+                      </Badge>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <Label>Buy Now Price ($)</Label>
-                  <Input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => handleFormChange('price', e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Submit Button */}
-          {analysisResults && (
-            <Button 
-              onClick={() => submitCoinMutation.mutate()}
-              disabled={submitCoinMutation.isPending || !formData.name || (!formData.price && !formData.startingBid)}
-              className="w-full bg-green-600 hover:bg-green-700"
-              size="lg"
-            >
-              {submitCoinMutation.isPending ? (
-                <>
-                  <Upload className="h-5 w-5 mr-2 animate-spin" />
-                  CREATING LISTING...
-                </>
-              ) : formData.isAuction ? (
-                <>
-                  <Clock className="h-5 w-5 mr-2" />
-                  START AUCTION
-                </>
-              ) : (
-                <>
-                  <DollarSign className="h-5 w-5 mr-2" />
-                  LIST FOR SALE
-                </>
-              )}
-            </Button>
+                  <Badge variant="outline" className="absolute bottom-2 left-2 text-xs">
+                    {image.itemType === 'coin' ? '🪙' : '💵'}
+                  </Badge>
+
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeImage(image.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+
+                  <div className="absolute bottom-2 right-2">
+                    <Badge variant="outline" className="text-xs">
+                      {images.indexOf(image) + 1}
+                    </Badge>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </AnimatePresence>
+
+        {isUploading && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Uploading images...</span>
+              <span>{Math.round(uploadProgress)}%</span>
+            </div>
+            <Progress value={uploadProgress} />
+          </div>
+        )}
+
+        {isAnalyzing && (
+          <Alert>
+            <Brain className="h-4 w-4" />
+            <AlertDescription className="space-y-2">
+              <div className="flex justify-between">
+                <span>{currentStep}</span>
+                <span>{Math.round(analysisProgress)}%</span>
+              </div>
+              <Progress value={analysisProgress} />
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex gap-4">
+          <Button
+            onClick={uploadImages}
+            disabled={!canUpload}
+            className="flex-1"
+          >
+            {isUploading ? (
+              <>
+                <RotateCw className="w-4 h-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Images
+              </>
+            )}
+          </Button>
+
+          <Button
+            onClick={performAIAnalysis}
+            disabled={!canAnalyze}
+            variant="outline"
+            className="flex-1"
+          >
+            {isAnalyzing ? (
+              <>
+                <Brain className="w-4 h-4 mr-2 animate-pulse" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2" />
+                Enhanced AI Analysis
+              </>
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export default EnhancedCoinUploadManager;
+export default AdvancedImageUploadManager;
