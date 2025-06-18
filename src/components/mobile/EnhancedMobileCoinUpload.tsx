@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Upload, Zap, CheckCircle, Store } from 'lucide-react';
@@ -67,21 +68,21 @@ const EnhancedMobileCoinUpload = () => {
         // 100% Complete auto-fill with ALL enhanced fields including structured description
         setCoinData(prev => ({
           ...prev,
-          title: result.name,
+          title: result.name || prev.title,
           description: result.description || `${result.name} from ${result.year}. Grade: ${result.grade}. Composition: ${result.composition}. ${result.rarity} rarity coin with complete professional analysis.`,
-          structured_description: result.structured_description || `PROFESSIONAL NUMISMATIC ANALYSIS: ${result.name} (${result.year}) - ${result.grade} grade ${result.composition} coin from ${result.country}. RARITY ASSESSMENT: ${result.rarity}. PHYSICAL SPECIFICATIONS: Weight ${result.weight}g, Diameter ${result.diameter}mm. MARKET VALUATION: Current estimate $${result.estimatedValue}. AUTHENTICATION: AI verified with ${Math.round(result.confidence * 100)}% confidence. COLLECTOR VALUE: Based on current market conditions and comparative sales data.`,
-          year: result.year.toString(),
-          country: result.country,
-          denomination: result.denomination,
-          grade: result.grade,
-          rarity: result.rarity,
-          mint: result.mint || '',
-          composition: result.composition,
-          diameter: result.diameter?.toString() || '',
-          weight: result.weight?.toString() || '',
-          price: result.estimatedValue.toString(),
-          condition: result.condition || result.grade,
-          category: result.category || determineCategory(result.country, result.denomination)
+          structured_description: result.structured_description || `PROFESSIONAL NUMISMATIC ANALYSIS: ${result.name} (${result.year}) - ${result.grade} grade ${result.composition} coin from ${result.country}${result.mint ? `, ${result.mint} mint` : ''}. RARITY ASSESSMENT: ${result.rarity}. PHYSICAL SPECIFICATIONS: Weight ${result.weight}g, Diameter ${result.diameter}mm. MARKET VALUATION: Current estimate $${result.estimatedValue}. AUTHENTICATION: AI verified with ${Math.round(result.confidence * 100)}% confidence. COLLECTOR VALUE: Based on current market conditions and comparative sales data.`,
+          year: result.year?.toString() || prev.year,
+          country: result.country || prev.country,
+          denomination: result.denomination || prev.denomination,
+          grade: result.grade || prev.grade,
+          rarity: result.rarity || prev.rarity,
+          mint: result.mint || prev.mint,
+          composition: result.composition || prev.composition,
+          diameter: result.diameter?.toString() || prev.diameter,
+          weight: result.weight?.toString() || prev.weight,
+          price: result.estimatedValue?.toString() || prev.price,
+          condition: result.condition || result.grade || prev.condition,
+          category: result.category || determineCategory(result.country, result.denomination) || prev.category
         }));
 
         setImages(prev => prev.map(img => ({ ...img, uploaded: true, uploading: false })));
@@ -344,7 +345,7 @@ const EnhancedMobileCoinUpload = () => {
             />
           </div>
 
-          {/* Complete auto-fill fields grid with weight and diameter */}
+          {/* Complete auto-fill fields grid - SINGLE SET, NO DUPLICATES */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="year">Year</Label>
@@ -390,7 +391,6 @@ const EnhancedMobileCoinUpload = () => {
                 style={{ touchAction: 'manipulation' }}
               />
             </div>
-            {/* Weight and Diameter - Now Auto-Filled */}
             <div>
               <Label htmlFor="weight">Weight (g)</Label>
               <Input
@@ -431,32 +431,6 @@ const EnhancedMobileCoinUpload = () => {
                 value={coinData.rarity}
                 onChange={(e) => updateCoinData({ rarity: e.target.value })}
                 placeholder="e.g. Common, Rare"
-                className="touch-manipulation"
-                style={{ touchAction: 'manipulation' }}
-              />
-            </div>
-          </div>
-
-          {/* Weight and Diameter - Now Auto-Filled */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="weight">Weight (g)</Label>
-              <Input
-                id="weight"
-                value={coinData.weight}
-                onChange={(e) => updateCoinData({ weight: e.target.value })}
-                placeholder="Auto-filled from AI"
-                className="touch-manipulation"
-                style={{ touchAction: 'manipulation' }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="diameter">Diameter (mm)</Label>
-              <Input
-                id="diameter"
-                value={coinData.diameter}
-                onChange={(e) => updateCoinData({ diameter: e.target.value })}
-                placeholder="Auto-filled from AI"
                 className="touch-manipulation"
                 style={{ touchAction: 'manipulation' }}
               />

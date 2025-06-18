@@ -68,6 +68,11 @@ export const useRealAICoinRecognition = () => {
       console.log('🔗 Complete Data Merger for 100% Auto-Fill...');
       const mergedData = await mergeAnalysisData(claudeResult.analysis, []);
       
+      // Generate complete structured description
+      const structuredDescription = generateEnhancedStructuredDescription(mergedData, claudeResult.analysis);
+      const autoDescription = generateAutoDescription(mergedData, claudeResult.analysis);
+      const suggestedCategory = determineCategory(mergedData.country || claudeResult.analysis.country, mergedData.denomination || claudeResult.analysis.denomination);
+      
       const enhancedResult: EnhancedAIResult = {
         name: mergedData.name || claudeResult.analysis.name || 'Unknown Coin',
         year: mergedData.year || claudeResult.analysis.year || new Date().getFullYear(),
@@ -84,9 +89,9 @@ export const useRealAICoinRecognition = () => {
         confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75,
         aiProvider: 'claude-enhanced',
         processingTime: Date.now() - startTime,
-        description: generateAutoDescription(mergedData, claudeResult.analysis),
-        structured_description: generateEnhancedStructuredDescription(mergedData, claudeResult.analysis),
-        category: mergedData.suggested_category || determineCategory(mergedData.country, mergedData.denomination),
+        description: autoDescription,
+        structured_description: structuredDescription,
+        category: suggestedCategory,
         market_intelligence: marketplaceIntelligence,
         condition: mergedData.grade || claudeResult.analysis.grade || 'Ungraded',
         authentication_status: 'ai_verified',
@@ -134,8 +139,9 @@ const generateAutoDescription = (mergedData: any, claudeData: any): string => {
   const rarity = mergedData.rarity || claudeData.rarity || 'Common';
   const weight = mergedData.weight || claudeData.weight || 0;
   const diameter = mergedData.diameter || claudeData.diameter || 0;
+  const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
   
-  return `${name} from ${year}. Grade: ${grade}. Composition: ${composition}. Weight: ${weight}g, Diameter: ${diameter}mm. ${rarity} rarity coin with complete AI analysis and verification.`;
+  return `${name} from ${year}. Grade: ${grade}. Composition: ${composition}. Weight: ${weight}g, Diameter: ${diameter}mm. ${rarity} rarity coin with complete AI analysis and verification. Estimated market value: $${estimatedValue}. Professional numismatic assessment with full authentication.`;
 };
 
 const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any): string => {
@@ -149,8 +155,9 @@ const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any)
   const weight = mergedData.weight || claudeData.weight || 0;
   const diameter = mergedData.diameter || claudeData.diameter || 0;
   const mint = mergedData.mint || claudeData.mint || '';
+  const confidence = mergedData.final_confidence || claudeData.confidence || 0.75;
   
-  return `PROFESSIONAL NUMISMATIC ANALYSIS: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}${mint ? `, ${mint} mint` : ''}. RARITY ASSESSMENT: ${rarity}. PHYSICAL SPECIFICATIONS: Weight ${weight}g, Diameter ${diameter}mm. MARKET VALUATION: Current estimate $${estimatedValue}. AUTHENTICATION: This coin has been professionally analyzed using advanced AI recognition technology with verified marketplace intelligence data integration. COLLECTOR VALUE: Based on current market conditions and comparative sales data.`;
+  return `PROFESSIONAL NUMISMATIC ANALYSIS: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}${mint ? `, ${mint} mint` : ''}. RARITY ASSESSMENT: ${rarity}. PHYSICAL SPECIFICATIONS: Weight ${weight}g, Diameter ${diameter}mm. MARKET VALUATION: Current estimate $${estimatedValue}. AUTHENTICATION: This coin has been professionally analyzed using advanced AI recognition technology with ${Math.round(confidence * 100)}% confidence verification and integrated marketplace intelligence data. COLLECTOR VALUE: Based on current market conditions, comparative sales data, and numismatic standards. INVESTMENT GRADE: Suitable for serious collectors and investors seeking authenticated numismatic assets.`;
 };
 
 const determineCategory = (country?: string, denomination?: string): string => {
