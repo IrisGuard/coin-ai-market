@@ -9,6 +9,24 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface ValidationResult {
+  system_status: string;
+  greece_coin_fixed: boolean;
+  misclassified_greece_coins: number;
+  total_coins: number;
+  error_coins: number;
+  completion_percentage: number;
+  validation_timestamp: string;
+}
+
+interface SystemStatus {
+  validation: ValidationResult;
+  totalCoins: number;
+  totalUsers: number;
+  totalStores: number;
+  totalCategories: number;
+}
+
 const AdminSystemValidationTab = () => {
   const [validationProgress, setValidationProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
@@ -17,7 +35,7 @@ const AdminSystemValidationTab = () => {
   // Check current system status
   const { data: systemStatus, isLoading } = useQuery({
     queryKey: ['system-validation-status'],
-    queryFn: async () => {
+    queryFn: async (): Promise<SystemStatus> => {
       console.log('🔍 Running comprehensive system validation...');
       
       const { data: validationResult } = await supabase.rpc('validate_complete_system');
@@ -30,7 +48,7 @@ const AdminSystemValidationTab = () => {
       ]);
 
       return {
-        validation: validationResult,
+        validation: validationResult as ValidationResult,
         totalCoins: coins.count || 0,
         totalUsers: users.count || 0,
         totalStores: stores.count || 0,
