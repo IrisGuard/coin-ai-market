@@ -51,10 +51,10 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = ({ coin, index, prio
   const getRarityColor = () => {
     switch (coin.rarity) {
       case 'Ultra Rare': return 'border-red-200 text-red-700 bg-red-50';
-      case 'Very Rare': return 'border-purple-200 text-purple-700 bg-purple-50';
       case 'Rare': return 'border-orange-200 text-orange-700 bg-orange-50';
       case 'Uncommon': return 'border-yellow-200 text-yellow-700 bg-yellow-50';
       case 'Common': return 'border-green-200 text-green-700 bg-green-50';
+      case 'Legendary': return 'border-purple-200 text-purple-700 bg-purple-50';
       default: return 'border-gray-200 text-gray-700 bg-gray-50';
     }
   };
