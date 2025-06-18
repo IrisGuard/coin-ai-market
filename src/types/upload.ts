@@ -2,9 +2,11 @@
 export interface UploadedImage {
   file: File;
   url: string;
-  permanentUrl?: string; // Added missing property
+  permanentUrl?: string;
   preview?: string;
   uploaded?: boolean;
+  uploading?: boolean;
+  error?: string;
   id?: string;
 }
 
@@ -31,14 +33,12 @@ export interface CoinData {
 
 export type ItemType = 'coin' | 'banknote';
 
-// Enhanced DualAnalysisResult with missing properties
 export interface DualAnalysisResult {
   name?: string;
   confidence?: number;
   grade?: string;
   estimatedValue?: number;
   errors?: string[];
-  // Added missing properties
   errorDetected?: boolean;
   category?: string;
   rarity?: string;

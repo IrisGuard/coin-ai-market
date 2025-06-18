@@ -1,10 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Brain } from 'lucide-react';
 import EnhancedCoinUploadManager from '@/components/dealer/EnhancedCoinUploadManager';
+import { toast } from 'sonner';
 
 const DealerCoinUploadPanel: React.FC = () => {
+  const [uploadedImages, setUploadedImages] = useState<any[]>([]);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
+
+  const handleImagesProcessed = (images: any[]) => {
+    console.log('📸 Images processed:', images);
+    setUploadedImages(images);
+    toast.success(`${images.length} images processed successfully!`);
+  };
+
+  const handleAIAnalysisComplete = (results: any) => {
+    console.log('🤖 AI Analysis complete:', results);
+    setAnalysisResults(results);
+    toast.success('AI analysis completed!');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -18,7 +34,11 @@ const DealerCoinUploadPanel: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent>
-        <EnhancedCoinUploadManager />
+        <EnhancedCoinUploadManager
+          onImagesProcessed={handleImagesProcessed}
+          onAIAnalysisComplete={handleAIAnalysisComplete}
+          maxImages={10}
+        />
       </CardContent>
     </Card>
   );
