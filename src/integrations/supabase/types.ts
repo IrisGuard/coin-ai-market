@@ -4162,6 +4162,10 @@ export type Database = {
         }
         Returns: Json
       }
+      enable_ai_global_integration: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       enable_password_protection: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4186,6 +4190,10 @@ export type Database = {
           operation_parameters: Json
         }
         Returns: string
+      }
+      final_system_validation: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       generate_ai_prediction: {
         Args: { model_id: string; input_data: Json }
@@ -4316,6 +4324,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      resolve_all_security_issues: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       resolve_security_warnings: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4351,6 +4363,10 @@ export type Database = {
       validate_security_config: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      validate_uuid_input: {
+        Args: { input_text: string }
+        Returns: string
       }
       verify_admin_access_secure: {
         Args: Record<PropertyKey, never>

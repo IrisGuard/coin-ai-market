@@ -1,146 +1,140 @@
 
 import { useState, useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { uploadImage, deleteImage } from '@/utils/imageUpload';
 import { toast } from 'sonner';
 
-interface CoinImageManagementProps {
+interface UseCoinImageManagementProps {
   coinId: string;
   currentImages: string[];
 }
 
-export const useCoinImageManagement = ({ coinId, currentImages }: CoinImageManagementProps) => {
+export const useCoinImageManagement = ({ coinId, currentImages }: UseCoinImageManagementProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const queryClient = useQueryClient();
 
-  const updateCoinImages = useMutation({
-    mutationFn: async (newImages: string[]) => {
-      const { data, error } = await supabase
-        .from('coins')
-        .update({ 
-          images: newImages,
-          image: newImages[0] || null,
-          obverse_image: newImages[1] || null,
-          reverse_image: newImages[2] || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', coinId)
-        .select()
-        .single();
+  const uploadImageToStorage = useCallback(async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${coinId}/${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('coin-images')
+      .upload(fileName, file);
 
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coins'] });
-      queryClient.invalidateQueries({ queryKey: ['dealer-coins'] });
-      queryClient.invalidateQueries({ queryKey: ['store-filtered-coins'] });
-      toast.success('Images updated successfully!');
-    },
-    onError: (error) => {
-      console.error('❌ Failed to update coin images:', error);
-      toast.error('Failed to update images. Please try again.');
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw new Error('Failed to upload image to storage');
     }
-  });
 
-  const deleteImageFromCoin = useCallback(async (imageUrl: string, imageIndex: number) => {
-    setIsLoading(true);
+    const { data: urlData } = supabase.storage
+      .from('coin-images')
+      .getPublicUrl(data.path);
+
+    return urlData.publicUrl;
+  }, [coinId]);
+
+  const updateCoinImages = useCallback(async (newImages: string[]) => {
+    const { error } = await supabase
+      .from('coins')
+      .update({ 
+        images: newImages,
+        image: newImages[0] || null // Update primary image
+      })
+      .eq('id', coinId);
+
+    if (error) {
+      console.error('Database update error:', error);
+      throw new Error('Failed to update coin images in database');
+    }
+  }, [coinId]);
+
+  const deleteImageFromCoin = useCallback(async (imageUrl: string, index: number): Promise<string[]> => {
     try {
-      console.log(`🗑️ Deleting image ${imageIndex + 1} for coin ${coinId}`);
+      setIsLoading(true);
       
-      // Delete from Supabase Storage
-      await deleteImage(imageUrl, 'coin-images');
-      
-      // Update images array
-      const updatedImages = currentImages.filter((_, index) => index !== imageIndex);
+      // Remove image from array
+      const newImages = currentImages.filter((_, i) => i !== index);
       
       // Update database
-      await updateCoinImages.mutateAsync(updatedImages);
+      await updateCoinImages(newImages);
       
-      console.log('✅ Image deleted successfully');
+      // Try to delete from storage if it's a Supabase URL
+      if (imageUrl.includes('supabase.co/storage/v1/object/public/coin-images/')) {
+        const urlParts = imageUrl.split('/coin-images/');
+        if (urlParts[1]) {
+          await supabase.storage
+            .from('coin-images')
+            .remove([urlParts[1]]);
+        }
+      }
       
-      return updatedImages;
+      return newImages;
     } catch (error) {
-      console.error('❌ Delete image failed:', error);
-      toast.error('Failed to delete image. Please try again.');
+      console.error('Delete image error:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [coinId, currentImages, updateCoinImages]);
+  }, [currentImages, updateCoinImages]);
 
-  const replaceImageInCoin = useCallback(async (file: File, imageIndex: number) => {
-    setIsLoading(true);
+  const replaceImageInCoin = useCallback(async (file: File, index: number): Promise<string[]> => {
     try {
-      console.log(`🔄 Replacing image ${imageIndex + 1} for coin ${coinId}`);
-      
-      // Delete old image from storage first
-      if (currentImages[imageIndex]) {
-        await deleteImage(currentImages[imageIndex], 'coin-images');
-      }
+      setIsLoading(true);
       
       // Upload new image
-      const newImageUrl = await uploadImage(file, 'coin-images');
+      const newImageUrl = await uploadImageToStorage(file);
       
-      if (newImageUrl.startsWith('blob:')) {
-        throw new Error('Upload failed: temporary URL returned');
-      }
-      
-      // Update images array
-      const updatedImages = [...currentImages];
-      updatedImages[imageIndex] = newImageUrl;
+      // Replace image in array
+      const newImages = [...currentImages];
+      const oldImageUrl = newImages[index];
+      newImages[index] = newImageUrl;
       
       // Update database
-      await updateCoinImages.mutateAsync(updatedImages);
+      await updateCoinImages(newImages);
       
-      console.log('✅ Image replaced successfully');
+      // Try to delete old image from storage if it's a Supabase URL
+      if (oldImageUrl && oldImageUrl.includes('supabase.co/storage/v1/object/public/coin-images/')) {
+        const urlParts = oldImageUrl.split('/coin-images/');
+        if (urlParts[1]) {
+          await supabase.storage
+            .from('coin-images')
+            .remove([urlParts[1]]);
+        }
+      }
       
-      return updatedImages;
+      return newImages;
     } catch (error) {
-      console.error('❌ Replace image failed:', error);
-      toast.error('Failed to replace image. Please try again.');
+      console.error('Replace image error:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [coinId, currentImages, updateCoinImages]);
+  }, [currentImages, uploadImageToStorage, updateCoinImages]);
 
-  const addNewImageToCoin = useCallback(async (file: File) => {
-    setIsLoading(true);
+  const addNewImageToCoin = useCallback(async (file: File): Promise<string[]> => {
     try {
-      console.log(`➕ Adding new image to coin ${coinId}`);
+      setIsLoading(true);
       
       // Upload new image
-      const newImageUrl = await uploadImage(file, 'coin-images');
+      const newImageUrl = await uploadImageToStorage(file);
       
-      if (newImageUrl.startsWith('blob:')) {
-        throw new Error('Upload failed: temporary URL returned');
-      }
-      
-      // Add to images array
-      const updatedImages = [...currentImages, newImageUrl];
+      // Add image to array
+      const newImages = [...currentImages, newImageUrl];
       
       // Update database
-      await updateCoinImages.mutateAsync(updatedImages);
+      await updateCoinImages(newImages);
       
-      console.log('✅ Image added successfully');
-      
-      return updatedImages;
+      return newImages;
     } catch (error) {
-      console.error('❌ Add image failed:', error);
-      toast.error('Failed to add image. Please try again.');
+      console.error('Add image error:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [coinId, currentImages, updateCoinImages]);
+  }, [currentImages, uploadImageToStorage, updateCoinImages]);
 
   return {
     isLoading,
     deleteImageFromCoin,
     replaceImageInCoin,
-    addNewImageToCoin,
-    isUpdating: updateCoinImages.isPending
+    addNewImageToCoin
   };
 };
