@@ -1,17 +1,17 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 import { useStoreFilteredCoins } from '@/hooks/useStoreFilteredCoins';
 import { toast } from 'sonner';
-import { Coins, Edit, Trash2, Eye, DollarSign, Camera } from 'lucide-react';
-import EditCoinImagesModal from './EditCoinImagesModal';
+import { Coins, Edit, Trash2, Eye, Camera } from 'lucide-react';
+import CoinImageEditor from './CoinImageEditor';
 
 interface Coin {
   id: string;
@@ -68,6 +68,12 @@ const DealerCoinsList = () => {
 
   const handleEditImages = (coin: Coin) => {
     setEditingCoin(coin);
+  };
+
+  const handleImagesUpdated = (newImages: string[]) => {
+    // Refresh the coins list to show updated images
+    queryClient.invalidateQueries({ queryKey: ['store-filtered-coins'] });
+    queryClient.invalidateQueries({ queryKey: ['dealer-coins', user?.id] });
   };
 
   const getStatusColor = (status: string) => {
@@ -280,15 +286,25 @@ const DealerCoinsList = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Images Modal */}
+      {/* Image Editor Modal */}
       {editingCoin && (
-        <EditCoinImagesModal
-          isOpen={!!editingCoin}
-          onClose={() => setEditingCoin(null)}
-          coinId={editingCoin.id}
-          coinName={editingCoin.name}
-          currentImages={getValidImages(editingCoin)}
-        />
+        <Dialog open={!!editingCoin} onOpenChange={() => setEditingCoin(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Camera className="w-5 h-5 text-blue-600" />
+                Edit Images - {editingCoin.name}
+              </DialogTitle>
+            </DialogHeader>
+            <CoinImageEditor
+              coinId={editingCoin.id}
+              coinName={editingCoin.name}
+              currentImages={getValidImages(editingCoin)}
+              onImagesUpdated={handleImagesUpdated}
+              maxImages={10}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );
