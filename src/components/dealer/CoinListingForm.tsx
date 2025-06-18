@@ -45,7 +45,6 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
 
-  // Coin categories
   const categories = [
     'USA COINS',
     'EUROPEAN COINS',
@@ -61,7 +60,6 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
     'CANADIAN COINS'
   ];
 
-  // Condition grades
   const grades = [
     'MS-70', 'MS-69', 'MS-68', 'MS-67', 'MS-66', 'MS-65', 'MS-64', 'MS-63', 'MS-62', 'MS-61', 'MS-60',
     'AU-58', 'AU-55', 'AU-53', 'AU-50',
@@ -87,7 +85,6 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
     setIsDraft(asDraft);
 
     try {
-      // Validate required fields
       if (!asDraft) {
         if (!coinData.title || !coinData.category || !coinData.price) {
           toast.error('Please fill in all required fields');
@@ -99,7 +96,6 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
         }
       }
 
-      // Submit logic here
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       if (asDraft) {
@@ -115,7 +111,6 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
     }
   };
 
-  // Auto-populate from AI results
   useEffect(() => {
     if (aiResults && !coinData.title) {
       onCoinDataChange({
@@ -384,77 +379,35 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
                 />
               </div>
             )}
-
-            {aiResults && aiResults.analysis?.estimated_value && (
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
-                  <span className="font-medium text-blue-900">AI Price Suggestion</span>
-                </div>
-                <p className="text-blue-800">
-                  Estimated Market Value: ${aiResults.analysis.estimated_value}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => updateField('price', aiResults.analysis.estimated_value.toString())}
-                >
-                  Use AI Suggestion
-                </Button>
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="advanced" className="space-y-4">
-            <div>
-              <Label htmlFor="publishDate">Publish Date</Label>
-              <Input
-                id="publishDate"
-                type="datetime-local"
-                value={coinData.publishDate || ''}
-                onChange={(e) => updateField('publishDate', e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Leave empty to publish immediately
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="tags">Tags (comma separated)</Label>
-              <Input
-                id="tags"
-                value={coinData.tags || ''}
-                onChange={(e) => updateField('tags', e.target.value)}
-                placeholder="vintage, rare, morgan, silver"
-              />
-            </div>
-
             <div className="flex items-center space-x-2">
               <Switch
                 id="featured"
                 checked={coinData.featured || false}
                 onCheckedChange={(checked) => updateField('featured', checked)}
               />
-              <Label htmlFor="featured">Featured Listing (+$5 fee)</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="international"
-                checked={coinData.international || false}
-                onCheckedChange={(checked) => updateField('international', checked)}
-              />
-              <Label htmlFor="international">International Shipping</Label>
+              <Label htmlFor="featured">Featured Listing</Label>
             </div>
 
             <div>
-              <Label htmlFor="notes">Private Notes</Label>
+              <Label htmlFor="keywords">Keywords (comma separated)</Label>
+              <Input
+                id="keywords"
+                value={coinData.keywords || ''}
+                onChange={(e) => updateField('keywords', e.target.value)}
+                placeholder="e.g., morgan, silver, dollar, 1921"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="provenance">Provenance</Label>
               <Textarea
-                id="notes"
-                value={coinData.notes || ''}
-                onChange={(e) => updateField('notes', e.target.value)}
-                placeholder="Internal notes (not visible to buyers)"
+                id="provenance"
+                value={coinData.provenance || ''}
+                onChange={(e) => updateField('provenance', e.target.value)}
+                placeholder="History of ownership, certificates, authentication details..."
                 className="min-h-[80px]"
               />
             </div>
@@ -470,13 +423,13 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
           >
             {isDraft ? (
               <>
-                <Save className="w-4 h-4 mr-2 animate-pulse" />
+                <Save className="w-4 h-4 mr-2 animate-spin" />
                 Saving Draft...
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Save as Draft
+                Save Draft
               </>
             )}
           </Button>
@@ -488,7 +441,7 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
           >
             {isSubmitting && !isDraft ? (
               <>
-                <Send className="w-4 h-4 mr-2 animate-pulse" />
+                <Send className="w-4 h-4 mr-2 animate-spin" />
                 Publishing...
               </>
             ) : (

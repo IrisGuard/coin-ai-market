@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface DualAnalysisResult {
+export interface DualComparisonResult {
   name?: string;
   confidence?: number;
   grade?: string;
@@ -29,20 +29,18 @@ export const useDualImageAnalysis = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
 
-  const performDualAnalysis = useCallback(async (frontImage: File, backImage: File): Promise<DualAnalysisResult | null> => {
+  const performDualAnalysis = useCallback(async (frontImage: File, backImage: File): Promise<DualComparisonResult | null> => {
     setIsAnalyzing(true);
     setAnalysisProgress(0);
     setCurrentStep('Preparing images for analysis...');
 
     try {
-      // Step 1: Convert images to base64
       setAnalysisProgress(20);
       setCurrentStep('Converting images...');
       
       const frontImageBase64 = await convertFileToBase64(frontImage);
       const backImageBase64 = await convertFileToBase64(backImage);
 
-      // Step 2: Call Claude AI analysis
       setAnalysisProgress(40);
       setCurrentStep('Analyzing with Claude AI...');
 
@@ -55,15 +53,13 @@ export const useDualImageAnalysis = () => {
       });
 
       if (error) {
-        console.error('Claude analysis error:', error);
         throw new Error('AI analysis failed');
       }
 
       setAnalysisProgress(80);
       setCurrentStep('Processing results...');
 
-      // Step 3: Process and enhance results
-      const analysisResult: DualAnalysisResult = {
+      const analysisResult: DualComparisonResult = {
         name: data.coinName || 'Unknown Coin',
         confidence: data.confidence || 0.7,
         grade: data.grade || 'Ungraded',
@@ -87,12 +83,9 @@ export const useDualImageAnalysis = () => {
 
       setAnalysisProgress(100);
       setCurrentStep('Analysis complete!');
-
-      console.log('✅ Claude AI analysis completed:', analysisResult);
       
       return analysisResult;
     } catch (error) {
-      console.error('❌ Dual analysis failed:', error);
       setCurrentStep('Analysis failed');
       return null;
     } finally {
@@ -109,7 +102,7 @@ export const useDualImageAnalysis = () => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        resolve(result.split(',')[1]); // Remove data URL prefix
+        resolve(result.split(',')[1]);
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);

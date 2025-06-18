@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,8 +79,6 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
         const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
         const dataURL = await convertFileToDataURL(processedFile);
         
-        console.log('🖼️ DEBUG Preview URL:', dataURL.substring(0, 50) + '...');
-        
         processedImages.push({
           file: processedFile,
           preview: dataURL,
@@ -87,13 +86,11 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           uploading: false,
           aiAnalyzed: false,
           errors: [],
-          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `img-${Date.now()}-${file.name}`,
           itemType: selectedItemType
         });
       } catch (error) {
-        console.error('Failed to process image:', error);
         const dataURL = await convertFileToDataURL(file);
-        console.log('🖼️ DEBUG Fallback Preview URL:', dataURL.substring(0, 50) + '...');
         
         processedImages.push({
           file,
@@ -102,7 +99,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
           uploading: false,
           aiAnalyzed: false,
           errors: ['Processing failed - using original'],
-          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `img-${Date.now()}-${file.name}`,
           itemType: selectedItemType
         });
       }
@@ -178,16 +175,14 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
       const frontImage = images[0].file;
       const backImage = images[1].file;
       
-      console.log('Starting real Claude AI analysis...');
       const results = await performDualAnalysis(frontImage, backImage);
       
       if (results) {
         setImages(prev => prev.map(img => ({ ...img, aiAnalyzed: true })));
         onAIAnalysisComplete(results);
-        toast.success('Claude AI analysis completed successfully!');
+        toast.success('AI analysis completed successfully!');
       }
     } catch (error) {
-      console.error('Claude AI analysis failed:', error);
       toast.error('AI analysis failed. Please try again.');
     }
   };
@@ -290,13 +285,9 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
                       className="w-full h-full object-cover"
                       style={{ imageRendering: 'crisp-edges' }}
                       onError={(e) => {
-                        console.error('❌ Image failed to load:', image.preview);
                         const target = e.target as HTMLImageElement;
                         target.src = 'https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=200&h=200&fit=crop&crop=center';
                         target.style.opacity = '0.5';
-                      }}
-                      onLoad={() => {
-                        console.log('✅ Image loaded successfully:', image.preview.substring(0, 50) + '...');
                       }}
                     />
                   </div>
@@ -402,7 +393,7 @@ const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
             ) : (
               <>
                 <Zap className="w-4 h-4 mr-2" />
-                Claude AI Analysis
+                AI Analysis
               </>
             )}
           </Button>
