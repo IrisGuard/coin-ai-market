@@ -121,7 +121,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             showQualityAnalysis={isAdmin}
           />
           
-          {/* Enhanced Overlay Badges - Fixed Admin Status */}
+          {/* Enhanced Overlay Badges - FIXED: No more error badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -141,7 +141,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 AI Verified
               </Badge>
             )}
-            {/* FIXED: Show VERIFIED badge for admin users - no more error badges */}
+            {/* FIXED: Show ADMIN VERIFIED badge for admin users only */}
             {isAdmin && (
               <Badge className="bg-green-100 text-green-800 text-xs font-bold">
                 <Star className="h-3 w-3 mr-1" />
@@ -260,7 +260,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             </Button>
           </div>
 
-          {/* Enhanced AI Confidence & Image Count with Admin Benefits */}
+          {/* Enhanced AI Confidence & Image Count with Admin Benefits - CLEAN */}
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
             {coin.ai_confidence && (
               <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
