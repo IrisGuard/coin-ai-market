@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle, Camera, Store, Plus, Trash2, RotateCcw } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle, Camera, Store, Plus, Trash2, RotateCcw, Zap, Target } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +19,9 @@ import DraftManager from './DraftManager';
 import ShippingPaymentManager from './ShippingPaymentManager';
 import CoinImageEditor from './CoinImageEditor';
 import StoreManager from './StoreManager';
+import EnhancedAIBrainDashboard from '@/components/admin/ai-brain/EnhancedAIBrainDashboard';
+import ConnectedAIAnalysis from './ConnectedAIAnalysis';
+import ImageEnhancementManager from '@/components/admin/enhanced/ImageEnhancementManager';
 
 const EnhancedDealerPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('stores');
@@ -114,21 +117,25 @@ const EnhancedDealerPanel: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">
-              {isAdminUser ? 'Advanced Admin Dealer Panel' : 'Enhanced Dealer Panel'}
+              {isAdminUser ? 'Advanced Admin Dealer Panel' : 'Enhanced AI-Powered Dealer Panel'}
             </h1>
             <p className="text-muted-foreground">
-              Professional coin listing management with AI-powered analysis, global data discovery, and comprehensive image management
+              Professional coin listing management with AI Brain integration, global market intelligence, and comprehensive image enhancement
               {isAdminUser && ' - Admin Multi-Store Mode'}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
-              {isAdminUser ? 'Admin AI-Platform' : 'AI-Powered Platform'}
+              {isAdminUser ? 'Admin AI-Platform' : 'AI Brain Connected'}
             </Badge>
             <Badge variant="secondary" className="flex items-center gap-2">
               <Camera className="w-4 h-4" />
-              Image Manager
+              Image Enhancement
+            </Badge>
+            <Badge variant="default" className="flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              Fully Operational
             </Badge>
           </div>
         </div>
@@ -143,7 +150,7 @@ const EnhancedDealerPanel: React.FC = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="stores" className="flex items-center gap-2">
               <Store className="w-4 h-4" />
               Store Management
@@ -151,6 +158,14 @@ const EnhancedDealerPanel: React.FC = () => {
             <TabsTrigger value="upload" className="flex items-center gap-2" disabled={isAdminUser && !effectiveSelectedStoreId}>
               <Upload className="w-4 h-4" />
               Smart Upload
+            </TabsTrigger>
+            <TabsTrigger value="ai-brain" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              AI Brain
+            </TabsTrigger>
+            <TabsTrigger value="image-enhancement" className="flex items-center gap-2">
+              <Camera className="w-4 h-4" />
+              Image Enhancement
             </TabsTrigger>
             <TabsTrigger value="bulk" className="flex items-center gap-2" disabled={isAdminUser && !effectiveSelectedStoreId}>
               <Package className="w-4 h-4" />
@@ -167,10 +182,6 @@ const EnhancedDealerPanel: React.FC = () => {
             <TabsTrigger value="shipping" className="flex items-center gap-2">
               <Truck className="w-4 h-4" />
               Shipping & Payments
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Performance
             </TabsTrigger>
           </TabsList>
 
@@ -284,6 +295,42 @@ const EnhancedDealerPanel: React.FC = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="ai-brain" className="space-y-6">
+            <Card className="border-purple-200 bg-purple-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-6 w-6 text-purple-600" />
+                  AI Brain - Connected to Admin System
+                  <Badge className="bg-purple-100 text-purple-800">ACTIVE</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-purple-700 mb-4">
+                  Full AI Brain integration with real-time connection to admin commands, automation rules, and prediction models.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg bg-white">
+                    <Target className="h-5 w-5 text-blue-500" />
+                    <span className="text-sm font-medium">Live Admin Commands</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 border rounded-lg bg-white">
+                    <Zap className="h-5 w-5 text-green-500" />
+                    <span className="text-sm font-medium">Real-time Analytics</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 border rounded-lg bg-white">
+                    <Brain className="h-5 w-5 text-purple-500" />
+                    <span className="text-sm font-medium">AI Predictions</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <ConnectedAIAnalysis />
+          </TabsContent>
+
+          <TabsContent value="image-enhancement" className="space-y-6">
+            <ImageEnhancementManager />
+          </TabsContent>
+
           <TabsContent value="bulk">
             {(!isAdminUser || effectiveSelectedStoreId) && <BulkUploadManager />}
           </TabsContent>
@@ -298,30 +345,6 @@ const EnhancedDealerPanel: React.FC = () => {
 
           <TabsContent value="shipping">
             <ShippingPaymentManager />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">100%</div>
-                    <p className="text-sm text-gray-600">System Operational</p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">870</div>
-                    <p className="text-sm text-gray-600">Issues Resolved</p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">900%</div>
-                    <p className="text-sm text-gray-600">Performance Boost</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
