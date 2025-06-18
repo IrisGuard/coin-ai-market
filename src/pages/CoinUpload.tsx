@@ -6,13 +6,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useMobileDetection } from '@/hooks/use-mobile-detection';
 import AdvancedDealerUploadPanelRefactored from '@/components/dealer/AdvancedDealerUploadPanelRefactored';
+import MobileCoinUploadForm from '@/components/mobile/MobileCoinUploadForm';
 import { Loader2 } from 'lucide-react';
 
 const CoinUpload = () => {
   const { isAuthenticated, user, loading: authLoading } = useAuth();
   const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
   const { isAdminUser } = useAdminStore();
+  const { isMobile, isTablet } = useMobileDetection();
 
   console.log('🚀 CoinUpload page render:', {
     isAuthenticated,
@@ -20,7 +23,9 @@ const CoinUpload = () => {
     userRole,
     isAdminUser,
     authLoading,
-    roleLoading
+    roleLoading,
+    isMobile,
+    isTablet
   });
 
   if (authLoading) {
@@ -60,6 +65,36 @@ const CoinUpload = () => {
 
   console.log('✅ Access granted (dealer or admin), rendering upload panel');
 
+  // Mobile/Tablet Layout
+  if (isMobile || isTablet) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <Navbar />
+        
+        <div className="pt-20 pb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="container mx-auto px-4"
+          >
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {isAdminUser ? 'Admin Dealer Panel' : 'Dealer Panel'}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                AI-powered coin listing for mobile
+                {isAdminUser && ' - Admin Mode'}
+              </p>
+            </div>
+            <MobileCoinUploadForm />
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       <Navbar />

@@ -20,6 +20,9 @@ export interface AIAnalysisResult {
   confidence: number;
   aiProvider: string;
   processingTime: number;
+  description?: string;
+  structured_description?: string;
+  category?: string;
 }
 
 export const useAIAnalysis = () => {
@@ -29,26 +32,48 @@ export const useAIAnalysis = () => {
 
   const performAnalysis = async (imageFile: File): Promise<AIAnalysisResult | null> => {
     try {
-      console.log('Starting AI analysis for:', imageFile.name);
+      console.log('🧠 Starting comprehensive AI analysis for:', imageFile.name);
       
       const result = await analyzeImage(imageFile);
       
       if (result) {
+        // Convert to expected format
+        const analysisResult: AIAnalysisResult = {
+          name: result.name,
+          year: result.year,
+          country: result.country,
+          denomination: result.denomination,
+          composition: result.composition,
+          grade: result.grade,
+          estimatedValue: result.estimatedValue,
+          rarity: result.rarity,
+          mint: result.mint,
+          diameter: result.diameter,
+          weight: result.weight,
+          errors: result.errors,
+          confidence: result.confidence,
+          aiProvider: result.aiProvider,
+          processingTime: result.processingTime,
+          description: result.description,
+          structured_description: result.structured_description,
+          category: result.category
+        };
+
         // Add to history
-        setAnalysisHistory(prev => [result, ...prev.slice(0, 4)]); // Keep last 5 analyses
+        setAnalysisHistory(prev => [analysisResult, ...prev.slice(0, 4)]);
         
-        // Show success message with confidence
+        // Show success message with enhanced details
         const confidencePercent = Math.round(result.confidence * 100);
         toast.success(
-          `Analysis complete! Identified as ${result.name} with ${confidencePercent}% confidence`
+          `Complete AI Analysis! ${result.name} identified with ${confidencePercent}% confidence. All fields auto-filled.`
         );
         
-        return result;
+        return analysisResult;
       }
       
       return null;
     } catch (error: any) {
-      console.error('AI analysis failed:', error);
+      console.error('❌ AI analysis failed:', error);
       toast.error(`Analysis failed: ${error.message}`);
       return null;
     }
@@ -67,7 +92,6 @@ export const useAIAnalysis = () => {
     setUploadProgress(0);
 
     try {
-      // Process first image for AI analysis
       const firstImage = images[0];
       if (!firstImage.file) {
         throw new Error('No valid image file found');
@@ -84,9 +108,10 @@ export const useAIAnalysis = () => {
       setUploadProgress(100);
 
       if (analysisResult) {
-        // Update coin data with AI results
+        // Complete auto-fill with all available data
         updateCoinData({
           title: analysisResult.name,
+          description: analysisResult.description || `${analysisResult.name} from ${analysisResult.year}. Grade: ${analysisResult.grade}. ${analysisResult.composition}.`,
           year: analysisResult.year.toString(),
           country: analysisResult.country,
           denomination: analysisResult.denomination,
@@ -96,10 +121,12 @@ export const useAIAnalysis = () => {
           mint: analysisResult.mint || '',
           diameter: analysisResult.diameter?.toString() || '',
           weight: analysisResult.weight?.toString() || '',
-          price: analysisResult.estimatedValue.toString()
+          price: analysisResult.estimatedValue.toString(),
+          condition: analysisResult.grade,
+          category: analysisResult.category || 'WORLD COINS'
         });
 
-        // Mark images as uploaded
+        // Mark images as uploaded and analyzed
         const updatedImages = images.map(img => ({
           ...img,
           uploaded: true,
@@ -110,7 +137,7 @@ export const useAIAnalysis = () => {
 
       setTimeout(() => setUploadProgress(0), 2000);
     } catch (error: any) {
-      console.error('Analysis failed:', error);
+      console.error('❌ Analysis failed:', error);
       toast.error(`Analysis failed: ${error.message}`);
       setUploadProgress(0);
     }
@@ -133,7 +160,7 @@ export const useAIAnalysis = () => {
     result,
     error,
     analysisHistory,
-    analysisResults: result, // Alias for backward compatibility
+    analysisResults: result,
     uploadProgress,
     analyzeImages
   };
