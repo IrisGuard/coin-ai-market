@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import DualImageUploader from '@/components/analysis/DualImageUploader';
 import AnalysisResults from '@/components/analysis/AnalysisResults';
-import type { DualAnalysisResult } from '@/hooks/useDualImageAnalysis';
+import type { DualComparisonResult } from '@/hooks/useDualImageAnalysis';
 
 const DualAnalysis = () => {
-  const [analysisResult, setAnalysisResult] = useState<DualAnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<DualComparisonResult | null>(null);
 
-  const handleAnalysisComplete = (result: DualAnalysisResult) => {
+  const handleAnalysisComplete = (result: DualComparisonResult) => {
     setAnalysisResult(result);
   };
 

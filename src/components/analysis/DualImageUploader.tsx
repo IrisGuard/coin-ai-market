@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,10 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, Camera, RotateCw, Zap, Eye, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDualImageAnalysis } from '@/hooks/useDualImageAnalysis';
-import type { DualAnalysisResult } from '@/hooks/useDualImageAnalysis';
+import type { DualComparisonResult } from '@/hooks/useDualImageAnalysis';
 
 interface DualImageUploaderProps {
-  onAnalysisComplete?: (result: DualAnalysisResult) => void;
+  onAnalysisComplete?: (result: DualComparisonResult) => void;
 }
 
 const DualImageUploader: React.FC<DualImageUploaderProps> = ({ onAnalysisComplete }) => {

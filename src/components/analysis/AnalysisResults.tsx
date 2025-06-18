@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,10 +15,10 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import type { DualAnalysisResult } from '@/hooks/useDualImageAnalysis';
+import type { DualComparisonResult } from '@/hooks/useDualImageAnalysis';
 
 interface AnalysisResultsProps {
-  results: DualAnalysisResult;
+  results: DualComparisonResult;
   onNewAnalysis: () => void;
 }
 
