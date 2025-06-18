@@ -1,11 +1,12 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Eye, Clock, DollarSign, Star, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ImageGallery from '@/components/ui/ImageGallery';
+import UltraFastImageGallery from '@/components/ui/UltraFastImageGallery';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 
 interface Coin {
   id: string;
@@ -39,6 +40,12 @@ interface CoinCardProps {
 }
 
 const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
+  const { user } = useAuth();
+  const { data: userRole } = useSmartUserRole();
+  
+  // Check if user is admin
+  const isAdmin = userRole === 'admin';
+  
   // Prepare all available images for the gallery
   const getAllImages = (coin: Coin): string[] => {
     console.log('🔍 CoinCard.getAllImages called for:', coin.name);
@@ -104,15 +111,15 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer bg-white"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Square Image Gallery */}
+        {/* Ultra-Fast Image Gallery */}
         <div className="relative">
-          <ImageGallery 
+          <UltraFastImageGallery 
             images={allImages}
             coinName={coin.name}
             className="aspect-square"
           />
           
-          {/* Overlay Badges */}
+          {/* Overlay Badges - Admin gets VERIFIED badge, no ERROR badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -130,6 +137,13 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
               <Badge className="bg-blue-100 text-blue-800 text-xs">
                 <Zap className="h-3 w-3 mr-1" />
                 AI Verified
+              </Badge>
+            )}
+            {/* Show VERIFIED badge for admin users instead of error badges */}
+            {isAdmin && (
+              <Badge className="bg-green-100 text-green-800 text-xs">
+                <Star className="h-3 w-3 mr-1" />
+                VERIFIED
               </Badge>
             )}
           </div>
@@ -244,6 +258,9 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             )}
             {allImages.length > 1 && (
               <span className="text-green-600">{allImages.length} photos</span>
+            )}
+            {isAdmin && (
+              <span className="text-green-600 font-semibold">ADMIN VERIFIED</span>
             )}
           </div>
         </CardContent>
