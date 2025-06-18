@@ -1,38 +1,39 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { Coins, Search, Eye, Trash2, Star, DollarSign, Camera } from 'lucide-react';
-import CoinImageEditor from '@/components/dealer/CoinImageEditor';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Coins, Edit, Trash2, Eye, Camera, Plus, Search, Filter } from 'lucide-react';
+import { toast } from 'sonner';
+import AdminFinalCompletionTab from './AdminFinalCompletionTab';
+import CoinImageEditor from '../../dealer/CoinImageEditor';
 
 const AdminCoinsTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [editingCoin, setEditingCoin] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  const { data: coins, isLoading } = useQuery({
-    queryKey: ['admin-coins', searchTerm],
+  // Fetch all coins
+  const { data: coins = [], isLoading } = useQuery({
+    queryKey: ['admin-coins', searchTerm, selectedCategory],
     queryFn: async () => {
       let query = supabase
         .from('coins')
-        .select(`
-          *,
-          profiles!coins_user_id_fkey (
-            id,
-            name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
       }
 
       const { data, error } = await query;
@@ -41,32 +42,8 @@ const AdminCoinsTab = () => {
     },
   });
 
-  const toggleFeatured = useMutation({
-    mutationFn: async ({ coinId, featured }: { coinId: string; featured: boolean }) => {
-      const { error } = await supabase
-        .from('coins')
-        .update({ featured })
-        .eq('id', coinId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
-      toast({
-        title: "Coin Updated",
-        description: "Coin featured status has been updated successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to update coin',
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteCoin = useMutation({
+  // Delete coin mutation
+  const deleteCoinMutation = useMutation({
     mutationFn: async (coinId: string) => {
       const { error } = await supabase
         .from('coins')
@@ -76,24 +53,13 @@ const AdminCoinsTab = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      toast.success('Coin deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['admin-coins'] });
-      toast({
-        title: "Coin Deleted",
-        description: "Coin has been deleted successfully.",
-      });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to delete coin',
-        variant: "destructive",
-      });
-    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete coin: ${error.message}`);
+    }
   });
-
-  const handleDelete = (coinId: string) => {
-    deleteCoin.mutate(coinId);
-  };
 
   const handleEditImages = (coin: any) => {
     setEditingCoin(coin);
@@ -121,175 +87,155 @@ const AdminCoinsTab = () => {
     return allImages;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const totalCoins = coins?.length || 0;
-  const featuredCoins = coins?.filter(coin => coin.featured)?.length || 0;
-  const totalValue = coins?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">Coin Management</h3>
-            <p className="text-sm text-muted-foreground">Manage all coin listings and featured status</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
+    <div className="space-y-6">
+      <Tabs defaultValue="management" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="management">Coin Management</TabsTrigger>
+          <TabsTrigger value="completion">Final Completion</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="management" className="space-y-6">
+          {/* Header */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
-              <Coins className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5" />
+                Coin Management
+                <Badge variant="outline">{coins.length} coins</Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalCoins}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Featured Coins</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{featuredCoins}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search coins by name, description, or country..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Coins</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin h-8 w-8 border-b-2 border-coin-purple mx-auto mb-4"></div>
-                  <p>Loading coins...</p>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search coins by name, country, or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
-              ) : coins?.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No coins found
+                <div className="flex gap-2">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-3 py-2 border rounded-md"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="modern">Modern</option>
+                    <option value="ancient">Ancient</option>
+                    <option value="error_coin">Error Coins</option>
+                    <option value="commemorative">Commemorative</option>
+                    <option value="us">US Coins</option>
+                    <option value="world">World Coins</option>
+                  </select>
                 </div>
-              ) : (
-                coins?.map((coin: any) => {
-                  const validImages = getValidImages(coin);
-                  
-                  return (
-                    <div key={coin.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <img 
-                          src={validImages[0] || '/placeholder.svg'} 
-                          alt={coin.name}
-                          className="w-16 h-16 object-cover rounded"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder.svg';
-                          }}
-                        />
-                        <div>
-                          <div className="font-medium">{coin.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {coin.year} • {coin.country} • Grade: {coin.grade}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Owner: {coin.profiles?.name || 'Unknown'}
-                          </div>
-                          <div className="flex gap-2 mt-1">
-                            <Badge variant="outline">${coin.price}</Badge>
-                            {coin.featured && <Badge variant="default">Featured</Badge>}
-                            {coin.is_auction && <Badge variant="secondary">Auction</Badge>}
-                            {validImages.length > 1 && (
-                              <Badge variant="outline">{validImages.length} photos</Badge>
-                            )}
-                          </div>
-                        </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Coins Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {coins.map((coin) => {
+              const validImages = getValidImages(coin);
+              return (
+                <Card key={coin.id} className="group hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="relative mb-4">
+                      <img 
+                        src={validImages[0] || '/placeholder.svg'} 
+                        alt={coin.name}
+                        className="w-full h-48 object-cover rounded-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
+                      />
+                      
+                      {/* Image count badge */}
+                      <Badge className="absolute top-2 right-2 bg-black/70 text-white">
+                        {validImages.length} {validImages.length === 1 ? 'image' : 'images'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium truncate">{coin.name}</h4>
+                        <p className="text-sm text-gray-500">
+                          {coin.year} • {coin.country}
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(`/coin/${coin.id}`, '_blank')}
-                        >
-                          <Eye className="h-4 w-4" />
-                          View
-                        </Button>
+                      
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-semibold text-green-600">${coin.price}</span>
+                        <Badge variant={coin.category === 'error_coin' ? 'destructive' : 'secondary'}>
+                          {coin.category}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>{coin.views || 0} views</span>
+                        <span>{coin.featured ? 'Featured' : 'Standard'}</span>
+                      </div>
+                      
+                      <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditImages(coin)}
+                          className="flex-1"
                         >
-                          <Camera className="h-4 w-4" />
-                          Images
-                        </Button>
-                        <Button
-                          variant={coin.featured ? "destructive" : "default"}
-                          size="sm"
-                          onClick={() => toggleFeatured.mutate({ 
-                            coinId: coin.id, 
-                            featured: !coin.featured 
-                          })}
-                          disabled={toggleFeatured.isPending}
-                        >
-                          <Star className="h-4 w-4" />
-                          {coin.featured ? 'Unfeature' : 'Feature'}
+                          <Camera className="h-4 w-4 mr-1" />
+                          Images ({validImages.length})
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this coin?')) {
-                              handleDelete(coin.id);
-                            }
-                          }}
-                          disabled={deleteCoin.isPending}
+                          onClick={() => deleteCoinMutation.mutate(coin.id)}
                         >
                           <Trash2 className="h-4 w-4" />
-                          Delete
                         </Button>
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
 
+          {coins.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Coins className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No coins found</h3>
+                <p className="text-gray-500">
+                  {searchTerm ? 'Try adjusting your search criteria' : 'No coins have been added yet'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="completion">
+          <AdminFinalCompletionTab />
+        </TabsContent>
+      </Tabs>
+
+      {/* Image Editor Modal */}
       {editingCoin && (
         <Dialog open={!!editingCoin} onOpenChange={() => setEditingCoin(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Camera className="w-5 h-5 text-blue-600" />
@@ -306,7 +252,7 @@ const AdminCoinsTab = () => {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 };
 

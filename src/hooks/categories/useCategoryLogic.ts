@@ -15,8 +15,10 @@ export const useCategoryLogic = (allCoins: Coin[], category: string) => {
 
       switch (category) {
         case 'us':
-          // Only show coins from United States
-          return coin.country === 'United States' || coin.country === 'USA';
+          // Only show coins from United States - exclude incorrectly categorized coins
+          return (coin.country === 'United States' || coin.country === 'USA') && 
+                 !coin.name.toLowerCase().includes('greece') &&
+                 !coin.name.toLowerCase().includes('lepta');
         case 'ancient':
           return coin.year < 1000;
         case 'modern':
@@ -24,15 +26,17 @@ export const useCategoryLogic = (allCoins: Coin[], category: string) => {
         case 'error':
           return coin.description?.toLowerCase().includes('error') ||
                  coin.description?.toLowerCase().includes('λάθος') ||
-                 coin.name.toLowerCase().includes('error');
+                 coin.name.toLowerCase().includes('error') ||
+                 coin.category === 'error_coin';
         case 'graded':
           return coin.pcgs_grade || coin.ngc_grade;
         case 'trending':
           return (coin.views || 0) > 50;
         case 'european':
-          return ['Germany', 'France', 'Italy', 'Spain', 'United Kingdom'].includes(coin.country || '');
+          return ['Germany', 'France', 'Italy', 'Spain', 'United Kingdom', 'Greece'].includes(coin.country || '');
         case 'american':
-          return ['United States', 'Canada', 'Mexico'].includes(coin.country || '');
+          return ['United States', 'Canada', 'Mexico'].includes(coin.country || '') &&
+                 !coin.name.toLowerCase().includes('greece');
         case 'asian':
           return ['China', 'Japan', 'India', 'Korea', 'Thailand'].includes(coin.country || '');
         case 'gold':
