@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCreateCoin } from '@/hooks/useCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Camera, Loader2, Smartphone, Zap } from 'lucide-react';
+import { Upload, Camera, Loader2, Smartphone, Zap, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import { uploadImage } from '@/utils/imageUpload';
+import { mapUIToDatabaseCategory } from '@/utils/categoryMapping';
 import NativeCameraOnly from '@/components/mobile/NativeCameraOnly';
 
 const coinCategories = [
@@ -32,6 +33,9 @@ const CoinUploadForm = () => {
   const aiRecognition = useRealAICoinRecognition();
   const navigate = useNavigate();
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -75,6 +79,7 @@ const CoinUploadForm = () => {
           weight: result.weight?.toString() || '',
           mint: result.mint || '',
           price: result.estimatedValue?.toString() || '',
+          category: result.category || '',
           description: `${result.name} from ${result.year}. AI analyzed with ${Math.round(result.confidence * 100)}% confidence.`.trim()
         }));
 
@@ -93,20 +98,84 @@ const CoinUploadForm = () => {
     }
   };
 
-  const handleNativeCameraImagesSelected = async (images: { file: File; preview: string }[]) => {
+  const handleNativeCameraImagesSelected = async (images: { file: File; preview: string; url?: string }[]) => {
     if (images.length === 0) return;
 
     const primaryImage = images[0];
     setImagePreview(primaryImage.preview);
-    setFormData(prev => ({ ...prev, image: primaryImage.preview }));
+    
+    if (primaryImage.url) {
+      // Already uploaded
+      setUploadedImageUrl(primaryImage.url);
+      setFormData(prev => ({ ...prev, image: primaryImage.url! }));
+    } else {
+      // Upload to storage
+      setIsUploading(true);
+      try {
+        const uploadedUrl = await uploadImage(primaryImage.file, 'coin-images');
+        setUploadedImageUrl(uploadedUrl);
+        setFormData(prev => ({ ...prev, image: uploadedUrl }));
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload image. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    }
 
     await handleAIAnalysis(primaryImage.file);
+  };
+
+  // Handle regular file input upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // Upload to Supabase Storage
+      const uploadedUrl = await uploadImage(file, 'coin-images');
+      setUploadedImageUrl(uploadedUrl);
+      setImagePreview(URL.createObjectURL(file));
+      setFormData(prev => ({ ...prev, image: uploadedUrl }));
+      
+      // Run AI analysis
+      await handleAIAnalysis(file);
+      
+      toast({
+        title: "Image Uploaded Successfully!",
+        description: "Image saved to cloud storage and analyzed.",
+      });
+    } catch (error) {
+      console.error('File upload failed:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!uploadedImageUrl) {
+      toast({
+        title: "Image Required",
+        description: "Please upload an image before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const isAuction = formData.listingType === 'auction';
+    const mappedCategory = mapUIToDatabaseCategory(formData.category);
     
     const coinData = {
       name: formData.name,
@@ -114,27 +183,57 @@ const CoinUploadForm = () => {
       grade: formData.grade,
       price: parseFloat(formData.price) || 0,
       rarity: formData.rarity,
-      image: formData.image,
+      image: uploadedImageUrl, // Use uploaded URL
       country: formData.country,
       denomination: formData.denomination,
       description: formData.description,
-      category: formData.category,
+      category: mappedCategory, // Use mapped category
       is_auction: isAuction,
       listing_type: formData.listingType,
       auction_end: isAuction ? new Date(Date.now() + parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000).toISOString() : null,
       starting_bid: isAuction ? parseFloat(formData.price) || 0 : null,
     };
     
+    setFormSubmitted(true);
     createCoin.mutate(coinData, {
       onSuccess: () => {
-        // Redirect based on listing type
-        if (isAuction) {
-          navigate('/auctions');
-        } else {
-          navigate('/');
-        }
+        // Don't navigate immediately - show success message
+        toast({
+          title: "🎉 Success!",
+          description: isAuction 
+            ? "Auction started successfully! Your coin is now live in the marketplace." 
+            : "Coin listed successfully! Your coin is now available for purchase.",
+        });
+      },
+      onError: () => {
+        setFormSubmitted(false);
       }
     });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      year: '',
+      grade: '',
+      price: '',
+      rarity: '',
+      image: '',
+      country: '',
+      denomination: '',
+      description: '',
+      condition: '',
+      composition: '',
+      diameter: '',
+      weight: '',
+      mint: '',
+      category: '',
+      listingType: 'direct_sale',
+      auctionDuration: '7'
+    });
+    setImagePreview('');
+    setUploadedImageUrl('');
+    setFormSubmitted(false);
   };
 
   return (
@@ -170,8 +269,36 @@ const CoinUploadForm = () => {
             )}
           </CardHeader>
           <CardContent>
+            {/* Success Message */}
+            {formSubmitted && !createCoin.isPending && !createCoin.error && (
+              <Card className="mb-6 border-green-200 bg-green-50">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
+                    <h3 className="text-lg font-semibold text-green-800">
+                      🎉 Coin Successfully Listed!
+                    </h3>
+                    <p className="text-green-700">
+                      Your coin has been uploaded with image saved to cloud storage.
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <Button 
+                        onClick={() => navigate('/marketplace')} 
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        View in Marketplace
+                      </Button>
+                      <Button onClick={resetForm} variant="outline">
+                        List Another Coin
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Image Upload Section - NATIVE CAMERA ONLY */}
+              {/* Image Upload Section */}
               <div className="space-y-4">
                 <Label>Coin Image</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -188,24 +315,60 @@ const CoinUploadForm = () => {
                           <span>AI analyzing your coin...</span>
                         </div>
                       )}
+                      {uploadedImageUrl && (
+                        <div className="flex items-center justify-center gap-2 text-green-600">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Image saved to cloud storage</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <Camera className="w-16 h-16 text-gray-400 mx-auto" />
                       <div>
-                        <p className="text-lg font-medium">Capture coin with native camera</p>
+                        <p className="text-lg font-medium">Upload coin image</p>
                         <p className="text-gray-500">AI will automatically identify your coin</p>
                       </div>
                     </div>
                   )}
 
-                  {/* NATIVE CAMERA ONLY - NO FALLBACK FILE INPUT */}
-                  <div className="mt-4">
-                    <NativeCameraOnly
-                      onImagesSelected={handleNativeCameraImagesSelected}
-                      maxImages={5}
-                    />
-                  </div>
+                  {/* Native Camera for Mobile */}
+                  {isMobileDevice ? (
+                    <div className="mt-4">
+                      <NativeCameraOnly
+                        onImagesSelected={handleNativeCameraImagesSelected}
+                        maxImages={1}
+                      />
+                    </div>
+                  ) : (
+                    /* Regular File Input for Desktop */
+                    <div className="mt-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="file-upload"
+                        disabled={isUploading}
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose File
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -354,7 +517,7 @@ const CoinUploadForm = () => {
 
               <Button
                 type="submit"
-                disabled={createCoin.isPending || !formData.name || !formData.price || !formData.image}
+                disabled={createCoin.isPending || !formData.name || !formData.price || !uploadedImageUrl || isUploading}
                 className="w-full"
               >
                 {createCoin.isPending ? (

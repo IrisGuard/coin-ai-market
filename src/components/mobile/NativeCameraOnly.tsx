@@ -3,19 +3,34 @@ import { useState } from 'react';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Camera as CameraIcon, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { uploadImage } from '@/utils/imageUpload';
 
 interface NativeCameraOnlyProps {
-  onImagesSelected: (images: { file: File; preview: string }[]) => void;
+  onImagesSelected: (images: { file: File; preview: string; url?: string }[]) => void;
   maxImages?: number;
 }
 
 const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyProps) => {
   const [isCapturing, setIsCapturing] = useState(false);
-  const [capturedImages, setCapturedImages] = useState<{ file: File; preview: string }[]>([]);
+  const [capturedImages, setCapturedImages] = useState<{ file: File; preview: string; url?: string }[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const processAndUploadImage = async (blob: Blob, source: string): Promise<{ file: File; preview: string; url: string }> => {
+    const file = new File([blob], `coin-${source}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
+    const preview = URL.createObjectURL(file);
+    
+    // Upload immediately to Supabase Storage
+    console.log('📸 Uploading image to Supabase Storage...');
+    const uploadedUrl = await uploadImage(file, 'coin-images');
+    console.log('✅ Image uploaded:', uploadedUrl);
+    
+    return { file, preview, url: uploadedUrl };
+  };
 
   const captureFromCamera = async () => {
     try {
       setIsCapturing(true);
+      setIsUploading(true);
       
       const image = await Camera.getPhoto({
         quality: 95,
@@ -33,18 +48,16 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
 
       const response = await fetch(image.webPath);
       const blob = await response.blob();
-      const file = new File([blob], `coin-camera-${Date.now()}.jpeg`, { type: 'image/jpeg' });
       
-      const preview = URL.createObjectURL(file);
-      const newImage = { file, preview };
+      const processedImage = await processAndUploadImage(blob, 'camera');
+      const updatedImages = [...capturedImages, processedImage];
       
-      const updatedImages = [...capturedImages, newImage];
       setCapturedImages(updatedImages);
       onImagesSelected(updatedImages);
 
       toast({
-        title: "Native Camera Success!",
-        description: "Image captured successfully from device camera",
+        title: "📸 Image Captured & Uploaded!",
+        description: "Image successfully saved to cloud storage",
       });
       
     } catch (error: any) {
@@ -56,12 +69,14 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       });
     } finally {
       setIsCapturing(false);
+      setIsUploading(false);
     }
   };
 
   const selectFromGallery = async () => {
     try {
       setIsCapturing(true);
+      setIsUploading(true);
       
       const image = await Camera.getPhoto({
         quality: 95,
@@ -76,18 +91,16 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
 
       const response = await fetch(image.webPath);
       const blob = await response.blob();
-      const file = new File([blob], `coin-gallery-${Date.now()}.jpeg`, { type: 'image/jpeg' });
       
-      const preview = URL.createObjectURL(file);
-      const newImage = { file, preview };
+      const processedImage = await processAndUploadImage(blob, 'gallery');
+      const updatedImages = [...capturedImages, processedImage];
       
-      const updatedImages = [...capturedImages, newImage];
       setCapturedImages(updatedImages);
       onImagesSelected(updatedImages);
 
       toast({
-        title: "Gallery Selection Success!",
-        description: "Image selected from gallery successfully",
+        title: "🖼️ Image Selected & Uploaded!",
+        description: "Image successfully saved to cloud storage",
       });
       
     } catch (error: any) {
@@ -99,6 +112,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       });
     } finally {
       setIsCapturing(false);
+      setIsUploading(false);
     }
   };
 
@@ -113,30 +127,30 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       <div className="flex space-x-2">
         <button
           onClick={captureFromCamera}
-          disabled={isCapturing || capturedImages.length >= maxImages}
+          disabled={isCapturing || capturedImages.length >= maxImages || isUploading}
           className="flex-1 flex items-center justify-center bg-coin-blue text-white py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           style={{ touchAction: 'manipulation' }}
         >
-          {isCapturing ? (
+          {isCapturing || isUploading ? (
             <Loader2 size={20} className="mr-2 animate-spin" />
           ) : (
             <CameraIcon size={20} className="mr-2" />
           )}
-          Native Camera
+          {isUploading ? 'Uploading...' : 'Native Camera'}
         </button>
         
         <button
           onClick={selectFromGallery}
-          disabled={isCapturing || capturedImages.length >= maxImages}
+          disabled={isCapturing || capturedImages.length >= maxImages || isUploading}
           className="flex-1 flex items-center justify-center border-2 border-coin-blue text-coin-blue py-3 rounded-lg hover:bg-coin-blue hover:bg-opacity-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           style={{ touchAction: 'manipulation' }}
         >
-          {isCapturing ? (
+          {isCapturing || isUploading ? (
             <Loader2 size={20} className="mr-2 animate-spin" />
           ) : (
             <CameraIcon size={20} className="mr-2" />
           )}
-          Gallery
+          {isUploading ? 'Uploading...' : 'Gallery'}
         </button>
       </div>
 
@@ -145,7 +159,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
           {capturedImages.map((image, index) => (
             <div key={index} className="relative">
               <img
-                src={image.preview}
+                src={image.url || image.preview}
                 alt={`Coin ${index + 1}`}
                 className="w-full h-32 object-cover rounded-lg border-2 border-green-300"
               />
@@ -156,6 +170,11 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
               >
                 <X className="w-3 h-3" />
               </button>
+              {image.url && (
+                <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-1 rounded">
+                  ✓ Saved
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -163,7 +182,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       
       <p className="text-sm text-green-600 text-center font-medium">
         Native Camera Ready • {maxImages - capturedImages.length} more photos available
-        {capturedImages.length > 0 && ` • ${capturedImages.length}/${maxImages} captured`}
+        {capturedImages.length > 0 && ` • ${capturedImages.length}/${maxImages} uploaded to cloud`}
       </p>
     </div>
   );

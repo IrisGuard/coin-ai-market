@@ -15,6 +15,7 @@ import { useCoinSubmission } from '@/hooks/upload/useCoinSubmission';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 import { useDealerStores } from '@/hooks/useDealerStores';
 import { useAuth } from '@/contexts/AuthContext';
+import { mapUIToDatabaseCategory, getValidDatabaseCategories } from '@/utils/categoryMapping';
 import NativeCameraOnly from '@/components/mobile/NativeCameraOnly';
 import type { UploadedImage, CoinData, ItemType } from '@/types/upload';
 
@@ -41,6 +42,7 @@ const EnhancedMobileCoinUpload = () => {
     category: ''
   });
 
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const { analyzeImage, isAnalyzing, result: analysisResults } = useRealAICoinRecognition();
   const { submitListing, isSubmitting } = useCoinSubmission();
   const { selectedStoreId, isAdminUser, setSelectedStoreId } = useAdminStore();
@@ -48,11 +50,12 @@ const EnhancedMobileCoinUpload = () => {
   
   const { data: dealerStores = [], isLoading: storesLoading } = useDealerStores();
 
-  const handleImagesSelected = (selectedImages: { file: File; preview: string }[]) => {
+  const handleImagesSelected = (selectedImages: { file: File; preview: string; url?: string }[]) => {
     const newImages: UploadedImage[] = selectedImages.map(img => ({
       file: img.file,
       preview: img.preview,
-      uploaded: false,
+      url: img.url,
+      uploaded: !!img.url,
       uploading: false
     }));
     setImages(newImages);
@@ -65,7 +68,7 @@ const EnhancedMobileCoinUpload = () => {
       const result = await analyzeImage(images[0].file!);
       
       if (result) {
-        // 100% Complete auto-fill with ALL enhanced fields including structured description
+        // Auto-fill with AI analysis - preserve existing data
         setCoinData(prev => ({
           ...prev,
           title: result.name || prev.title,
@@ -93,7 +96,34 @@ const EnhancedMobileCoinUpload = () => {
   };
 
   const handleSubmit = async () => {
+    setFormSubmitted(true);
     await submitListing(coinData, images);
+    // DON'T reset form - let user decide what to do next
+  };
+
+  const resetForm = () => {
+    setCoinData({
+      title: '',
+      description: '',
+      structured_description: '',
+      price: '',
+      startingBid: '',
+      isAuction: false,
+      condition: '',
+      year: '',
+      country: '',
+      denomination: '',
+      grade: '',
+      rarity: '',
+      mint: '',
+      composition: '',
+      diameter: '',
+      weight: '',
+      auctionDuration: '7',
+      category: ''
+    });
+    setImages([]);
+    setFormSubmitted(false);
   };
 
   const updateCoinData = (updates: Partial<CoinData>) => {
@@ -141,6 +171,31 @@ const EnhancedMobileCoinUpload = () => {
 
   return (
     <div className="space-y-6">
+      {/* Success message after submission */}
+      {formSubmitted && !isSubmitting && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
+              <h3 className="text-lg font-semibold text-green-800">
+                🎉 Coin Successfully Listed!
+              </h3>
+              <p className="text-green-700">
+                Your coin has been uploaded with all images and details saved to the marketplace.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={() => window.location.href = '/marketplace'} className="bg-green-600 hover:bg-green-700">
+                  View in Marketplace
+                </Button>
+                <Button onClick={resetForm} variant="outline">
+                  List Another Coin
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Production Store Selection - Live Data Only */}
       {isAdminUser && (
         <Card>
@@ -242,7 +297,7 @@ const EnhancedMobileCoinUpload = () => {
               </div>
               <div>
                 <span className="font-medium">Category:</span>
-                <p>{analysisResults.category}</p>
+                <p>{analysisResults.category} → {mapUIToDatabaseCategory(analysisResults.category || '')}</p>
               </div>
             </div>
             <div className="mt-3">
@@ -283,7 +338,7 @@ const EnhancedMobileCoinUpload = () => {
               <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category}
+                    {category} → {mapUIToDatabaseCategory(category)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -297,18 +352,6 @@ const EnhancedMobileCoinUpload = () => {
               value={coinData.description}
               onChange={(e) => updateCoinData({ description: e.target.value })}
               placeholder="Describe your coin"
-              className="h-24 touch-manipulation"
-              style={{ touchAction: 'manipulation' }}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="structured-description">Professional Analysis</Label>
-            <Textarea
-              id="structured-description"
-              value={coinData.structured_description || ''}
-              onChange={(e) => updateCoinData({ structured_description: e.target.value })}
-              placeholder="Professional structured description with market analysis"
               className="h-24 touch-manipulation"
               style={{ touchAction: 'manipulation' }}
             />
@@ -345,7 +388,7 @@ const EnhancedMobileCoinUpload = () => {
             />
           </div>
 
-          {/* Complete auto-fill fields grid - SINGLE SET, NO DUPLICATES */}
+          {/* Complete auto-fill fields grid */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="year">Year</Label>
@@ -452,6 +495,12 @@ const EnhancedMobileCoinUpload = () => {
           >
             {isSubmitting ? 'Creating Production Listing...' : 'Create Complete Production Listing'}
           </Button>
+
+          {formSubmitted && (
+            <div className="text-center text-green-600 font-medium">
+              ✅ Listing submitted successfully! Check above for next steps.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 import { toast } from '@/hooks/use-toast';
+import { uploadImage } from '@/utils/imageUpload';
+import { mapUIToDatabaseCategory } from '@/utils/categoryMapping';
 import type { CoinData, UploadedImage } from '@/types/upload';
 
 export const useCoinSubmission = () => {
@@ -35,43 +37,66 @@ export const useCoinSubmission = () => {
     setIsSubmitting(true);
 
     try {
-      // Prepare complete coin payload with all fields
+      console.log('🔄 Starting coin submission with image upload...');
+      
+      // Step 1: Upload all images to Supabase Storage
+      const uploadedImageUrls: string[] = [];
+      
+      for (const image of images) {
+        if (image.file) {
+          console.log('📸 Uploading image to Supabase Storage...');
+          const uploadedUrl = await uploadImage(image.file, 'coin-images');
+          uploadedImageUrls.push(uploadedUrl);
+          console.log('✅ Image uploaded successfully:', uploadedUrl);
+        } else if (image.url && !image.url.startsWith('blob:')) {
+          // Already uploaded image
+          uploadedImageUrls.push(image.url);
+        }
+      }
+
+      if (uploadedImageUrls.length === 0) {
+        throw new Error('Failed to upload images to storage');
+      }
+
+      // Step 2: Map UI category to database enum
+      const mappedCategory = mapUIToDatabaseCategory(coinData.category);
+      console.log('🔄 Category mapping:', coinData.category, '->', mappedCategory);
+
+      // Step 3: Prepare complete coin payload
       const coinPayload = {
         name: coinData.title,
-        description: coinData.description,
+        description: coinData.description || `${coinData.title} - Professional coin listing with AI analysis`,
         year: parseInt(coinData.year) || new Date().getFullYear(),
-        grade: coinData.grade,
+        grade: coinData.grade || 'Ungraded',
         price: coinData.isAuction ? parseFloat(coinData.startingBid) : parseFloat(coinData.price),
-        rarity: coinData.rarity,
-        country: coinData.country,
-        denomination: coinData.denomination,
-        image: images[0]?.url || images[0]?.preview || '',
+        rarity: coinData.rarity || 'Common',
+        country: coinData.country || 'Unknown',
+        denomination: coinData.denomination || 'Unknown',
+        image: uploadedImageUrls[0], // Primary image
         user_id: user.id,
-        condition: coinData.condition,
-        composition: coinData.composition,
+        condition: coinData.condition || coinData.grade || 'Good',
+        composition: coinData.composition || 'Unknown',
         diameter: coinData.diameter ? parseFloat(coinData.diameter) : null,
         weight: coinData.weight ? parseFloat(coinData.weight) : null,
-        mint: coinData.mint,
-        is_auction: coinData.isAuction,
+        mint: coinData.mint || '',
+        is_auction: coinData.isAuction || false,
         auction_end_date: coinData.isAuction 
           ? new Date(Date.now() + (parseInt(coinData.auctionDuration) * 24 * 60 * 60 * 1000)).toISOString()
           : null,
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) : null,
-        // New fields from enhanced auto-fill
-        category: coinData.category as any, // Cast to enum type
+        category: mappedCategory, // Use mapped category
         store_id: selectedStoreId || null,
-        // Additional images if available
-        obverse_image: images[0]?.url || images[0]?.preview || '',
-        reverse_image: images[1]?.url || images[1]?.preview || null,
-        // Authentication status for live platform
+        // Additional images
+        obverse_image: uploadedImageUrls[0],
+        reverse_image: uploadedImageUrls[1] || null,
         authentication_status: 'pending',
-        // AI analysis metadata
-        ai_confidence: 0.85, // Will be replaced with actual AI confidence
-        ai_provider: 'claude-enhanced'
+        featured: false,
+        sold: false
       };
 
-      console.log('Submitting coin with complete data to database:', coinPayload);
+      console.log('💾 Submitting coin to database:', coinPayload);
 
+      // Step 4: Submit to database
       const { data, error } = await supabase
         .from('coins')
         .insert([coinPayload])
@@ -79,23 +104,27 @@ export const useCoinSubmission = () => {
         .single();
 
       if (error) {
-        console.error('Database submission failed:', error);
+        console.error('❌ Database submission failed:', error);
         throw error;
       }
 
-      console.log('Coin successfully created in database:', data);
+      console.log('✅ Coin successfully created:', data);
 
+      // Step 5: Success handling - DON'T reset form automatically
       toast({
-        title: "Success!",
+        title: "🎉 Success!",
         description: coinData.isAuction 
           ? "Auction started successfully! Your coin is now live in the marketplace." 
           : "Coin listed successfully! Your coin is now available for purchase.",
       });
 
-      // Navigate to marketplace to see the listing
-      navigate('/marketplace');
+      // Optional: Navigate after a delay to let user see success
+      setTimeout(() => {
+        navigate('/marketplace');
+      }, 2000);
+
     } catch (error: any) {
-      console.error('Submission failed:', error);
+      console.error('❌ Submission failed:', error);
       toast({
         title: "Submission Failed",
         description: error.message || "Failed to create listing. Please check your data and try again.",
