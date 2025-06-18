@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 interface ImageGalleryProps {
@@ -12,7 +13,6 @@ interface ImageGalleryProps {
 const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
-  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   
   // Memoize valid images to prevent unnecessary recalculation
   const validImages = useMemo(() => {
@@ -23,6 +23,12 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   
   // DEBUG: Log the images being processed
   useEffect(() => {
+    console.log('🔍 ImageGallery DEBUG for coin:', coinName);
+    console.log('🔍 Raw images received:', images);
+    console.log('🔍 Valid images filtered:', validImages);
+    console.log('🔍 Current index:', currentIndex);
+    
+    // Special debug for the Greece coin
     if (coinName.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR')) {
       console.log('🏛️ GREECE COIN GALLERY DEBUG:');
       console.log('🏛️ Raw images array:', images);
@@ -32,7 +38,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         console.log(`🏛️ Image ${idx + 1}:`, img);
       });
     }
-  }, [images, coinName, validImages]);
+  }, [images, coinName, validImages, currentIndex]);
 
   // Reset current index if it's out of bounds
   useEffect(() => {
@@ -47,105 +53,124 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   };
 
   const handleImageError = (index: number, imageUrl: string) => {
-    setImageErrors(prev => new Set([...prev, index]));
     console.error(`❌ Image ${index + 1} failed to load for ${coinName}:`, imageUrl);
   };
 
   if (validImages.length === 0) {
     console.log('❌ No valid images found for:', coinName);
     return (
-      <div className={`aspect-square bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-200 ${className}`}>
+      <div className={`aspect-square bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center">
-          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <div className="text-4xl mb-2">🪙</div>
           <span className="text-gray-500 text-sm">No images available</span>
         </div>
       </div>
     );
   }
 
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % validImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
+  };
+
   const goToImage = (index: number) => {
     setCurrentIndex(index);
   };
 
   const currentImageUrl = validImages[currentIndex];
+  console.log('🖼️ Displaying image:', currentImageUrl);
 
   return (
-    <div className={`${className}`}>
-      {/* Main Image Display - Square Aspect Ratio */}
-      <div className="relative aspect-square rounded-lg overflow-hidden bg-white border mb-4">
-        {/* Main image */}
+    <div className={`relative ${className}`}>
+      {/* Main Image Display */}
+      <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+        {/* Enhanced image with better loading */}
         <img
           src={currentImageUrl}
           alt={`${coinName} - Image ${currentIndex + 1}`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-opacity duration-300"
           style={{ 
-            opacity: loadedImages.has(currentIndex) && !imageErrors.has(currentIndex) ? 1 : 0.8
+            display: 'block', 
+            minHeight: '100%',
+            opacity: loadedImages.has(currentIndex) ? 1 : 0.7
           }}
           onLoad={() => handleImageLoad(currentIndex)}
           onError={() => handleImageError(currentIndex, currentImageUrl)}
-          loading="eager"
+          loading="eager" // Prioritize loading for main image
         />
         
         {/* Loading indicator */}
-        {!loadedImages.has(currentIndex) && !imageErrors.has(currentIndex) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <span className="text-sm text-gray-500">Loading...</span>
-            </div>
+        {!loadedImages.has(currentIndex) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         )}
-
-        {/* Error state */}
-        {imageErrors.has(currentIndex) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <span className="text-sm text-gray-500">Failed to load image</span>
-            </div>
-          </div>
+        
+        {/* Image Counter */}
+        <Badge className="absolute top-2 right-2 bg-black/60 text-white">
+          {currentIndex + 1} / {validImages.length}
+        </Badge>
+        
+        {/* Navigation Buttons - only show if multiple images */}
+        {validImages.length > 1 && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white"
+              onClick={prevImage}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white"
+              onClick={nextImage}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
       
-      {/* Thumbnail Navigation - Below main image, only show if multiple images */}
+      {/* Thumbnail Navigation - only show if multiple images */}
       {validImages.length > 1 && (
-        <div className="flex gap-2 justify-center overflow-x-auto pb-2">
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
           {validImages.map((image, index) => (
             <button
               key={index}
               onClick={() => goToImage(index)}
-              className={`relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${
+              className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
                 index === currentIndex 
-                  ? 'border-blue-500 ring-2 ring-blue-200' 
+                  ? 'border-blue-500' 
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <img
                 src={image}
                 alt={`${coinName} thumbnail ${index + 1}`}
-                className="w-full h-full object-cover bg-white"
-                loading="lazy"
+                className="w-full h-full object-cover"
+                loading="lazy" // Lazy load thumbnails for performance
                 onError={() => handleImageError(index, image)}
               />
               
               {/* Thumbnail loading indicator */}
-              {!loadedImages.has(index) && !imageErrors.has(index) && (
-                <div className="absolute inset-0 bg-gray-100 animate-pulse"></div>
+              {!loadedImages.has(index) && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
               )}
-
-              {/* Error overlay for thumbnails */}
-              {imageErrors.has(index) && (
-                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                  <ImageIcon className="h-4 w-4 text-gray-400" />
-                </div>
-              )}
-
-              {/* Image counter badge only on thumbnails */}
-              <Badge className="absolute top-1 right-1 bg-white/90 text-gray-800 border-0 px-1 py-0 text-xs min-w-0 h-4">
-                {index + 1}
-              </Badge>
             </button>
           ))}
+        </div>
+      )}
+      
+      {/* Debug info for development */}
+      {process.env.NODE_ENV === 'development' && coinName.includes('GREECE') && (
+        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+          <strong>DEBUG:</strong> {validImages.length} images loaded for {coinName}
         </div>
       )}
     </div>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle, Camera, Wallet } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle, Camera } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,7 +18,6 @@ import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
 import ShippingPaymentManager from './ShippingPaymentManager';
 import CoinImageEditor from './CoinImageEditor';
-import WalletManagementTab from './WalletManagementTab';
 
 const AdvancedDealerUploadPanelRefactored: React.FC = () => {
   const [activeTab, setActiveTab] = useState('upload');
@@ -131,7 +130,7 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="upload" className="flex items-center gap-2" disabled={isAdminUser && !effectiveSelectedStoreId}>
               <Upload className="w-4 h-4" />
               Smart Upload
@@ -151,10 +150,6 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
             <TabsTrigger value="shipping" className="flex items-center gap-2">
               <Truck className="w-4 h-4" />
               Shipping & Payments
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className="flex items-center gap-2">
-              <Wallet className="w-4 h-4" />
-              Wallet
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
@@ -258,10 +253,6 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
 
           <TabsContent value="shipping">
             <ShippingPaymentManager />
-          </TabsContent>
-
-          <TabsContent value="wallet">
-            <WalletManagementTab />
           </TabsContent>
 
           <TabsContent value="analytics">

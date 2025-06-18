@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Plus, Trash2, Upload, RotateCcw, ExternalLink } from 'lucide-react';
+import { Camera, Plus, Trash2, Upload, RotateCcw, Download, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useImageEditor } from '@/hooks/useImageEditor';
 
@@ -150,7 +150,7 @@ const CoinImageEditor: React.FC<CoinImageEditorProps> = ({
             onDrop={(e) => handleDrop(e, index)}
           >
             <CardContent className="p-2">
-              <div className="aspect-square relative rounded-md overflow-hidden bg-white border-2 border-gray-200">
+              <div className="aspect-square relative rounded-md overflow-hidden bg-gray-100">
                 <img
                   src={imageUrl}
                   alt={`${coinName} - Image ${index + 1}`}
@@ -170,12 +170,12 @@ const CoinImageEditor: React.FC<CoinImageEditorProps> = ({
                   </Badge>
                 )}
 
-                {/* Always visible action buttons */}
-                <div className="absolute top-2 right-2 flex gap-1">
+                {/* Action Buttons */}
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="h-6 w-6 p-0 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                    className="h-8 w-8 p-0"
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
@@ -184,30 +184,27 @@ const CoinImageEditor: React.FC<CoinImageEditorProps> = ({
                       input.click();
                     }}
                     disabled={isLoading}
-                    title="Replace image"
                   >
-                    <RotateCcw className="h-3 w-3" />
+                    <RotateCcw className="h-4 w-4" />
                   </Button>
                   
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="h-6 w-6 p-0 rounded-full bg-gray-600 hover:bg-gray-700 text-white shadow-lg"
+                    className="h-8 w-8 p-0"
                     onClick={() => window.open(imageUrl, '_blank')}
-                    title="View full size"
                   >
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-4 w-4" />
                   </Button>
                   
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="h-6 w-6 p-0 rounded-full shadow-lg"
+                    className="h-8 w-8 p-0"
                     onClick={() => handleDeleteImage(imageUrl, index)}
                     disabled={isLoading}
-                    title="Delete image"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -225,7 +222,7 @@ const CoinImageEditor: React.FC<CoinImageEditorProps> = ({
         {canAddMore && (
           <Card className="border-dashed border-2 border-gray-300 hover:border-blue-400 transition-colors">
             <CardContent className="p-2">
-              <div className="aspect-square flex flex-col items-center justify-center gap-2 text-gray-500 bg-gray-50 rounded-md">
+              <div className="aspect-square flex flex-col items-center justify-center gap-2 text-gray-500">
                 <Plus className="h-8 w-8" />
                 <p className="text-xs text-center">Add Image</p>
                 <Button

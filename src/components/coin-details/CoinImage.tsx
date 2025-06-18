@@ -35,11 +35,11 @@ const CoinImage = ({ coin }: CoinImageProps) => {
 
   return (
     <Card className="glass-card border-2 border-purple-200 overflow-hidden">
-      <CardContent className="p-6">
+      <CardContent className="p-0">
         <ImageGallery 
           images={allImages}
           coinName={coin.name}
-          className="w-full"
+          className="w-full h-96"
         />
       </CardContent>
     </Card>

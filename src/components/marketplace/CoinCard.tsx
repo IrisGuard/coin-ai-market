@@ -1,13 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Eye, Clock, DollarSign, Star, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import UltraFastImageGallery from '@/components/ui/UltraFastImageGallery';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSmartUserRole } from '@/hooks/useSmartUserRole';
+import ImageGallery from '@/components/ui/ImageGallery';
 
 interface Coin {
   id: string;
@@ -29,6 +26,7 @@ interface Coin {
   category?: string;
   description?: string;
   listing_type?: string;
+  error_type?: string;
   denomination?: string;
   condition?: string;
 }
@@ -40,20 +38,6 @@ interface CoinCardProps {
 }
 
 const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
-  const { user } = useAuth();
-  const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
-  
-  // Check if user is admin - FIXED with proper debugging
-  const isAdmin = userRole === 'admin';
-  
-  console.log('🔍 CoinCard Debug:', {
-    userId: user?.id,
-    userRole,
-    isAdmin,
-    roleLoading,
-    coinName: coin.name
-  });
-  
   // Prepare all available images for the gallery
   const getAllImages = (coin: Coin): string[] => {
     console.log('🔍 CoinCard.getAllImages called for:', coin.name);
@@ -84,6 +68,14 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
     }
     
     console.log('🔍 Final allImages for', coin.name, ':', allImages);
+    
+    // Special debug for the Greece coin
+    if (coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR')) {
+      console.log('🏛️ GREECE COIN DEBUG:');
+      console.log('🏛️ Raw coin.images:', coin.images);
+      console.log('🏛️ Final allImages:', allImages);
+      console.log('🏛️ Length:', allImages.length);
+    }
     
     return allImages;
   };
@@ -116,20 +108,18 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
       transition={{ delay: index * 0.1 }}
     >
       <Card 
-        className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer bg-white"
+        className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Ultra-Fast Image Gallery with Enhancement */}
+        {/* Multi-Image Gallery */}
         <div className="relative">
-          <UltraFastImageGallery 
+          <ImageGallery 
             images={allImages}
             coinName={coin.name}
             className="aspect-square"
-            enableEnhancement={isAdmin}
-            showQualityAnalysis={isAdmin}
           />
           
-          {/* FIXED: Clean Badge System - No Error Badges */}
+          {/* Overlay Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -149,20 +139,6 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 AI Verified
               </Badge>
             )}
-            {/* FIXED: Show ADMIN VERIFIED badge ONLY for admin users */}
-            {isAdmin && !roleLoading && (
-              <Badge className="bg-green-100 text-green-800 text-xs font-bold border-2 border-green-300">
-                <Star className="h-3 w-3 mr-1" />
-                ADMIN VERIFIED
-              </Badge>
-            )}
-            {/* Show authentication status for regular users */}
-            {!isAdmin && !roleLoading && coin.authentication_status === 'verified' && (
-              <Badge className="bg-green-100 text-green-800 text-xs">
-                <Star className="h-3 w-3 mr-1" />
-                Verified
-              </Badge>
-            )}
           </div>
 
           {/* Views */}
@@ -174,7 +150,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
           </div>
         </div>
 
-        <CardContent className="p-4 bg-white">
+        <CardContent className="p-4">
           {/* Title and Grade */}
           <div className="mb-2">
             <h3 className="font-semibold text-lg truncate" title={coin.name}>
@@ -268,21 +244,13 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             </Button>
           </div>
 
-          {/* FIXED: Clean Footer with Admin Benefits */}
+          {/* AI Confidence & Image Count */}
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
             {coin.ai_confidence && (
               <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
             )}
             {allImages.length > 1 && (
-              <span className="text-green-600 font-semibold">
-                {allImages.length} HD photos
-                {isAdmin && !roleLoading && ' • Ultra-Enhanced'}
-              </span>
-            )}
-            {isAdmin && !roleLoading && (
-              <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded border border-green-200">
-                ADMIN PRIVILEGES ✓
-              </span>
+              <span className="text-green-600">{allImages.length} photos</span>
             )}
           </div>
         </CardContent>

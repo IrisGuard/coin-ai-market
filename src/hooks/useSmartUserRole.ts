@@ -17,16 +17,16 @@ export const useSmartUserRole = () => {
       console.log('🔍 useSmartUserRole: Checking role for user:', user.id);
       
       try {
-        // PRIORITY: Check for admin role first in user_roles table
+        // First check for admin role in user_roles table
         const { data: adminRoleData, error: adminRoleError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
           .eq('role', 'admin')
-          .maybeSingle();
+          .single();
         
         if (!adminRoleError && adminRoleData) {
-          console.log('✅ ADMIN role found in user_roles table');
+          console.log('✅ Admin role found in user_roles table');
           return 'admin';
         }
 
@@ -36,7 +36,7 @@ export const useSmartUserRole = () => {
           .select('role')
           .eq('user_id', user.id)
           .eq('role', 'dealer')
-          .maybeSingle();
+          .single();
         
         if (!dealerRoleError && dealerRoleData) {
           console.log('✅ Dealer role found in user_roles table');
@@ -48,7 +48,7 @@ export const useSmartUserRole = () => {
           .from('profiles')
           .select('role')
           .eq('id', user.id)
-          .maybeSingle();
+          .single();
         
         if (!profileError && profileData?.role) {
           console.log('✅ Role found in profiles table:', profileData.role);
@@ -57,26 +57,28 @@ export const useSmartUserRole = () => {
         
         console.log('ℹ️ No role in profiles, checking user metadata...');
         
-        // Fallback: check user metadata
+        // Fallback: check user metadata if profile doesn't exist yet
         if (user.user_metadata?.role) {
           console.log('✅ Role found in user metadata:', user.user_metadata.role);
           return user.user_metadata.role;
         }
         
         console.log('⚠️ No role found anywhere, defaulting to buyer');
+        // Final fallback: default to buyer
         return 'buyer';
       } catch (error) {
         console.error('❌ Error getting user role:', error);
+        // Fallback to metadata if database query fails
         const metadataRole = user.user_metadata?.role || 'buyer';
         console.log('🔄 Fallback to metadata role:', metadataRole);
         return metadataRole;
       }
     },
     enabled: !!user?.id && !!session,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    retry: 2,
-    retryDelay: 500,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 3,
+    retryDelay: 1000,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
