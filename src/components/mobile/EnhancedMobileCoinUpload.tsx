@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Upload, Zap, CheckCircle, Store } from 'lucide-react';
+import { Camera, Upload, Zap, CheckCircle, Store, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +42,7 @@ const EnhancedMobileCoinUpload = () => {
   });
 
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<{ success: boolean; coinId?: string; error?: string } | null>(null);
   const { analyzeImage, isAnalyzing, result: analysisResults } = useRealAICoinRecognition();
   const { submitListing, isSubmitting } = useCoinSubmission();
   const { selectedStoreId, isAdminUser, setSelectedStoreId } = useAdminStore();
@@ -55,7 +55,7 @@ const EnhancedMobileCoinUpload = () => {
       file: img.file,
       preview: img.preview,
       url: img.url,
-      uploaded: !!img.url,
+      uploaded: !!img.url && !img.url.startsWith('blob:'), // Only mark as uploaded if permanent URL
       uploading: false
     }));
     setImages(newImages);
@@ -97,8 +97,9 @@ const EnhancedMobileCoinUpload = () => {
 
   const handleSubmit = async () => {
     setFormSubmitted(true);
-    await submitListing(coinData, images);
-    // DON'T reset form - let user decide what to do next
+    const result = await submitListing(coinData, images);
+    setSubmissionResult(result);
+    // DON'T reset form - preserve data for user choice
   };
 
   const resetForm = () => {
@@ -124,6 +125,7 @@ const EnhancedMobileCoinUpload = () => {
     });
     setImages([]);
     setFormSubmitted(false);
+    setSubmissionResult(null);
   };
 
   const updateCoinData = (updates: Partial<CoinData>) => {
@@ -171,8 +173,8 @@ const EnhancedMobileCoinUpload = () => {
 
   return (
     <div className="space-y-6">
-      {/* Success message after submission */}
-      {formSubmitted && !isSubmitting && (
+      {/* Enhanced success message after submission */}
+      {submissionResult?.success && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -181,7 +183,7 @@ const EnhancedMobileCoinUpload = () => {
                 🎉 Coin Successfully Listed!
               </h3>
               <p className="text-green-700">
-                Your coin has been uploaded with all images and details saved to the marketplace.
+                Your coin has been uploaded with permanent image URLs and is now live in the marketplace.
               </p>
               <div className="flex gap-3 justify-center">
                 <Button onClick={() => window.location.href = '/marketplace'} className="bg-green-600 hover:bg-green-700">
@@ -191,6 +193,26 @@ const EnhancedMobileCoinUpload = () => {
                   List Another Coin
                 </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error message if submission failed */}
+      {submissionResult && !submissionResult.success && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <X className="w-12 h-12 text-red-600 mx-auto" />
+              <h3 className="text-lg font-semibold text-red-800">
+                Submission Failed
+              </h3>
+              <p className="text-red-700">
+                {submissionResult.error || "An error occurred during submission. Please try again."}
+              </p>
+              <Button onClick={() => setSubmissionResult(null)} className="bg-red-600 hover:bg-red-700">
+                Try Again
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -235,7 +257,7 @@ const EnhancedMobileCoinUpload = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-blue-600" />
-            Native Camera Only
+            Native Camera Only - Permanent URLs
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -244,7 +266,7 @@ const EnhancedMobileCoinUpload = () => {
             maxImages={5}
           />
           
-          {images.length > 0 && !images.every(img => img.uploaded) && (
+          {images.length > 0 && images.every(img => img.uploaded) && (
             <div className="mt-4">
               <Button
                 onClick={handleAnalyze}
@@ -487,7 +509,7 @@ const EnhancedMobileCoinUpload = () => {
               (!coinData.price && !coinData.isAuction) || 
               (!coinData.startingBid && coinData.isAuction) ||
               images.length === 0 || 
-              !images.every(img => img.uploaded) ||
+              !images.every(img => img.uploaded && !img.url?.startsWith('blob:')) ||
               isSubmitting
             }
             className="w-full bg-green-600 hover:bg-green-700 py-4 touch-manipulation"
@@ -496,9 +518,9 @@ const EnhancedMobileCoinUpload = () => {
             {isSubmitting ? 'Creating Production Listing...' : 'Create Complete Production Listing'}
           </Button>
 
-          {formSubmitted && (
-            <div className="text-center text-green-600 font-medium">
-              ✅ Listing submitted successfully! Check above for next steps.
+          {formSubmitted && isSubmitting && (
+            <div className="text-center text-blue-600 font-medium">
+              🔄 Uploading with permanent URLs and saving to database...
             </div>
           )}
         </CardContent>

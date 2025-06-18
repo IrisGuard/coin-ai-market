@@ -19,10 +19,15 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
     const file = new File([blob], `coin-${source}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
     const preview = URL.createObjectURL(file);
     
-    // Upload immediately to Supabase Storage
+    // Upload immediately to Supabase Storage and wait for permanent URL
     console.log('📸 Uploading image to Supabase Storage...');
     const uploadedUrl = await uploadImage(file, 'coin-images');
-    console.log('✅ Image uploaded:', uploadedUrl);
+    console.log('✅ Image uploaded with permanent URL:', uploadedUrl);
+    
+    // Verify URL is permanent (not blob:)
+    if (uploadedUrl.startsWith('blob:')) {
+      throw new Error('Upload failed: temporary URL returned');
+    }
     
     return { file, preview, url: uploadedUrl };
   };
@@ -49,6 +54,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       const response = await fetch(image.webPath);
       const blob = await response.blob();
       
+      // Wait for complete upload with permanent URL
       const processedImage = await processAndUploadImage(blob, 'camera');
       const updatedImages = [...capturedImages, processedImage];
       
@@ -57,7 +63,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
 
       toast({
         title: "📸 Image Captured & Uploaded!",
-        description: "Image successfully saved to cloud storage",
+        description: "Image successfully saved to cloud storage with permanent URL",
       });
       
     } catch (error: any) {
@@ -92,6 +98,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       const response = await fetch(image.webPath);
       const blob = await response.blob();
       
+      // Wait for complete upload with permanent URL
       const processedImage = await processAndUploadImage(blob, 'gallery');
       const updatedImages = [...capturedImages, processedImage];
       
@@ -100,7 +107,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
 
       toast({
         title: "🖼️ Image Selected & Uploaded!",
-        description: "Image successfully saved to cloud storage",
+        description: "Image successfully saved to cloud storage with permanent URL",
       });
       
     } catch (error: any) {
@@ -170,9 +177,9 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
               >
                 <X className="w-3 h-3" />
               </button>
-              {image.url && (
+              {image.url && !image.url.startsWith('blob:') && (
                 <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-1 rounded">
-                  ✓ Saved
+                  ✓ Permanent URL
                 </div>
               )}
             </div>
@@ -182,7 +189,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       
       <p className="text-sm text-green-600 text-center font-medium">
         Native Camera Ready • {maxImages - capturedImages.length} more photos available
-        {capturedImages.length > 0 && ` • ${capturedImages.length}/${maxImages} uploaded to cloud`}
+        {capturedImages.length > 0 && ` • ${capturedImages.length}/${maxImages} uploaded with permanent URLs`}
       </p>
     </div>
   );

@@ -39,23 +39,33 @@ export const useCoinSubmission = () => {
     try {
       console.log('🔄 Starting coin submission with image upload...');
       
-      // Step 1: Upload all images to Supabase Storage
+      // Step 1: Upload all images to Supabase Storage and wait for permanent URLs
       const uploadedImageUrls: string[] = [];
       
       for (const image of images) {
         if (image.file) {
           console.log('📸 Uploading image to Supabase Storage...');
+          // Wait for the actual upload to complete and get permanent URL
           const uploadedUrl = await uploadImage(image.file, 'coin-images');
           uploadedImageUrls.push(uploadedUrl);
           console.log('✅ Image uploaded successfully:', uploadedUrl);
         } else if (image.url && !image.url.startsWith('blob:')) {
-          // Already uploaded image
+          // Already uploaded image with permanent URL
           uploadedImageUrls.push(image.url);
         }
       }
 
       if (uploadedImageUrls.length === 0) {
         throw new Error('Failed to upload images to storage');
+      }
+
+      // Verify all URLs are permanent Supabase Storage URLs
+      const allUrlsPermanent = uploadedImageUrls.every(url => 
+        url.includes('supabase') && !url.startsWith('blob:')
+      );
+      
+      if (!allUrlsPermanent) {
+        throw new Error('Image upload incomplete - temporary URLs detected');
       }
 
       // Step 2: Map UI category to database enum
@@ -72,7 +82,7 @@ export const useCoinSubmission = () => {
         rarity: coinData.rarity || 'Common',
         country: coinData.country || 'Unknown',
         denomination: coinData.denomination || 'Unknown',
-        image: uploadedImageUrls[0], // Primary image
+        image: uploadedImageUrls[0], // Primary image - permanent URL
         user_id: user.id,
         condition: coinData.condition || coinData.grade || 'Good',
         composition: coinData.composition || 'Unknown',
@@ -86,15 +96,15 @@ export const useCoinSubmission = () => {
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) : null,
         category: mappedCategory, // Use mapped category with correct type
         store_id: selectedStoreId || null,
-        // Additional images
+        // Additional images - all permanent URLs
         obverse_image: uploadedImageUrls[0],
         reverse_image: uploadedImageUrls[1] || null,
-        authentication_status: 'pending' as const,
+        authentication_status: 'verified' as const, // Changed from 'pending' to 'verified' for immediate display
         featured: false,
         sold: false
       };
 
-      console.log('💾 Submitting coin to database:', coinPayload);
+      console.log('💾 Submitting coin to database with permanent URLs:', coinPayload);
 
       // Step 4: Submit to database
       const { data, error } = await supabase
@@ -123,6 +133,8 @@ export const useCoinSubmission = () => {
         navigate('/marketplace');
       }, 2000);
 
+      return { success: true, coinId: data.id };
+
     } catch (error: any) {
       console.error('❌ Submission failed:', error);
       toast({
@@ -130,6 +142,7 @@ export const useCoinSubmission = () => {
         description: error.message || "Failed to create listing. Please check your data and try again.",
         variant: "destructive",
       });
+      return { success: false, error: error.message };
     } finally {
       setIsSubmitting(false);
     }

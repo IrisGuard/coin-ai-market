@@ -23,13 +23,13 @@ const transformSupabaseCoinData = (rawCoin: any): Coin => {
   };
 };
 
-export const useCoins = () => {
+export const useCoins = (includeAllStatuses = true) => {
   return useQuery({
-    queryKey: ['coins'],
+    queryKey: ['coins', includeAllStatuses],
     queryFn: async () => {
       try {
-        // Fetch coins with profiles first
-        const { data: coins, error: coinsError } = await supabase
+        // Build query with conditional status filtering
+        let query = supabase
           .from('coins')
           .select(`
             *,
@@ -39,8 +39,17 @@ export const useCoins = () => {
               reputation,
               verified_dealer
             )
-          `)
-          .eq('authentication_status', 'verified')
+          `);
+
+        // Apply status filter only if not including all statuses
+        if (!includeAllStatuses) {
+          query = query.eq('authentication_status', 'verified');
+        } else {
+          // Include both verified and pending for marketplace display
+          query = query.in('authentication_status', ['verified', 'pending']);
+        }
+
+        const { data: coins, error: coinsError } = await query
           .order('created_at', { ascending: false });
 
         if (coinsError) {
