@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Star } from 'lucide-react';
+import { ArrowRight, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FeaturedCoinsGrid from './FeaturedCoinsGrid';
 
@@ -10,7 +10,7 @@ const FeaturedCoinsSection = () => {
   return (
     <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Restored original header */}
+        {/* Clean header without marketing cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -27,44 +27,9 @@ const FeaturedCoinsSection = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
             Discover authenticated coins from verified dealers worldwide
           </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-electric-blue"
-            >
-              <Star className="w-8 h-8 text-electric-blue mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Premium Quality</h3>
-              <p className="text-gray-600 text-sm">Curated collection of finest coins</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-electric-blue"
-            >
-              <TrendingUp className="w-8 h-8 text-electric-blue mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">AI Verified</h3>
-              <p className="text-gray-600 text-sm">Advanced authentication technology</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500"
-            >
-              <Star className="w-8 h-8 text-green-500 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Trusted Dealers</h3>
-              <p className="text-gray-600 text-sm">Verified and reputable sellers</p>
-            </motion.div>
-          </div>
         </motion.div>
 
-        {/* Coins Grid - functionality preserved, UI restored */}
+        {/* Coins Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,7 +38,7 @@ const FeaturedCoinsSection = () => {
           <FeaturedCoinsGrid />
         </motion.div>
 
-        {/* Restored original action buttons */}
+        {/* Action button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
