@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,13 +40,13 @@ interface CoinCardProps {
 const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
   // Prepare all available images for the gallery
   const getAllImages = (coin: Coin): string[] => {
-    console.log('🔍 getAllImages called for coin:', coin.name);
-    console.log('🔍 coin.images:', coin.images);
-    console.log('🔍 coin.image:', coin.image);
+    console.log('🔍 CoinCard.getAllImages called for:', coin.name);
+    console.log('🔍 coin.images array:', coin.images);
+    console.log('🔍 coin.image field:', coin.image);
     
     const allImages: string[] = [];
     
-    // FIXED: Check if coin.images exists and is a valid array with items
+    // PRIORITY: Check if coin.images exists and is a valid array with items
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
       console.log('✅ Using coin.images array with length:', coin.images.length);
       // Filter out invalid URLs and blob URLs
@@ -69,6 +68,15 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
     }
     
     console.log('🔍 Final allImages for', coin.name, ':', allImages);
+    
+    // Special debug for the Greece coin
+    if (coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR')) {
+      console.log('🏛️ GREECE COIN DEBUG:');
+      console.log('🏛️ Raw coin.images:', coin.images);
+      console.log('🏛️ Final allImages:', allImages);
+      console.log('🏛️ Length:', allImages.length);
+    }
+    
     return allImages;
   };
 
