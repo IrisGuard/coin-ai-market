@@ -103,7 +103,7 @@ export const useCoinSubmission = () => {
         structured_description: coinData.structured_description || generateStructuredDescription(coinData),
         year: parseInt(coinData.year) || new Date().getFullYear(),
         grade: coinData.grade || 'Ungraded',
-        price: coinData.isAuction ? parseFloat(coinData.startingBid) : parseFloat(coinData.price),
+        price: coinData.isAuction ? parseFloat(coinData.startingBid || '0') : parseFloat(coinData.price),
         rarity: coinData.rarity || 'Common',
         country: coinData.country || 'Unknown',
         denomination: coinData.denomination || 'Unknown',
@@ -119,10 +119,10 @@ export const useCoinSubmission = () => {
         mint: coinData.mint || '',
         is_auction: coinData.isAuction || false,
         auction_end: coinData.isAuction 
-          ? new Date(Date.now() + (parseInt(coinData.auctionDuration) * 24 * 60 * 60 * 1000)).toISOString()
+          ? new Date(Date.now() + (parseInt(coinData.auctionDuration || '7') * 24 * 60 * 60 * 1000)).toISOString()
           : null,
-        starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) : null,
-        category: mappedCategory,
+        starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid || '0') : null,
+        category: mappedCategory as any, // Type cast to handle strict typing
         store_id: selectedStoreId || null,
         authentication_status: 'verified', // Auto-verify for immediate visibility
         featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)), // Auto-feature error coins and rare coins

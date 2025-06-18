@@ -54,6 +54,24 @@ export const mapUIToDatabaseCategory = (uiCategory: string): string => {
   return mapped;
 };
 
+// Added missing export
+export const getValidDatabaseCategories = (): string[] => {
+  return [
+    'modern',
+    'ancient',
+    'commemorative',
+    'error_coin',
+    'greek',
+    'american',
+    'british',
+    'asian',
+    'european',
+    'silver',
+    'gold',
+    'unclassified'
+  ];
+};
+
 // Enhanced error detection patterns for AI analysis
 export const detectErrorCoinPatterns = (coinName: string, description: string = ''): boolean => {
   const combinedText = `${coinName} ${description}`.toLowerCase();
