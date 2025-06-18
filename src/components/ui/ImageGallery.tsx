@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Image as ImageIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface ImageGalleryProps {
@@ -64,14 +63,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
     );
   }
 
-  const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % validImages.length);
-  };
-
-  const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
-  };
-
   const goToImage = (index: number) => {
     setCurrentIndex(index);
   };
@@ -79,10 +70,10 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const currentImageUrl = validImages[currentIndex];
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Main Image Display */}
-      <div className="relative aspect-square rounded-lg overflow-hidden bg-white border">
-        {/* Main image with better loading handling */}
+    <div className={`${className}`}>
+      {/* Main Image Display - Square Aspect Ratio */}
+      <div className="relative aspect-square rounded-lg overflow-hidden bg-white border mb-4">
+        {/* Main image */}
         <img
           src={currentImageUrl}
           alt={`${coinName} - Image ${currentIndex + 1}`}
@@ -95,7 +86,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           loading="eager"
         />
         
-        {/* Enhanced loading indicator */}
+        {/* Loading indicator */}
         {!loadedImages.has(currentIndex) && !imageErrors.has(currentIndex) && (
           <div className="absolute inset-0 flex items-center justify-center bg-white">
             <div className="text-center">
@@ -114,43 +105,16 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             </div>
           </div>
         )}
-        
-        {/* Enhanced Image Counter with white background */}
-        <Badge className="absolute top-3 right-3 bg-white/90 text-gray-800 border-0 px-3 py-1">
-          {currentIndex + 1} / {validImages.length}
-        </Badge>
-        
-        {/* Navigation Buttons - only show if multiple images */}
-        {validImages.length > 1 && (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 text-gray-800 h-10 w-10 rounded-full shadow-lg"
-              onClick={prevImage}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 text-gray-800 h-10 w-10 rounded-full shadow-lg"
-              onClick={nextImage}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </>
-        )}
       </div>
       
-      {/* Enhanced Thumbnail Navigation - only show if multiple images */}
+      {/* Thumbnail Navigation - Below main image, only show if multiple images */}
       {validImages.length > 1 && (
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+        <div className="flex gap-2 justify-center overflow-x-auto pb-2">
           {validImages.map((image, index) => (
             <button
               key={index}
               onClick={() => goToImage(index)}
-              className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+              className={`relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${
                 index === currentIndex 
                   ? 'border-blue-500 ring-2 ring-blue-200' 
                   : 'border-gray-200 hover:border-gray-300'
@@ -175,6 +139,11 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                   <ImageIcon className="h-4 w-4 text-gray-400" />
                 </div>
               )}
+
+              {/* Image counter badge only on thumbnails */}
+              <Badge className="absolute top-1 right-1 bg-white/90 text-gray-800 border-0 px-1 py-0 text-xs min-w-0 h-4">
+                {index + 1}
+              </Badge>
             </button>
           ))}
         </div>
