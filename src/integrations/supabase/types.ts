@@ -4344,6 +4344,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      validate_complete_system: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       validate_enhanced_security_config: {
         Args: Record<PropertyKey, never>
         Returns: Json
