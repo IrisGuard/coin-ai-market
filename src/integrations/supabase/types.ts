@@ -4219,6 +4219,10 @@ export type Database = {
         Args: { coin_row: Database["public"]["Tables"]["coins"]["Row"] }
         Returns: string[]
       }
+      get_coin_store_verification: {
+        Args: { coin_store_id: string }
+        Returns: boolean
+      }
       get_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4280,6 +4284,10 @@ export type Database = {
       }
       is_admin_secure: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_store_verified: {
+        Args: { store_uuid: string }
         Returns: boolean
       }
       is_user_admin: {

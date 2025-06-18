@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 import { toast } from '@/hooks/use-toast';
+import VerifiedStoreBadge from '@/components/admin/enhanced/VerifiedStoreBadge';
 
 const COUNTRIES = [
   { code: 'US', name: 'United States' },
@@ -97,7 +97,7 @@ const AdminAwareStoreManager: React.FC<AdminAwareStoreManagerProps> = ({ onStore
     }
   }, [isAdminUser, stores, adminSelectedStoreId, setAdminSelectedStoreId]);
 
-  // Create store mutation
+  // Create store mutation - AUTO-VERIFY for admin users
   const createStoreMutation = useMutation({
     mutationFn: async (storeData: typeof newStore) => {
       if (!user?.id) throw new Error('User not authenticated');
@@ -110,7 +110,7 @@ const AdminAwareStoreManager: React.FC<AdminAwareStoreManagerProps> = ({ onStore
           description: storeData.description,
           address: storeData.country ? { country: storeData.country } : null,
           is_active: true,
-          verified: isAdminUser // Auto-verify for admin users
+          verified: isAdminUser // AUTO-VERIFY ADMIN STORES
         })
         .select()
         .single();
@@ -211,14 +211,7 @@ const AdminAwareStoreManager: React.FC<AdminAwareStoreManagerProps> = ({ onStore
                         )}
                       </div>
                       <div className="flex flex-col gap-1">
-                        {selectedStore.verified ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800">
-                            <Check className="w-3 h-3 mr-1" />
-                            Verified
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">Pending</Badge>
-                        )}
+                        <VerifiedStoreBadge isVerified={selectedStore.verified} size="sm" />
                         <Badge variant={selectedStore.is_active ? "default" : "secondary"}>
                           {selectedStore.is_active ? "Active" : "Inactive"}
                         </Badge>
@@ -228,7 +221,7 @@ const AdminAwareStoreManager: React.FC<AdminAwareStoreManagerProps> = ({ onStore
                 )}
               </>
             ) : (
-              // Regular user interface - existing functionality
+              // Regular user interface - existing functionality with verified badges
               <div className="grid gap-3">
                 {stores.map((store: Store) => (
                   <div
@@ -241,7 +234,7 @@ const AdminAwareStoreManager: React.FC<AdminAwareStoreManagerProps> = ({ onStore
                     onClick={() => effectiveOnStoreSelect(store.id)}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold">{store.name}</h3>
                         {store.description && (
                           <p className="text-sm text-gray-600">{store.description}</p>
@@ -252,10 +245,13 @@ const AdminAwareStoreManager: React.FC<AdminAwareStoreManagerProps> = ({ onStore
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={store.is_active ? "default" : "secondary"}>
-                          {store.is_active ? "Active" : "Inactive"}
-                        </Badge>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <VerifiedStoreBadge isVerified={store.verified} size="sm" />
+                          <Badge variant={store.is_active ? "default" : "secondary"}>
+                            {store.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
                         <Button variant="ghost" size="sm">
                           <Edit className="w-4 h-4" />
                         </Button>

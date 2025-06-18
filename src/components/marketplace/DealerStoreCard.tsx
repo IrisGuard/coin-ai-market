@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, Package, CheckCircle, Store, Calendar, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import VerifiedStoreBadge from '@/components/admin/enhanced/VerifiedStoreBadge';
 
 interface DealerStoreCardProps {
   id: string;
@@ -44,33 +45,6 @@ const countryFlags: Record<string, string> = {
   'SE': '🇸🇪',
   'NO': '🇳🇴',
   'FI': '🇫🇮',
-  'GR': '🇬🇷',
-  'IN': '🇮🇳',
-  'GI': '🇬🇮'
-};
-
-const countryNames: Record<string, string> = {
-  'US': 'United States',
-  'GB': 'United Kingdom',
-  'CA': 'Canada',
-  'DE': 'Germany',
-  'FR': 'France',
-  'IT': 'Italy',
-  'ES': 'Spain',
-  'JP': 'Japan',
-  'AU': 'Australia',
-  'NZ': 'New Zealand',
-  'CH': 'Switzerland',
-  'AT': 'Austria',
-  'NL': 'Netherlands',
-  'BE': 'Belgium',
-  'DK': 'Denmark',
-  'SE': 'Sweden',
-  'NO': 'Norway',
-  'FI': 'Finland',
-  'GR': 'Greece',
-  'IN': 'India',
-  'GI': 'Gibraltar'
 };
 
 const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
@@ -90,147 +64,99 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleVisitStore = () => {
-    navigate(`/store/${id}`);
+  const handleViewStore = () => {
+    navigate(`/dealer/${id}`);
   };
 
-  const displayName = storeName || full_name || username || 'Dealer Store';
-  const displayDescription = storeDescription || bio || 'Professional coin dealer';
-
-  const formatCreatedDate = (dateString?: string) => {
-    if (!dateString) return 'Recently created';
-    try {
-      return format(new Date(dateString), 'MMMM yyyy');
-    } catch {
-      return 'Recently created';
+  const getCountryFlag = () => {
+    if (storeAddress && typeof storeAddress === 'object' && storeAddress.country) {
+      return countryFlags[storeAddress.country] || '🌍';
     }
+    return null;
   };
 
-  const getCountryDisplay = () => {
-    if (!storeAddress || typeof storeAddress !== 'object') return null;
-    
-    const countryCode = storeAddress.country;
-    if (!countryCode) return null;
-    
-    const flag = countryFlags[countryCode];
-    const name = countryNames[countryCode] || countryCode;
-    
-    return { flag, name, code: countryCode };
-  };
-
-  const renderStars = (rating?: number) => {
-    if (!rating || rating === 0) {
-      return (
-        <div className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-gray-300" />
-          <span className="text-sm text-brand-medium">Not yet rated</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-1">
-        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-        <span className="text-sm font-medium text-brand-primary">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
-
-  const getCoinCountMessage = () => {
-    if (totalCoins === 0) return 'No coins listed';
-    if (totalCoins === 1) return '1 Coin';
-    return `${totalCoins} Coins`;
-  };
-
-  const countryInfo = getCountryDisplay();
+  const displayName = full_name || username || storeName || 'Unknown Store';
+  const displayDescription = bio || storeDescription || 'No description available';
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-electric-blue/20 hover:border-electric-blue/40 bg-gradient-to-br from-white to-electric-blue/5" onClick={handleVisitStore}>
+    <Card className="glass-card hover:shadow-lg transition-all duration-300 group">
       <CardContent className="p-6">
-        <div className="flex items-start gap-4 mb-4">
-          <Avatar className="w-16 h-16 border-2 border-electric-blue/30">
+        <div className="flex items-start gap-4">
+          <Avatar className="w-16 h-16 border-2 border-electric-blue/20">
             <AvatarImage src={avatar_url} alt={displayName} />
-            <AvatarFallback className="bg-gradient-to-br from-brand-primary to-electric-purple text-white text-lg font-semibold">
-              <Store className="w-8 h-8" />
+            <AvatarFallback className="bg-gradient-to-br from-electric-blue to-electric-purple text-white font-semibold">
+              {displayName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 
-                className="font-semibold text-lg text-brand-primary max-w-full" 
-                title={displayName}
-              >
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-lg text-brand-primary group-hover:text-electric-blue transition-colors">
                 {displayName}
               </h3>
-              {verified_dealer && (
-                <CheckCircle className="w-5 h-5 text-electric-blue flex-shrink-0" />
+              <div className="flex items-center gap-2">
+                {/* VERIFIED STORE BADGE */}
+                <VerifiedStoreBadge isVerified={verified_dealer} size="sm" />
+                {getCountryFlag() && (
+                  <span className="text-lg" title={`Country: ${storeAddress?.country}`}>
+                    {getCountryFlag()}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            {storeName && storeName !== displayName && (
+              <p className="text-sm text-electric-purple font-medium mb-1">
+                <Store className="w-4 h-4 inline mr-1" />
+                {storeName}
+              </p>
+            )}
+            
+            <p className="text-sm text-brand-medium mb-3 line-clamp-2">
+              {displayDescription}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Package className="w-4 h-4 text-electric-orange" />
+                <span className="text-brand-medium">
+                  <span className="font-semibold text-electric-orange">{totalCoins}</span> coins
+                </span>
+              </div>
+              
+              {rating && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Star className="w-4 h-4 text-electric-yellow fill-current" />
+                  <span className="text-brand-medium">
+                    <span className="font-semibold">{rating.toFixed(1)}</span>/5
+                  </span>
+                </div>
+              )}
+              
+              {location && (
+                <div className="flex items-center gap-2 text-sm col-span-2">
+                  <MapPin className="w-4 h-4 text-electric-green" />
+                  <span className="text-brand-medium">{location}</span>
+                </div>
+              )}
+              
+              {created_at && (
+                <div className="flex items-center gap-2 text-sm col-span-2">
+                  <Calendar className="w-4 h-4 text-electric-purple" />
+                  <span className="text-brand-medium">
+                    Member since {format(new Date(created_at), 'MMM yyyy')}
+                  </span>
+                </div>
               )}
             </div>
             
-            <p className="text-sm text-brand-medium line-clamp-2 mb-2">
-              {displayDescription}
-            </p>
+            <Button 
+              onClick={handleViewStore}
+              className="w-full bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-purple hover:to-electric-blue text-white font-medium transition-all duration-300"
+            >
+              View Store
+            </Button>
           </div>
-        </div>
-
-        <div className="space-y-3">
-          {renderStars(rating)}
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-electric-purple" />
-              <span className="text-sm font-medium text-brand-primary">
-                {getCoinCountMessage()}
-              </span>
-            </div>
-            
-            {location && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-electric-purple" />
-                <span className="text-xs text-brand-medium truncate max-w-20">
-                  {location}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Country Display */}
-          {countryInfo && (
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-electric-blue" />
-              <div className="flex items-center gap-1">
-                {countryInfo.flag && <span>{countryInfo.flag}</span>}
-                <span className="text-sm text-brand-medium">
-                  {countryInfo.name}
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-electric-blue" />
-            <span className="text-xs text-brand-medium">
-              Created: {formatCreatedDate(created_at)}
-            </span>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <Badge className="bg-gradient-to-r from-electric-blue to-electric-purple text-white border-0">
-              <Store className="w-3 h-3 mr-1" />
-              Verified Dealer
-            </Badge>
-          </div>
-
-          <Button 
-            className="w-full mt-3 bg-gradient-to-r from-brand-primary to-electric-purple hover:from-brand-primary/90 hover:to-electric-purple/90 text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleVisitStore();
-            }}
-          >
-            Visit Store
-          </Button>
         </div>
       </CardContent>
     </Card>

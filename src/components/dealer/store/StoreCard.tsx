@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Store } from 'lucide-react';
+import VerifiedStoreBadge from '@/components/admin/enhanced/VerifiedStoreBadge';
 
 interface Store {
   id: string;
@@ -60,14 +61,10 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, isSelected, onSelect, onEd
                 <p className="text-sm text-gray-600 mt-1">{store.description}</p>
               )}
               <div className="flex items-center gap-2 mt-2">
+                <VerifiedStoreBadge isVerified={store.verified} size="sm" />
                 <Badge variant={store.is_active ? "default" : "secondary"}>
                   {store.is_active ? "Active" : "Inactive"}
                 </Badge>
-                {store.verified && (
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    Verified
-                  </Badge>
-                )}
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                 <span>Rating: {store.rating || 0}/5</span>
