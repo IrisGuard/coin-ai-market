@@ -41,7 +41,7 @@ export const useRealAICoinRecognition = () => {
     const startTime = Date.now();
     
     try {
-      console.log('🧠 Starting enhanced AI coin recognition...');
+      console.log('🧠 Starting complete AI coin recognition with full auto-fill...');
       
       // Convert image to base64
       const base64 = await new Promise<string>((resolve) => {
@@ -51,7 +51,7 @@ export const useRealAICoinRecognition = () => {
       });
 
       // Step 1: Claude AI Analysis
-      console.log('🎯 Phase 1: Claude AI Analysis...');
+      console.log('🎯 Phase 1: Complete Claude AI Analysis...');
       const claudeResult = await recognizeCoin({
         image: base64,
         aiProvider: 'claude'
@@ -66,10 +66,10 @@ export const useRealAICoinRecognition = () => {
       const marketplaceIntelligence = await extractMarketplaceIntelligence(claudeResult.analysis);
       
       // Step 3: Merge all data sources for complete auto-fill
-      console.log('🔗 Phase 3: Data Merger for Complete Auto-Fill...');
+      console.log('🔗 Phase 3: Complete Data Merger for Full Auto-Fill...');
       const mergedData = await mergeAnalysisData(claudeResult.analysis, []);
       
-      // Step 4: Create comprehensive result
+      // Step 4: Create comprehensive result with ALL fields
       const enhancedResult: EnhancedAIResult = {
         name: mergedData.name || claudeResult.analysis.name || 'Unknown Coin',
         year: mergedData.year || claudeResult.analysis.year || new Date().getFullYear(),
@@ -87,22 +87,22 @@ export const useRealAICoinRecognition = () => {
         aiProvider: 'claude-enhanced',
         processingTime: Date.now() - startTime,
         description: mergedData.auto_description || `${mergedData.name || 'Coin'} from ${mergedData.year || 'unknown year'}. Grade: ${mergedData.grade || 'Ungraded'}. ${mergedData.composition || 'Composition unknown'}.`,
-        structured_description: mergedData.auto_description || '',
+        structured_description: generateStructuredDescription(mergedData, claudeResult.analysis),
         category: mergedData.suggested_category || determineCategory(mergedData.country, mergedData.denomination),
         market_intelligence: marketplaceIntelligence
       };
 
-      console.log('✅ Enhanced AI Analysis Complete:', enhancedResult);
+      console.log('✅ Complete AI Analysis with Full Auto-Fill:', enhancedResult);
       setResult(enhancedResult);
       
       toast.success(
-        `Analysis complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence`
+        `Complete Analysis Ready! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence. All fields auto-filled.`
       );
 
       return enhancedResult;
       
     } catch (error: any) {
-      console.error('❌ Enhanced AI analysis failed:', error);
+      console.error('❌ Complete AI analysis failed:', error);
       setError(error.message || 'Analysis failed');
       toast.error(`Analysis failed: ${error.message}`);
       return null;
@@ -123,6 +123,19 @@ export const useRealAICoinRecognition = () => {
     result,
     error
   };
+};
+
+// Enhanced structured description generator
+const generateStructuredDescription = (mergedData: any, claudeData: any): string => {
+  const name = mergedData.name || claudeData.name || 'Unknown Coin';
+  const year = mergedData.year || claudeData.year || 'Unknown';
+  const grade = mergedData.grade || claudeData.grade || 'Ungraded';
+  const composition = mergedData.composition || claudeData.composition || 'Unknown composition';
+  const country = mergedData.country || claudeData.country || 'Unknown origin';
+  const rarity = mergedData.rarity || claudeData.rarity || 'Common';
+  const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
+  
+  return `Professional Analysis: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}. Rarity: ${rarity}. Current market estimate: $${estimatedValue}. This coin has been professionally analyzed using advanced AI recognition and marketplace intelligence data.`;
 };
 
 // Helper function to determine category

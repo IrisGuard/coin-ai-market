@@ -1,38 +1,31 @@
 
 export interface UploadedImage {
-  file: File;
+  file?: File;
   preview: string;
   uploaded: boolean;
   uploading: boolean;
-  error?: string;
   url?: string;
 }
 
 export interface CoinData {
   title: string;
   description: string;
+  structured_description?: string;
+  price: string;
+  startingBid: string;
+  isAuction: boolean;
+  condition: string;
   year: string;
   country: string;
   denomination: string;
   grade: string;
-  composition: string;
   rarity: string;
   mint: string;
+  composition: string;
   diameter: string;
   weight: string;
-  price: string;
-  isAuction: boolean;
-  startingBid: string;
-  condition: string;
   auctionDuration: string;
+  category?: string;
 }
 
 export type ItemType = 'coin' | 'banknote';
-
-export interface ItemTypeProcessingOptions {
-  itemType: ItemType;
-  backgroundColor: string;
-  cropShape: 'circular' | 'rectangular';
-  enhanceContrast: boolean;
-  resizeToStandard: boolean;
-}

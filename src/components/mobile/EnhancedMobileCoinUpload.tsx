@@ -13,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { useCoinSubmission } from '@/hooks/upload/useCoinSubmission';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useDealerStores } from '@/hooks/useDealerStores';
+import { useAuth } from '@/contexts/AuthContext';
+import MobileCameraUploader from '@/components/MobileCameraUploader';
 import type { UploadedImage, CoinData } from '@/types/upload';
 
 const EnhancedMobileCoinUpload = () => {
@@ -38,26 +41,20 @@ const EnhancedMobileCoinUpload = () => {
 
   const { analyzeImage, isAnalyzing, result: analysisResults } = useRealAICoinRecognition();
   const { submitListing, isSubmitting } = useCoinSubmission();
-  const { selectedStoreId, isAdminUser } = useAdminStore();
+  const { selectedStoreId, isAdminUser, setSelectedStoreId } = useAdminStore();
+  const { user } = useAuth();
+  
+  // Load real stores data
+  const { data: dealerStores = [], isLoading: storesLoading } = useDealerStores();
 
-  // Mock stores data for admin mode (in production this should come from context)
-  const mockStores = [
-    { id: '1', name: 'Main Store' },
-    { id: '2', name: 'Premium Collections' },
-    { id: '3', name: 'Rare Coins Gallery' }
-  ];
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const newImages: UploadedImage[] = files.map(file => ({
-        file,
-        preview: URL.createObjectURL(file),
-        uploaded: false,
-        uploading: false
-      }));
-      setImages(prev => [...prev, ...newImages]);
-    }
+  const handleImagesSelected = (selectedImages: { file: File; preview: string }[]) => {
+    const newImages: UploadedImage[] = selectedImages.map(img => ({
+      file: img.file,
+      preview: img.preview,
+      uploaded: false,
+      uploading: false
+    }));
+    setImages(newImages);
   };
 
   const handleAnalyze = async () => {
@@ -67,11 +64,11 @@ const EnhancedMobileCoinUpload = () => {
       const result = await analyzeImage(images[0].file!);
       
       if (result) {
-        // Complete auto-fill from AI results
+        // Complete auto-fill with ALL fields including structured description and category
         setCoinData(prev => ({
           ...prev,
           title: result.name,
-          description: result.description || '',
+          description: result.description || `${result.name} from ${result.year}. Grade: ${result.grade}. Composition: ${result.composition}. ${result.rarity} rarity coin.`,
           year: result.year.toString(),
           country: result.country,
           denomination: result.denomination,
@@ -82,10 +79,13 @@ const EnhancedMobileCoinUpload = () => {
           diameter: result.diameter?.toString() || '',
           weight: result.weight?.toString() || '',
           price: result.estimatedValue.toString(),
-          condition: result.grade
+          condition: result.grade,
+          // NEW: structured description and category from AI analysis
+          structured_description: result.structured_description || `Professional coin analysis: ${result.name} (${result.year}) - ${result.grade} grade ${result.composition} coin from ${result.country}. Estimated value: $${result.estimatedValue}. Rarity: ${result.rarity}.`,
+          category: result.category || determineCategory(result.country, result.denomination)
         }));
 
-        // Mark images as uploaded
+        // Mark images as uploaded and analyzed
         setImages(prev => prev.map(img => ({ ...img, uploaded: true, uploading: false })));
       }
     } catch (error) {
@@ -111,6 +111,40 @@ const EnhancedMobileCoinUpload = () => {
     'RUSSIA COINS', 'CHINESE COINS', 'BRITISH COINS', 'CANADIAN COINS'
   ];
 
+  // Helper function to determine category from AI analysis
+  const determineCategory = (country?: string, denomination?: string): string => {
+    if (!country) return 'WORLD COINS';
+    
+    const countryLower = country.toLowerCase();
+    
+    if (countryLower.includes('usa') || countryLower.includes('united states')) {
+      return 'USA COINS';
+    }
+    if (countryLower.includes('russia') || countryLower.includes('soviet')) {
+      return 'RUSSIA COINS';
+    }
+    if (countryLower.includes('china') || countryLower.includes('chinese')) {
+      return 'CHINESE COINS';
+    }
+    if (countryLower.includes('britain') || countryLower.includes('england') || countryLower.includes('uk')) {
+      return 'BRITISH COINS';
+    }
+    if (countryLower.includes('canada') || countryLower.includes('canadian')) {
+      return 'CANADIAN COINS';
+    }
+    if (countryLower.includes('europe') || countryLower.includes('germany') || countryLower.includes('france')) {
+      return 'EUROPEAN COINS';
+    }
+    if (denomination && (denomination.toLowerCase().includes('gold') || denomination.toLowerCase().includes('au'))) {
+      return 'GOLD COINS';
+    }
+    if (denomination && (denomination.toLowerCase().includes('silver') || denomination.toLowerCase().includes('ag'))) {
+      return 'SILVER COINS';
+    }
+    
+    return 'WORLD COINS';
+  };
+
   return (
     <div className="space-y-6">
       {/* Store Selection for Admin */}
@@ -123,23 +157,31 @@ const EnhancedMobileCoinUpload = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Select value={selectedStoreId || ''} onValueChange={(value) => console.log('Store selected:', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose store for listing" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockStores.map((store) => (
-                  <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {storesLoading ? (
+              <div className="text-center py-4">Loading stores...</div>
+            ) : dealerStores.length > 0 ? (
+              <Select value={selectedStoreId || ''} onValueChange={setSelectedStoreId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose store for listing" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dealerStores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                No stores available. Create a store first.
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Image Capture */}
+      {/* Native Mobile Camera Integration */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -147,57 +189,22 @@ const EnhancedMobileCoinUpload = () => {
             Capture Coin Images
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple
-                onChange={handleFileInput}
-                className="hidden"
-                id="camera-input"
-              />
-              <Label htmlFor="camera-input">
-                <Button asChild className="w-full">
-                  <span>
-                    <Camera className="w-4 h-4 mr-2" />
-                    Camera
-                  </span>
-                </Button>
-              </Label>
-            </div>
-            
-            <div>
-              <Input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileInput}
-                className="hidden"
-                id="gallery-input"
-              />
-              <Label htmlFor="gallery-input">
-                <Button variant="outline" asChild className="w-full">
-                  <span>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Gallery
-                  </span>
-                </Button>
-              </Label>
-            </div>
-          </div>
+        <CardContent>
+          <MobileCameraUploader
+            onImagesSelected={handleImagesSelected}
+            maxImages={5}
+          />
 
-          {/* Image Preview */}
+          {/* Image Preview with enhanced touch optimization */}
           {images.length > 0 && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 mt-4">
               {images.map((image, index) => (
                 <div key={index} className="relative">
                   <img
                     src={image.preview}
                     alt={`Coin ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
+                    className="w-full h-32 object-cover rounded-lg touch-manipulation"
+                    style={{ touchAction: 'manipulation' }}
                   />
                   {image.uploaded && (
                     <Badge className="absolute top-2 right-2 bg-green-500">
@@ -208,7 +215,8 @@ const EnhancedMobileCoinUpload = () => {
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="absolute bottom-2 right-2 h-6 w-6 p-0"
+                    className="absolute bottom-2 right-2 h-8 w-8 p-0 touch-manipulation"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => removeImage(index)}
                   >
                     ×
@@ -218,12 +226,13 @@ const EnhancedMobileCoinUpload = () => {
             </div>
           )}
 
-          {/* AI Analysis Button */}
+          {/* Enhanced AI Analysis Button with touch optimization */}
           {images.length > 0 && !images.every(img => img.uploaded) && (
             <Button
               onClick={handleAnalyze}
               disabled={isAnalyzing}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 mt-4 py-4 touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             >
               {isAnalyzing ? (
                 <>
@@ -233,7 +242,7 @@ const EnhancedMobileCoinUpload = () => {
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  Analyze with AI
+                  Complete AI Analysis
                 </>
               )}
             </Button>
@@ -241,11 +250,11 @@ const EnhancedMobileCoinUpload = () => {
         </CardContent>
       </Card>
 
-      {/* Analysis Results */}
+      {/* Enhanced Analysis Results with ALL fields */}
       {analysisResults && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-green-600">AI Analysis Complete</CardTitle>
+            <CardTitle className="text-green-600">Complete AI Analysis Results</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -265,6 +274,26 @@ const EnhancedMobileCoinUpload = () => {
                 <span className="font-medium">Value:</span>
                 <p>${analysisResults.estimatedValue}</p>
               </div>
+              <div>
+                <span className="font-medium">Country:</span>
+                <p>{analysisResults.country}</p>
+              </div>
+              <div>
+                <span className="font-medium">Composition:</span>
+                <p>{analysisResults.composition}</p>
+              </div>
+              <div>
+                <span className="font-medium">Weight:</span>
+                <p>{analysisResults.weight}g</p>
+              </div>
+              <div>
+                <span className="font-medium">Diameter:</span>
+                <p>{analysisResults.diameter}mm</p>
+              </div>
+            </div>
+            <div className="mt-3">
+              <span className="font-medium">Category:</span>
+              <p className="text-sm">{analysisResults.category}</p>
             </div>
             <Badge variant="outline" className="w-full justify-center">
               Confidence: {Math.round(analysisResults.confidence * 100)}%
@@ -273,10 +302,10 @@ const EnhancedMobileCoinUpload = () => {
         </Card>
       )}
 
-      {/* Listing Form */}
+      {/* Complete Auto-Fill Listing Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Listing Details</CardTitle>
+          <CardTitle>Complete Listing Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -286,13 +315,15 @@ const EnhancedMobileCoinUpload = () => {
               value={coinData.title}
               onChange={(e) => updateCoinData({ title: e.target.value })}
               placeholder="Enter coin title"
+              className="touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             />
           </div>
 
           <div>
-            <Label htmlFor="category">Category</Label>
-            <Select value={coinData.condition} onValueChange={(value) => updateCoinData({ condition: value })}>
-              <SelectTrigger>
+            <Label htmlFor="category">Category *</Label>
+            <Select value={coinData.category || coinData.condition} onValueChange={(value) => updateCoinData({ condition: value, category: value })}>
+              <SelectTrigger className="touch-manipulation" style={{ touchAction: 'manipulation' }}>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -312,7 +343,21 @@ const EnhancedMobileCoinUpload = () => {
               value={coinData.description}
               onChange={(e) => updateCoinData({ description: e.target.value })}
               placeholder="Describe your coin"
-              className="h-24"
+              className="h-24 touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
+            />
+          </div>
+
+          {/* NEW: Structured Description field */}
+          <div>
+            <Label htmlFor="structured-description">Structured Description</Label>
+            <Textarea
+              id="structured-description"
+              value={coinData.structured_description || ''}
+              onChange={(e) => updateCoinData({ structured_description: e.target.value })}
+              placeholder="Professional structured description"
+              className="h-20 touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             />
           </div>
 
@@ -342,9 +387,12 @@ const EnhancedMobileCoinUpload = () => {
                 }
               }}
               placeholder="Enter amount in USD"
+              className="touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
             />
           </div>
 
+          {/* Complete auto-fill fields grid */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="year">Year</Label>
@@ -353,6 +401,8 @@ const EnhancedMobileCoinUpload = () => {
                 value={coinData.year}
                 onChange={(e) => updateCoinData({ year: e.target.value })}
                 placeholder="e.g. 1921"
+                className="touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
               />
             </div>
             <div>
@@ -362,6 +412,52 @@ const EnhancedMobileCoinUpload = () => {
                 value={coinData.grade}
                 onChange={(e) => updateCoinData({ grade: e.target.value })}
                 placeholder="e.g. MS-63"
+                className="touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                value={coinData.country}
+                onChange={(e) => updateCoinData({ country: e.target.value })}
+                placeholder="e.g. United States"
+                className="touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="composition">Composition</Label>
+              <Input
+                id="composition"
+                value={coinData.composition}
+                onChange={(e) => updateCoinData({ composition: e.target.value })}
+                placeholder="e.g. Silver"
+                className="touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="weight">Weight (g)</Label>
+              <Input
+                id="weight"
+                value={coinData.weight}
+                onChange={(e) => updateCoinData({ weight: e.target.value })}
+                placeholder="e.g. 26.73"
+                className="touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="diameter">Diameter (mm)</Label>
+              <Input
+                id="diameter"
+                value={coinData.diameter}
+                onChange={(e) => updateCoinData({ diameter: e.target.value })}
+                placeholder="e.g. 38.1"
+                className="touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
               />
             </div>
           </div>
@@ -376,9 +472,10 @@ const EnhancedMobileCoinUpload = () => {
               !images.every(img => img.uploaded) ||
               isSubmitting
             }
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full bg-green-600 hover:bg-green-700 py-4 touch-manipulation"
+            style={{ touchAction: 'manipulation' }}
           >
-            {isSubmitting ? 'Creating...' : 'Create Listing'}
+            {isSubmitting ? 'Creating Complete Listing...' : 'Create Complete Listing'}
           </Button>
         </CardContent>
       </Card>
