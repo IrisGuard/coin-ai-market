@@ -12,10 +12,11 @@ import { Coins, Edit, Trash2, Eye, Camera, Plus, Search, Filter } from 'lucide-r
 import { toast } from 'sonner';
 import AdminFinalCompletionTab from './AdminFinalCompletionTab';
 import CoinImageEditor from '../../dealer/CoinImageEditor';
+import type { CoinCategory } from '@/types/coin';
 
 const AdminCoinsTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | CoinCategory>('all');
   const [editingCoin, setEditingCoin] = useState<any>(null);
   const queryClient = useQueryClient();
 
@@ -129,7 +130,7 @@ const AdminCoinsTab = () => {
                 <div className="flex gap-2">
                   <select
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    onChange={(e) => setSelectedCategory(e.target.value as 'all' | CoinCategory)}
                     className="px-3 py-2 border rounded-md"
                   >
                     <option value="all">All Categories</option>
@@ -137,8 +138,8 @@ const AdminCoinsTab = () => {
                     <option value="ancient">Ancient</option>
                     <option value="error_coin">Error Coins</option>
                     <option value="commemorative">Commemorative</option>
-                    <option value="us">US Coins</option>
-                    <option value="world">World Coins</option>
+                    <option value="american">American Coins</option>
+                    <option value="european">European Coins</option>
                   </select>
                 </div>
               </div>
