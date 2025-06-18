@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { useAICoinRecognition } from '@/hooks/useAICoinRecognition';
-import { extractMarketplaceIntelligence, mergeAnalysisData } from '@/hooks/enhanced-coin-recognition/dataExtraction';
+import { extractMarketplaceIntelligence } from '@/hooks/enhanced-coin-recognition/dataExtraction';
+import { mergeAnalysisData } from '@/hooks/enhanced-coin-recognition/dataMerger';
 import { toast } from 'sonner';
 
 export interface EnhancedAIResult {

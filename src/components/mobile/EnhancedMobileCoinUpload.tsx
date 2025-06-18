@@ -38,7 +38,14 @@ const EnhancedMobileCoinUpload = () => {
 
   const { analyzeImage, isAnalyzing, result: analysisResults } = useRealAICoinRecognition();
   const { submitListing, isSubmitting } = useCoinSubmission();
-  const { selectedStoreId, isAdminUser, stores } = useAdminStore();
+  const { selectedStoreId, isAdminUser } = useAdminStore();
+
+  // Mock stores data for admin mode (in production this should come from context)
+  const mockStores = [
+    { id: '1', name: 'Main Store' },
+    { id: '2', name: 'Premium Collections' },
+    { id: '3', name: 'Rare Coins Gallery' }
+  ];
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -121,7 +128,7 @@ const EnhancedMobileCoinUpload = () => {
                 <SelectValue placeholder="Choose store for listing" />
               </SelectTrigger>
               <SelectContent>
-                {stores.map((store) => (
+                {mockStores.map((store) => (
                   <SelectItem key={store.id} value={store.id}>
                     {store.name}
                   </SelectItem>
