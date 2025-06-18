@@ -5,28 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Eye, Clock, Star, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
-
-interface Coin {
-  id: string;
-  name: string;
-  image: string;
-  images?: string[];
-  obverse_image?: string;
-  reverse_image?: string;
-  price: number;
-  grade: string;
-  year: number;
-  rarity: string;
-  is_auction: boolean;
-  auction_end: string | null;
-  starting_bid: number | null;
-  views: number;
-  featured: boolean;
-  ai_confidence: number | null;
-  country: string;
-  authentication_status: string;
-  category?: string;
-}
+import { Coin } from '@/types/coin';
 
 interface OptimizedCoinCardProps {
   coin: Coin;
