@@ -5,6 +5,7 @@ export interface UploadedImage {
   uploaded: boolean;
   uploading: boolean;
   url?: string;
+  error?: string;
 }
 
 export interface CoinData {
