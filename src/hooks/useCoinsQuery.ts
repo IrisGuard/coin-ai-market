@@ -29,7 +29,7 @@ export const useCoins = (includeAllStatuses = true) => {
       try {
         console.log('🔍 Fetching coins including ERROR COINS...');
         
-        // Enhanced query to show all coins including error coins
+        // Enhanced query to prioritize ERROR COINS
         let query = supabase
           .from('coins')
           .select(`
@@ -42,7 +42,7 @@ export const useCoins = (includeAllStatuses = true) => {
             )
           `);
 
-        // Show verified coins AND error coins (always show error coins)
+        // CRITICAL: Show verified coins AND all error coins (regardless of status)
         query = query.or('authentication_status.eq.verified,category.eq.error_coin');
 
         const { data: coins, error: coinsError } = await query
@@ -82,13 +82,13 @@ export const useCoins = (includeAllStatuses = true) => {
           })
         );
 
-        // Prioritize error coins in display
+        // PRIORITIZE ERROR COINS in display order
         const sortedCoins = coinsWithBids.sort((a, b) => {
-          // Error coins first
+          // ERROR COINS ALWAYS FIRST
           if (a.category === 'error_coin' && b.category !== 'error_coin') return -1;
           if (a.category !== 'error_coin' && b.category === 'error_coin') return 1;
           
-          // Then by featured status
+          // Then featured
           if (a.featured && !b.featured) return -1;
           if (!a.featured && b.featured) return 1;
           
@@ -96,7 +96,7 @@ export const useCoins = (includeAllStatuses = true) => {
           return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
         });
 
-        console.log('✅ Coins sorted with ERROR COINS prioritized');
+        console.log('✅ ERROR COINS prioritized in display order');
         return sortedCoins;
       } catch (error) {
         console.error('Error in useCoins:', error);
@@ -104,7 +104,7 @@ export const useCoins = (includeAllStatuses = true) => {
       }
     },
     refetchOnWindowFocus: false,
-    staleTime: 30 * 1000, // 30 seconds for faster updates
+    staleTime: 15 * 1000, // Faster refresh for error coins
   });
 };
 

@@ -1,197 +1,118 @@
 
-import React, { useState } from 'react';
-import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
-import OptimizedCoinCard from '@/components/OptimizedCoinCard';
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-const COINS_PER_PAGE = 24;
+import { ArrowRight, TrendingUp, Star, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import FeaturedCoinsGrid from './FeaturedCoinsGrid';
 
 const FeaturedCoinsSection = () => {
-  const { coins, isLoading, error } = useCachedMarketplaceData();
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Filter for direct sale coins only (exclude auctions)
-  const directSaleCoins = React.useMemo(() => {
-    if (!coins || coins.length === 0) return [];
-    
-    return coins
-      .filter(coin => 
-        coin.authentication_status === 'verified' && 
-        !coin.is_auction // ONLY direct sale coins
-      )
-      .sort((a, b) => {
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        return (b.views || 0) - (a.views || 0);
-      });
-  }, [coins]);
-
-  const totalPages = Math.ceil(directSaleCoins.length / COINS_PER_PAGE);
-  const startIndex = (currentPage - 1) * COINS_PER_PAGE;
-  const endIndex = startIndex + COINS_PER_PAGE;
-  const currentCoins = directSaleCoins.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleLoadMore = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center py-16">
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-electric-orange" />
-              <span className="text-electric-blue">Loading coins...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Alert className="max-w-md mx-auto">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Unable to load coins. Please try again later.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
-
-  if (!directSaleCoins.length) {
-    return (
-      <div className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-16 bg-gray-50 rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No coins available for sale</h3>
-            <p className="text-gray-600">Check back later for new listings!</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="py-16 bg-gray-50">
+    <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Featured Coins for Direct Sale
-          </h2>
-          <p className="text-lg text-gray-600 mb-2">
-            Discover {directSaleCoins.length.toLocaleString()} authentic coins from verified dealers
-          </p>
-          <p className="text-sm text-gray-500">
-            Page {currentPage} of {totalPages} ({COINS_PER_PAGE} coins per page)
-          </p>
-        </div>
-
-        {/* Coins Grid */}
+        {/* Enhanced Header with ERROR COINS emphasis */}
         <motion.div
-          key={currentPage}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
         >
-          {currentCoins.map((coin, index) => (
-            <div key={coin.id} className="w-full">
-              <OptimizedCoinCard 
-                coin={coin} 
-                index={startIndex + index} 
-                priority={index < 12} 
-              />
-            </div>
-          ))}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <TrendingUp className="w-8 h-8 text-electric-blue" />
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Featured Coins & ERROR COINS
+            </h2>
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
+            Discover authenticated coins including rare <span className="font-bold text-red-600">ERROR COINS</span> from verified dealers worldwide
+          </p>
+
+          {/* ERROR COINS Badge */}
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex justify-center mb-8"
+          >
+            <Badge className="bg-red-500 text-white px-6 py-2 text-lg font-bold border-0">
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              ERROR COINS FEATURED
+            </Badge>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500"
+            >
+              <Star className="w-8 h-8 text-red-500 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">ERROR COINS</h3>
+              <p className="text-gray-600 text-sm">Rare minting errors with premium values</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-electric-blue"
+            >
+              <TrendingUp className="w-8 h-8 text-electric-blue mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">AI Verified</h3>
+              <p className="text-gray-600 text-sm">Advanced authentication technology</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500"
+            >
+              <Star className="w-8 h-8 text-green-500 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Premium Quality</h3>
+              <p className="text-gray-600 text-sm">Curated collection of finest coins</p>
+            </motion.div>
+          </div>
         </motion.div>
 
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* Page Numbers */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
+        {/* Coins Grid - Shows ERROR COINS first */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <FeaturedCoinsGrid />
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="text-center mt-12"
+        >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/marketplace">
+              <Button className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-blue/90 hover:to-electric-purple/90 text-white px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105">
+                View All Coins
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-
-              {/* Page Numbers */}
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(pageNum)}
-                      className="w-10 h-10"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-2"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
+            </Link>
+            
+            <Link to="/categories/error_coin">
+              <Button variant="outline" className="border-red-500 text-red-600 hover:bg-red-50 px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105">
+                <AlertTriangle className="mr-2 w-5 h-5" />
+                Browse ERROR COINS
               </Button>
-            </div>
-
-            {/* Load More Button */}
-            {currentPage < totalPages && (
-              <Button
-                onClick={handleLoadMore}
-                className="bg-electric-orange hover:bg-electric-orange/90 text-white"
-              >
-                Load More ({Math.min(COINS_PER_PAGE, directSaleCoins.length - endIndex)} more)
-              </Button>
-            )}
+            </Link>
           </div>
-        )}
+        </motion.div>
       </div>
-    </div>
+    </section>
   );
 };
 

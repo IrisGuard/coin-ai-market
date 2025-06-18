@@ -52,7 +52,7 @@ const EnhancedCoinCard = ({ coin, onView, onEdit, onDelete, onToggleFeatured }: 
     <Card className={`hover:shadow-lg transition-all duration-300 ${isErrorCoin ? 'ring-2 ring-red-300 border-red-200' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-start space-x-4">
-          {/* Enhanced Coin Image */}
+          {/* Enhanced Coin Image with ERROR COIN indicator */}
           <div className="flex-shrink-0 relative">
             <img
               src={coin.image}
@@ -60,7 +60,8 @@ const EnhancedCoinCard = ({ coin, onView, onEdit, onDelete, onToggleFeatured }: 
               className={`w-20 h-20 object-cover rounded-lg border-2 ${isErrorCoin ? 'border-red-300' : 'border-gray-200'}`}
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
-                img.src = 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=300&fit=crop';
+                // Use a default coin image from Supabase storage  
+                img.src = 'https://wdgnllgbfvjgurbqhfqb.supabase.co/storage/v1/object/public/coin-images/placeholder-coin.png';
               }}
             />
             {isErrorCoin && (
@@ -179,7 +180,7 @@ const EnhancedCoinCard = ({ coin, onView, onEdit, onDelete, onToggleFeatured }: 
                   <Trash2 className="w-3 h-3 mr-1" />
                   Delete
                 </Button>
-              )}
+                )}
             </div>
           </div>
         </div>
