@@ -123,19 +123,16 @@ export const useCoinSubmission = () => {
         featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)), // Auto-feature error coins and rare coins
         sold: false,
         views: 0,
-        // Enhanced multi-image support
-        additional_images: permanentImageUrls.slice(2), // Store additional images beyond obverse/reverse
         // AI enhancement metadata
-        ai_enhanced: true,
-        ai_confidence: 0.85 // Default high confidence for AI-enhanced listings
+        ai_confidence: 0.85, // Default high confidence for AI-enhanced listings
+        ai_provider: 'claude-enhanced'
       };
 
       console.log('💾 Submitting AI-enhanced coin with complete data:', {
         ...coinPayload,
         totalImages: permanentImageUrls.length,
         category: mappedCategory,
-        isErrorCoin: mappedCategory === 'error_coin',
-        isAIEnhanced: true
+        isErrorCoin: mappedCategory === 'error_coin'
       });
 
       // Step 4: Submit to database
@@ -155,8 +152,7 @@ export const useCoinSubmission = () => {
         name: data.name,
         category: data.category,
         imageCount: permanentImageUrls.length,
-        isErrorCoin: data.category === 'error_coin',
-        isAIEnhanced: data.ai_enhanced
+        isErrorCoin: data.category === 'error_coin'
       });
 
       // Enhanced success notification
