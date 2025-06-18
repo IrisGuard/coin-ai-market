@@ -62,7 +62,7 @@ export const useCoinSubmission = () => {
       const mappedCategory = mapUIToDatabaseCategory(coinData.category);
       console.log('🔄 Category mapping:', coinData.category, '->', mappedCategory);
 
-      // Step 3: Prepare complete coin payload
+      // Step 3: Prepare complete coin payload with proper typing
       const coinPayload = {
         name: coinData.title,
         description: coinData.description || `${coinData.title} - Professional coin listing with AI analysis`,
@@ -80,16 +80,16 @@ export const useCoinSubmission = () => {
         weight: coinData.weight ? parseFloat(coinData.weight) : null,
         mint: coinData.mint || '',
         is_auction: coinData.isAuction || false,
-        auction_end_date: coinData.isAuction 
+        auction_end: coinData.isAuction 
           ? new Date(Date.now() + (parseInt(coinData.auctionDuration) * 24 * 60 * 60 * 1000)).toISOString()
           : null,
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) : null,
-        category: mappedCategory, // Use mapped category
+        category: mappedCategory, // Use mapped category with correct type
         store_id: selectedStoreId || null,
         // Additional images
         obverse_image: uploadedImageUrls[0],
         reverse_image: uploadedImageUrls[1] || null,
-        authentication_status: 'pending',
+        authentication_status: 'pending' as const,
         featured: false,
         sold: false
       };
@@ -99,7 +99,7 @@ export const useCoinSubmission = () => {
       // Step 4: Submit to database
       const { data, error } = await supabase
         .from('coins')
-        .insert([coinPayload])
+        .insert(coinPayload)
         .select()
         .single();
 
