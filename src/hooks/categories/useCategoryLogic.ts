@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { Coin } from '@/types/coin';
 
 export const useCategoryLogic = (allCoins: Coin[], category: string) => {
-  // Filter coins by category
+  // Filter coins by category with enhanced country-based filtering
   const categoryCoins = useMemo(() => {
     if (!allCoins || allCoins.length === 0) return [];
 
@@ -14,6 +14,9 @@ export const useCategoryLogic = (allCoins: Coin[], category: string) => {
       if (!coin.id || !coin.name || typeof coin.price !== 'number') return false;
 
       switch (category) {
+        case 'us':
+          // Only show coins from United States
+          return coin.country === 'United States' || coin.country === 'USA';
         case 'ancient':
           return coin.year < 1000;
         case 'modern':
@@ -27,7 +30,7 @@ export const useCategoryLogic = (allCoins: Coin[], category: string) => {
         case 'trending':
           return (coin.views || 0) > 50;
         case 'european':
-          return ['Germany', 'France', 'Italy', 'Spain', 'Greece', 'United Kingdom'].includes(coin.country || '');
+          return ['Germany', 'France', 'Italy', 'Spain', 'United Kingdom'].includes(coin.country || '');
         case 'american':
           return ['United States', 'Canada', 'Mexico'].includes(coin.country || '');
         case 'asian':

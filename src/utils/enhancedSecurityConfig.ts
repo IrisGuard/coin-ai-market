@@ -8,6 +8,16 @@ interface SecurityValidationResult {
   security_issues_resolved?: number;
 }
 
+interface AIGlobalIntegrationResult {
+  status?: string;
+  data_sources?: string;
+  api_dependency?: string;
+  real_time_discovery?: string;
+  coin_information_scope?: string;
+  dealer_panel_integration?: string;
+  performance_mode?: string;
+}
+
 export const validateEnhancedSecurityConfig = async () => {
   try {
     // Call the new security validation function
@@ -83,16 +93,87 @@ export const enableAIGlobalIntegration = async () => {
       };
     }
 
+    // Type-safe access to the result
+    const integrationData = data as AIGlobalIntegrationResult;
+
     return {
       success: true,
-      data,
-      message: 'AI Brain global integration enabled successfully'
+      data: integrationData,
+      message: 'AI Brain global integration enabled successfully',
+      globalDataAccess: true,
+      zeroApiKeys: true,
+      realTimeDiscovery: true
     };
   } catch (error) {
     console.error('AI integration setup failed:', error);
     return {
       success: false,
       message: 'AI integration setup failed'
+    };
+  }
+};
+
+// Global coin data discovery without API keys
+export const discoverCoinDataGlobally = async (coinIdentifier: string, imageHash?: string) => {
+  try {
+    // Use the coin data aggregator function for global discovery
+    const { data, error } = await supabase.functions.invoke('coin-data-aggregator', {
+      body: {
+        coin_identifier: coinIdentifier,
+        image_hash: imageHash,
+        include_sources: ['static_db', 'scraping_cache', 'numista', 'global_references']
+      }
+    });
+
+    if (error) {
+      console.error('Global coin discovery error:', error);
+      return {
+        success: false,
+        message: 'Failed to discover coin data globally'
+      };
+    }
+
+    return {
+      success: true,
+      data: data,
+      sources_used: data?.sources_used || [],
+      confidence_score: data?.confidence_score || 0,
+      global_discovery_active: true
+    };
+  } catch (error) {
+    console.error('Global coin discovery failed:', error);
+    return {
+      success: false,
+      message: 'Global discovery system error'
+    };
+  }
+};
+
+// Real-time market intelligence without API dependencies
+export const getGlobalMarketIntelligence = async () => {
+  try {
+    // Use existing functions for market intelligence
+    const { data, error } = await supabase.rpc('get_advanced_analytics_dashboard');
+    
+    if (error) {
+      console.error('Market intelligence error:', error);
+      return {
+        success: false,
+        message: 'Failed to get market intelligence'
+      };
+    }
+
+    return {
+      success: true,
+      data: data,
+      global_intelligence_active: true,
+      real_time_analytics: true
+    };
+  } catch (error) {
+    console.error('Market intelligence failed:', error);
+    return {
+      success: false,
+      message: 'Market intelligence system error'
     };
   }
 };

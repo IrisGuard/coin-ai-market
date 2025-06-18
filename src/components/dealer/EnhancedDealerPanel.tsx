@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle, Camera, Store } from 'lucide-react';
+import { Upload, Brain, TrendingUp, Package, Settings, Truck, AlertCircle, Camera, Store, Plus, Trash2, RotateCcw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,7 +32,7 @@ const EnhancedDealerPanel: React.FC = () => {
   const { selectedStoreId: adminSelectedStoreId, isAdminUser } = useAdminStore();
   const effectiveSelectedStoreId = isAdminUser ? adminSelectedStoreId : selectedStoreId;
 
-  // Fetch dealer coins for image management
+  // Fetch dealer coins for enhanced image management
   const { data: dealerCoins = [], refetch: refetchCoins } = useQuery({
     queryKey: ['dealer-coins-enhanced', user?.id, effectiveSelectedStoreId],
     queryFn: async () => {
@@ -43,7 +43,7 @@ const EnhancedDealerPanel: React.FC = () => {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(8);
+        .limit(12);
 
       if (effectiveSelectedStoreId) {
         query = query.eq('store_id', effectiveSelectedStoreId);
@@ -198,58 +198,79 @@ const EnhancedDealerPanel: React.FC = () => {
                   />
                 </div>
 
-                {/* Recent Coins Image Management */}
+                {/* Enhanced Coins Image Management */}
                 {dealerCoins.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Camera className="h-5 w-5" />
-                        Recent Coins - Quick Image Management
+                        Coin Collection - Advanced Image Management
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {dealerCoins.map((coin) => {
                           const validImages = getValidImages(coin);
                           return (
-                            <div key={coin.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-3 mb-3">
+                            <div key={coin.id} className="group border rounded-lg p-4 hover:shadow-lg transition-all duration-200 bg-white">
+                              <div className="relative mb-4">
                                 <img 
                                   src={validImages[0] || '/placeholder.svg'} 
                                   alt={coin.name}
-                                  className="w-16 h-16 object-cover rounded"
+                                  className="w-full h-48 object-cover rounded-lg"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = '/placeholder.svg';
                                   }}
                                 />
-                                <div className="flex-1 min-w-0">
+                                
+                                {/* Image count badge */}
+                                <Badge className="absolute top-2 right-2 bg-black/70 text-white">
+                                  {validImages.length} {validImages.length === 1 ? 'image' : 'images'}
+                                </Badge>
+                                
+                                {/* Quick actions overlay */}
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => handleEditImages(coin)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Camera className="h-4 w-4" />
+                                    Manage Images
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <div>
                                   <h4 className="font-medium truncate">{coin.name}</h4>
                                   <p className="text-sm text-gray-500">
                                     {coin.year} • {coin.country}
                                   </p>
-                                  <p className="text-sm text-gray-500">
-                                    {validImages.length} image{validImages.length !== 1 ? 's' : ''}
-                                  </p>
                                 </div>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                  <span>Price: ${coin.price}</span>
+                                
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="font-semibold text-green-600">${coin.price}</span>
                                   <span className={coin.featured ? 'text-yellow-600' : 'text-gray-500'}>
                                     {coin.featured ? 'Featured' : 'Standard'}
                                   </span>
+                                </div>
+                                
+                                <div className="flex justify-between text-xs text-gray-400">
+                                  <span>{coin.views || 0} views</span>
+                                  <span>{coin.favorites || 0} favorites</span>
                                 </div>
                                 
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleEditImages(coin)}
-                                  className="w-full"
+                                  className="w-full flex items-center gap-2"
                                 >
-                                  <Camera className="h-4 w-4 mr-2" />
-                                  Manage Images ({validImages.length})
+                                  <Camera className="h-4 w-4" />
+                                  Edit Images ({validImages.length})
                                 </Button>
                               </div>
                             </div>
@@ -305,14 +326,14 @@ const EnhancedDealerPanel: React.FC = () => {
         </Tabs>
       </div>
 
-      {/* Image Editor Modal */}
+      {/* Enhanced Image Editor Modal */}
       {editingCoin && (
         <Dialog open={!!editingCoin} onOpenChange={() => setEditingCoin(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Camera className="w-5 h-5 text-blue-600" />
-                Manage Images - {editingCoin.name}
+                Professional Image Management - {editingCoin.name}
               </DialogTitle>
             </DialogHeader>
             <CoinImageEditor
