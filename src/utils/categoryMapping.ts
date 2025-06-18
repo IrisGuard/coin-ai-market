@@ -17,11 +17,12 @@ export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
     'CHINESE COINS': 'asian',
     'BRITISH COINS': 'british',
     'CANADIAN COINS': 'american',
+    'GREECE COINS': 'european',
     
-    // Enhanced error coin detection
+    // COMPREHENSIVE ERROR COIN DETECTION
     'Double Die': 'error_coin',
-    'Off-Center': 'error_coin',
     'Doubled Die': 'error_coin',
+    'Off-Center': 'error_coin',
     'Double Strike': 'error_coin',
     'Clipped Planchet': 'error_coin',
     'Wrong Planchet': 'error_coin',
@@ -36,6 +37,8 @@ export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
     'Mint Error': 'error_coin',
     'Planchet Error': 'error_coin',
     'Die Error': 'error_coin',
+    'Error Coin': 'error_coin',
+    'ERROR COIN': 'error_coin',
     
     // General categories
     'Ancient': 'ancient',
@@ -50,7 +53,7 @@ export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
     'Rare': 'modern'
   };
 
-  // Enhanced detection for error coins
+  // AGGRESSIVE ERROR COIN DETECTION
   const lowerCategory = uiCategory.toLowerCase();
   if (lowerCategory.includes('double') || 
       lowerCategory.includes('die') ||
@@ -60,11 +63,17 @@ export const mapUIToDatabaseCategory = (uiCategory: string): CoinCategory => {
       lowerCategory.includes('clip') ||
       lowerCategory.includes('broad') ||
       lowerCategory.includes('cud') ||
-      lowerCategory.includes('crack')) {
+      lowerCategory.includes('crack') ||
+      lowerCategory.includes('break') ||
+      lowerCategory.includes('mint error') ||
+      lowerCategory.includes('doubled')) {
+    console.log('🚨 ERROR COIN DETECTED in category mapping:', uiCategory);
     return 'error_coin';
   }
 
-  return categoryMap[uiCategory] || 'modern'; // Default to modern instead of unclassified
+  const result = categoryMap[uiCategory] || 'modern';
+  console.log('📋 Category mapping:', uiCategory, '->', result);
+  return result;
 };
 
 export const getValidDatabaseCategories = (): CoinCategory[] => {

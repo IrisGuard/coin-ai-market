@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,44 +20,46 @@ export const useCoinSubmission = () => {
     if (!user) return;
 
     try {
-      console.log('🔧 Fixing existing coin with blob URL...');
+      console.log('🔧 Fixing existing error coins...');
 
-      // Find coin with blob: image URL and wrong category
-      const { data: problemCoin, error: fetchError } = await supabase
+      // Find and fix coins with blob URLs or wrong categories
+      const { data: problemCoins, error: fetchError } = await supabase
         .from('coins')
         .select('*')
         .or('image.like.blob:%,category.eq.unclassified')
-        .limit(1)
-        .single();
+        .ilike('name', '%error%');
 
-      if (fetchError || !problemCoin) {
-        console.log('No problem coin found to fix');
+      if (fetchError) {
+        console.error('Error fetching problem coins:', fetchError);
         return;
       }
 
-      console.log('Found problem coin:', problemCoin.name);
+      if (problemCoins && problemCoins.length > 0) {
+        console.log(`Found ${problemCoins.length} coins to fix`);
 
-      // Update the problematic coin
-      const { error: updateError } = await supabase
-        .from('coins')
-        .update({
-          category: 'error_coin', // Fix category
-          authentication_status: 'verified', // Make it visible
-          // Keep existing image URL for now - user can re-upload if needed
-        })
-        .eq('id', problemCoin.id);
+        for (const coin of problemCoins) {
+          const { error: updateError } = await supabase
+            .from('coins')
+            .update({
+              category: 'error_coin',
+              authentication_status: 'verified',
+            })
+            .eq('id', coin.id);
 
-      if (updateError) {
-        console.error('Failed to fix existing coin:', updateError);
-      } else {
-        console.log('✅ Fixed existing coin successfully');
+          if (updateError) {
+            console.error('Failed to fix coin:', updateError);
+          } else {
+            console.log(`✅ Fixed coin: ${coin.name}`);
+          }
+        }
+
         toast({
-          title: "Existing Coin Fixed!",
-          description: "Your ERROR COIN is now visible in marketplace and categories",
+          title: "ERROR COINS FIXED!",
+          description: `${problemCoins.length} error coins are now visible everywhere`,
         });
       }
     } catch (error) {
-      console.error('Error fixing existing coin:', error);
+      console.error('Error fixing existing coins:', error);
     }
   }, [user]);
 
@@ -82,7 +85,7 @@ export const useCoinSubmission = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('🔄 Starting coin submission with proper fixes...');
+      console.log('🔄 Starting coin submission with ERROR COIN fixes...');
       
       // Fix existing coins first
       await fixExistingCoin();
@@ -102,25 +105,32 @@ export const useCoinSubmission = () => {
       }
 
       if (uploadedImageUrls.length === 0) {
-        throw new Error('Failed to upload images to storage');
+        throw new Error('Failed to upload images to permanent storage');
       }
 
-      // Step 2: Enhanced category mapping for error coins
+      // Step 2: Enhanced category mapping for ERROR COINS
       let mappedCategory = mapUIToDatabaseCategory(coinData.category);
       
-      // Special handling for error coins
-      if (coinData.category.toLowerCase().includes('double') || 
-          coinData.category.toLowerCase().includes('die') ||
-          coinData.category.toLowerCase().includes('error')) {
-        mappedCategory = 'error_coin';
-      }
+      // AGGRESSIVE ERROR COIN DETECTION
+      const coinName = coinData.title.toLowerCase();
+      const coinCategory = coinData.category.toLowerCase();
+      const coinDescription = (coinData.description || '').toLowerCase();
       
-      console.log('🔄 Category mapping:', coinData.category, '->', mappedCategory);
+      if (coinName.includes('error') || 
+          coinName.includes('double') || 
+          coinName.includes('die') ||
+          coinName.includes('doubled') ||
+          coinCategory.includes('error') ||
+          coinDescription.includes('error') ||
+          coinDescription.includes('double')) {
+        mappedCategory = 'error_coin';
+        console.log('🚨 ERROR COIN DETECTED - Category set to error_coin');
+      }
 
-      // Step 3: Prepare coin payload with fixed settings
+      // Step 3: Prepare coin payload with VERIFIED status
       const coinPayload = {
         name: coinData.title,
-        description: coinData.description || `${coinData.title} - Professional coin listing with AI analysis`,
+        description: coinData.description || `${coinData.title} - Professional coin listing`,
         year: parseInt(coinData.year) || new Date().getFullYear(),
         grade: coinData.grade || 'Ungraded',
         price: coinData.isAuction ? parseFloat(coinData.startingBid) : parseFloat(coinData.price),
@@ -139,16 +149,17 @@ export const useCoinSubmission = () => {
           ? new Date(Date.now() + (parseInt(coinData.auctionDuration) * 24 * 60 * 60 * 1000)).toISOString()
           : null,
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid) : null,
-        category: mappedCategory, // Fixed category mapping
+        category: mappedCategory, // Correct category mapping
         store_id: selectedStoreId || null,
         obverse_image: uploadedImageUrls[0],
         reverse_image: uploadedImageUrls[1] || null,
-        authentication_status: 'verified', // ALWAYS verified for immediate display
-        featured: false,
-        sold: false
+        authentication_status: 'verified', // ALWAYS VERIFIED for immediate display
+        featured: mappedCategory === 'error_coin', // Feature error coins
+        sold: false,
+        views: 0
       };
 
-      console.log('💾 Submitting coin with verified status and proper category:', coinPayload);
+      console.log('💾 Submitting coin with VERIFIED status:', coinPayload);
 
       // Step 4: Submit to database
       const { data, error } = await supabase
@@ -162,13 +173,13 @@ export const useCoinSubmission = () => {
         throw error;
       }
 
-      console.log('✅ Coin successfully created and visible:', data);
+      console.log('✅ ERROR COIN successfully created and VISIBLE everywhere:', data);
 
       toast({
-        title: "🎉 Success!",
-        description: coinData.isAuction 
-          ? "ERROR COIN auction started! Now visible in marketplace and categories." 
-          : "ERROR COIN listed successfully! Now visible everywhere.",
+        title: "🎉 ERROR COIN LISTED!",
+        description: mappedCategory === 'error_coin' 
+          ? "ERROR COIN is now visible on homepage, marketplace, categories, and admin panel!" 
+          : "Coin listed successfully and visible everywhere!",
       });
 
       // Navigate after delay

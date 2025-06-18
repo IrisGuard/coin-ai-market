@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Camera as CameraIcon, X, Loader2 } from 'lucide-react';
+import { Camera as CameraIcon, X, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadImage } from '@/utils/imageUpload';
 
@@ -16,17 +16,17 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
   const [isUploading, setIsUploading] = useState(false);
 
   const processAndUploadImage = async (blob: Blob, source: string): Promise<{ file: File; preview: string; url: string }> => {
-    const file = new File([blob], `coin-${source}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
+    const file = new File([blob], `error-coin-${source}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
     const preview = URL.createObjectURL(file);
     
-    // Upload immediately to Supabase Storage and wait for permanent URL
-    console.log('📸 Uploading image to Supabase Storage...');
+    // Upload immediately to Supabase Storage for permanent URL
+    console.log('📸 Uploading ERROR COIN image to Supabase Storage...');
     const uploadedUrl = await uploadImage(file, 'coin-images');
-    console.log('✅ Image uploaded with permanent URL:', uploadedUrl);
+    console.log('✅ ERROR COIN image uploaded with permanent URL:', uploadedUrl);
     
     // Verify URL is permanent (not blob:)
     if (uploadedUrl.startsWith('blob:')) {
-      throw new Error('Upload failed: temporary URL returned');
+      throw new Error('Upload failed: temporary URL returned instead of permanent');
     }
     
     return { file, preview, url: uploadedUrl };
@@ -62,15 +62,15 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       onImagesSelected(updatedImages);
 
       toast({
-        title: "📸 Image Captured & Uploaded!",
-        description: "Image successfully saved to cloud storage with permanent URL",
+        title: "📸 ERROR COIN Image Captured!",
+        description: "Image saved to cloud storage with permanent URL - ready for listing!",
       });
       
     } catch (error: any) {
       console.error('Native camera capture failed:', error);
       toast({
         title: "Camera Error",
-        description: error.message || "Failed to access camera. Please ensure camera permissions are granted.",
+        description: error.message || "Failed to capture image. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -106,15 +106,15 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
       onImagesSelected(updatedImages);
 
       toast({
-        title: "🖼️ Image Selected & Uploaded!",
-        description: "Image successfully saved to cloud storage with permanent URL",
+        title: "🖼️ ERROR COIN Image Selected!",
+        description: "Image saved to cloud storage with permanent URL - ready for listing!",
       });
       
     } catch (error: any) {
       console.error('Gallery selection failed:', error);
       toast({
         title: "Gallery Error",
-        description: error.message || "Failed to access gallery. Please try again.",
+        description: error.message || "Failed to select image. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -135,7 +135,7 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
         <button
           onClick={captureFromCamera}
           disabled={isCapturing || capturedImages.length >= maxImages || isUploading}
-          className="flex-1 flex items-center justify-center bg-coin-blue text-white py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          className="flex-1 flex items-center justify-center bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           style={{ touchAction: 'manipulation' }}
         >
           {isCapturing || isUploading ? (
@@ -143,13 +143,13 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
           ) : (
             <CameraIcon size={20} className="mr-2" />
           )}
-          {isUploading ? 'Uploading...' : 'Native Camera'}
+          {isUploading ? 'Uploading...' : 'Capture ERROR COIN'}
         </button>
         
         <button
           onClick={selectFromGallery}
           disabled={isCapturing || capturedImages.length >= maxImages || isUploading}
-          className="flex-1 flex items-center justify-center border-2 border-coin-blue text-coin-blue py-3 rounded-lg hover:bg-coin-blue hover:bg-opacity-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          className="flex-1 flex items-center justify-center border-2 border-red-600 text-red-600 py-3 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           style={{ touchAction: 'manipulation' }}
         >
           {isCapturing || isUploading ? (
@@ -167,8 +167,8 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
             <div key={index} className="relative">
               <img
                 src={image.url || image.preview}
-                alt={`Coin ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg border-2 border-green-300"
+                alt={`ERROR COIN ${index + 1}`}
+                className="w-full h-32 object-cover rounded-lg border-2 border-red-300"
               />
               <button
                 onClick={() => removeImage(index)}
@@ -178,8 +178,9 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
                 <X className="w-3 h-3" />
               </button>
               {image.url && !image.url.startsWith('blob:') && (
-                <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-1 rounded">
-                  ✓ Permanent URL
+                <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded flex items-center">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Permanent
                 </div>
               )}
             </div>
@@ -187,8 +188,8 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
         </div>
       )}
       
-      <p className="text-sm text-green-600 text-center font-medium">
-        Native Camera Ready • {maxImages - capturedImages.length} more photos available
+      <p className="text-sm text-red-600 text-center font-medium">
+        ERROR COIN Camera Ready • {maxImages - capturedImages.length} more photos available
         {capturedImages.length > 0 && ` • ${capturedImages.length}/${maxImages} uploaded with permanent URLs`}
       </p>
     </div>

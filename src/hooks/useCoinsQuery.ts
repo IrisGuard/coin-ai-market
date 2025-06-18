@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Coin, Rarity, CoinCondition } from '@/types/coin';
@@ -28,6 +27,8 @@ export const useCoins = (includeAllStatuses = true) => {
     queryKey: ['coins', includeAllStatuses],
     queryFn: async () => {
       try {
+        console.log('🔍 Fetching coins including ERROR COINS...');
+        
         // Enhanced query to show all coins including error coins
         let query = supabase
           .from('coins')
@@ -41,8 +42,8 @@ export const useCoins = (includeAllStatuses = true) => {
             )
           `);
 
-        // Show verified coins AND recently created ones (for immediate display)
-        query = query.in('authentication_status', ['verified', 'pending']);
+        // Show verified coins AND error coins (always show error coins)
+        query = query.or('authentication_status.eq.verified,category.eq.error_coin');
 
         const { data: coins, error: coinsError } = await query
           .order('created_at', { ascending: false });
@@ -52,9 +53,12 @@ export const useCoins = (includeAllStatuses = true) => {
           return [];
         }
 
-        if (!coins || coins.length === 0) return [];
+        if (!coins || coins.length === 0) {
+          console.log('⚠️ No coins found');
+          return [];
+        }
 
-        console.log('📊 Fetched coins:', coins.length, 'including error coins');
+        console.log(`📊 Fetched ${coins.length} coins (including ${coins.filter(c => c.category === 'error_coin').length} ERROR COINS)`);
 
         // Fetch bids for each coin
         const coinsWithBids = await Promise.all(
@@ -78,14 +82,29 @@ export const useCoins = (includeAllStatuses = true) => {
           })
         );
 
-        return coinsWithBids;
+        // Prioritize error coins in display
+        const sortedCoins = coinsWithBids.sort((a, b) => {
+          // Error coins first
+          if (a.category === 'error_coin' && b.category !== 'error_coin') return -1;
+          if (a.category !== 'error_coin' && b.category === 'error_coin') return 1;
+          
+          // Then by featured status
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          
+          // Then by creation date
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+        });
+
+        console.log('✅ Coins sorted with ERROR COINS prioritized');
+        return sortedCoins;
       } catch (error) {
         console.error('Error in useCoins:', error);
         return [];
       }
     },
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds for faster updates
   });
 };
 
