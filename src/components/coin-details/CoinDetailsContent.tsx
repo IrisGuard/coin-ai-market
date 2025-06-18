@@ -143,10 +143,10 @@ const CoinDetailsContent = ({
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                   >
                     <Camera className="h-4 w-4" />
-                    Επεξεργασία Εικόνων ({allImages.length})
+                    Edit Images ({allImages.length})
                   </Button>
                   <p className="text-xs text-center text-gray-500 mt-2">
-                    Προσθήκη • Διαγραφή • Αντικατάσταση
+                    Add • Delete • Replace
                   </p>
                 </CardContent>
               </Card>

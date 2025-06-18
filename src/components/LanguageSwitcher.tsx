@@ -29,8 +29,8 @@ const LanguageSwitcher = () => {
   const handleLanguageChange = (language: Language) => {
     setCurrentLanguage(language);
     setIsOpen(false);
-    // In a real application, you would implement actual language switching logic here
-    console.log(`Switching language to: ${language.name}`);
+    // Note: Full translation system implementation would go here
+    console.log(`Language switched to: ${language.name}`);
     document.documentElement.lang = language.code;
   };
 

@@ -58,7 +58,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
       <div className={`aspect-square bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-200 ${className}`}>
         <div className="text-center">
           <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-          <span className="text-gray-500 text-sm">Δεν υπάρχουν εικόνες</span>
+          <span className="text-gray-500 text-sm">No images available</span>
         </div>
       </div>
     );
@@ -85,7 +85,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         {/* Main image with better loading handling */}
         <img
           src={currentImageUrl}
-          alt={`${coinName} - Εικόνα ${currentIndex + 1}`}
+          alt={`${coinName} - Image ${currentIndex + 1}`}
           className="w-full h-full object-cover"
           style={{ 
             opacity: loadedImages.has(currentIndex) && !imageErrors.has(currentIndex) ? 1 : 0.8
@@ -100,7 +100,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           <div className="absolute inset-0 flex items-center justify-center bg-white">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <span className="text-sm text-gray-500">Φόρτωση...</span>
+              <span className="text-sm text-gray-500">Loading...</span>
             </div>
           </div>
         )}
@@ -110,13 +110,13 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
             <div className="text-center">
               <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <span className="text-sm text-gray-500">Σφάλμα φόρτωσης</span>
+              <span className="text-sm text-gray-500">Failed to load image</span>
             </div>
           </div>
         )}
         
-        {/* Enhanced Image Counter */}
-        <Badge className="absolute top-3 right-3 bg-black/80 text-white border-0 px-3 py-1">
+        {/* Enhanced Image Counter with white background */}
+        <Badge className="absolute top-3 right-3 bg-white/90 text-gray-800 border-0 px-3 py-1">
           {currentIndex + 1} / {validImages.length}
         </Badge>
         
@@ -126,7 +126,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white h-10 w-10 rounded-full"
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 text-gray-800 h-10 w-10 rounded-full shadow-lg"
               onClick={prevImage}
             >
               <ChevronLeft className="h-5 w-5" />
@@ -134,7 +134,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white h-10 w-10 rounded-full"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 text-gray-800 h-10 w-10 rounded-full shadow-lg"
               onClick={nextImage}
             >
               <ChevronRight className="h-5 w-5" />

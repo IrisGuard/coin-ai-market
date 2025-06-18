@@ -39,7 +39,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
 
     const remainingSlots = maxImages - images.length;
     if (files.length > remainingSlots) {
-      toast.error(`Μπορείτε να ανεβάσετε μόνο ${remainingSlots} ακόμη εικόνες (μέγιστο ${maxImages})`);
+      toast.error(`You can only upload ${remainingSlots} more images (maximum ${maxImages})`);
       return;
     }
 
@@ -53,14 +53,14 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
         const newImages = await addNewImageToCoin(file);
         setImages(newImages);
         
-        toast.success(`Εικόνα ${i + 1} ανέβηκε επιτυχώς`);
+        toast.success(`Image ${i + 1} uploaded successfully`);
       }
       
       onImagesUpdated();
-      toast.success(`${files.length} εικόνες ανέβηκαν επιτυχώς!`);
+      toast.success(`${files.length} images uploaded successfully!`);
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Αποτυχία ανεβάσματος εικόνων');
+      toast.error('Failed to upload images');
     } finally {
       setUploading(false);
     }
@@ -71,10 +71,10 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
       const newImages = await deleteImageFromCoin(images[index], index);
       setImages(newImages);
       onImagesUpdated();
-      toast.success('Η εικόνα διαγράφηκε επιτυχώς');
+      toast.success('Image deleted successfully');
     } catch (error) {
       console.error('Failed to remove image:', error);
-      toast.error('Αποτυχία διαγραφής εικόνας');
+      toast.error('Failed to delete image');
     }
   };
 
@@ -84,10 +84,10 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
       const newImages = await replaceImageInCoin(file, index);
       setImages(newImages);
       onImagesUpdated();
-      toast.success('Η εικόνα αντικαταστάθηκε επιτυχώς');
+      toast.success('Image replaced successfully');
     } catch (error) {
       console.error('Failed to replace image:', error);
-      toast.error('Αποτυχία αντικατάστασης εικόνας');
+      toast.error('Failed to replace image');
     }
   };
 
@@ -113,13 +113,13 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Camera className="h-5 w-5" />
-          Διαχείριση Εικόνων - {coinName}
+          Image Management - {coinName}
           <Badge variant="outline">
-            {images.length}/{maxImages} εικόνες
+            {images.length}/{maxImages} images
           </Badge>
           {isUpdating && (
             <Badge variant="secondary" className="animate-pulse">
-              Ενημέρωση...
+              Updating...
             </Badge>
           )}
         </CardTitle>
@@ -151,12 +151,12 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
           >
             <Upload className="h-6 w-6 text-gray-400" />
             <span className="text-sm text-gray-600">
-              {uploading ? 'Ανέβασμα...' : 
-               images.length >= maxImages ? 'Έχετε φτάσει το μέγιστο αριθμό εικόνων' :
-               'Κάντε κλικ ή σύρετε εικόνες εδώ'}
+              {uploading ? 'Uploading...' : 
+               images.length >= maxImages ? 'Maximum number of images reached' :
+               'Click or drag images here'}
             </span>
             <span className="text-xs text-gray-500">
-              PNG, JPG, JPEG έως 10MB η κάθε μία
+              PNG, JPG, JPEG up to 10MB each
             </span>
           </label>
         </div>
@@ -169,7 +169,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                 <div className="relative aspect-square rounded-lg overflow-hidden bg-white border-2 border-gray-200">
                   <img
                     src={imageUrl}
-                    alt={`${coinName} εικόνα ${index + 1}`}
+                    alt={`${coinName} image ${index + 1}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -194,7 +194,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                     <label
                       htmlFor={`replace-${index}`}
                       className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full shadow-lg transition-colors flex items-center justify-center"
-                      title="Αντικατάσταση εικόνας"
+                      title="Replace image"
                     >
                       <RotateCcw className="h-3 w-3" />
                     </label>
@@ -206,21 +206,21 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
                       className="p-1.5 h-auto rounded-full shadow-lg"
                       onClick={() => handleRemoveImage(index)}
                       disabled={isLoading || isUpdating}
-                      title="Διαγραφή εικόνας"
+                      title="Delete image"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                   
                   {/* Image index badge */}
-                  <Badge className="absolute top-2 left-2 bg-black/70 text-white text-xs">
+                  <Badge className="absolute top-2 left-2 bg-white/90 text-gray-800 text-xs">
                     {index + 1}
                   </Badge>
 
                   {/* Primary image indicator */}
                   {index === 0 && (
                     <Badge className="absolute bottom-2 left-2 bg-green-600 text-white text-xs">
-                      Κύρια
+                      Primary
                     </Badge>
                   )}
                 </div>
@@ -235,7 +235,7 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
               >
                 <div className="text-center">
                   <Plus className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                  <span className="text-xs text-gray-500">Προσθήκη</span>
+                  <span className="text-xs text-gray-500">Add More</span>
                 </div>
               </label>
             )}
@@ -247,19 +247,19 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
           {images.length > 0 ? (
             <div className="flex items-center gap-2 text-sm text-green-600">
               <CheckCircle className="h-4 w-4" />
-              <span>{images.length} εικόνες έτοιμες</span>
+              <span>{images.length} images ready</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-sm text-orange-600">
               <AlertTriangle className="h-4 w-4" />
-              <span>Δεν έχουν ανέβει εικόνες ακόμη</span>
+              <span>No images uploaded yet</span>
             </div>
           )}
           
           {isUpdating && (
             <div className="flex items-center gap-2 text-sm text-blue-600">
               <div className="animate-spin h-4 w-4 border-b-2 border-blue-600 rounded-full"></div>
-              <span>Ενημέρωση...</span>
+              <span>Updating...</span>
             </div>
           )}
         </div>
@@ -267,13 +267,13 @@ const EnhancedCoinImageManager: React.FC<EnhancedCoinImageManagerProps> = ({
         {/* Instructions */}
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Οδηγίες Διαχείρισης Εικόνων:</h4>
+            <h4 className="font-medium text-blue-900 mb-2">Image Management Guidelines:</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Η πρώτη εικόνα γίνεται η κύρια εικόνα εμφάνισης</li>
-              <li>• Χρησιμοποιήστε εικόνες υψηλής ποιότητας για καλύτερη αναγνώριση</li>
-              <li>• Συμπεριλάβετε όπου είναι δυνατό εμπρόσθια και οπίσθια όψη</li>
-              <li>• Μέγιστο {maxImages} εικόνες ανά νόμισμα</li>
-              <li>• Κάθε εικόνα μπορεί να αντικατασταθεί ή να διαγραφεί ξεχωριστά</li>
+              <li>• The first image becomes the primary display image</li>
+              <li>• Use high-quality images for better coin identification</li>
+              <li>• Include both front and back views when possible</li>
+              <li>• Maximum {maxImages} images per coin</li>
+              <li>• Each image can be replaced or deleted individually</li>
             </ul>
           </CardContent>
         </Card>

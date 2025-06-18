@@ -42,9 +42,9 @@ const CoinImageManagerModal: React.FC<CoinImageManagerModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-blue-600" />
-            Διαχείριση Εικόνων - {coin.name}
+            Image Management - {coin.name}
             <span className="text-sm text-gray-500">
-              ({getValidImages(coin).length} εικόνες)
+              ({getValidImages(coin).length} images)
             </span>
           </DialogTitle>
         </DialogHeader>
