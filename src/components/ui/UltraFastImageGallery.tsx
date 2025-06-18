@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Image as ImageIcon, Sparkles, Zap, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import AdvancedImageEnhancer from './AdvancedImageEnhancer';
+import RealTimeImageEnhancer from './RealTimeImageEnhancer';
 import ImageQualityAnalyzer from './ImageQualityAnalyzer';
 
 interface UltraFastImageGalleryProps {
@@ -158,12 +159,13 @@ const UltraFastImageGallery = ({
         )}
       </div>
 
-      {/* Image Enhancement Panel */}
+      {/* Real-Time Image Enhancement Panel */}
       {showEnhancer && enableEnhancement && (
         <div className="mb-4">
-          <AdvancedImageEnhancer
+          <RealTimeImageEnhancer
             image={currentImageUrl}
             onEnhanced={(enhancedUrl) => handleImageEnhanced(currentImageUrl, enhancedUrl)}
+            autoEnhance={true}
           />
         </div>
       )}

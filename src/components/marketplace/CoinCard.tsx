@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +29,6 @@ interface Coin {
   category?: string;
   description?: string;
   listing_type?: string;
-  error_type?: string;
   denomination?: string;
   condition?: string;
 }
@@ -41,10 +41,18 @@ interface CoinCardProps {
 
 const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
   const { user } = useAuth();
-  const { data: userRole } = useSmartUserRole();
+  const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
   
-  // Check if user is admin
+  // Check if user is admin - FIXED with proper debugging
   const isAdmin = userRole === 'admin';
+  
+  console.log('🔍 CoinCard Debug:', {
+    userId: user?.id,
+    userRole,
+    isAdmin,
+    roleLoading,
+    coinName: coin.name
+  });
   
   // Prepare all available images for the gallery
   const getAllImages = (coin: Coin): string[] => {
@@ -121,7 +129,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             showQualityAnalysis={isAdmin}
           />
           
-          {/* Enhanced Overlay Badges - FIXED: No more error badges */}
+          {/* FIXED: Clean Badge System - No Error Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -141,15 +149,15 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 AI Verified
               </Badge>
             )}
-            {/* FIXED: Show ADMIN VERIFIED badge for admin users only */}
-            {isAdmin && (
-              <Badge className="bg-green-100 text-green-800 text-xs font-bold">
+            {/* FIXED: Show ADMIN VERIFIED badge ONLY for admin users */}
+            {isAdmin && !roleLoading && (
+              <Badge className="bg-green-100 text-green-800 text-xs font-bold border-2 border-green-300">
                 <Star className="h-3 w-3 mr-1" />
                 ADMIN VERIFIED
               </Badge>
             )}
             {/* Show authentication status for regular users */}
-            {!isAdmin && coin.authentication_status === 'verified' && (
+            {!isAdmin && !roleLoading && coin.authentication_status === 'verified' && (
               <Badge className="bg-green-100 text-green-800 text-xs">
                 <Star className="h-3 w-3 mr-1" />
                 Verified
@@ -260,7 +268,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             </Button>
           </div>
 
-          {/* Enhanced AI Confidence & Image Count with Admin Benefits - CLEAN */}
+          {/* FIXED: Clean Footer with Admin Benefits */}
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
             {coin.ai_confidence && (
               <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
@@ -268,12 +276,12 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             {allImages.length > 1 && (
               <span className="text-green-600 font-semibold">
                 {allImages.length} HD photos
-                {isAdmin && ' • Ultra-Enhanced'}
+                {isAdmin && !roleLoading && ' • Ultra-Enhanced'}
               </span>
             )}
-            {isAdmin && (
-              <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">
-                ADMIN VERIFIED ✓
+            {isAdmin && !roleLoading && (
+              <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded border border-green-200">
+                ADMIN PRIVILEGES ✓
               </span>
             )}
           </div>
