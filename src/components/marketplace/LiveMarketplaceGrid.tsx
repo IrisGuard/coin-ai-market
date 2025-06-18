@@ -31,6 +31,7 @@ interface Coin {
   error_type?: string;
   denomination?: string;
   condition?: string;
+  user_id: string; // Added missing property
 }
 
 const LiveMarketplaceGrid = () => {
