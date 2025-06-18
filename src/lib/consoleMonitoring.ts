@@ -26,15 +26,18 @@ export class ConsoleMonitor {
   init() {
     if (this.isInitialized) return;
 
-    console.error = (...args: any[]) => {
-      this.logToSupabase('error', args);
-      this.originalConsole.error(...args);
-    };
+    // Only monitor in production for critical errors
+    if (import.meta.env.PROD) {
+      console.error = (...args: any[]) => {
+        this.logToSupabase('error', args);
+        this.originalConsole.error(...args);
+      };
 
-    console.warn = (...args: any[]) => {
-      this.logToSupabase('warn', args);
-      this.originalConsole.warn(...args);
-    };
+      console.warn = (...args: any[]) => {
+        this.logToSupabase('warn', args);
+        this.originalConsole.warn(...args);
+      };
+    }
 
     this.isInitialized = true;
   }
@@ -45,11 +48,12 @@ export class ConsoleMonitor {
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
 
-      if (level === 'error' || window.location.hostname === 'localhost') {
-        // Production-safe logging without console.log
+      // Production-safe logging - only critical errors
+      if (level === 'error') {
+        // Log to external monitoring service in production
       }
     } catch (error) {
-      this.originalConsole.error('Console monitoring failed:', error);
+      // Silent fail in production
     }
   }
 
