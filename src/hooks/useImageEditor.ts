@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
-import { useCoinImageManagement } from '@/hooks/useCoinImageManagement';
+import { useCoinImageManagement } from './useCoinImageManagement';
+import { toast } from 'sonner';
 
 interface UseImageEditorProps {
   coinId: string;
@@ -10,11 +11,9 @@ interface UseImageEditorProps {
 }
 
 export const useImageEditor = ({ coinId, coinName, currentImages, onImagesUpdated }: UseImageEditorProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const { 
-    isLoading, 
     deleteImageFromCoin, 
     replaceImageInCoin, 
     addNewImageToCoin 
@@ -22,50 +21,53 @@ export const useImageEditor = ({ coinId, coinName, currentImages, onImagesUpdate
 
   const handleDeleteImage = useCallback(async (imageUrl: string, index: number) => {
     try {
+      setIsLoading(true);
       const updatedImages = await deleteImageFromCoin(imageUrl, index);
-      onImagesUpdated?.(updatedImages);
+      if (onImagesUpdated) {
+        onImagesUpdated(updatedImages);
+      }
+      toast.success('Image deleted successfully');
     } catch (error) {
-      console.error('Failed to delete image:', error);
+      toast.error('Failed to delete image');
+    } finally {
+      setIsLoading(false);
     }
   }, [deleteImageFromCoin, onImagesUpdated]);
 
   const handleReplaceImage = useCallback(async (file: File, index: number) => {
     try {
+      setIsLoading(true);
       const updatedImages = await replaceImageInCoin(file, index);
-      onImagesUpdated?.(updatedImages);
-      setSelectedImageIndex(null);
+      if (onImagesUpdated) {
+        onImagesUpdated(updatedImages);
+      }
+      toast.success('Image replaced successfully');
     } catch (error) {
-      console.error('Failed to replace image:', error);
+      toast.error('Failed to replace image');
+    } finally {
+      setIsLoading(false);
     }
   }, [replaceImageInCoin, onImagesUpdated]);
 
   const handleAddImage = useCallback(async (file: File) => {
     try {
+      setIsLoading(true);
       const updatedImages = await addNewImageToCoin(file);
-      onImagesUpdated?.(updatedImages);
+      if (onImagesUpdated) {
+        onImagesUpdated(updatedImages);
+      }
+      toast.success('Image added successfully');
     } catch (error) {
-      console.error('Failed to add image:', error);
+      toast.error('Failed to add image');
+    } finally {
+      setIsLoading(false);
     }
   }, [addNewImageToCoin, onImagesUpdated]);
 
-  const openEditor = useCallback(() => {
-    setIsEditing(true);
-  }, []);
-
-  const closeEditor = useCallback(() => {
-    setIsEditing(false);
-    setSelectedImageIndex(null);
-  }, []);
-
   return {
-    isEditing,
     isLoading,
-    selectedImageIndex,
-    setSelectedImageIndex,
     handleDeleteImage,
     handleReplaceImage,
-    handleAddImage,
-    openEditor,
-    closeEditor
+    handleAddImage
   };
 };

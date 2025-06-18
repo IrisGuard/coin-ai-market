@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Upload, X, RotateCw, Plus, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoinImageManagement } from '@/hooks/useCoinImageManagement';
+import ImageErrorBoundary from '@/components/ui/ImageErrorBoundary';
 
 interface EditCoinImagesModalProps {
   isOpen: boolean;
@@ -40,11 +41,9 @@ const EditCoinImagesModal: React.FC<EditCoinImagesModalProps> = ({
     const file = files[0];
     
     if (targetIndex !== undefined) {
-      // Replace existing image
       replaceImageInCoin(file, targetIndex);
       setReplacingIndex(null);
     } else {
-      // Add new image
       addNewImageToCoin(file);
     }
   }, [replaceImageInCoin, addNewImageToCoin]);
@@ -78,15 +77,13 @@ const EditCoinImagesModal: React.FC<EditCoinImagesModalProps> = ({
                   exit={{ opacity: 0, scale: 0.8 }}
                   className="relative group aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50"
                 >
-                  <img
-                    src={imageUrl}
-                    alt={`${coinName} - Image ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
+                  <ImageErrorBoundary>
+                    <img
+                      src={imageUrl}
+                      alt={`${coinName} - Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </ImageErrorBoundary>
                   
                   {/* Image Controls */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -195,25 +192,10 @@ const EditCoinImagesModal: React.FC<EditCoinImagesModalProps> = ({
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">How to edit images:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Click the upload icon to replace an image</li>
-              <li>• Click the X button to delete an image</li>
-              <li>• Click "Add Image" to add new images (max 10 total)</li>
-              <li>• Changes are saved automatically</li>
-            </ul>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading || isUpdating}
-            >
-              Close
-            </Button>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              Hover over images to edit • Click upload to replace • Click X to delete • Changes save automatically
+            </p>
           </div>
         </div>
       </DialogContent>

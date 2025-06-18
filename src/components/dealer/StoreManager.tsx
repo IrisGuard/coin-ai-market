@@ -2,226 +2,250 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Store, Edit, Settings } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { Camera, Store, Package, TrendingUp } from 'lucide-react';
+import CoinImageEditor from './CoinImageEditor';
 
-interface Store {
-  id: string;
-  name: string;
-  description: string;
-  logo_url: string;
-  address: any; // Changed from string to any to match Json type
-  is_active: boolean;
-  created_at: string;
-  email: string;
-  phone: string;
-  shipping_options: any; // Added to match database schema
-  updated_at: string;
-  user_id: string;
-  verified: boolean;
-  website: string;
-}
-
-interface StoreManagerProps {
-  onStoreSelect: (storeId: string) => void;
-  selectedStoreId?: string;
-}
-
-const StoreManager: React.FC<StoreManagerProps> = ({ onStoreSelect, selectedStoreId }) => {
+const StoreManager = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newStore, setNewStore] = useState({
-    name: '',
-    description: '',
-    address: ''
-  });
+  const [editingCoin, setEditingCoin] = useState<any>(null);
 
-  // Fetch user's stores
-  const { data: stores, isLoading } = useQuery({
-    queryKey: ['user-stores', user?.id],
+  // Fetch user's coins for store management
+  const { data: coins = [], refetch: refetchCoins } = useQuery({
+    queryKey: ['store-coins', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       
       const { data, error } = await supabase
-        .from('stores')
+        .from('coins')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data || [];
     },
     enabled: !!user?.id,
   });
 
-  // Create store mutation
-  const createStoreMutation = useMutation({
-    mutationFn: async (storeData: typeof newStore) => {
-      if (!user?.id) throw new Error('User not authenticated');
+  // Fetch store info
+  const { data: store } = useQuery({
+    queryKey: ['user-store', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
       
       const { data, error } = await supabase
         .from('stores')
-        .insert({
-          user_id: user.id,
-          name: storeData.name,
-          description: storeData.description,
-          address: storeData.address,
-          is_active: true
-        })
-        .select()
+        .select('*')
+        .eq('user_id', user.id)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['user-stores'] });
-      setShowCreateForm(false);
-      setNewStore({ name: '', description: '', address: '' });
-      onStoreSelect(data.id);
-      toast({
-        title: "Store Created",
-        description: `${data.name} has been created successfully!`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to create store',
-        variant: "destructive",
-      });
-    },
+    enabled: !!user?.id,
   });
 
-  const handleCreateStore = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newStore.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Store name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    createStoreMutation.mutate(newStore);
+  const handleEditImages = (coin: any) => {
+    setEditingCoin(coin);
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading stores...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleImagesUpdated = () => {
+    refetchCoins();
+    setEditingCoin(null);
+  };
+
+  const getValidImages = (coin: any): string[] => {
+    const allImages: string[] = [];
+    
+    if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
+      const validImages = coin.images.filter((img: string) => 
+        img && typeof img === 'string' && img.trim() !== '' && !img.startsWith('blob:')
+      );
+      allImages.push(...validImages);
+    }
+    
+    if (allImages.length === 0 && coin.image && !coin.image.startsWith('blob:')) {
+      allImages.push(coin.image);
+    }
+    
+    return allImages;
+  };
+
+  const totalValue = coins.reduce((sum, coin) => sum + (coin.price || 0), 0);
+  const featuredCoins = coins.filter(coin => coin.featured).length;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Store className="w-5 h-5" />
-          My Stores ({stores?.length || 0})
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {stores && stores.length > 0 ? (
-          <div className="grid gap-3">
-            {stores.map((store: Store) => (
-              <div
-                key={store.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedStoreId === store.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => onStoreSelect(store.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">{store.name}</h3>
-                    {store.description && (
-                      <p className="text-sm text-gray-600">{store.description}</p>
-                    )}
-                    {store.address && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {typeof store.address === 'string' ? store.address : 'Address on file'}
-                      </p>
-                    )}
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Store className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Store Manager</h1>
+            <p className="text-gray-600">Manage your coin store and inventory</p>
+          </div>
+        </div>
+
+        {/* Store Stats */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Inventory</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{coins.length}</div>
+              <p className="text-xs text-muted-foreground">coins listed</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Featured Items</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{featuredCoins}</div>
+              <p className="text-xs text-muted-foreground">featured coins</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+              <Store className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">inventory value</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Store Information */}
+        {store && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Store Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold mb-2">{store.name}</h3>
+                  <p className="text-gray-600 text-sm">{store.description}</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Status:</span>
+                    <span className={`text-sm px-2 py-1 rounded ${store.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {store.is_active ? 'Active' : 'Inactive'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={store.is_active ? "default" : "secondary"}>
-                      {store.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                    <span className="text-sm font-medium">Verified:</span>
+                    <span className={`text-sm px-2 py-1 rounded ${store.verified ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {store.verified ? 'Verified' : 'Pending'}
+                    </span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">No stores yet. Create your first store to start selling coins!</p>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
-        {showCreateForm ? (
-          <form onSubmit={handleCreateStore} className="space-y-4 p-4 border rounded-lg bg-gray-50">
-            <h3 className="font-semibold">Create New Store</h3>
-            <Input
-              placeholder="Store Name"
-              value={newStore.name}
-              onChange={(e) => setNewStore(prev => ({ ...prev, name: e.target.value }))}
-              required
-            />
-            <Textarea
-              placeholder="Store Description"
-              value={newStore.description}
-              onChange={(e) => setNewStore(prev => ({ ...prev, description: e.target.value }))}
-            />
-            <Input
-              placeholder="Store Address"
-              value={newStore.address}
-              onChange={(e) => setNewStore(prev => ({ ...prev, address: e.target.value }))}
-            />
-            <div className="flex gap-2">
-              <Button 
-                type="submit" 
-                disabled={createStoreMutation.isPending}
-                className="flex-1"
-              >
-                {createStoreMutation.isPending ? 'Creating...' : 'Create Store'}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setShowCreateForm(false)}
-              >
-                Cancel
-              </Button>
+        {/* Image Management Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Inventory Image Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {coins.map((coin) => {
+                const validImages = getValidImages(coin);
+                return (
+                  <div key={coin.id} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img 
+                        src={validImages[0] || '/placeholder.svg'} 
+                        alt={coin.name}
+                        className="w-16 h-16 object-cover rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium truncate">{coin.name}</h4>
+                        <p className="text-sm text-gray-500">
+                          {coin.year} • {coin.country}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {validImages.length} image{validImages.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Price: ${coin.price}</span>
+                        <span className={coin.featured ? 'text-yellow-600' : 'text-gray-500'}>
+                          {coin.featured ? 'Featured' : 'Standard'}
+                        </span>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditImages(coin)}
+                        className="w-full"
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        Manage Images ({validImages.length})
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </form>
-        ) : (
-          <Button 
-            onClick={() => setShowCreateForm(true)}
-            className="w-full flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create New Store
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+            
+            {coins.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No coins in your inventory yet.</p>
+                <p className="text-sm">Upload your first coin to get started!</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Image Editor Modal */}
+      {editingCoin && (
+        <Dialog open={!!editingCoin} onOpenChange={() => setEditingCoin(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Camera className="w-5 h-5 text-blue-600" />
+                Manage Images - {editingCoin.name}
+              </DialogTitle>
+            </DialogHeader>
+            <CoinImageEditor
+              coinId={editingCoin.id}
+              coinName={editingCoin.name}
+              currentImages={getValidImages(editingCoin)}
+              onImagesUpdated={handleImagesUpdated}
+              maxImages={10}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 };
 

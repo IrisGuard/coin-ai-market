@@ -17,19 +17,7 @@ const CoinUpload = () => {
   const { isAdminUser } = useAdminStore();
   const { isMobile, isTablet } = useMobileDetection();
 
-  console.log('🚀 CoinUpload page render:', {
-    isAuthenticated,
-    userId: user?.id,
-    userRole,
-    isAdminUser,
-    authLoading,
-    roleLoading,
-    isMobile,
-    isTablet
-  });
-
   if (authLoading) {
-    console.log('⏳ Auth still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <div className="flex items-center gap-3">
@@ -41,12 +29,10 @@ const CoinUpload = () => {
   }
 
   if (!isAuthenticated) {
-    console.log('❌ Not authenticated, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
 
   if (roleLoading) {
-    console.log('⏳ Role still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
         <div className="flex items-center gap-3">
@@ -57,13 +43,9 @@ const CoinUpload = () => {
     );
   }
 
-  // Allow access for both dealers and admins
   if (userRole !== 'dealer' && !isAdminUser) {
-    console.log('❌ User is not a dealer or admin, redirecting to marketplace. Role:', userRole, 'IsAdmin:', isAdminUser);
     return <Navigate to="/marketplace" replace />;
   }
-
-  console.log('✅ Access granted (dealer or admin), rendering upload panel');
 
   // Mobile/Tablet Layout
   if (isMobile || isTablet) {

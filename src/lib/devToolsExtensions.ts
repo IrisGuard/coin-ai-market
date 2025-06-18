@@ -1,4 +1,3 @@
-
 import { ConsoleMonitor } from './consoleMonitoring';
 import { validateOTPSecurity, validateSecurityConfig, logSecurityEvent } from '../utils/securityConfig';
 
@@ -7,7 +6,6 @@ export const setupDevToolsExtensions = () => {
 
   // Browser DevTools Integration
   window.CoinAI = {
-    // View console monitoring status
     showMonitoringStatus() {
       console.group('🔍 Console Monitoring Status');
       console.log('Console monitoring is active');
@@ -15,7 +13,6 @@ export const setupDevToolsExtensions = () => {
       console.groupEnd();
     },
     
-    // Test console monitoring
     testConsoleMonitoring() {
       console.group('🧪 Testing Console Monitoring');
       console.log('This is a test log message');
@@ -26,7 +23,6 @@ export const setupDevToolsExtensions = () => {
       console.groupEnd();
     },
     
-    // Export monitoring report (placeholder for future implementation)
     exportMonitoringReport() {
       const report = {
         timestamp: new Date().toISOString(),
@@ -47,15 +43,12 @@ export const setupDevToolsExtensions = () => {
       URL.revokeObjectURL(url);
     },
     
-    // Clear console
     clearConsole() {
       console.clear();
       console.log('✅ Console cleared');
     },
     
-    // Test security validation
     async testSecurity() {
-      console.group('🔒 Security Validation Test');
       try {
         const otpValid = await validateOTPSecurity();
         console.log('OTP Security Valid:', otpValid);
@@ -71,7 +64,6 @@ export const setupDevToolsExtensions = () => {
       console.groupEnd();
     },
 
-    // Show available commands
     help() {
       console.group('🚀 CoinAI DevTools Commands');
       console.log('showMonitoringStatus() - Check console monitoring status');

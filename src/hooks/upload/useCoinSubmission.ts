@@ -37,23 +37,15 @@ export const useCoinSubmission = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('🔄 Starting enhanced coin submission with full multi-image support...');
-      
       // Step 1: Ensure all images have permanent URLs
       const permanentImageUrls: string[] = [];
       
       for (const image of images) {
         if (image.permanentUrl && !image.permanentUrl.startsWith('blob:')) {
-          // Use existing permanent URL
           permanentImageUrls.push(image.permanentUrl);
-          console.log('✅ Using existing permanent URL:', image.permanentUrl);
         } else if (image.url && !image.url.startsWith('blob:')) {
-          // Already has permanent URL
           permanentImageUrls.push(image.url);
-          console.log('✅ Using existing permanent URL:', image.url);
         } else if (image.file) {
-          // Upload to get permanent URL
-          console.log('📸 Uploading image to Supabase Storage...');
           const uploadedUrl = await uploadImage(image.file, 'coin-images');
           
           if (uploadedUrl.startsWith('blob:')) {
@@ -61,7 +53,6 @@ export const useCoinSubmission = () => {
           }
           
           permanentImageUrls.push(uploadedUrl);
-          console.log('✅ Image uploaded with permanent URL:', uploadedUrl);
         }
       }
 
@@ -93,7 +84,6 @@ export const useCoinSubmission = () => {
 
       if (hasErrorIndicators || coinCategory === 'error_coin') {
         mappedCategory = 'error_coin';
-        console.log('🚨 ERROR COIN DETECTED via Enhanced AI analysis - Category set to error_coin');
       }
 
       // Step 3: Prepare enhanced coin payload with full multi-image support
@@ -110,7 +100,7 @@ export const useCoinSubmission = () => {
         image: permanentImageUrls[0], // Primary image
         obverse_image: permanentImageUrls[1] || null, // Second image as obverse
         reverse_image: permanentImageUrls[2] || null, // Third image as reverse
-        images: permanentImageUrls, // CRITICAL: ALL images array (1-10 support) - THIS IS THE KEY FIX
+        images: permanentImageUrls, // ALL images array (1-10 support)
         user_id: user.id,
         condition: coinData.condition || coinData.grade || 'Good',
         composition: coinData.composition || 'Unknown',
@@ -122,25 +112,15 @@ export const useCoinSubmission = () => {
           ? new Date(Date.now() + (parseInt(coinData.auctionDuration || '7') * 24 * 60 * 60 * 1000)).toISOString()
           : null,
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid || '0') : null,
-        category: mappedCategory as any, // Type cast to handle strict typing
+        category: mappedCategory as any,
         store_id: selectedStoreId || null,
-        authentication_status: 'verified', // Auto-verify for immediate visibility
-        featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)), // Auto-feature error coins and rare coins
+        authentication_status: 'verified',
+        featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
         sold: false,
         views: 0,
-        // AI enhancement metadata
-        ai_confidence: 0.85, // Default high confidence for AI-enhanced listings
+        ai_confidence: 0.85,
         ai_provider: 'claude-enhanced'
       };
-
-      console.log('💾 Submitting AI-enhanced coin with complete multi-image data:', {
-        ...coinPayload,
-        totalImages: permanentImageUrls.length,
-        category: mappedCategory,
-        isErrorCoin: mappedCategory === 'error_coin',
-        allImagesStored: true,
-        imageArrayLength: coinPayload.images.length
-      });
 
       // Step 4: Submit to database
       const { data, error } = await supabase
@@ -150,19 +130,8 @@ export const useCoinSubmission = () => {
         .single();
 
       if (error) {
-        console.error('❌ Database submission failed:', error);
         throw error;
       }
-
-      console.log('✅ Multi-Image coin successfully created and visible everywhere:', {
-        coinId: data.id,
-        name: data.name,
-        category: data.category,
-        imageCount: permanentImageUrls.length,
-        images: data.images,
-        isErrorCoin: data.category === 'error_coin',
-        databaseImagesField: data.images
-      });
 
       // Enhanced success notification
       const isErrorCoin = mappedCategory === 'error_coin';
@@ -171,7 +140,7 @@ export const useCoinSubmission = () => {
         : `"${coinData.title}" listed successfully with AI enhancement and ${permanentImageUrls.length} images!`;
 
       toast({
-        title: "🎉 MULTI-IMAGE LISTING CREATED!",
+        title: "MULTI-IMAGE LISTING CREATED!",
         description: successMessage,
       });
 
@@ -183,7 +152,6 @@ export const useCoinSubmission = () => {
       return { success: true, coinId: data.id };
 
     } catch (error: any) {
-      console.error('❌ Enhanced submission failed:', error);
       toast({
         title: "Submission Failed",
         description: error.message || "Failed to create listing. Please try again.",

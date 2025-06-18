@@ -47,14 +47,10 @@ function checkForRealData(dir) {
 const result = checkForRealData('./src');
 const qualityScore = result.files > 0 ? (result.score / result.files) : 0;
 
-console.log(`✅ Real data quality score: ${qualityScore.toFixed(2)}`);
-console.log(`📊 Real data patterns found: ${result.score}`);
-console.log(`📁 Files analyzed: ${result.files}`);
-
 if (qualityScore > 2.0) {
-  console.log('🎉 Excellent real data integration detected!');
+  process.exit(0);
 } else if (qualityScore > 1.0) {
-  console.log('👍 Good real data integration detected');
+  process.exit(0);
 } else {
-  console.log('⚠️  Limited real data integration - consider adding more database connections');
+  process.exit(1);
 }

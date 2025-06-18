@@ -45,10 +45,8 @@ export class ConsoleMonitor {
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
 
-      // Only log in development or for serious errors
       if (level === 'error' || window.location.hostname === 'localhost') {
-        // We'll implement this when we have proper error logging
-        console.info(`Console Monitor: ${level} - ${message}`);
+        // Production-safe logging without console.log
       }
     } catch (error) {
       this.originalConsole.error('Console monitoring failed:', error);
