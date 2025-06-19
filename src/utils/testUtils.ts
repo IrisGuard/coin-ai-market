@@ -1,3 +1,4 @@
+
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -198,16 +199,15 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
       }
     }
     
-    // Check for unused imports - fixed regex pattern with escaped braces
+    // Check for unused imports - using string methods instead of regex
     if (line.includes('import') && line.includes('{')) {
-      // Use string methods instead of regex to avoid compilation issues
       const importStart = line.indexOf('{');
       const importEnd = line.indexOf('}');
       if (importStart !== -1 && importEnd !== -1 && importEnd > importStart) {
         const importContent = line.substring(importStart + 1, importEnd);
         const importedItems = importContent.split(',').map(item => item.trim());
         importedItems.forEach(item => {
-          if (item && !content.includes(item.replace(/\s+as\s+\w+/, ''))) {
+          if (item && !content.includes(item.replace(' as ', ' '))) {
             errors.push({
               type: 'import',
               severity: 'medium',
