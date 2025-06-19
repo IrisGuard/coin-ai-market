@@ -59,7 +59,7 @@ export const useRealTimeGithubScanner = () => {
   const { data: violations = [], isLoading: violationsLoading, refetch: refetchViolations } = useQuery({
     queryKey: ['github-violations'],
     queryFn: async (): Promise<GitHubViolation[]> => {
-      console.log('📋 Fetching GitHub violations...');
+      console.log('📋 Fetching GitHub violations from database...');
       
       const { data, error } = await supabase.functions.invoke('github-mock-scanner', {
         body: { action: 'get_violations' }

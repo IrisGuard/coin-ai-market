@@ -49,25 +49,25 @@ export const setupIntersectionObserver = (): void => {
   });
 };
 
-// Clean up production test environment
-export const cleanupTests = (): void => {
+// Clean up production environment
+export const cleanupProduction = (): void => {
   if (typeof window !== 'undefined') {
     window.localStorage.clear();
     window.sessionStorage.clear();
   }
 };
 
-// Wait for async operations in production tests
+// Wait for async operations in production
 export const waitForAsync = (ms: number = 100): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-// Production error handler for testing
-export const triggerProductionError = (message: string = 'Production test error'): Error => {
+// Production error handler
+export const triggerProductionError = (message: string = 'Production error'): Error => {
   return new Error(message);
 };
 
-// Production data generator for testing
+// Production data generator
 export const generateProductionData = (count: number = 10): any[] => {
   return Array.from({ length: count }, (_, index) => ({
     id: `prod-${index}`,

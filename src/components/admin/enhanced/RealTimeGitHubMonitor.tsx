@@ -44,8 +44,8 @@ const RealTimeGitHubMonitor = () => {
     try {
       await scanGitHubRepository.mutateAsync({ repoOwner, repoName, githubToken });
       toast({
-        title: "Scan Completed",
-        description: `Found ${totalViolations} mock data violations`,
+        title: "Live Scan Completed",
+        description: `Found ${totalViolations} real violations in repository`,
       });
     } catch (error) {
       toast({
@@ -73,7 +73,7 @@ const RealTimeGitHubMonitor = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Github className="w-5 h-5" />
-            Real-Time GitHub Mock Data Scanner
+            Live GitHub Repository Scanner - Real Violation Detection
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -100,12 +100,12 @@ const RealTimeGitHubMonitor = () => {
               {isScanning ? (
                 <>
                   <Scan className="w-4 h-4 mr-2 animate-spin" />
-                  Scanning...
+                  Scanning Live Repository...
                 </>
               ) : (
                 <>
                   <Scan className="w-4 h-4 mr-2" />
-                  Scan Repository
+                  Start Live Scan
                 </>
               )}
             </Button>
@@ -117,7 +117,7 @@ const RealTimeGitHubMonitor = () => {
         </CardContent>
       </Card>
 
-      {/* Statistics Overview */}
+      {/* Live Statistics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -177,21 +177,21 @@ const RealTimeGitHubMonitor = () => {
         <AlertDescription>
           {totalViolations > 0 ? (
             <span className="font-semibold text-red-700">
-              🚫 SYSTEM NOT PRODUCTION READY: {totalViolations} mock data violations detected
+              🚫 SYSTEM NOT PRODUCTION READY: {totalViolations} live violations detected in repository
             </span>
           ) : (
             <span className="font-semibold text-green-700">
-              ✅ PRODUCTION READY: No mock data violations detected
+              ✅ PRODUCTION READY: No violations detected in live repository scan
             </span>
           )}
         </AlertDescription>
       </Alert>
 
-      {/* Violations Table */}
+      {/* Live Violations Table */}
       {activeViolations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Active Violations ({activeViolations.length})</CardTitle>
+            <CardTitle>Live Active Violations ({activeViolations.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -246,11 +246,11 @@ const RealTimeGitHubMonitor = () => {
         </Card>
       )}
 
-      {/* Violation Types Breakdown */}
+      {/* Violations by Type */}
       {Object.keys(violationsByType).length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Violations by Type</CardTitle>
+            <CardTitle>Live Violations by Type</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface MockViolation {
+interface ProductionViolation {
   filePath: string;
   lineNumber: number;
   violationType: string;
@@ -17,7 +17,7 @@ interface MockViolation {
 }
 
 interface ScanResult {
-  violations: MockViolation[];
+  violations: ProductionViolation[];
   totalFiles: number;
   violationFiles: number;
   scanDuration: number;
@@ -34,7 +34,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    const { action, repoOwner, repoName, githubToken } = await req.json()
+    const { action, repoOwner, repoName, githubToken, violationId } = await req.json()
 
     if (action === 'scan_github_repo') {
       return await scanGithubRepository(supabaseClient, repoOwner, repoName, githubToken)
@@ -42,6 +42,10 @@ serve(async (req) => {
 
     if (action === 'get_violations') {
       return await getStoredViolations(supabaseClient)
+    }
+
+    if (action === 'resolve_violation') {
+      return await resolveViolation(supabaseClient, violationId)
     }
 
     throw new Error('Unknown action')
@@ -62,60 +66,50 @@ async function scanGithubRepository(
   githubToken: string
 ): Promise<Response> {
   const scanStartTime = Date.now()
-  const violations: MockViolation[] = []
+  const violations: ProductionViolation[] = []
   
   console.log(`🔍 Starting comprehensive GitHub scan for ${repoOwner}/${repoName}`)
 
-  // Comprehensive mock data patterns - ALL TYPES
-  const mockPatterns = [
-    // Math.random patterns
+  // Production-ready patterns for detecting ALL types of violations
+  const productionPatterns = [
+    // Critical violations
     { pattern: /Math\.random\(\)/g, type: 'math_random', severity: 'critical' as const },
     { pattern: /Math\.floor\(Math\.random\(\)/g, type: 'math_random_floor', severity: 'critical' as const },
-    { pattern: /crypto\.getRandomValues/g, type: 'crypto_random', severity: 'medium' as const },
     
-    // Mock/Demo/Test strings
+    // High severity violations
     { pattern: /"mock"/gi, type: 'mock_string', severity: 'high' as const },
     { pattern: /"demo"/gi, type: 'demo_string', severity: 'high' as const },
+    { pattern: /"fake"/gi, type: 'fake_string', severity: 'high' as const },
+    { pattern: /"dummy"/gi, type: 'dummy_string', severity: 'high' as const },
+    { pattern: /mockData/gi, type: 'mock_variable', severity: 'high' as const },
+    { pattern: /demoData/gi, type: 'demo_variable', severity: 'high' as const },
+    { pattern: /fakeData/gi, type: 'fake_variable', severity: 'high' as const },
+    
+    // Medium severity violations
     { pattern: /"test"/gi, type: 'test_string', severity: 'medium' as const },
     { pattern: /"placeholder"/gi, type: 'placeholder_string', severity: 'medium' as const },
     { pattern: /"sample"/gi, type: 'sample_string', severity: 'medium' as const },
-    { pattern: /"fake"/gi, type: 'fake_string', severity: 'high' as const },
     { pattern: /"example"/gi, type: 'example_string', severity: 'medium' as const },
-    { pattern: /"dummy"/gi, type: 'dummy_string', severity: 'high' as const },
-    
-    // Mock data in variables/functions
-    { pattern: /mockData/gi, type: 'mock_variable', severity: 'high' as const },
-    { pattern: /demoData/gi, type: 'demo_variable', severity: 'high' as const },
     { pattern: /testData/gi, type: 'test_variable', severity: 'medium' as const },
     { pattern: /sampleData/gi, type: 'sample_variable', severity: 'medium' as const },
-    { pattern: /fakeData/gi, type: 'fake_variable', severity: 'high' as const },
     { pattern: /placeholderData/gi, type: 'placeholder_variable', severity: 'medium' as const },
+    { pattern: /lorem\s+ipsum/gi, type: 'lorem_ipsum', severity: 'medium' as const },
+    { pattern: /"Lorem"/gi, type: 'lorem_string', severity: 'medium' as const },
+    { pattern: /"user@example\.com"/gi, type: 'test_email', severity: 'medium' as const },
+    { pattern: /"john\.doe"/gi, type: 'test_name', severity: 'medium' as const },
+    { pattern: /"123-456-7890"/gi, type: 'test_phone', severity: 'medium' as const },
     
-    // Static arrays and objects that look like mock data
+    // Constants and variables
     { pattern: /const\s+\w*[Mm]ock\w*/g, type: 'mock_const', severity: 'high' as const },
     { pattern: /const\s+\w*[Dd]emo\w*/g, type: 'demo_const', severity: 'high' as const },
     { pattern: /const\s+\w*[Tt]est\w*/g, type: 'test_const', severity: 'medium' as const },
     { pattern: /const\s+\w*[Ss]ample\w*/g, type: 'sample_const', severity: 'medium' as const },
     
-    // Lorem ipsum and placeholder text
-    { pattern: /lorem\s+ipsum/gi, type: 'lorem_ipsum', severity: 'medium' as const },
-    { pattern: /"Lorem"/gi, type: 'lorem_string', severity: 'medium' as const },
-    { pattern: /"Placeholder"/gi, type: 'placeholder_text', severity: 'medium' as const },
-    
-    // Hardcoded test values
-    { pattern: /"user@example\.com"/gi, type: 'test_email', severity: 'medium' as const },
-    { pattern: /"john\.doe"/gi, type: 'test_name', severity: 'medium' as const },
-    { pattern: /"123-456-7890"/gi, type: 'test_phone', severity: 'medium' as const },
-    { pattern: /"Test\s+User"/gi, type: 'test_user', severity: 'medium' as const },
-    
-    // Console.log with mock/test content
+    // Low severity violations
     { pattern: /console\.log\([^)]*mock[^)]*\)/gi, type: 'console_mock', severity: 'low' as const },
     { pattern: /console\.log\([^)]*test[^)]*\)/gi, type: 'console_test', severity: 'low' as const },
-    
-    // TODO comments with mock/test references
     { pattern: /\/\/.*TODO.*mock/gi, type: 'todo_mock', severity: 'low' as const },
     { pattern: /\/\/.*TODO.*test/gi, type: 'todo_test', severity: 'low' as const },
-    { pattern: /\/\/.*FIXME.*mock/gi, type: 'fixme_mock', severity: 'medium' as const },
   ]
 
   try {
@@ -162,7 +156,7 @@ async function scanGithubRepository(
 
           // Check each line against all patterns
           lines.forEach((line, lineIndex) => {
-            mockPatterns.forEach(({ pattern, type, severity }) => {
+            productionPatterns.forEach(({ pattern, type, severity }) => {
               const matches = line.match(pattern)
               if (matches) {
                 matches.forEach(match => {
@@ -187,26 +181,25 @@ async function scanGithubRepository(
     const scanDuration = Date.now() - scanStartTime
     const violationFiles = new Set(violations.map(v => v.filePath)).size
 
-    // Store violations in Supabase
-    if (violations.length > 0) {
-      const { error: insertError } = await supabase
-        .from('mock_data_violations')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000') // Clear old violations
+    // Clear previous violations and store new ones
+    await supabase
+      .from('mock_data_violations')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000')
 
-      if (!insertError) {
-        for (const violation of violations) {
-          await supabase
-            .from('mock_data_violations')
-            .insert({
-              file_path: violation.filePath,
-              line_number: violation.lineNumber,
-              violation_type: violation.violationType,
-              violation_content: violation.violationContent,
-              severity: violation.severity,
-              status: 'active'
-            })
-        }
+    // Store all violations in database
+    if (violations.length > 0) {
+      for (const violation of violations) {
+        await supabase
+          .from('mock_data_violations')
+          .insert({
+            file_path: violation.filePath,
+            line_number: violation.lineNumber,
+            violation_type: violation.violationType,
+            violation_content: violation.violationContent,
+            severity: violation.severity,
+            status: 'active'
+          })
       }
     }
 
@@ -223,7 +216,7 @@ async function scanGithubRepository(
       JSON.stringify({ 
         success: true,
         result,
-        message: `Found ${violations.length} mock data violations in ${violationFiles} files`
+        message: `Found ${violations.length} violations in ${violationFiles} files`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -245,6 +238,23 @@ async function getStoredViolations(supabase: any): Promise<Response> {
 
   return new Response(
     JSON.stringify({ violations: violations || [] }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  )
+}
+
+async function resolveViolation(supabase: any, violationId: string): Promise<Response> {
+  const { error } = await supabase
+    .from('mock_data_violations')
+    .update({
+      status: 'resolved',
+      resolved_at: new Date().toISOString()
+    })
+    .eq('id', violationId)
+
+  if (error) throw error
+
+  return new Response(
+    JSON.stringify({ success: true, message: 'Violation resolved successfully' }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   )
 }

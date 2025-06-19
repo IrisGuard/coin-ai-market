@@ -27,7 +27,7 @@ const UnifiedSecurityMonitoringPanel = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-6 h-6 text-red-600" />
-            Unified Security & Monitoring Panel
+            Unified Security & Monitoring Panel - LIVE SCAN RESULTS
             <Badge variant={isProductionReady ? "default" : "destructive"}>
               {isProductionReady ? "PRODUCTION READY" : "VIOLATIONS DETECTED"}
             </Badge>
@@ -38,7 +38,7 @@ const UnifiedSecurityMonitoringPanel = () => {
             <div className="text-center p-4 border rounded-lg">
               <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-600" />
               <p className="text-3xl font-bold text-red-600">{totalViolations}</p>
-              <p className="text-sm text-muted-foreground">Total Violations</p>
+              <p className="text-sm text-muted-foreground">Live Violations Count</p>
             </div>
             
             <div className="text-center p-4 border rounded-lg">
@@ -60,7 +60,7 @@ const UnifiedSecurityMonitoringPanel = () => {
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-800 font-semibold">🚫 SYSTEM NOT PRODUCTION READY</p>
               <p className="text-red-700 text-sm">
-                {totalViolations} mock data violations detected. Critical: {criticalViolations.length}, High: {highViolations.length}
+                {totalViolations} live violations detected in real repository scan. Critical: {criticalViolations.length}, High: {highViolations.length}
               </p>
             </div>
           )}
@@ -69,7 +69,7 @@ const UnifiedSecurityMonitoringPanel = () => {
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-green-800 font-semibold">✅ SYSTEM PRODUCTION READY</p>
               <p className="text-green-700 text-sm">
-                No mock data violations detected. All systems operational.
+                No violations detected in live repository scan. All systems operational.
               </p>
             </div>
           )}
@@ -85,7 +85,7 @@ const UnifiedSecurityMonitoringPanel = () => {
           </TabsTrigger>
           <TabsTrigger value="github" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
-            GitHub Scanner
+            Live GitHub Scanner
           </TabsTrigger>
           <TabsTrigger value="phase6" className="flex items-center gap-2">
             <Brain className="w-4 h-4" />

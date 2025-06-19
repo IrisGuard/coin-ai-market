@@ -43,7 +43,7 @@ export const useRealTimeSystemStatus = (refreshInterval: number = 30000) => {
       const hasCritical = healthChecks.some(check => check.status === 'critical') || criticalAlerts.length > 0;
       const hasWarning = healthChecks.some(check => check.status === 'warning');
       
-      const overallHealth = hascritical ? 'critical' : hasWarning ? 'warning' : 'healthy';
+      const overallHealth = hasCritical ? 'critical' : hasWarning ? 'warning' : 'healthy';
       
       // Calculate resource usage from recent metrics
       const cpuMetric = recentMetrics?.find(m => m.metric_name === 'cpu_usage');
