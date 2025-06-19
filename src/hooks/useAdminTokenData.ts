@@ -6,7 +6,6 @@ export const useAdminTokenStats = () => {
   return useQuery({
     queryKey: ['admin-token-stats'],
     queryFn: async () => {
-      // Get comprehensive token statistics for admin
       const [tokenInfo, walletBalances, tokenLocks, referrals, activity] = await Promise.all([
         supabase.from('token_info').select('*').single(),
         supabase.from('wallet_balances').select('*'),
@@ -15,7 +14,6 @@ export const useAdminTokenStats = () => {
         supabase.from('token_activity').select('*').limit(100).order('created_at', { ascending: false })
       ]);
 
-      // Calculate aggregated stats safely
       const totalLocked = walletBalances.data?.reduce((sum, wallet) => sum + (wallet.locked_balance || 0), 0) || 0;
       const totalCirculating = walletBalances.data?.reduce((sum, wallet) => sum + (wallet.gcai_balance || 0), 0) || 0;
       const totalReferrals = referrals.data?.reduce((sum, ref) => sum + (ref.total_referrals || 0), 0) || 0;
@@ -45,7 +43,7 @@ export const useAdminTokenStats = () => {
         }
       };
     },
-    refetchInterval: 30000, // Refresh every 30 seconds for real-time data
+    refetchInterval: 30000,
   });
 };
 
@@ -60,14 +58,12 @@ export const useAdminTokenLocks = () => {
       
       if (error) throw error;
       
-      // Get user profiles separately to avoid join issues
       const userIds = data?.map(lock => lock.user_id).filter(Boolean) || [];
       const profilesData = userIds.length > 0 ? await supabase
         .from('profiles')
         .select('id, name, email')
         .in('id', userIds) : { data: [] };
 
-      // Merge profile data
       const enrichedData = data?.map(lock => ({
         ...lock,
         profiles: profilesData.data?.find(profile => profile.id === lock.user_id) || {
@@ -78,7 +74,7 @@ export const useAdminTokenLocks = () => {
 
       return enrichedData;
     },
-    refetchInterval: 15000, // Refresh every 15 seconds
+    refetchInterval: 15000,
   });
 };
 
@@ -94,19 +90,17 @@ export const useAdminTokenActivity = () => {
       
       if (error) throw error;
       
-      // Get user profiles separately to avoid join issues
       const userIds = data?.map(activity => activity.user_id).filter(Boolean) || [];
       const profilesData = userIds.length > 0 ? await supabase
         .from('profiles')
         .select('id, name, email')
         .in('id', userIds) : { data: [] };
 
-      // Merge profile data and add missing fields with defaults
       const enrichedData = data?.map(activity => ({
         ...activity,
-        token_amount: activity.amount || 0, // Map amount to token_amount
-        usd_value: (activity.amount || 0) * 0.1, // Calculate USD value
-        transaction_status: 'completed', // Default status
+        token_amount: activity.amount || 0,
+        usd_value: (activity.amount || 0) * 0.1,
+        transaction_status: 'completed',
         profiles: profilesData.data?.find(profile => profile.id === activity.user_id) || {
           name: 'Unknown User',
           email: 'N/A'
@@ -115,7 +109,7 @@ export const useAdminTokenActivity = () => {
 
       return enrichedData;
     },
-    refetchInterval: 10000, // Refresh every 10 seconds for live activity
+    refetchInterval: 10000,
   });
 };
 
@@ -130,24 +124,21 @@ export const useAdminReferralStats = () => {
       
       if (error) throw error;
       
-      // Get user profiles separately to avoid join issues
       const userIds = data?.map(referral => referral.referrer_id).filter(Boolean) || [];
       const profilesData = userIds.length > 0 ? await supabase
         .from('profiles')
         .select('id, name, email')
         .in('id', userIds) : { data: [] };
 
-      // Merge profile data and add missing fields
       const enrichedData = data?.map(referral => ({
         ...referral,
-        clicks: Math.floor(Math.random() * 1000) + 100, // Mock clicks data
+        clicks: 0, // Real clicks would come from analytics
         profiles: profilesData.data?.find(profile => profile.id === referral.referrer_id) || {
           name: 'Unknown User',
           email: 'N/A'
         }
       })) || [];
       
-      // Calculate referral performance metrics
       const totalCommissions = enrichedData.reduce((sum, ref) => sum + (ref.total_earned || 0), 0);
       const totalReferrals = enrichedData.reduce((sum, ref) => sum + (ref.total_referrals || 0), 0);
       const activeReferrers = enrichedData.filter(ref => (ref.total_referrals || 0) > 0).length;

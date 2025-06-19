@@ -33,16 +33,12 @@ const EnhancedAIAnalytics = () => {
 
   useEffect(() => {
     loadAnalytics();
-    
-    // Real-time updates
-    const interval = setInterval(loadAnalytics, 30000); // Update every 30 seconds
-    
+    const interval = setInterval(loadAnalytics, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const loadAnalytics = async () => {
     try {
-      // Get AI recognition cache data for analytics
       const { data: recognitionData, error: recognitionError } = await supabase
         .from('ai_recognition_cache')
         .select('*')
@@ -53,7 +49,6 @@ const EnhancedAIAnalytics = () => {
         throw recognitionError;
       }
 
-      // Get AI configuration for active providers
       const { data: configData, error: configError } = await supabase
         .from('ai_configuration')
         .select('*')
@@ -63,7 +58,6 @@ const EnhancedAIAnalytics = () => {
         console.log('No AI configuration found, using defaults');
       }
 
-      // Calculate analytics from data
       const totalAnalyses = recognitionData?.length || 0;
       const successfulAnalyses = recognitionData?.filter(r => (r.confidence_score || 0) > 0.5).length || 0;
       const successRate = totalAnalyses > 0 ? (successfulAnalyses / totalAnalyses) * 100 : 0;
@@ -76,12 +70,10 @@ const EnhancedAIAnalytics = () => {
         ? recognitionData.reduce((sum, r) => sum + (r.processing_time_ms || 0), 0) / recognitionData.length
         : 0;
 
-      // Get active providers from sources consulted
       const activeProviders = [...new Set(
-        recognitionData?.flatMap(r => r.sources_consulted || []) || ['custom', 'openai', 'anthropic']
+        recognitionData?.flatMap(r => r.sources_consulted || []) || ['custom']
       )];
 
-      // Calculate daily analyses (last 7 days)
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -92,15 +84,28 @@ const EnhancedAIAnalytics = () => {
         date,
         count: recognitionData?.filter(r => 
           r.created_at && new Date(r.created_at).toISOString().split('T')[0] === date
-        ).length || Math.floor(Math.random() * 50) + 10 // Fallback data for demo
+        ).length || 0
       }));
 
-      // Provider performance with real and fallback data
-      const providerPerformance = activeProviders.map(provider => ({
-        provider,
-        accuracy: 85 + Math.random() * 15, // Mock accuracy between 85-100%
-        speed: 1000 + Math.random() * 2000 // Mock speed in ms
-      }));
+      const providerPerformance = activeProviders.map(provider => {
+        const providerData = recognitionData?.filter(r => 
+          r.sources_consulted?.includes(provider)
+        ) || [];
+        
+        const accuracy = providerData.length > 0 
+          ? providerData.reduce((sum, r) => sum + (r.confidence_score || 0), 0) / providerData.length * 100
+          : 0;
+        
+        const speed = providerData.length > 0
+          ? providerData.reduce((sum, r) => sum + (r.processing_time_ms || 0), 0) / providerData.length
+          : 0;
+
+        return {
+          provider,
+          accuracy,
+          speed
+        };
+      });
 
       setAnalytics({
         totalAnalyses,
@@ -115,23 +120,15 @@ const EnhancedAIAnalytics = () => {
 
     } catch (error) {
       console.error('Failed to load AI analytics:', error);
-      // Set fallback demo data
       setAnalytics({
-        totalAnalyses: 1250,
-        successRate: 94.5,
-        averageConfidence: 87.3,
-        processingTime: 1350,
-        activeProviders: ['custom', 'openai', 'anthropic'],
-        errorRate: 5.5,
-        dailyAnalyses: Array.from({ length: 7 }, (_, i) => ({
-          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          count: Math.floor(Math.random() * 50) + 10
-        })),
-        providerPerformance: [
-          { provider: 'custom', accuracy: 94.2, speed: 1200 },
-          { provider: 'openai', accuracy: 92.8, speed: 1800 },
-          { provider: 'anthropic', accuracy: 89.5, speed: 1500 }
-        ]
+        totalAnalyses: 0,
+        successRate: 0,
+        averageConfidence: 0,
+        processingTime: 0,
+        activeProviders: [],
+        errorRate: 0,
+        dailyAnalyses: [],
+        providerPerformance: []
       });
     } finally {
       setIsLoading(false);
@@ -153,7 +150,6 @@ const EnhancedAIAnalytics = () => {
 
   return (
     <div className="space-y-6">
-      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
@@ -206,7 +202,6 @@ const EnhancedAIAnalytics = () => {
         </Card>
       </div>
 
-      {/* Detailed Analytics */}
       <Tabs defaultValue="performance" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -287,10 +282,10 @@ const EnhancedAIAnalytics = () => {
                 <div className="mt-6 space-y-2">
                   <div className="text-sm font-medium">Common Error Types:</div>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <div>• Low image quality (45%)</div>
-                    <div>• Obscure coin varieties (25%)</div>
-                    <div>• Poor lighting conditions (20%)</div>
-                    <div>• Network timeouts (10%)</div>
+                    <div>• Low image quality</div>
+                    <div>• Obscure coin varieties</div>
+                    <div>• Poor lighting conditions</div>
+                    <div>• Network timeouts</div>
                   </div>
                 </div>
               </div>

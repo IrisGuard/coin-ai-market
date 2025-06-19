@@ -32,7 +32,7 @@ export const generateMockAuction = (overrides = {}) => ({
   coin_id: 'test-coin-1',
   starting_price: 50,
   current_price: 75,
-  ends_at: new Date(Date.now() + 86400000).toISOString(), // 24h from now
+  ends_at: new Date(Date.now() + 86400000).toISOString(),
   status: 'active',
   ...overrides
 });
@@ -103,7 +103,6 @@ export const mockIntersectionObserver = () => {
 
 // Cleanup utilities
 export const cleanupTests = () => {
-  // Clear all localStorage
   if (typeof window !== 'undefined') {
     window.localStorage.clear();
     window.sessionStorage.clear();
@@ -114,7 +113,7 @@ export const cleanupTests = () => {
 export const waitForAsync = (ms: number = 0) => 
   new Promise(resolve => setTimeout(resolve, ms));
 
-// Mock error for testing error boundaries
+// Mock error for testing
 export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
@@ -134,10 +133,8 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
 
 // Test data cleanup
 export const resetTestData = () => {
-  // Reset any global test state
   cleanupTests();
   
-  // Clear performance marks
   if (typeof performance !== 'undefined' && performance.clearMarks) {
     performance.clearMarks();
     performance.clearMeasures();
