@@ -7,6 +7,8 @@ interface TimeRemaining {
   minutes: number;
   seconds: number;
   expired: boolean;
+  endingSoon: boolean; // less than 24 hours
+  criticalTime: boolean; // less than 1 hour
 }
 
 export const useAuctionTimer = (endTime: string): TimeRemaining => {
@@ -15,7 +17,9 @@ export const useAuctionTimer = (endTime: string): TimeRemaining => {
     hours: 0,
     minutes: 0,
     seconds: 0,
-    expired: false
+    expired: false,
+    endingSoon: false,
+    criticalTime: false
   });
 
   useEffect(() => {
@@ -25,7 +29,15 @@ export const useAuctionTimer = (endTime: string): TimeRemaining => {
       const remaining = end - now;
 
       if (remaining <= 0) {
-        setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+        setTimeRemaining({ 
+          days: 0, 
+          hours: 0, 
+          minutes: 0, 
+          seconds: 0, 
+          expired: true,
+          endingSoon: false,
+          criticalTime: false
+        });
         return;
       }
 
@@ -34,7 +46,20 @@ export const useAuctionTimer = (endTime: string): TimeRemaining => {
       const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
-      setTimeRemaining({ days, hours, minutes, seconds, expired: false });
+      // Calculate if ending soon (less than 24 hours) or critical time (less than 1 hour)
+      const totalHours = remaining / (1000 * 60 * 60);
+      const endingSoon = totalHours <= 24;
+      const criticalTime = totalHours <= 1;
+
+      setTimeRemaining({ 
+        days, 
+        hours, 
+        minutes, 
+        seconds, 
+        expired: false,
+        endingSoon,
+        criticalTime
+      });
     };
 
     calculateTimeRemaining();

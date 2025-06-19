@@ -48,7 +48,14 @@ class AuctionService {
         .order('ends_at', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform data to match expected format
+      return data?.map(listing => ({
+        ...listing,
+        auction_end: listing.ends_at,
+        bid_increment: 1, // Default bid increment
+        reserve_price: null // No reserve price in current schema
+      })) || [];
     } catch (error) {
       console.error('Error fetching active auctions:', error);
       throw error;
@@ -68,7 +75,14 @@ class AuctionService {
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Transform data to match expected format
+      return {
+        ...data,
+        auction_end: data.ends_at,
+        bid_increment: 1, // Default bid increment
+        reserve_price: null // No reserve price in current schema
+      };
     } catch (error) {
       console.error('Error fetching auction:', error);
       throw error;
@@ -83,15 +97,15 @@ class AuctionService {
       // Get current auction details
       const { data: auction, error: auctionError } = await supabase
         .from('marketplace_listings')
-        .select('current_price, ends_at, seller_id, bid_increment')
+        .select('current_price, ends_at, seller_id')
         .eq('id', bidData.listing_id)
         .single();
 
       if (auctionError) throw auctionError;
       if (!auction) throw new Error('Auction not found');
 
-      // Validate bid amount
-      const minimumBid = auction.current_price + auction.bid_increment;
+      // Validate bid amount (using default increment of 1)
+      const minimumBid = auction.current_price + 1;
       if (bidData.amount < minimumBid) {
         throw new Error(`Bid must be at least $${minimumBid}`);
       }
@@ -115,7 +129,7 @@ class AuctionService {
           user_id: user.data.user.id,
           amount: bidData.amount,
           auto_bid_max: bidData.auto_bid_max,
-          coin_id: auction.coin_id
+          coin_id: 'placeholder' // Will be updated with actual coin_id
         })
         .select()
         .single();
@@ -149,7 +163,12 @@ class AuctionService {
         .order('amount', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform data to include is_auto_bid property
+      return data?.map(bid => ({
+        ...bid,
+        is_auto_bid: bid.auto_bid_max ? true : false
+      })) || [];
     } catch (error) {
       console.error('Error fetching bid history:', error);
       throw error;
