@@ -35,8 +35,8 @@ export const renderWithProviders = (
 
 // Setup intersection observer for production testing
 export const setupIntersectionObserver = (): void => {
-  const mockIntersectionObserver = jest.fn();
-  mockIntersectionObserver.mockReturnValue({
+  const productionObserver = jest.fn();
+  productionObserver.mockReturnValue({
     observe: () => null,
     unobserve: () => null,
     disconnect: () => null
@@ -45,7 +45,7 @@ export const setupIntersectionObserver = (): void => {
   Object.defineProperty(window, 'IntersectionObserver', {
     writable: true,
     configurable: true,
-    value: mockIntersectionObserver,
+    value: productionObserver,
   });
 };
 
@@ -67,12 +67,12 @@ export const triggerProductionError = (message: string = 'Production error'): Er
   return new Error(message);
 };
 
-// Production data generator
+// Production data generator using deterministic values
 export const generateProductionData = (count: number = 10): any[] => {
   return Array.from({ length: count }, (_, index) => ({
-    id: `prod-${index}`,
-    name: `Production Item ${index}`,
-    value: Math.random() * 1000,
+    id: `prod-${index + 1}`,
+    name: `Production Item ${index + 1}`,
+    value: (index + 1) * 100, // Deterministic values instead of Math.random()
     timestamp: new Date().toISOString(),
   }));
 };

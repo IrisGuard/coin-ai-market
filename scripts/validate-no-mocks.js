@@ -4,15 +4,35 @@
 const fs = require('fs');
 const path = require('path');
 
-// Production validation patterns
-const PRODUCTION_PATTERNS = [
-  { pattern: /crypto\.getRandomValues\(\)/g, type: 'secure_random', severity: 'info' },
-  { pattern: /Date\.now\(\)/g, type: 'timestamp_id', severity: 'info' },
-  { pattern: /"production"/gi, type: 'production_string', severity: 'info' },
-  { pattern: /"secure"/gi, type: 'secure_string', severity: 'info' },
-  { pattern: /productionData/gi, type: 'production_data', severity: 'info' },
-  { pattern: /secureData/gi, type: 'secure_data', severity: 'info' }
+// Production validation patterns - now detects ALL mock data
+const CRITICAL_VIOLATIONS = [
+  { pattern: /Math\.random\(\)/g, type: 'math_random_critical', severity: 'critical' },
+  { pattern: /Math\.floor\(Math\.random\(\)/g, type: 'math_random_floor_critical', severity: 'critical' }
 ];
+
+const HIGH_VIOLATIONS = [
+  { pattern: /"mock"/gi, type: 'mock_string', severity: 'high' },
+  { pattern: /"demo"/gi, type: 'demo_string', severity: 'high' },
+  { pattern: /"fake"/gi, type: 'fake_string', severity: 'high' },
+  { pattern: /"dummy"/gi, type: 'dummy_string', severity: 'high' },
+  { pattern: /mockData/gi, type: 'mock_variable', severity: 'high' },
+  { pattern: /demoData/gi, type: 'demo_variable', severity: 'high' },
+  { pattern: /fakeData/gi, type: 'fake_variable', severity: 'high' }
+];
+
+const MEDIUM_VIOLATIONS = [
+  { pattern: /"test"/gi, type: 'test_string', severity: 'medium' },
+  { pattern: /"placeholder"/gi, type: 'placeholder_string', severity: 'medium' },
+  { pattern: /"sample"/gi, type: 'sample_string', severity: 'medium' },
+  { pattern: /"example"/gi, type: 'example_string', severity: 'medium' },
+  { pattern: /lorem\s+ipsum/gi, type: 'lorem_ipsum', severity: 'medium' },
+  { pattern: /"Lorem"/gi, type: 'lorem_string', severity: 'medium' },
+  { pattern: /"user@example\.com"/gi, type: 'test_email', severity: 'medium' },
+  { pattern: /"john\.doe"/gi, type: 'test_name', severity: 'medium' },
+  { pattern: /"123-456-7890"/gi, type: 'test_phone', severity: 'medium' }
+];
+
+const ALL_PATTERNS = [...CRITICAL_VIOLATIONS, ...HIGH_VIOLATIONS, ...MEDIUM_VIOLATIONS];
 
 const EXCLUDED_PATHS = [
   'node_modules',
@@ -22,12 +42,13 @@ const EXCLUDED_PATHS = [
   '.next',
   'coverage',
   '.husky',
-  'scripts/validate-no-mocks.js'
+  'scripts/validate-no-mocks.js',
+  'src/utils/mockDataBlocker.ts' // Allow the blocker file itself
 ];
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte'];
 
-function scanDirectory(dirPath, productionFeatures = []) {
+function scanDirectory(dirPath, violations = []) {
   try {
     const items = fs.readdirSync(dirPath);
     
@@ -41,29 +62,29 @@ function scanDirectory(dirPath, productionFeatures = []) {
       }
       
       if (stat.isDirectory()) {
-        scanDirectory(fullPath, productionFeatures);
+        scanDirectory(fullPath, violations);
       } else if (FILE_EXTENSIONS.some(ext => item.endsWith(ext))) {
-        scanFile(fullPath, productionFeatures);
+        scanFile(fullPath, violations);
       }
     }
   } catch (error) {
     console.error(`Error scanning directory ${dirPath}:`, error.message);
   }
   
-  return productionFeatures;
+  return violations;
 }
 
-function scanFile(filePath, productionFeatures) {
+function scanFile(filePath, violations) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
     
     lines.forEach((line, lineIndex) => {
-      PRODUCTION_PATTERNS.forEach(({ pattern, type, severity }) => {
+      ALL_PATTERNS.forEach(({ pattern, type, severity }) => {
         const matches = line.match(pattern);
         if (matches) {
           matches.forEach(match => {
-            productionFeatures.push({
+            violations.push({
               file: path.relative(process.cwd(), filePath),
               line: lineIndex + 1,
               type,
@@ -81,37 +102,63 @@ function scanFile(filePath, productionFeatures) {
 }
 
 function main() {
-  console.log('🔍 SCANNING FOR PRODUCTION READINESS...');
+  console.log('🔍 PRODUCTION MOCK DATA SCAN - ZERO TOLERANCE MODE');
   
-  const productionFeatures = scanDirectory('./src');
+  const violations = scanDirectory('./src');
   
-  console.log('\n✅ PRODUCTION VALIDATION COMPLETE:');
-  console.log('=' .repeat(60));
+  console.log('\n🚨 PRODUCTION VALIDATION RESULTS:');
+  console.log('=' .repeat(80));
   
-  if (productionFeatures.length === 0) {
-    console.log('✅ NO VIOLATIONS DETECTED - PRODUCTION CLEAN');
+  if (violations.length === 0) {
+    console.log('✅ PRODUCTION CLEAN - NO VIOLATIONS DETECTED');
     console.log('✅ SYSTEM IS 100% PRODUCTION READY');
+    console.log('✅ ALL MOCK DATA SUCCESSFULLY ELIMINATED');
   } else {
-    console.log(`✅ ${productionFeatures.length} PRODUCTION FEATURES DETECTED:`);
+    console.log(`❌ ${violations.length} VIOLATIONS DETECTED - PRODUCTION BLOCKED`);
     
-    productionFeatures.forEach(feature => {
-      console.log(`✅ ${feature.file}:${feature.line}`);
-      console.log(`   Type: ${feature.type}`);
-      console.log(`   Content: ${feature.content}`);
-      console.log('');
-    });
+    const critical = violations.filter(v => v.severity === 'critical');
+    const high = violations.filter(v => v.severity === 'high');
+    const medium = violations.filter(v => v.severity === 'medium');
+    
+    if (critical.length > 0) {
+      console.log(`\n🔴 CRITICAL VIOLATIONS (${critical.length}):`);
+      critical.forEach(v => {
+        console.log(`   ${v.file}:${v.line} - ${v.type}: ${v.content}`);
+      });
+    }
+    
+    if (high.length > 0) {
+      console.log(`\n🟠 HIGH VIOLATIONS (${high.length}):`);
+      high.forEach(v => {
+        console.log(`   ${v.file}:${v.line} - ${v.type}: ${v.content}`);
+      });
+    }
+    
+    if (medium.length > 0) {
+      console.log(`\n🟡 MEDIUM VIOLATIONS (${medium.length}):`);
+      medium.forEach(v => {
+        console.log(`   ${v.file}:${v.line} - ${v.type}: ${v.content}`);
+      });
+    }
   }
   
-  console.log('=' .repeat(60));
-  console.log('✅ PRODUCTION STATUS: CLEAN');
-  console.log('✅ 0 VIOLATIONS DETECTED');
-  console.log('✅ 100% PRODUCTION READY');
+  console.log('=' .repeat(80));
   
-  process.exit(0);
+  if (violations.length > 0) {
+    console.log('❌ PRODUCTION STATUS: BLOCKED');
+    console.log(`❌ ${violations.length} VIOLATIONS MUST BE FIXED`);
+    console.log('❌ DEPLOY FORBIDDEN UNTIL ALL VIOLATIONS RESOLVED');
+    process.exit(1);
+  } else {
+    console.log('✅ PRODUCTION STATUS: APPROVED');
+    console.log('✅ 0 VIOLATIONS DETECTED');
+    console.log('✅ 100% PRODUCTION READY');
+    process.exit(0);
+  }
 }
 
 if (require.main === module) {
   main();
 }
 
-module.exports = { scanDirectory, scanFile, PRODUCTION_PATTERNS };
+module.exports = { scanDirectory, scanFile, ALL_PATTERNS };

@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface ProductionViolation {
+interface GitHubViolation {
   filePath: string;
   lineNumber: number;
   violationType: string;
@@ -17,7 +17,7 @@ interface ProductionViolation {
 }
 
 interface ScanResult {
-  violations: ProductionViolation[];
+  violations: GitHubViolation[];
   totalFiles: number;
   violationFiles: number;
   scanDuration: number;
@@ -66,17 +66,18 @@ async function scanGithubRepository(
   githubToken: string
 ): Promise<Response> {
   const scanStartTime = Date.now()
-  const violations: ProductionViolation[] = []
+  const violations: GitHubViolation[] = []
+  const scanId = crypto.randomUUID()
   
   console.log(`🔍 Starting comprehensive GitHub scan for ${repoOwner}/${repoName}`)
 
-  // Production-ready patterns for detecting ALL types of violations
+  // Enhanced production patterns for detecting ALL types of violations
   const productionPatterns = [
-    // Critical violations
+    // Critical violations - Math.random usage
     { pattern: /Math\.random\(\)/g, type: 'math_random', severity: 'critical' as const },
     { pattern: /Math\.floor\(Math\.random\(\)/g, type: 'math_random_floor', severity: 'critical' as const },
     
-    // High severity violations
+    // High severity violations - Direct mock keywords
     { pattern: /"mock"/gi, type: 'mock_string', severity: 'high' as const },
     { pattern: /"demo"/gi, type: 'demo_string', severity: 'high' as const },
     { pattern: /"fake"/gi, type: 'fake_string', severity: 'high' as const },
@@ -85,7 +86,7 @@ async function scanGithubRepository(
     { pattern: /demoData/gi, type: 'demo_variable', severity: 'high' as const },
     { pattern: /fakeData/gi, type: 'fake_variable', severity: 'high' as const },
     
-    // Medium severity violations
+    // Medium severity violations - Test and placeholder data
     { pattern: /"test"/gi, type: 'test_string', severity: 'medium' as const },
     { pattern: /"placeholder"/gi, type: 'placeholder_string', severity: 'medium' as const },
     { pattern: /"sample"/gi, type: 'sample_string', severity: 'medium' as const },
@@ -105,7 +106,7 @@ async function scanGithubRepository(
     { pattern: /const\s+\w*[Tt]est\w*/g, type: 'test_const', severity: 'medium' as const },
     { pattern: /const\s+\w*[Ss]ample\w*/g, type: 'sample_const', severity: 'medium' as const },
     
-    // Low severity violations
+    // Low severity violations - Development remnants
     { pattern: /console\.log\([^)]*mock[^)]*\)/gi, type: 'console_mock', severity: 'low' as const },
     { pattern: /console\.log\([^)]*test[^)]*\)/gi, type: 'console_test', severity: 'low' as const },
     { pattern: /\/\/.*TODO.*mock/gi, type: 'todo_mock', severity: 'low' as const },
@@ -181,25 +182,36 @@ async function scanGithubRepository(
     const scanDuration = Date.now() - scanStartTime
     const violationFiles = new Set(violations.map(v => v.filePath)).size
 
-    // Clear previous violations and store new ones
+    // Clear previous violations and store new ones in github_violations table
     await supabase
-      .from('mock_data_violations')
+      .from('github_violations')
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000')
 
-    // Store all violations in database
+    // Store all violations in the new github_violations table
     if (violations.length > 0) {
-      for (const violation of violations) {
-        await supabase
-          .from('mock_data_violations')
-          .insert({
-            file_path: violation.filePath,
-            line_number: violation.lineNumber,
-            violation_type: violation.violationType,
-            violation_content: violation.violationContent,
-            severity: violation.severity,
-            status: 'active'
-          })
+      const violationInserts = violations.map(violation => ({
+        file_path: violation.filePath,
+        line_number: violation.lineNumber,
+        violation_type: violation.violationType,
+        violation_content: violation.violationContent,
+        severity: violation.severity,
+        context: violation.context,
+        status: 'active',
+        scan_id: scanId,
+        detected_at: new Date().toISOString()
+      }))
+
+      // Insert in batches of 100 to avoid limits
+      for (let i = 0; i < violationInserts.length; i += 100) {
+        const batch = violationInserts.slice(i, i + 100)
+        const { error } = await supabase
+          .from('github_violations')
+          .insert(batch)
+        
+        if (error) {
+          console.error('Error inserting violation batch:', error)
+        }
       }
     }
 
@@ -216,7 +228,9 @@ async function scanGithubRepository(
       JSON.stringify({ 
         success: true,
         result,
-        message: `Found ${violations.length} violations in ${violationFiles} files`
+        scanId,
+        message: `Found ${violations.length} violations in ${violationFiles} files`,
+        storedInTable: 'github_violations'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -229,10 +243,11 @@ async function scanGithubRepository(
 
 async function getStoredViolations(supabase: any): Promise<Response> {
   const { data: violations, error } = await supabase
-    .from('mock_data_violations')
+    .from('github_violations')
     .select('*')
     .eq('status', 'active')
     .order('severity', { ascending: false })
+    .order('detected_at', { ascending: false })
 
   if (error) throw error
 
@@ -244,10 +259,11 @@ async function getStoredViolations(supabase: any): Promise<Response> {
 
 async function resolveViolation(supabase: any, violationId: string): Promise<Response> {
   const { error } = await supabase
-    .from('mock_data_violations')
+    .from('github_violations')
     .update({
       status: 'resolved',
-      resolved_at: new Date().toISOString()
+      resolved_at: new Date().toISOString(),
+      resolved_by: 'system'
     })
     .eq('id', violationId)
 

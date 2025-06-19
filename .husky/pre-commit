@@ -2,19 +2,21 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "🔍 MOCK DATA PROTECTION - SCANNING BEFORE COMMIT..."
+echo "🛡️ PRODUCTION PROTECTION - FINAL MOCK DATA SCAN..."
 
-# Run the mock data validator
+# Enhanced mock data validation with zero tolerance
 if node scripts/validate-no-mocks.js; then
-  echo "✅ Mock data validation passed"
+  echo "✅ Production protection validation passed"
+  echo "✅ Zero mock data violations detected"
 else
-  echo "❌ COMMIT BLOCKED: Mock data detected"
-  echo "Please remove all mock/demo/placeholder data before committing."
+  echo "🚨 COMMIT BLOCKED: MOCK DATA DETECTED IN PRODUCTION CODE"
+  echo "🚨 This is the final protection barrier. No mock data allowed in production."
+  echo "🚨 Fix all violations before attempting to commit."
   exit 1
 fi
 
-echo "🧹 Running linters..."
+echo "🧹 Running enhanced linters..."
 npm run lint --silent || echo "⚠️ Lint warnings found"
 npm run type-check --silent || echo "⚠️ Type check warnings found"
 
-echo "✅ Pre-commit checks complete"
+echo "✅ Pre-commit checks complete - Production ready"

@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, TrendingUp, Clock, Star } from 'lucide-react';
+import { validateComponentProps } from '@/utils/mockDataBlocker';
 
 interface CoinCardProps {
   coin: {
@@ -22,6 +23,11 @@ interface CoinCardProps {
 }
 
 const CoinCard: React.FC<CoinCardProps> = ({ coin, onClick }) => {
+  // Validate props for production
+  React.useEffect(() => {
+    validateComponentProps(coin, 'CoinCard');
+  }, [coin]);
+
   const formatTimeAgo = (hours: number) => {
     if (hours < 24) {
       return `${hours}h ago`;

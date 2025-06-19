@@ -4,31 +4,41 @@ import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import OptimizedCoinCard from '@/components/OptimizedCoinCard';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { validateComponentProps, initializeProductionMonitor } from '@/utils/mockDataBlocker';
 
 const FeaturedCoinsGrid = () => {
+  // Initialize production monitoring
+  React.useEffect(() => {
+    initializeProductionMonitor();
+  }, []);
+
   const { coins, isLoading, error } = useCachedMarketplaceData();
 
   const displayCoins = React.useMemo(() => {
     if (!coins || coins.length === 0) return [];
     
-    return coins
+    const filteredCoins = coins
       .filter(coin => 
         coin.authentication_status === 'verified' || 
-        coin.category === 'error_coin' // ALWAYS show error coins
+        coin.category === 'error_coin'
       )
       .sort((a, b) => {
-        // ERROR COINS ALWAYS FIRST
         if (a.category === 'error_coin' && b.category !== 'error_coin') return -1;
         if (a.category !== 'error_coin' && b.category === 'error_coin') return 1;
         
-        // Then featured
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
         
-        // Then by views
         return (b.views || 0) - (a.views || 0);
       })
-      .slice(0, 24); // Show more coins including error coins
+      .slice(0, 24);
+
+    // Validate no mock data in coins
+    filteredCoins.forEach((coin, index) => {
+      validateComponentProps(coin, `FeaturedCoinsGrid coin ${index}`);
+    });
+
+    return filteredCoins;
   }, [coins]);
 
   if (isLoading) {
@@ -64,7 +74,6 @@ const FeaturedCoinsGrid = () => {
 
   return (
     <div className="space-y-6">
-      {/* Clean coins grid without unauthorized UI elements */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {displayCoins.map((coin, index) => (
           <div key={coin.id} className="w-full">
