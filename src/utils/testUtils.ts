@@ -118,13 +118,13 @@ export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
 
-// Validate component props
+// Validate component props - rewritten to avoid template literal issues
 export const validateProps = (component: any, expectedProps: Record<string, any>) => {
   const errors: string[] = [];
   
   Object.entries(expectedProps).forEach(([key, expectedValue]) => {
     if (component.props[key] !== expectedValue) {
-      errors.push(`Expected ${key} to be ${expectedValue}, got ${component.props[key]}`);
+      errors.push('Expected ' + key + ' to be ' + expectedValue + ', got ' + component.props[key]);
     }
   });
   
