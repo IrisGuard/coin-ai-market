@@ -65,7 +65,7 @@ export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
 
-// Validate component props
+// Validate component props - REWRITTEN to fix compilation error
 export const validateProps = (component: any, expectedProps: Record<string, any>) => {
   const errors: string[] = [];
   
@@ -74,7 +74,8 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
     const actualValue = component.props[key];
     
     if (actualValue !== expectedValue) {
-      errors.push(`Expected ${key} to be ${String(expectedValue)}, got ${String(actualValue)}`);
+      const errorMessage = `Expected ${key} to be ${String(expectedValue)}, got ${String(actualValue)}`;
+      errors.push(errorMessage);
     }
   }
   
