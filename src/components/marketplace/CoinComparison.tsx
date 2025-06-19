@@ -11,6 +11,12 @@ interface CoinComparisonProps {
   onAddCoin?: () => void;
 }
 
+interface ComparisonField {
+  key: keyof Coin;
+  label: string;
+  format: (val: any) => string;
+}
+
 const CoinComparison: React.FC<CoinComparisonProps> = ({ coins = [], onAddCoin }) => {
   const [compareCoins, setCompareCoins] = useState<Coin[]>(coins);
 
@@ -30,7 +36,7 @@ const CoinComparison: React.FC<CoinComparisonProps> = ({ coins = [], onAddCoin }
     return <Minus className="h-4 w-4 text-gray-400" />;
   };
 
-  const comparisonFields = [
+  const comparisonFields: ComparisonField[] = [
     { key: 'price', label: 'Price', format: (val: number) => `$${val?.toLocaleString() || 'N/A'}` },
     { key: 'year', label: 'Year', format: (val: number) => val?.toString() || 'N/A' },
     { key: 'grade', label: 'Grade', format: (val: string) => val || 'N/A' },
@@ -77,7 +83,7 @@ const CoinComparison: React.FC<CoinComparisonProps> = ({ coins = [], onAddCoin }
             <thead>
               <tr>
                 <th className="text-left p-2 border-b">Feature</th>
-                {compareCoins.map((coin, index) => (
+                {compareCoins.map((coin) => (
                   <th key={coin.id} className="text-center p-2 border-b min-w-[200px]">
                     <div className="space-y-2">
                       <Button
@@ -104,13 +110,13 @@ const CoinComparison: React.FC<CoinComparisonProps> = ({ coins = [], onAddCoin }
                 <tr key={field.key}>
                   <td className="p-2 border-b font-medium">{field.label}</td>
                   {compareCoins.map((coin, index) => {
-                    const value = coin[field.key as keyof Coin];
-                    const prevValue = index > 0 ? compareCoins[index - 1][field.key as keyof Coin] : null;
+                    const value = coin[field.key];
+                    const prevValue = index > 0 ? compareCoins[index - 1][field.key] : null;
                     
                     return (
                       <td key={coin.id} className="p-2 border-b text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {field.format(value as any)}
+                          {field.format(value)}
                           {index > 0 && field.key === 'price' && typeof value === 'number' && typeof prevValue === 'number' && (
                             getComparisonIcon(value, prevValue)
                           )}
