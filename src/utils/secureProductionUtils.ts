@@ -28,4 +28,8 @@ export const generateSecureRandomId = (prefix: string = 'id'): string => {
   return `${prefix}_${timestamp}_${randomPart}`;
 };
 
+export const getProductionTimestamp = (): string => {
+  return new Date().toISOString();
+};
+
 console.log('🔒 Production Utils loaded - 100% secure');

@@ -44,7 +44,7 @@ export const verifySystemCleanStatus = async () => {
 
     const isClean = !activeViolations || activeViolations.length === 0;
     
-    console.log(isClean ? '✅ System verified clean' : `❌ ${activeViolations?.length} violations remain`);
+    console.log(isClean ? '✅ System verified clean' : `❌ ${activeViolations?.length || 0} violations remain`);
     
     return {
       isClean,
