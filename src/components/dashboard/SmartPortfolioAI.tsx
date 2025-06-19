@@ -58,7 +58,7 @@ const SmartPortfolioAI = () => {
         return acc;
       }, {});
 
-      // Generate AI recommendations based on portfolio analysis
+      // Generate AI recommendations based on real portfolio analysis
       const recommendations = [];
       const insights = [];
 
@@ -96,7 +96,7 @@ const SmartPortfolioAI = () => {
         insights.push('High-value portfolio with strong growth potential');
       }
 
-      // Risk assessment
+      // Risk assessment based on real data
       let riskLevel = 'low';
       if (totalValue > 5000 && categories < 3) {
         riskLevel = 'high';
@@ -104,7 +104,7 @@ const SmartPortfolioAI = () => {
         riskLevel = 'medium';
       }
 
-      // Market trend insights
+      // Get real market trends from recent coins
       const { data: marketTrends } = await supabase
         .from('coins')
         .select('category, price')
@@ -126,6 +126,22 @@ const SmartPortfolioAI = () => {
           description: `${hotCategory} coins are trending in the market.`,
           priority: 'low'
         });
+      }
+
+      // Get real performance data from AI predictions
+      const { data: predictions } = await supabase
+        .from('ai_predictions')
+        .select('confidence_score, predicted_value')
+        .eq('prediction_type', 'market_prediction')
+        .limit(5);
+
+      if (predictions && predictions.length > 0) {
+        const avgConfidence = predictions.reduce((sum, pred) => 
+          sum + (pred.confidence_score || 0), 0) / predictions.length;
+        
+        if (avgConfidence > 0.8) {
+          insights.push('AI models show high confidence in current market conditions');
+        }
       }
 
       return {

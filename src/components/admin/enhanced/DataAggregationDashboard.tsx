@@ -52,7 +52,7 @@ const DataAggregationDashboard = () => {
     }
   });
 
-  // Get real performance data
+  // Get real performance data from AI performance metrics
   const { data: performanceData = [] } = useQuery({
     queryKey: ['performance-data'],
     queryFn: async () => {
@@ -89,9 +89,12 @@ const DataAggregationDashboard = () => {
     }
   });
 
+  // Real statistics calculation
   const activeSources = sources.filter(s => s.is_active);
   const totalSources = sources.length;
-  const reliabilityAvg = sources.reduce((acc, s) => acc + (s.reliability_score || 0), 0) / sources.length;
+  const reliabilityAvg = sources.length > 0 
+    ? sources.reduce((acc, s) => acc + (s.reliability_score || 0), 0) / sources.length 
+    : 0;
 
   const handleTestAggregation = async () => {
     if (!testCoin.trim()) return;
@@ -252,7 +255,7 @@ const DataAggregationDashboard = () => {
                   <Progress value={(source.reliability_score || 0) * 100} className="h-2" />
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Rate: {source.rate_limit_per_hour}/hr</span>
-                    <span>Priority: {(source.priority_score || 0) * 100}%</span>
+                    <span>Priority: {(source.priority_score || 0)}%</span>
                   </div>
                 </div>
               </div>

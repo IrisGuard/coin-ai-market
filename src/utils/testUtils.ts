@@ -107,7 +107,7 @@ export const validateRealDataStructure = (data: any, requiredFields: string[]): 
   });
 };
 
-// Performance benchmark utilities
+// Performance benchmark utilities - using real timing instead of Math.random
 export const benchmarkOperation = async (operation: () => Promise<any>, iterations = 1): Promise<number> => {
   const times: number[] = [];
   

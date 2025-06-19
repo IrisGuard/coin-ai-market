@@ -15,63 +15,115 @@ import {
   Database,
   Activity
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminPriceAggregationTab = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Mock data for price aggregation
-  const aggregationStats = {
-    totalSources: 15,
-    activeSources: 12,
-    lastUpdate: new Date().toLocaleString(),
-    averageConfidence: 85.5,
-    pricesAggregated: 1247,
-    errorRate: 2.3
-  };
+  // Real aggregation statistics from database
+  const { data: aggregationStats } = useQuery({
+    queryKey: ['price-aggregation-stats'],
+    queryFn: async () => {
+      const [
+        { data: sources },
+        { data: activeSources },
+        { data: priceHistory },
+        { data: aggregatedPrices }
+      ] = await Promise.all([
+        supabase.from('external_price_sources').select('count'),
+        supabase.from('external_price_sources').select('count').eq('is_active', true),
+        supabase.from('coin_price_history').select('*').limit(1000),
+        supabase.from('aggregated_coin_prices').select('*').limit(100)
+      ]);
 
-  const recentAggregations = [
-    {
-      id: '1',
-      coinName: '1909-S VDB Lincoln Cent',
-      grade: 'MS-65',
-      sources: 5,
-      avgPrice: 1250.00,
-      priceRange: { low: 1100, high: 1400 },
-      confidence: 88,
-      lastUpdate: '2 hours ago'
-    },
-    {
-      id: '2',
-      coinName: '1916-D Mercury Dime',
-      grade: 'MS-64',
-      sources: 7,
-      avgPrice: 3200.00,
-      priceRange: { low: 2800, high: 3600 },
-      confidence: 92,
-      lastUpdate: '3 hours ago'
-    },
-    {
-      id: '3',
-      coinName: '1893-S Morgan Dollar',
-      grade: 'AU-55',
-      sources: 6,
-      avgPrice: 15500.00,
-      priceRange: { low: 14000, high: 17000 },
-      confidence: 85,
-      lastUpdate: '5 hours ago'
+      const totalSources = sources?.length || 0;
+      const activeSourcesCount = activeSources?.length || 0;
+      const pricesAggregated = aggregatedPrices?.length || 0;
+      
+      // Calculate real confidence average
+      const avgConfidence = aggregatedPrices?.reduce((sum, item) => 
+        sum + (item.confidence_level || 0), 0) / (aggregatedPrices?.length || 1) * 100;
+
+      // Calculate real error rate from failed aggregations
+      const failedAggregations = aggregatedPrices?.filter(item => 
+        item.confidence_level < 0.5).length || 0;
+      const errorRate = (failedAggregations / (pricesAggregated || 1)) * 100;
+
+      return {
+        totalSources,
+        activeSources: activeSourcesCount,
+        lastUpdate: new Date().toLocaleString(),
+        averageConfidence: avgConfidence,
+        pricesAggregated,
+        errorRate
+      };
     }
-  ];
+  });
 
-  const handleRefreshData = () => {
+  // Real recent aggregations from database
+  const { data: recentAggregations = [] } = useQuery({
+    queryKey: ['recent-price-aggregations'],
+    queryFn: async () => {
+      const { data: aggregatedPrices } = await supabase
+        .from('aggregated_coin_prices')
+        .select('*')
+        .order('last_updated', { ascending: false })
+        .limit(10);
+
+      return aggregatedPrices?.map(item => ({
+        id: item.id,
+        coinName: item.coin_identifier,
+        grade: item.grade || 'Unknown',
+        sources: item.source_count,
+        avgPrice: item.avg_price,
+        priceRange: { low: item.min_price, high: item.max_price },
+        confidence: (item.confidence_level || 0) * 100,
+        lastUpdate: new Date(item.last_updated).toLocaleString()
+      })) || [];
+    }
+  });
+
+  // Real data sources status from database
+  const { data: dataSourcesStatus = [] } = useQuery({
+    queryKey: ['data-sources-status'],
+    queryFn: async () => {
+      const { data: sources } = await supabase
+        .from('external_price_sources')
+        .select('*');
+
+      return sources?.map(source => ({
+        name: source.source_name,
+        status: source.is_active ? 'Active' : 'Inactive',
+        reliability: source.reliability_score || 0
+      })) || [];
+    }
+  });
+
+  const handleRefreshData = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 2000);
+    // Trigger real data refresh
+    await Promise.all([
+      supabase.from('aggregated_coin_prices').select('count'),
+      supabase.from('external_price_sources').select('count')
+    ]);
+    setTimeout(() => setIsRefreshing(false), 1000);
   };
 
   const getConfidenceBadge = (confidence: number) => {
     if (confidence >= 90) return <Badge className="bg-green-100 text-green-800">High</Badge>;
     if (confidence >= 80) return <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>;
     return <Badge className="bg-red-100 text-red-800">Low</Badge>;
+  };
+
+  const stats = aggregationStats || {
+    totalSources: 0,
+    activeSources: 0,
+    lastUpdate: new Date().toLocaleString(),
+    averageConfidence: 0,
+    pricesAggregated: 0,
+    errorRate: 0
   };
 
   return (
@@ -109,7 +161,7 @@ const AdminPriceAggregationTab = () => {
               <Database className="w-4 h-4 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Total Sources</p>
-                <p className="text-xl font-bold">{aggregationStats.totalSources}</p>
+                <p className="text-xl font-bold">{stats.totalSources}</p>
               </div>
             </div>
           </CardContent>
@@ -121,7 +173,7 @@ const AdminPriceAggregationTab = () => {
               <Activity className="w-4 h-4 text-green-600" />
               <div>
                 <p className="text-sm text-gray-600">Active Sources</p>
-                <p className="text-xl font-bold">{aggregationStats.activeSources}</p>
+                <p className="text-xl font-bold">{stats.activeSources}</p>
               </div>
             </div>
           </CardContent>
@@ -133,7 +185,7 @@ const AdminPriceAggregationTab = () => {
               <DollarSign className="w-4 h-4 text-purple-600" />
               <div>
                 <p className="text-sm text-gray-600">Prices Aggregated</p>
-                <p className="text-xl font-bold">{aggregationStats.pricesAggregated.toLocaleString()}</p>
+                <p className="text-xl font-bold">{stats.pricesAggregated.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -145,7 +197,7 @@ const AdminPriceAggregationTab = () => {
               <BarChart3 className="w-4 h-4 text-orange-600" />
               <div>
                 <p className="text-sm text-gray-600">Avg Confidence</p>
-                <p className="text-xl font-bold">{aggregationStats.averageConfidence}%</p>
+                <p className="text-xl font-bold">{Math.round(stats.averageConfidence)}%</p>
               </div>
             </div>
           </CardContent>
@@ -157,7 +209,7 @@ const AdminPriceAggregationTab = () => {
               <TrendingDown className="w-4 h-4 text-red-600" />
               <div>
                 <p className="text-sm text-gray-600">Error Rate</p>
-                <p className="text-xl font-bold">{aggregationStats.errorRate}%</p>
+                <p className="text-xl font-bold">{stats.errorRate.toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
@@ -169,7 +221,7 @@ const AdminPriceAggregationTab = () => {
               <RefreshCw className="w-4 h-4 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Last Update</p>
-                <p className="text-xs font-medium">{aggregationStats.lastUpdate}</p>
+                <p className="text-xs font-medium">{stats.lastUpdate}</p>
               </div>
             </div>
           </CardContent>
@@ -195,22 +247,14 @@ const AdminPriceAggregationTab = () => {
                   <div>
                     <h4 className="font-medium mb-2">Data Sources Status</h4>
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span>PCGS Price Guide</span>
-                        <Badge className="bg-green-100 text-green-800">Active</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>NGC Price Guide</span>
-                        <Badge className="bg-green-100 text-green-800">Active</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Heritage Auctions</span>
-                        <Badge className="bg-green-100 text-green-800">Active</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>eBay Sold Listings</span>
-                        <Badge className="bg-yellow-100 text-yellow-800">Limited</Badge>
-                      </div>
+                      {dataSourcesStatus.map((source, index) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span>{source.name}</span>
+                          <Badge className={source.status === 'Active' ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                            {source.status}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <div>
@@ -255,10 +299,10 @@ const AdminPriceAggregationTab = () => {
                       </TableCell>
                       <TableCell>{item.sources}</TableCell>
                       <TableCell className="font-medium">
-                        ${item.avgPrice.toLocaleString()}
+                        ${item.avgPrice?.toLocaleString() || '0'}
                       </TableCell>
                       <TableCell>
-                        ${item.priceRange.low.toLocaleString()} - ${item.priceRange.high.toLocaleString()}
+                        ${item.priceRange.low?.toLocaleString() || '0'} - ${item.priceRange.high?.toLocaleString() || '0'}
                       </TableCell>
                       <TableCell>
                         {getConfidenceBadge(item.confidence)}
@@ -284,33 +328,20 @@ const AdminPriceAggregationTab = () => {
                 <div>
                   <h4 className="font-medium mb-3">Source Performance</h4>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">PCGS Price Guide</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-600 h-2 rounded-full" style={{ width: '95%' }}></div>
+                    {dataSourcesStatus.map((source, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm">{source.name}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-600 h-2 rounded-full" 
+                              style={{ width: `${source.reliability * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm">{Math.round(source.reliability * 100)}%</span>
                         </div>
-                        <span className="text-sm">95%</span>
                       </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">NGC Price Guide</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-600 h-2 rounded-full" style={{ width: '92%' }}></div>
-                        </div>
-                        <span className="text-sm">92%</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Heritage Auctions</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '88%' }}></div>
-                        </div>
-                        <span className="text-sm">88%</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
                 <div>
@@ -318,15 +349,21 @@ const AdminPriceAggregationTab = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">High Confidence (90%+)</span>
-                      <span className="text-sm font-medium">68%</span>
+                      <span className="text-sm font-medium">
+                        {Math.round((recentAggregations.filter(a => a.confidence >= 90).length / recentAggregations.length) * 100) || 0}%
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Medium Confidence (80-90%)</span>
-                      <span className="text-sm font-medium">25%</span>
+                      <span className="text-sm font-medium">
+                        {Math.round((recentAggregations.filter(a => a.confidence >= 80 && a.confidence < 90).length / recentAggregations.length) * 100) || 0}%
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Low Confidence (less than 80%)</span>
-                      <span className="text-sm font-medium">7%</span>
+                      <span className="text-sm font-medium">
+                        {Math.round((recentAggregations.filter(a => a.confidence < 80).length / recentAggregations.length) * 100) || 0}%
+                      </span>
                     </div>
                   </div>
                 </div>

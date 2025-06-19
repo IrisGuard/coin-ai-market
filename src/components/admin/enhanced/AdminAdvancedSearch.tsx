@@ -41,65 +41,88 @@ const AdminAdvancedSearch: React.FC<AdminAdvancedSearchProps> = ({
         { data: coins },
         { data: stores },
         { data: categories },
-        { data: analytics }
+        { data: commands },
+        { data: sources }
       ] = await Promise.all([
-        supabase.from('profiles').select('id, name, role').limit(10),
-        supabase.from('coins').select('id, name, category').limit(10),
-        supabase.from('stores').select('id, name, description').limit(10),
-        supabase.from('categories').select('id, name, description').limit(10),
-        supabase.from('analytics_events').select('event_type').limit(10)
+        supabase.from('profiles').select('id, name, role').limit(20),
+        supabase.from('coins').select('id, name, category').limit(20),
+        supabase.from('stores').select('id, name, description').limit(20),
+        supabase.from('categories').select('id, name, description').limit(20),
+        supabase.from('ai_commands').select('id, name, description, category').limit(20),
+        supabase.from('external_price_sources').select('id, source_name, source_type').limit(20)
       ]);
 
       const items: SearchableItem[] = [];
 
-      // Add static admin items
-      items.push(
-        {
-          id: '1',
-          title: 'User Management',
-          description: 'Manage users, roles, and permissions',
-          category: 'users',
-          tags: ['admin', 'roles', 'permissions'],
-          path: 'users'
-        },
-        {
-          id: '2',
-          title: 'AI Brain Configuration',
-          description: 'Configure AI models and automation',
-          category: 'ai',
-          tags: ['ai', 'automation', 'models'],
-          path: 'ai-brain'
-        },
-        {
-          id: '3',
-          title: 'System Health',
-          description: 'Monitor system performance and health',
-          category: 'system',
-          tags: ['health', 'performance', 'monitoring'],
-          path: 'system'
-        }
-      );
-
-      // Add real data items
+      // Add real users
       users?.forEach(user => {
         items.push({
           id: `user-${user.id}`,
-          title: `User: ${user.name}`,
-          description: `Role: ${user.role}`,
+          title: `User: ${user.name || 'Unknown'}`,
+          description: `Role: ${user.role || 'user'}`,
           category: 'users',
-          tags: ['user', user.role],
+          tags: ['user', user.role || 'user'],
           path: `users/${user.id}`
         });
       });
 
+      // Add real coins
       coins?.forEach(coin => {
         items.push({
           id: `coin-${coin.id}`,
           title: `Coin: ${coin.name}`,
-          description: `Category: ${coin.category}`,
+          description: `Category: ${coin.category || 'Unknown'}`,
           category: 'coins',
-          tags: ['coin', coin.category],
+          tags: ['coin', coin.category || 'unknown'],
           path: `coins/${coin.id}`
+        });
+      });
+
+      // Add real stores
+      stores?.forEach(store => {
+        items.push({
+          id: `store-${store.id}`,
+          title: `Store: ${store.name}`,
+          description: store.description || 'No description',
+          category: 'stores',
+          tags: ['store', 'marketplace'],
+          path: `stores/${store.id}`
+        });
+      });
+
+      // Add real categories
+      categories?.forEach(category => {
+        items.push({
+          id: `category-${category.id}`,
+          title: `Category: ${category.name}`,
+          description: category.description || 'No description',
+          category: 'categories',
+          tags: ['category', 'taxonomy'],
+          path: `categories/${category.id}`
+        });
+      });
+
+      // Add real AI commands
+      commands?.forEach(command => {
+        items.push({
+          id: `command-${command.id}`,
+          title: `AI Command: ${command.name}`,
+          description: command.description || 'No description',
+          category: 'ai',
+          tags: ['ai', 'command', command.category || 'general'],
+          path: `ai-brain/commands/${command.id}`
+        });
+      });
+
+      // Add real data sources
+      sources?.forEach(source => {
+        items.push({
+          id: `source-${source.id}`,
+          title: `Data Source: ${source.source_name}`,
+          description: `Type: ${source.source_type}`,
+          category: 'data-sources',
+          tags: ['data', 'source', source.source_type],
+          path: `data-sources/${source.id}`
         });
       });
 
@@ -110,10 +133,11 @@ const AdminAdvancedSearch: React.FC<AdminAdvancedSearchProps> = ({
   const categories = [
     { value: 'all', label: 'All Categories' },
     { value: 'users', label: 'Users' },
-    { value: 'ai', label: 'AI & Automation' },
-    { value: 'api', label: 'API & Integrations' },
-    { value: 'system', label: 'System' },
     { value: 'coins', label: 'Coins' },
+    { value: 'stores', label: 'Stores' },
+    { value: 'categories', label: 'Categories' },
+    { value: 'ai', label: 'AI & Commands' },
+    { value: 'data-sources', label: 'Data Sources' },
     { value: 'analytics', label: 'Analytics' }
   ];
 
