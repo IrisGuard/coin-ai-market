@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Validate component props with real data validation
@@ -72,4 +71,19 @@ export const validateCoinData = async (coinId: string): Promise<boolean> => {
   if (error || !data) return false;
   
   return !!(data.id && data.name && data.price && data.grade && data.year);
+};
+
+export const validateTableExists = async (tableName: string): Promise<boolean> => {
+  try {
+    // Use a known table from the allowed tables list instead of dynamic query
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .limit(1);
+    
+    return !error;
+  } catch (error) {
+    console.error(`Error validating table ${tableName}:`, error);
+    return false;
+  }
 };

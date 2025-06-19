@@ -1,31 +1,6 @@
 
-// Query utilities
-export {
-  createProductionQueryClient,
-  renderWithProviders,
-  setupIntersectionObserver,
-  cleanupTests,
-  waitForAsync,
-  triggerProductionError
-} from './queryUtils';
-
-// Performance utilities
-export {
-  measureRenderTime,
-  resetProductionData,
-  benchmarkOperation
-} from './performanceUtils';
-
-// Validation utilities
-export {
-  validateProps,
-  validateRealDataStructure,
-  getProductionDataFromSupabase,
-  validateUserData,
-  validateCoinData
-} from './validationUtils';
-
-// Error detection utilities
-export {
-  detectCodeErrors
-} from './errorDetectionUtils';
+// Test utilities for the application
+export { createTestStore } from './storeUtils';
+export { mockSupabaseClient } from './supabaseUtils';
+export { validateTestData } from './validationUtils';
+// Removed cleanupTests as it's not needed

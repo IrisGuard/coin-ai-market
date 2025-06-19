@@ -1,4 +1,3 @@
-
 export class PerformanceMetrics {
   private metrics: Map<string, number> = new Map();
   private observers: PerformanceObserver[] = [];
@@ -149,3 +148,13 @@ export const performanceMetrics = new PerformanceMetrics();
 if (typeof window !== 'undefined') {
   performanceMetrics.initializeWebVitals();
 }
+
+export const measurePageLoadTime = (): number => {
+  if (typeof window !== 'undefined' && performance.timing) {
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    if (navigation) {
+      return navigation.loadEventEnd - navigation.fetchStart;
+    }
+  }
+  return 0;
+};

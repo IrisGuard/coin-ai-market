@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,10 +70,9 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
     await logActivity.mutateAsync({
       storeId,
       activityType: 'store_created',
-      activityDescription: 'New store created successfully',
-      activityData: { store_id: storeId },
-      severityLevel: 'info',
-      sourceComponent: 'store_manager'
+      description: 'New store created successfully',
+      data: { store_id: storeId },
+      severity: 'info'
     });
   };
 
@@ -83,10 +81,9 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
     await logActivity.mutateAsync({
       storeId: store.id,
       activityType: 'store_edit_initiated',
-      activityDescription: 'Store edit initiated',
-      activityData: { store_name: store.name },
-      severityLevel: 'info',
-      sourceComponent: 'store_manager'
+      description: 'Store edit initiated',
+      data: { store_name: store.name },
+      severity: 'info'
     });
     
     console.log('Edit store:', store.id);
@@ -101,10 +98,9 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
       await logActivity.mutateAsync({
         storeId,
         activityType: 'store_selected',
-        activityDescription: `Store "${selectedStore.name}" selected for management`,
-        activityData: { store_name: selectedStore.name },
-        severityLevel: 'info',
-        sourceComponent: 'store_manager'
+        description: `Store "${selectedStore.name}" selected for management`,
+        data: { store_name: selectedStore.name },
+        severity: 'info'
       });
     }
   };

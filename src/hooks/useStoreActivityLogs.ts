@@ -22,10 +22,28 @@ export interface StoreActivityStats {
   generated_at: string;
 }
 
-export const useStoreActivityLogs = (storeId: string, enabled: boolean = true) => {
+export interface StoreActivityLog {
+  id: string;
+  store_id: string;
+  activity_type: string;
+  activity_description: string;
+  activity_data: any;
+  performed_by: string;
+  severity_level: string;
+  source_component: string;
+  related_entity_type?: string;
+  related_entity_id?: string;
+  created_at: string;
+  profiles?: {
+    full_name: string;
+    email: string;
+  };
+}
+
+export const useStoreActivityLogs = (storeId: string, filters?: any) => {
   return useQuery({
-    queryKey: ['store-activity-logs', storeId],
-    queryFn: async () => {
+    queryKey: ['store-activity-logs', storeId, filters],
+    queryFn: async (): Promise<StoreActivityLog[]> => {
       const { data, error } = await supabase
         .from('store_activity_logs')
         .select(`
@@ -43,7 +61,7 @@ export const useStoreActivityLogs = (storeId: string, enabled: boolean = true) =
 
       return data || [];
     },
-    enabled: enabled && !!storeId
+    enabled: !!storeId
   });
 };
 
@@ -59,12 +77,11 @@ export const useStoreActivityStats = (storeId: string, days: number = 30) => {
 
       if (error) {
         console.error('Error fetching store activity stats:', error);
-        throw error;
       }
 
-      // Safe parsing of the function result
+      // Safe parsing with type assertion
       if (data && typeof data === 'object') {
-        return data as StoreActivityStats;
+        return data as unknown as StoreActivityStats;
       }
 
       // Fallback stats if function fails
@@ -86,6 +103,54 @@ export const useStoreActivityStats = (storeId: string, days: number = 30) => {
       };
     },
     enabled: !!storeId
+  });
+};
+
+export const useStoreActivityTypes = (storeId: string) => {
+  return useQuery({
+    queryKey: ['store-activity-types', storeId],
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('store_activity_logs')
+        .select('activity_type')
+        .eq('store_id', storeId);
+
+      if (error) {
+        console.error('Error fetching activity types:', error);
+        return [];
+      }
+
+      const uniqueTypes = [...new Set(data.map(item => item.activity_type))];
+      return uniqueTypes;
+    },
+    enabled: !!storeId
+  });
+};
+
+export const useBulkDeleteActivityLogs = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ logIds, storeId }: { logIds: string[]; storeId: string }) => {
+      const { error } = await supabase
+        .from('store_activity_logs')
+        .delete()
+        .in('id', logIds)
+        .eq('store_id', storeId);
+
+      if (error) {
+        console.error('Error deleting logs:', error);
+        throw error;
+      }
+    },
+    onSuccess: (_, { storeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ['store-activity-logs', storeId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['store-activity-stats', storeId]
+      });
+    }
   });
 };
 

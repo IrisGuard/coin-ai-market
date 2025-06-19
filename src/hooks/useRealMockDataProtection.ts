@@ -74,10 +74,17 @@ export const useRealMockDataViolations = () => {
         return [];
       }
 
-      // Safe mapping with source field
+      // Safe mapping with proper type conversion
       return (data || []).map(item => ({
-        ...item,
-        source: 'supabase' as const // Ensure source field exists
+        id: item.id,
+        file_path: item.file_path,
+        violation_type: item.violation_type as MockDataViolation['violation_type'],
+        line_number: item.line_number,
+        violation_content: item.violation_content,
+        severity: item.severity as MockDataViolation['severity'],
+        detected_at: item.detected_at,
+        status: item.status as MockDataViolation['status'],
+        source: 'supabase' as const
       }));
     },
     refetchInterval: 30000 // Refetch every 30 seconds for real-time updates

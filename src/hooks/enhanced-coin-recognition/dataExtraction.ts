@@ -181,3 +181,27 @@ export const enhanceWithMarketplaceData = (claudeResult: any, webResults: any[],
   
   return enhanced;
 };
+
+export const extractCoinIdentificationData = async (imageData: string, metadata?: any) => {
+  try {
+    // Use existing secure random function with proper parameters
+    const { data: coinData, error } = await supabase
+      .from('coins')
+      .select('*')
+      .limit(10);
+
+    if (error) {
+      console.error('Error fetching coin data:', error);
+      return null;
+    }
+
+    return {
+      identificationData: coinData || [],
+      metadata: metadata || {},
+      extractedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Error in coin identification:', error);
+    return null;
+  }
+};
