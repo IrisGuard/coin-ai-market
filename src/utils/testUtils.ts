@@ -118,5 +118,6 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
     times.push(end - start);
   }
   
-  return times.reduce((sum, time) => sum + time, 0) / times.length;
+  const sum = times.reduce((total, time) => total + time, 0);
+  return sum / times.length;
 };
