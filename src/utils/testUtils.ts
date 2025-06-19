@@ -118,23 +118,19 @@ export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
 
-// Validate component props - fixed TypeScript parsing issue
+// Validate component props - simplified to avoid parsing issues
 export const validateProps = (component: any, expectedProps: Record<string, any>) => {
   const errors: string[] = [];
   
-  Object.entries(expectedProps).forEach(([key, expectedValue]) => {
-    if (component.props[key] !== expectedValue) {
-      const errorMessage = [
-        'Expected',
-        key,
-        'to be',
-        String(expectedValue),
-        ', got',
-        String(component.props[key])
-      ].join(' ');
-      errors.push(errorMessage);
+  for (const key in expectedProps) {
+    const expectedValue = expectedProps[key];
+    const actualValue = component.props[key];
+    
+    if (actualValue !== expectedValue) {
+      const errorMsg = `Expected ${key} to be ${String(expectedValue)}, got ${String(actualValue)}`;
+      errors.push(errorMsg);
     }
-  });
+  }
   
   return errors;
 };
