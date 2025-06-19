@@ -1,28 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/cards';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Search } from 'lucide-react';
 
-interface PhaseValidation {
-  phaseNumber: number;
-  phaseName: string;
-  status: 'completed' | 'pending' | 'error';
-  components: string[];
-  missingElements: string[];
-  realDataConfirmed: boolean;
-  supabaseConnected: boolean;
-  notes: string[];
-}
-
 const Phase15ValidationPanel = () => {
-  const [validationResults, setValidationResults] = useState<PhaseValidation[]>([]);
+  const [validationResults, setValidationResults] = useState([]);
   const [isValidating, setIsValidating] = useState(false);
   const [currentPhase, setCurrentPhase] = useState(0);
 
-  const phases: Omit<PhaseValidation, 'status' | 'missingElements' | 'realDataConfirmed' | 'supabaseConnected' | 'notes'>[] = [
+  const phases = [
     {
       phaseNumber: 1,
       phaseName: "Admin Panel Foundation",
@@ -100,11 +89,11 @@ const Phase15ValidationPanel = () => {
     }
   ];
 
-  const validatePhase = async (phase: typeof phases[0]): Promise<PhaseValidation> => {
+  const validatePhase = async (phase) => {
     // Simulate phase validation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const mockValidation: PhaseValidation = {
+    const mockValidation = {
       ...phase,
       status: Math.random() > 0.1 ? 'completed' : 'pending',
       missingElements: [],
@@ -118,6 +107,7 @@ const Phase15ValidationPanel = () => {
       mockValidation.missingElements = ['AI Model Training Data'];
       mockValidation.status = 'pending';
     }
+    
     if (phase.phaseNumber === 11) {
       mockValidation.missingElements = ['Geographic API Integration'];
       mockValidation.status = 'pending';
@@ -140,7 +130,7 @@ const Phase15ValidationPanel = () => {
     setCurrentPhase(0);
   };
 
-  const getStatusIcon = (status: PhaseValidation['status']) => {
+  const getStatusIcon = (status) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-600" />;
@@ -153,7 +143,7 @@ const Phase15ValidationPanel = () => {
     }
   };
 
-  const getStatusBadge = (status: PhaseValidation['status']) => {
+  const getStatusBadge = (status) => {
     switch (status) {
       case 'completed':
         return <Badge className="bg-green-100 text-green-800">✔️ Ολοκληρωμένη</Badge>;
@@ -172,191 +162,153 @@ const Phase15ValidationPanel = () => {
 
   return (
     <div className="space-y-6">
-      {/* Validation Header */}
+      {/* Header & Controls */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Search className="h-6 w-6 text-blue-600" />
               <div>
-                <h2 className="text-2xl font-bold">15-Phase System Validation</h2>
-                <p className="text-muted-foreground">Comprehensive validation of all system phases</p>
+                <h2 className="text-2xl font-bold">Έλεγχος 15 Φάσεων</h2>
+                <p className="text-sm text-muted-foreground">Πλήρης επιβεβαίωση όλων των φάσεων του συστήματος</p>
               </div>
             </div>
             <Button 
               onClick={runFullValidation} 
               disabled={isValidating}
-              size="lg"
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isValidating ? (
                 <>
-                  <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                  Validating Phase {currentPhase}...
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Έλεγχος σε εξέλιξη...
                 </>
               ) : (
-                <>
-                  <Search className="h-5 w-5 mr-2" />
-                  Start Full Validation
-                </>
+                'Έναρξη Πλήρους Ελέγχου'
               )}
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          {validationResults.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-4 bg-green-50 rounded-lg border">
-                <p className="text-3xl font-bold text-green-600">{completedPhases}</p>
-                <p className="text-sm text-green-700">Completed</p>
+        
+        {/* Progress & Stats */}
+        {validationResults.length > 0 && (
+          <CardContent>
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">{completedPhases}</p>
+                <p className="text-xs text-muted-foreground">Ολοκληρωμένες</p>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg border">
-                <p className="text-3xl font-bold text-yellow-600">{pendingPhases}</p>
-                <p className="text-sm text-yellow-700">Pending</p>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-yellow-600">{pendingPhases}</p>
+                <p className="text-xs text-muted-foreground">Εκκρεμείς</p>
               </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg border">
-                <p className="text-3xl font-bold text-red-600">{errorPhases}</p>
-                <p className="text-sm text-red-700">Errors</p>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-red-600">{errorPhases}</p>
+                <p className="text-xs text-muted-foreground">Σφάλματα</p>
               </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg border">
-                <p className="text-3xl font-bold text-blue-600">{Math.round((completedPhases / 15) * 100)}%</p>
-                <p className="text-sm text-blue-700">Complete</p>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">{Math.round((completedPhases / 15) * 100)}%</p>
+                <p className="text-xs text-muted-foreground">Πρόοδος</p>
               </div>
             </div>
-          )}
-          
-          {isValidating && (
-            <Alert>
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <AlertDescription>
-                Validating Phase {currentPhase} of 15... This may take a few minutes.
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
+            
+            {isValidating && (
+              <Alert>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <AlertDescription>
+                  Έλεγχος Φάσης {currentPhase}/15 - {phases[currentPhase - 1]?.phaseName}...
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        )}
       </Card>
 
-      {/* Phase Results */}
+      {/* Validation Results */}
       {validationResults.length > 0 && (
-        <div className="space-y-4">
-          {validationResults.map((phase) => (
-            <Card key={phase.phaseNumber} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+        <div className="grid gap-4">
+          {validationResults.map((result, index) => (
+            <Card key={index} className="border-l-4" style={{
+              borderLeftColor: result.status === 'completed' ? '#16a34a' : 
+                              result.status === 'pending' ? '#ca8a04' : '#dc2626'
+            }}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {getStatusIcon(phase.status)}
+                    {getStatusIcon(result.status)}
                     <div>
-                      <h3 className="text-lg font-semibold">
-                        Phase {phase.phaseNumber}: {phase.phaseName}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {phase.components.length} components validated
+                      <h3 className="font-semibold">Φάση {result.phaseNumber}: {result.phaseName}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {result.components.length} components
                       </p>
                     </div>
                   </div>
-                  {getStatusBadge(phase.status)}
-                </CardTitle>
+                  {getStatusBadge(result.status)}
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Components:</h4>
-                    <div className="space-y-1">
-                      {phase.components.map((component, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          {component}
-                        </div>
-                      ))}
+              
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Real Data:</span>{' '}
+                      <span className={result.realDataConfirmed ? 'text-green-600' : 'text-red-600'}>
+                        {result.realDataConfirmed ? '✅ Confirmed' : '❌ Missing'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Supabase:</span>{' '}
+                      <span className={result.supabaseConnected ? 'text-green-600' : 'text-red-600'}>
+                        {result.supabaseConnected ? '✅ Connected' : '❌ Disconnected'}
+                      </span>
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Real Data:</span>
-                      {phase.realDataConfirmed ? (
-                        <Badge className="bg-green-100 text-green-800">✅ Confirmed</Badge>
-                      ) : (
-                        <Badge className="bg-red-100 text-red-800">❌ Missing</Badge>
-                      )}
+                  {result.missingElements.length > 0 && (
+                    <div className="mt-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+                      <p className="font-medium text-yellow-800 text-sm">Missing Elements:</p>
+                      <ul className="text-xs text-yellow-700 mt-1">
+                        {result.missingElements.map((element, i) => (
+                          <li key={i}>• {element}</li>
+                        ))}
+                      </ul>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Supabase:</span>
-                      {phase.supabaseConnected ? (
-                        <Badge className="bg-green-100 text-green-800">✅ Connected</Badge>
-                      ) : (
-                        <Badge className="bg-red-100 text-red-800">❌ Disconnected</Badge>
-                      )}
-                    </div>
-                    
-                    {phase.missingElements.length > 0 && (
-                      <div>
-                        <span className="text-sm font-medium text-red-600">Missing:</span>
-                        <ul className="list-disc list-inside text-sm text-red-600 mt-1">
-                          {phase.missingElements.map((element, index) => (
-                            <li key={index}>{element}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                  )}
+                  
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Components:</strong> {result.components.join(', ')}
                   </div>
                 </div>
-                
-                {phase.notes.length > 0 && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded border">
-                    <h4 className="font-medium mb-2">Notes:</h4>
-                    {phase.notes.map((note, index) => (
-                      <p key={index} className="text-sm text-gray-600">{note}</p>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Summary Report */}
-      {validationResults.length === 15 && (
+      {/* Initial State */}
+      {validationResults.length === 0 && !isValidating && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-center">📋 ΤΕΛΙΚΗ ΑΝΑΦΟΡΑ 15 ΦΑΣΕΩΝ</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center space-y-4">
-              <div className="text-4xl font-bold">
-                {completedPhases === 15 ? (
-                  <span className="text-green-600">🎉 ΟΛΟΚΛΗΡΩΜΕΝΟ 100%</span>
-                ) : (
-                  <span className="text-yellow-600">⚠️ {pendingPhases + errorPhases} ΕΚΚΡΕΜΕΙΣ</span>
-                )}
+          <CardContent className="text-center py-8">
+            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              Έτοιμος για Έλεγχο 15 Φάσεων
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Πάτησε "Έναρξη Πλήρους Ελέγχου" για να ξεκινήσει η επιβεβαίωση όλων των φάσεων
+            </p>
+            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto text-xs">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>Components</span>
               </div>
-              
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-green-600">{completedPhases}/15</p>
-                  <p className="text-sm">Completed Phases</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-yellow-600">{pendingPhases}</p>
-                  <p className="text-sm">Pending</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-red-600">{errorPhases}</p>
-                  <p className="text-sm">Errors</p>
-                </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>Real Data</span>
               </div>
-              
-              <Alert variant={completedPhases === 15 ? "default" : "destructive"}>
-                <AlertDescription className="text-center">
-                  {completedPhases === 15 ? (
-                    "✅ Όλες οι 15 φάσεις είναι πλήρως ολοκληρωμένες και έτοιμες για production!"
-                  ) : (
-                    `⚠️ ${pendingPhases + errorPhases} φάσεις χρειάζονται περαιτέρω εργασία πριν την ολοκλήρωση.`
-                  )}
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span>Connections</span>
+              </div>
             </div>
           </CardContent>
         </Card>
