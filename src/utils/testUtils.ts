@@ -30,7 +30,7 @@ export const renderWithProviders = (
 };
 
 // Performance testing helpers
-export const measureRenderTime = async (renderFn: () => void) => {
+export const measureRenderTime = async (renderFn: () => void): Promise<number> => {
   const startTime = performance.now();
   renderFn();
   const endTime = performance.now();
@@ -58,16 +58,16 @@ export const cleanupTests = () => {
 };
 
 // Wait for async operations
-export const waitForAsync = (ms: number = 0) => 
+export const waitForAsync = (ms: number = 0): Promise<void> => 
   new Promise(resolve => setTimeout(resolve, ms));
 
 // Test error trigger
-export const triggerTestError = (message = 'Test error') => {
+export const triggerTestError = (message = 'Test error'): never => {
   throw new Error(message);
 };
 
 // Validate component props - safe string-based implementation
-export const validateProps = (component: any, expectedProps: Record<string, any>) => {
+export const validateProps = (component: any, expectedProps: Record<string, any>): string[] => {
   const errors: string[] = [];
   
   if (!component || typeof component !== 'object') {
@@ -93,7 +93,7 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
 };
 
 // Test data cleanup
-export const resetTestData = () => {
+export const resetTestData = (): void => {
   cleanupTests();
   
   if (typeof performance !== 'undefined' && performance.clearMarks) {
