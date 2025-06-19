@@ -4,16 +4,18 @@ import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 
 // Create a test query client with no retry
-export const createProductionQueryClient = (): QueryClient => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+export const createProductionQueryClient = (): QueryClient => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
     },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+  });
+};
 
 // Render component with providers for testing
 export const renderWithProviders = (
@@ -22,9 +24,9 @@ export const renderWithProviders = (
 ): any => {
   const productionQueryClient = createProductionQueryClient();
   
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  );
+  const Wrapper = ({ children }: { children: React.ReactNode }) => {
+    return <div>{children}</div>;
+  };
 
   return render(ui, { wrapper: Wrapper, ...options });
 };
@@ -37,6 +39,7 @@ export const setupIntersectionObserver = (): void => {
     unobserve: () => null,
     disconnect: () => null
   });
+  
   (window as any).IntersectionObserver = mockIntersectionObserver;
 };
 
@@ -49,8 +52,9 @@ export const cleanupTests = (): void => {
 };
 
 // Wait for async operations in tests
-export const waitForAsync = (ms: number = 0): Promise<void> => 
-  new Promise(resolve => setTimeout(resolve, ms));
+export const waitForAsync = (ms: number = 0): Promise<void> => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
 
 // Trigger test error for error handling tests
 export const triggerProductionError = (message: string = 'Production error'): never => {
