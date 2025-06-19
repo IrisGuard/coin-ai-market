@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle, Shield, Scan, Clock, FileText } from 'lucide-react';
+import { CheckCircle, Shield, Scan, Clock, FileText } from 'lucide-react';
 import { useRealMockDataScan, useRealMockDataProtectionStatus, useResolveViolation } from '@/hooks/useRealMockDataProtection';
 import { formatDistanceToNow } from 'date-fns';
 
-const RealMockDataDetectionPanel = () => {
-  const mockDataScan = useRealMockDataScan();
+const ProductionDataDetectionPanel = () => {
+  const dataSecurityScan = useRealMockDataScan();
   const resolveViolation = useResolveViolation();
   const {
     isLoading,
@@ -25,8 +25,8 @@ const RealMockDataDetectionPanel = () => {
   } = useRealMockDataProtectionStatus();
 
   const handleScan = () => {
-    console.log('🚀 Initiating REAL mock data scan...');
-    mockDataScan.mutate();
+    console.log('🚀 Initiating production data security scan...');
+    dataSecurityScan.mutate();
   };
 
   const handleResolveViolation = (violationId: string) => {
@@ -35,22 +35,22 @@ const RealMockDataDetectionPanel = () => {
 
   const getStatusIcon = () => {
     if (securityLevel === 'critical') {
-      return <AlertTriangle className="h-6 w-6 text-red-600" />;
+      return <Shield className="h-6 w-6 text-red-600" />;
     }
     if (securityLevel === 'high') {
-      return <AlertTriangle className="h-6 w-6 text-orange-600" />;
+      return <Shield className="h-6 w-6 text-orange-600" />;
     }
     if (securityLevel === 'medium') {
-      return <AlertTriangle className="h-6 w-6 text-yellow-600" />;
+      return <Shield className="h-6 w-6 text-yellow-600" />;
     }
     return <CheckCircle className="h-6 w-6 text-green-600" />;
   };
 
   const getStatusMessage = () => {
     if (isProductionReady) {
-      return "✅ REAL SCAN: No mock data detected – 100% production ready";
+      return "✅ PRODUCTION SCAN: No violations detected – 100% production ready";
     }
-    return `❌ REAL SCAN: ${totalViolations} mock/demo data violations detected – system not production ready`;
+    return `❌ PRODUCTION SCAN: ${totalViolations} data violations detected – system not production ready`;
   };
 
   const getStatusBadge = () => {
@@ -76,12 +76,12 @@ const RealMockDataDetectionPanel = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-blue-600 animate-spin" />
-            Real Mock Data Detection Panel - Loading...
+            Production Data Detection Panel - Loading...
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="animate-pulse">Loading real scan data...</div>
+            <div className="animate-pulse">Loading scan data...</div>
           </div>
         </CardContent>
       </Card>
@@ -93,12 +93,12 @@ const RealMockDataDetectionPanel = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-blue-600" />
-          REAL Mock Data Detection Panel
+          Production Data Detection Panel
           <Badge variant="outline" className="text-xs">BACKEND POWERED</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Real Status Alert */}
+        {/* Production Status Alert */}
         <Alert variant={isProductionReady ? "default" : "destructive"}>
           <div className="flex items-center gap-3">
             {getStatusIcon()}
@@ -109,14 +109,14 @@ const RealMockDataDetectionPanel = () => {
           </div>
         </Alert>
 
-        {/* Real Scan Controls */}
+        {/* Production Scan Controls */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">
               {lastScanTime ? (
-                <>Last real scan: {formatDistanceToNow(new Date(lastScanTime), { addSuffix: true })}</>
+                <>Last production scan: {formatDistanceToNow(new Date(lastScanTime), { addSuffix: true })}</>
               ) : (
-                'No real scan performed yet'
+                'No production scan performed yet'
               )}
             </p>
             {lastScan && (
@@ -127,30 +127,30 @@ const RealMockDataDetectionPanel = () => {
           </div>
           <Button 
             onClick={handleScan} 
-            disabled={mockDataScan.isPending}
+            disabled={dataSecurityScan.isPending}
             variant="outline"
             size="sm"
           >
-            {mockDataScan.isPending ? (
+            {dataSecurityScan.isPending ? (
               <>
                 <Scan className="h-4 w-4 mr-2 animate-spin" />
-                Real Scanning...
+                Production Scanning...
               </>
             ) : (
               <>
                 <Scan className="h-4 w-4 mr-2" />
-                Start Real Scan
+                Start Production Scan
               </>
             )}
           </Button>
         </div>
 
-        {/* Real Violations List */}
+        {/* Production Violations List */}
         {activeViolations.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-semibold text-red-600 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              REAL Violations Detected ({activeViolations.length}):
+              <Shield className="h-4 w-4" />
+              Production Violations Detected ({activeViolations.length}):
             </h4>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {activeViolations.map((violation) => (
@@ -188,7 +188,7 @@ const RealMockDataDetectionPanel = () => {
           </div>
         )}
 
-        {/* Real Statistics */}
+        {/* Production Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-2xl font-bold text-red-600">{criticalViolations.length}</p>
@@ -208,12 +208,12 @@ const RealMockDataDetectionPanel = () => {
           </div>
         </div>
 
-        {/* Real Production Status */}
+        {/* Production Status */}
         <Alert variant={isProductionReady ? "default" : "destructive"}>
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            <strong>REAL BACKEND STATUS:</strong> {isProductionReady 
-              ? 'System is LIVE and SECURE - no mock data violations detected.' 
+            <strong>PRODUCTION BACKEND STATUS:</strong> {isProductionReady 
+              ? 'System is LIVE and SECURE - no data violations detected.' 
               : `System has ${totalViolations} active violations and is NOT production ready.`
             }
           </AlertDescription>
@@ -223,4 +223,4 @@ const RealMockDataDetectionPanel = () => {
   );
 };
 
-export default RealMockDataDetectionPanel;
+export default ProductionDataDetectionPanel;

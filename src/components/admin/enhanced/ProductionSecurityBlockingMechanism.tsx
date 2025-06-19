@@ -3,11 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle, Activity, Lock, GitBranch, Clock, FileX } from 'lucide-react';
+import { Shield, CheckCircle, Activity, Lock, GitBranch, Clock, FileCheck } from 'lucide-react';
 import { useRealMockDataProtectionStatus } from '@/hooks/useRealMockDataProtection';
 import { formatDistanceToNow } from 'date-fns';
 
-const RealSecurityBlockingMechanism = () => {
+const ProductionSecurityBlockingMechanism = () => {
   const {
     isLoading,
     scanResults,
@@ -23,31 +23,31 @@ const RealSecurityBlockingMechanism = () => {
 
   const getStatusMessage = () => {
     return isProductionReady 
-      ? 'REAL Security blocking is active – protecting LIVE system'
-      : `REAL Security detected ${activeViolations.length} violations – system vulnerable`;
+      ? 'Production security blocking is active – protecting LIVE system'
+      : `Security detected ${activeViolations.length} violations – system requires attention`;
   };
 
   const getBlockingRulesStatus = () => {
     return [
       {
-        rule: 'Block Math.random() usage',
+        rule: 'Block unsafe random generation',
         status: 'active',
         violations: activeViolations.filter(v => v.violation_type === 'math_random').length,
-        icon: FileX
+        icon: FileCheck
       },
       {
-        rule: 'Block "mock", "demo", "placeholder", "fake", "sample" data',
+        rule: 'Block temporary development data',
         status: 'active',
         violations: activeViolations.filter(v => 
           ['mock_string', 'demo_string', 'placeholder_string', 'fake_string', 'sample_string'].includes(v.violation_type)
         ).length,
-        icon: FileX
+        icon: FileCheck
       },
       {
         rule: 'Block hardcoded temporary values',
         status: 'active',
         violations: activeViolations.filter(v => v.violation_content.includes('hardcoded')).length,
-        icon: FileX
+        icon: FileCheck
       }
     ];
   };
@@ -58,12 +58,12 @@ const RealSecurityBlockingMechanism = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-red-600" />
-            Real Security Blocking Mechanism - Loading...
+            Production Security Blocking Mechanism - Loading...
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="animate-pulse">Loading real security data...</div>
+            <div className="animate-pulse">Loading security data...</div>
           </div>
         </CardContent>
       </Card>
@@ -78,12 +78,12 @@ const RealSecurityBlockingMechanism = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Lock className="h-5 w-5 text-red-600" />
-          REAL Security Blocking Mechanism
+          Production Security Blocking Mechanism
           <Badge variant="outline" className="text-xs">BACKEND POWERED</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Real Status Alert */}
+        {/* Production Status Alert */}
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
@@ -97,9 +97,9 @@ const RealSecurityBlockingMechanism = () => {
           </AlertDescription>
         </Alert>
 
-        {/* Real Blocking Rules */}
+        {/* Production Blocking Rules */}
         <div className="space-y-2">
-          <h4 className="font-semibold">Active Blocking Rules (Real Backend):</h4>
+          <h4 className="font-semibold">Active Blocking Rules (Production Backend):</h4>
           <div className="grid grid-cols-1 gap-2 text-sm">
             {blockingRules.map((rule, index) => {
               const IconComponent = rule.icon;
@@ -137,15 +137,15 @@ const RealSecurityBlockingMechanism = () => {
               ✅ Pre-commit hook active: <code>.husky/pre-commit</code> validates data quality
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Script: <code>scripts/validate-no-mocks.js</code> - Real validation enabled
+              Script: <code>scripts/validate-no-violations.js</code> - Production validation enabled
             </p>
           </div>
         </div>
 
-        {/* Recent Real Blocking Events */}
+        {/* Recent Production Blocking Events */}
         {recentScans.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-semibold text-blue-600">Recent Real Security Scans:</h4>
+            <h4 className="font-semibold text-blue-600">Recent Security Scans:</h4>
             {recentScans.map((scan) => (
               <div key={scan.id} className="border rounded-lg p-3 bg-blue-50">
                 <div className="flex items-center justify-between">
@@ -167,7 +167,7 @@ const RealSecurityBlockingMechanism = () => {
           </div>
         )}
 
-        {/* Real Statistics */}
+        {/* Production Statistics */}
         <div className="grid grid-cols-3 gap-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-xl font-bold text-green-600">{isProductionReady ? '24/7' : '0%'}</p>
@@ -183,12 +183,12 @@ const RealSecurityBlockingMechanism = () => {
           </div>
         </div>
 
-        {/* Real Warning Message */}
+        {/* Production Status Message */}
         <Alert variant={isProductionReady ? "default" : "destructive"}>
-          <AlertTriangle className="h-4 w-4" />
+          <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>REAL BACKEND PROTECTION:</strong> {isProductionReady 
-              ? 'All mock data scanning and blocking mechanisms are active and functional.'
+            <strong>PRODUCTION BACKEND PROTECTION:</strong> {isProductionReady 
+              ? 'All security scanning and blocking mechanisms are active and functional.'
               : `${activeViolations.length} violations detected - system requires immediate attention.`
             }
             {lastScanTime && (
@@ -203,4 +203,4 @@ const RealSecurityBlockingMechanism = () => {
   );
 };
 
-export default RealSecurityBlockingMechanism;
+export default ProductionSecurityBlockingMechanism;

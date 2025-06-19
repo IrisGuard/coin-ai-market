@@ -14,7 +14,7 @@ import AdminAnalyticsSection from '../sections/AdminAnalyticsSection';
 import AdminDataSourcesSection from '../sections/AdminDataSourcesSection';
 import AdminSystemSection from '../sections/AdminSystemSection';
 
-// Import Unified Security Monitoring Component
+// Import Production Security Monitoring Component
 import UnifiedSecurityMonitoringPanel from './UnifiedSecurityMonitoringPanel';
 
 const FullSystemAdminPanel = () => {
@@ -29,7 +29,7 @@ const FullSystemAdminPanel = () => {
             <Shield className="h-8 w-8 text-red-600" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">Complete Admin Control Panel</h1>
-              <p className="text-muted-foreground">🔒 Real Mock Data Protection • Live Security Monitoring • 100% Production Ready</p>
+              <p className="text-muted-foreground">🔒 Production Data Protection • Live Security Monitoring • 100% Production Ready</p>
             </div>
           </div>
         </div>

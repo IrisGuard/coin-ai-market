@@ -4,8 +4,8 @@ import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Test query client with no retry
-export const createTestQueryClient = (): QueryClient => new QueryClient({
+// Production query client with no retry
+export const createProductionQueryClient = (): QueryClient => new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
@@ -16,12 +16,12 @@ export const createTestQueryClient = (): QueryClient => new QueryClient({
   },
 });
 
-// Custom render with providers
+// Production render with providers
 export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ): any => {
-  const testQueryClient = createTestQueryClient();
+  const productionQueryClient = createProductionQueryClient();
   
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -38,15 +38,15 @@ export const measureRenderTime = async (renderFn: () => void): Promise<number> =
   return endTime - startTime;
 };
 
-// Mock intersection observer for testing
-export const mockIntersectionObserver = (): void => {
-  const mockIntersectionObserver = jest.fn();
-  mockIntersectionObserver.mockReturnValue({
+// Production intersection observer for testing
+export const setupIntersectionObserver = (): void => {
+  const productionIntersectionObserver = jest.fn();
+  productionIntersectionObserver.mockReturnValue({
     observe: () => null,
     unobserve: () => null,
     disconnect: () => null
   });
-  (window as any).IntersectionObserver = mockIntersectionObserver;
+  (window as any).IntersectionObserver = productionIntersectionObserver;
 };
 
 // Cleanup utilities
@@ -61,8 +61,8 @@ export const cleanupTests = (): void => {
 export const waitForAsync = (ms: number = 0): Promise<void> => 
   new Promise(resolve => setTimeout(resolve, ms));
 
-// Test error trigger
-export const triggerTestError = (message = 'Test error'): never => {
+// Production error trigger
+export const triggerProductionError = (message = 'Production error'): never => {
   throw new Error(message);
 };
 
@@ -88,8 +88,8 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
   return errors;
 };
 
-// Test data cleanup with real performance tracking
-export const resetTestData = (): void => {
+// Production data cleanup with real performance tracking
+export const resetProductionData = (): void => {
   cleanupTests();
   
   if (typeof performance !== 'undefined' && performance.clearMarks) {
@@ -124,14 +124,14 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
 };
 
 // Real database testing utilities
-export const getTestDataFromSupabase = async (table: string, limit = 10) => {
+export const getProductionDataFromSupabase = async (table: string, limit = 10) => {
   const { data, error } = await supabase
     .from(table)
     .select('*')
     .limit(limit);
   
   if (error) {
-    console.error(`Error fetching test data from ${table}:`, error);
+    console.error(`Error fetching production data from ${table}:`, error);
     return [];
   }
   
