@@ -1,6 +1,6 @@
 
 // Main marketplace intelligence exports
-export { extractUserStoreData } from './dataExtractor';
+export { extractMarketData, extractUserStoreData, extractPriceHistory, extractAggregatedData } from './dataExtractor';
 export { analyzePriceConsistency } from './priceAnalysis';
 export { validateCoinCategory } from './categoryValidation';
 export { assessGradeReliability } from './gradeAssessment';

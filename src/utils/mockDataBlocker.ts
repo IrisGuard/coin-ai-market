@@ -164,6 +164,17 @@ export const validateNoMockData = (data: any) => {
   return true;
 };
 
+// 🔒 VALIDATE COMPONENT PROPS
+export const validateComponentProps = (props: any, componentName: string) => {
+  try {
+    validateNoMockData(props);
+    console.log(`✅ Component ${componentName} props validated - no mock data`);
+  } catch (error) {
+    console.error(`🚨 Mock data detected in ${componentName}:`, error);
+    throw error;
+  }
+};
+
 // 🔒 PRODUCTION GUARD
 export const productionGuard = () => {
   if (process.env.NODE_ENV === 'production') {

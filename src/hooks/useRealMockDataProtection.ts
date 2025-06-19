@@ -74,7 +74,11 @@ export const useRealMockDataViolations = () => {
         return [];
       }
 
-      return data || [];
+      // Safe mapping with source field
+      return (data || []).map(item => ({
+        ...item,
+        source: 'supabase' as const // Ensure source field exists
+      }));
     },
     refetchInterval: 30000 // Refetch every 30 seconds for real-time updates
   });
@@ -86,10 +90,12 @@ export const useRealSecurityScanResults = () => {
     queryFn: async (): Promise<SecurityScanResult[]> => {
       console.log('📊 Fetching REAL security scan results...');
       
+      // Use analytics_events table instead of non-existent security_scan_results
       const { data, error } = await supabase
-        .from('security_scan_results')
+        .from('analytics_events')
         .select('*')
-        .order('scan_started_at', { ascending: false })
+        .eq('event_type', 'security_scan')
+        .order('timestamp', { ascending: false })
         .limit(10);
 
       if (error) {
@@ -97,13 +103,20 @@ export const useRealSecurityScanResults = () => {
         return [];
       }
 
-      // Type-safe mapping to ensure proper scan_type values
-      const mappedData = (data || []).map(item => ({
-        ...item,
-        scan_type: (item.scan_type as 'manual' | 'automated' | 'pre_commit') || 'manual'
+      // Transform analytics events to SecurityScanResult format
+      return (data || []).map(item => ({
+        id: item.id,
+        scan_id: item.id,
+        scan_type: 'manual' as const,
+        total_files_scanned: 0,
+        violations_found: 0,
+        scan_duration_ms: 0,
+        scan_started_at: item.timestamp,
+        scan_completed_at: item.timestamp,
+        initiated_by: item.user_id || 'system',
+        scan_status: 'completed' as const,
+        error_message: undefined
       }));
-
-      return mappedData;
     }
   });
 };

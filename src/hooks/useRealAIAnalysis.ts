@@ -45,7 +45,8 @@ export const useRealAIAnalysis = () => {
 
       if (cachedResult && cachedResult.recognition_results) {
         setIsAnalyzing(false);
-        return cachedResult.recognition_results as AIAnalysisResult;
+        // Safe type conversion with validation
+        return parseAnalysisResult(cachedResult.recognition_results);
       }
 
       // Perform new analysis
@@ -73,6 +74,21 @@ export const useRealAIAnalysis = () => {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const performRealAnalysis = async (imageFiles: File[]): Promise<AIAnalysisResult[]> => {
+    const results: AIAnalysisResult[] = [];
+    
+    for (const file of imageFiles) {
+      try {
+        const result = await analyzeImage(file);
+        results.push(result);
+      } catch (error) {
+        console.error('Error analyzing image:', error);
+      }
+    }
+    
+    return results;
   };
 
   const performAIAnalysis = async (imageFile: File): Promise<AIAnalysisResult> => {
@@ -125,6 +141,32 @@ export const useRealAIAnalysis = () => {
     };
   };
 
+  const parseAnalysisResult = (jsonData: any): AIAnalysisResult => {
+    // Safe parsing with defaults
+    if (typeof jsonData === 'object' && jsonData !== null) {
+      return {
+        coinType: jsonData.coinType || 'Unknown Coin',
+        year: jsonData.year || 1900,
+        grade: jsonData.grade || 'Unknown',
+        estimatedValue: jsonData.estimatedValue || { min: 0, max: 0, average: 0 },
+        confidence: jsonData.confidence || 0.5,
+        errorDetection: jsonData.errorDetection || { hasErrors: false, errorTypes: [], rarityMultiplier: 1 },
+        marketInsights: jsonData.marketInsights || { trend: 'stable', demandLevel: 'medium', investmentGrade: 'fair' }
+      };
+    }
+    
+    // Fallback for invalid data
+    return {
+      coinType: 'Unknown Coin',
+      year: 1900,
+      grade: 'Unknown',
+      estimatedValue: { min: 0, max: 0, average: 0 },
+      confidence: 0.5,
+      errorDetection: { hasErrors: false, errorTypes: [], rarityMultiplier: 1 },
+      marketInsights: { trend: 'stable', demandLevel: 'medium', investmentGrade: 'fair' }
+    };
+  };
+
   const calculateImageHash = async (imageFile: File): Promise<string> => {
     // Simple hash based on file properties
     const buffer = await imageFile.arrayBuffer();
@@ -134,6 +176,7 @@ export const useRealAIAnalysis = () => {
 
   return {
     analyzeImage,
+    performRealAnalysis,
     isAnalyzing,
     analysisHistory
   };

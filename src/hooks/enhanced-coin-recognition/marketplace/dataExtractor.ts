@@ -103,6 +103,26 @@ export const extractMarketData = async (coinIdentifier: string): Promise<Extract
   }
 };
 
+export const extractUserStoreData = async (userId: string) => {
+  try {
+    const { data: storeData, error } = await supabase
+      .from('stores')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching store data:', error);
+      return null;
+    }
+
+    return storeData;
+  } catch (error) {
+    console.error('Error extracting user store data:', error);
+    return null;
+  }
+};
+
 export const extractPriceHistory = async (coinIdentifier: string) => {
   try {
     const { data: priceHistory, error } = await supabase
