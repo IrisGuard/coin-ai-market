@@ -20,21 +20,7 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     
-    // Check for unterminated regex - using string methods to avoid regex issues
-    if (line.includes('/') && !line.includes('//') && !line.includes('*/') && !line.includes('/*')) {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith('/') && !trimmedLine.endsWith('/') && !trimmedLine.includes('://')) {
-        errors.push({
-          type: 'syntax',
-          severity: 'critical',
-          line: lineNumber,
-          message: 'Potential unterminated regular expression literal',
-          file: filePath
-        });
-      }
-    }
-    
-    // Check for unused imports - using string methods instead of regex
+    // Check for potential syntax issues using safe string methods
     if (line.includes('import') && line.includes('{')) {
       const importStart = line.indexOf('{');
       const importEnd = line.indexOf('}');
@@ -42,14 +28,18 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
         const importContent = line.substring(importStart + 1, importEnd);
         const importedItems = importContent.split(',').map(item => item.trim());
         importedItems.forEach(item => {
-          if (item && !content.includes(item.split(' as ')[0].trim())) {
-            errors.push({
-              type: 'import',
-              severity: 'medium',
-              line: lineNumber,
-              message: `Unused import detected: ${item}`,
-              file: filePath
-            });
+          if (item && item.length > 0) {
+            // Check if imported item is used in the content
+            const cleanItem = item.includes(' as ') ? item.split(' as ')[0].trim() : item;
+            if (!content.includes(cleanItem)) {
+              errors.push({
+                type: 'import',
+                severity: 'medium',
+                line: lineNumber,
+                message: `Potentially unused import: ${item}`,
+                file: filePath
+              });
+            }
           }
         });
       }
@@ -62,6 +52,17 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
         severity: 'low',
         line: lineNumber,
         message: 'React.FC is deprecated, use function declaration instead',
+        file: filePath
+      });
+    }
+    
+    // Check for potential syntax issues
+    if (line.includes('console.log') && line.includes('(') && !line.includes(')')) {
+      errors.push({
+        type: 'syntax',
+        severity: 'medium',
+        line: lineNumber,
+        message: 'Potentially unclosed console.log statement',
         file: filePath
       });
     }
