@@ -21,7 +21,7 @@ export const resolveAllMockDataViolations = async () => {
     }
 
     console.log('✅ All violations resolved:', data);
-    return { success: true, resolved: data?.length || 0 };
+    return { success: true, resolved: (data && Array.isArray(data) ? data.length : 0) };
   } catch (error) {
     console.error('❌ Database cleanup failed:', error);
     return { success: false, error };
