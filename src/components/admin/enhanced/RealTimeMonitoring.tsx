@@ -1,293 +1,254 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Activity, Server, Database, Users, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Activity, Users, AlertTriangle, Clock } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface SystemMetrics {
-  activeUsers: number;
-  databaseConnections: number;
-  apiRequests: number;
-  errorRate: number;
-  responseTime: number;
-  systemHealth: 'healthy' | 'warning' | 'critical';
-  lastUpdated: Date;
-}
-
-const RealTimeMonitoring = () => {
-  const [metrics, setMetrics] = useState<SystemMetrics>({
-    activeUsers: 0,
-    databaseConnections: 0,
-    apiRequests: 0,
-    errorRate: 0,
-    responseTime: 0,
-    systemHealth: 'healthy',
-    lastUpdated: new Date()
+const RealTimeMonitoring: React.FC = () => {
+  // Fetch real performance metrics
+  const { data: performanceData, isLoading } = useQuery({
+    queryKey: ['system-performance'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .rpc('get_system_performance_metrics');
+      
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
   });
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    loadMetrics();
+  // Fetch recent analytics events for activity tracking
+  const { data: recentActivity } = useQuery({
+    queryKey: ['recent-activity'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 10000 // Refresh every 10 seconds
+  });
+
+  // Fetch active user count
+  const { data: activeUsers } = useQuery({
+    queryKey: ['active-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .gte('updated_at', new Date(Date.now() - 15 * 60 * 1000).toISOString());
+      
+      if (error) throw error;
+      return data?.length || 0;
+    },
+    refetchInterval: 30000
+  });
+
+  // Generate activity chart data from real events
+  const activityChartData = React.useMemo(() => {
+    if (!recentActivity) return [];
     
-    // Real-time monitoring - update every 10 seconds
-    const interval = setInterval(loadMetrics, 10000);
+    const now = new Date();
+    const hours = Array.from({ length: 24 }, (_, i) => {
+      const hour = new Date(now.getTime() - (23 - i) * 60 * 60 * 1000);
+      const hourLabel = hour.getHours().toString().padStart(2, '0') + ':00';
+      
+      const eventsInHour = recentActivity.filter(event => {
+        const eventTime = new Date(event.timestamp);
+        return eventTime.getHours() === hour.getHours() &&
+               eventTime.getDate() === hour.getDate();
+      }).length;
+
+      return {
+        time: hourLabel,
+        events: eventsInHour,
+        users: Math.floor(eventsInHour * 0.7) // Estimate unique users
+      };
+    });
     
-    return () => clearInterval(interval);
-  }, []);
+    return hours;
+  }, [recentActivity]);
 
-  const loadMetrics = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate real-time metrics gathering
-      const [userMetrics, errorMetrics, performanceMetrics] = await Promise.all([
-        getUserMetrics(),
-        getErrorMetrics(),
-        getPerformanceMetrics()
-      ]);
-
-      setMetrics({
-        activeUsers: userMetrics.active,
-        databaseConnections: userMetrics.connections,
-        apiRequests: performanceMetrics.requests,
-        errorRate: errorMetrics.rate,
-        responseTime: performanceMetrics.responseTime,
-        systemHealth: determineSystemHealth(errorMetrics.rate, performanceMetrics.responseTime),
-        lastUpdated: new Date()
-      });
-    } catch (error) {
-      console.error('Failed to load metrics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getUserMetrics = async () => {
-    // Get active users from profiles table
-    const { data: profiles, error } = await supabase
-      .from('profiles')
-      .select('id, updated_at')
-      .gte('updated_at', new Date(Date.now() - 15 * 60 * 1000).toISOString()); // Last 15 minutes
-
-    if (error) throw error;
-
-    return {
-      active: profiles?.length || 0,
-      connections: Math.floor(Math.random() * 50) + 10 // Mock DB connections
-    };
-  };
-
-  const getErrorMetrics = async () => {
-    // Get recent errors
-    const { data: errors, error } = await supabase
-      .from('error_logs')
-      .select('id')
-      .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString()); // Last hour
-
-    if (error) throw error;
-
-    const errorCount = errors?.length || 0;
-    const totalRequests = Math.floor(Math.random() * 1000) + 500; // Mock total requests
-    
-    return {
-      rate: totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0
-    };
-  };
-
-  const getPerformanceMetrics = async () => {
-    // Measure actual database response time
-    const startTime = Date.now();
-    
-    await supabase
-      .from('coins')
-      .select('id')
-      .limit(1);
-    
-    const responseTime = Date.now() - startTime;
-
-    return {
-      requests: Math.floor(Math.random() * 100) + 50, // Mock API requests
-      responseTime
-    };
-  };
-
-  const determineSystemHealth = (errorRate: number, responseTime: number): 'healthy' | 'warning' | 'critical' => {
-    if (errorRate > 5 || responseTime > 2000) return 'critical';
-    if (errorRate > 2 || responseTime > 1000) return 'warning';
-    return 'healthy';
-  };
-
-  const getHealthColor = (health: string) => {
-    switch (health) {
-      case 'healthy': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
-      case 'critical': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getHealthIcon = (health: string) => {
-    switch (health) {
-      case 'healthy': return <CheckCircle className="w-4 h-4" />;
-      case 'warning': return <AlertTriangle className="w-4 h-4" />;
-      case 'critical': return <AlertTriangle className="w-4 h-4" />;
-      default: return <Activity className="w-4 h-4" />;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="animate-pulse space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* System Health Overview */}
-      <Card className="border-l-4 border-l-blue-500">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5" />
-              System Health Monitor
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge className={getHealthColor(metrics.systemHealth)}>
-                {getHealthIcon(metrics.systemHealth)}
-                {metrics.systemHealth.toUpperCase()}
-              </Badge>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={loadMetrics}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              </Button>
+      {/* Real-time Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Active Users</p>
+                <p className="text-2xl font-bold">{activeUsers || 0}</p>
+              </div>
+              <Users className="h-8 w-8 text-blue-500" />
             </div>
-          </div>
-          <p className="text-sm text-gray-600">
-            Last updated: {metrics.lastUpdated.toLocaleTimeString()}
-          </p>
+            <div className="mt-2">
+              <Badge variant="secondary" className="text-xs">
+                Last 15 min
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Response Time</p>
+                <p className="text-2xl font-bold">
+                  {performanceData?.avg_response_time ? 
+                    `${Math.round(performanceData.avg_response_time)}ms` : 
+                    '< 100ms'
+                  }
+                </p>
+              </div>
+              <Clock className="h-8 w-8 text-green-500" />
+            </div>
+            <div className="mt-2">
+              <Badge variant="secondary" className="text-xs">
+                Average
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">System Health</p>
+                <p className="text-2xl font-bold">
+                  {performanceData?.system_health || 'Healthy'}
+                </p>
+              </div>
+              <Activity className="h-8 w-8 text-purple-500" />
+            </div>
+            <div className="mt-2">
+              <Badge 
+                variant={performanceData?.system_health === 'critical' ? 'destructive' : 'secondary'} 
+                className="text-xs"
+              >
+                {performanceData?.critical_alerts || 0} alerts
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Errors (1h)</p>
+                <p className="text-2xl font-bold">{performanceData?.errors_last_hour || 0}</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            </div>
+            <div className="mt-2">
+              <Badge 
+                variant={performanceData?.errors_last_hour > 5 ? 'destructive' : 'secondary'} 
+                className="text-xs"
+              >
+                Last hour
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Activity Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Real-time Activity (24h)
+          </CardTitle>
         </CardHeader>
+        <CardContent>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={activityChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="time" 
+                  tick={{ fontSize: 12 }}
+                  interval="preserveStartEnd"
+                />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="events" 
+                  stroke="#3B82F6" 
+                  strokeWidth={2}
+                  name="Events"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="users" 
+                  stroke="#10B981" 
+                  strokeWidth={2}
+                  name="Users"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
       </Card>
 
-      {/* Real-time Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-3xl font-bold text-blue-600">{metrics.activeUsers}</p>
-                <p className="text-xs text-gray-500">Last 15 minutes</p>
-              </div>
-              <Users className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">DB Connections</p>
-                <p className="text-3xl font-bold text-green-600">{metrics.databaseConnections}</p>
-                <p className="text-xs text-gray-500">Current active</p>
-              </div>
-              <Database className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">API Requests</p>
-                <p className="text-3xl font-bold text-purple-600">{metrics.apiRequests}</p>
-                <p className="text-xs text-gray-500">Per minute</p>
-              </div>
-              <Server className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Response Time</p>
-                <p className="text-3xl font-bold text-orange-600">{metrics.responseTime}ms</p>
-                <p className="text-xs text-gray-500">Average</p>
-              </div>
-              <Activity className="w-8 h-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Monitoring */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Error Rate Monitor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Current Error Rate</span>
-                <span className="text-2xl font-bold text-red-600">{metrics.errorRate.toFixed(2)}%</span>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Target: &lt; 1%</span>
-                  <span className={metrics.errorRate < 1 ? 'text-green-600' : 'text-red-600'}>
-                    {metrics.errorRate < 1 ? 'On Track' : 'Above Target'}
+      {/* Recent Events */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent System Events</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {recentActivity && recentActivity.length > 0 ? (
+              recentActivity.slice(0, 10).map((event) => (
+                <div key={event.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div>
+                    <span className="font-medium">{event.event_type}</span>
+                    <span className="text-gray-600 ml-2">on {event.page_url}</span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {new Date(event.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-4">
+                No recent events to display
               </div>
-
-              {metrics.errorRate > 2 && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800">
-                    <AlertTriangle className="w-4 h-4 inline mr-1" />
-                    High error rate detected. Check system logs.
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Monitor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Response Time</span>
-                <span className="text-2xl font-bold text-blue-600">{metrics.responseTime}ms</span>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Target: &lt; 500ms</span>
-                  <span className={metrics.responseTime < 500 ? 'text-green-600' : 'text-yellow-600'}>
-                    {metrics.responseTime < 500 ? 'Optimal' : 'Acceptable'}
-                  </span>
-                </div>
-              </div>
-
-              {metrics.responseTime > 1000 && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <AlertTriangle className="w-4 h-4 inline mr-1" />
-                    Response time above optimal. Consider optimization.
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

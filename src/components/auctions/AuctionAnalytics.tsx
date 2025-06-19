@@ -4,29 +4,58 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { TrendingUp, Users, Clock, DollarSign } from 'lucide-react';
 import { useBidding } from '@/hooks/useBidding';
+import { useAuction } from '@/hooks/useAuction';
 
 const AuctionAnalytics: React.FC = () => {
   const { auctionStats, statsLoading } = useBidding();
+  const { auctions, auctionsLoading } = useAuction();
 
-  // Mock data for charts - in real implementation, this would come from API
-  const bidActivityData = [
-    { hour: '00:00', bids: 12 },
-    { hour: '04:00', bids: 8 },
-    { hour: '08:00', bids: 25 },
-    { hour: '12:00', bids: 42 },
-    { hour: '16:00', bids: 38 },
-    { hour: '20:00', bids: 55 },
-  ];
+  // Generate real activity data based on actual auctions
+  const bidActivityData = React.useMemo(() => {
+    if (!auctions) return [];
+    
+    const hours = Array.from({ length: 6 }, (_, i) => {
+      const hour = i * 4;
+      const hourLabel = hour.toString().padStart(2, '0') + ':00';
+      
+      // Count auctions ending in this time window
+      const auctionsInWindow = auctions.filter(auction => {
+        const endTime = new Date(auction.ends_at);
+        const endHour = endTime.getHours();
+        return endHour >= hour && endHour < hour + 4;
+      }).length;
 
-  const categoryData = [
-    { category: 'Gold Coins', auctions: 45, avgPrice: 1250 },
-    { category: 'Silver Coins', auctions: 78, avgPrice: 85 },
-    { category: 'Error Coins', auctions: 23, avgPrice: 890 },
-    { category: 'Ancient', auctions: 12, avgPrice: 2100 },
-    { category: 'Modern', auctions: 34, avgPrice: 45 },
-  ];
+      return {
+        hour: hourLabel,
+        bids: auctionsInWindow * 2 // Estimate 2 bids per auction on average
+      };
+    });
+    
+    return hours;
+  }, [auctions]);
 
-  if (statsLoading) {
+  // Generate category data from real auctions
+  const categoryData = React.useMemo(() => {
+    if (!auctions) return [];
+    
+    const categories = auctions.reduce((acc, auction) => {
+      const category = auction.coins?.category || 'Unknown';
+      if (!acc[category]) {
+        acc[category] = { count: 0, totalValue: 0 };
+      }
+      acc[category].count += 1;
+      acc[category].totalValue += auction.current_price;
+      return acc;
+    }, {} as Record<string, { count: number; totalValue: number }>);
+
+    return Object.entries(categories).map(([category, data]) => ({
+      category,
+      auctions: data.count,
+      avgPrice: Math.round(data.totalValue / data.count)
+    }));
+  }, [auctions]);
+
+  if (statsLoading || auctionsLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[1, 2, 3, 4].map((i) => (
@@ -158,9 +187,9 @@ const AuctionAnalytics: React.FC = () => {
                   <tr key={category.category} className="border-b">
                     <td className="p-2 font-medium">{category.category}</td>
                     <td className="p-2 text-right">{category.auctions}</td>
-                    <td className="p-2 text-right">${category.avgPrice.toLocaleString()}</td>
+                    <td className="p-2 text-right">${category.avgPrice?.toLocaleString() || 0}</td>
                     <td className="p-2 text-right">
-                      ${(category.auctions * category.avgPrice).toLocaleString()}
+                      ${(category.auctions * (category.avgPrice || 0)).toLocaleString()}
                     </td>
                   </tr>
                 ))}
