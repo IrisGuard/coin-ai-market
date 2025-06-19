@@ -4,11 +4,13 @@ import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 
 // Create a test query client with no retry
-export const createProductionQueryClient = (): QueryClient => {
+export const createTestQueryClient = (): QueryClient => {
   return new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
+        staleTime: 0,
+        cacheTime: 0,
       },
       mutations: {
         retry: false,
@@ -22,10 +24,10 @@ export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ): any => {
-  const productionQueryClient = createProductionQueryClient();
+  const testQueryClient = createTestQueryClient();
   
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
-    return <div>{children}</div>;
+    return <div data-testid="test-wrapper">{children}</div>;
   };
 
   return render(ui, { wrapper: Wrapper, ...options });
@@ -40,7 +42,11 @@ export const setupIntersectionObserver = (): void => {
     disconnect: () => null
   });
   
-  (window as any).IntersectionObserver = mockIntersectionObserver;
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    configurable: true,
+    value: mockIntersectionObserver,
+  });
 };
 
 // Clean up test environment
@@ -56,7 +62,16 @@ export const waitForAsync = (ms: number = 0): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-// Trigger test error for error handling tests
-export const triggerProductionError = (message: string = 'Production error'): never => {
-  throw new Error(message);
+// Test error handler
+export const createTestError = (message: string = 'Test error'): Error => {
+  return new Error(message);
+};
+
+// Mock data generator for tests
+export const generateMockData = (count: number = 10): any[] => {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `test-${index}`,
+    name: `Test Item ${index}`,
+    value: Math.random() * 100,
+  }));
 };
