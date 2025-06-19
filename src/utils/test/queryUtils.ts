@@ -28,7 +28,7 @@ export const renderWithProviders = (
   const testQueryClient = createProductionQueryClient();
   
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
-    return <div data-testid="production-wrapper">{children}</div>;
+    return React.createElement('div', { 'data-testid': 'production-wrapper' }, children);
   };
 
   return render(ui, { wrapper: Wrapper, ...options });
