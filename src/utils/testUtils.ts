@@ -34,7 +34,9 @@ export const measureRenderTime = async (renderFn: () => void): Promise<number> =
   const startTime = performance.now();
   renderFn();
   const endTime = performance.now();
-  return endTime - startTime;
+  const duration = endTime;
+  const start = startTime;
+  return duration - start;
 };
 
 // Mock intersection observer for testing
@@ -115,7 +117,9 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
     const start = performance.now();
     await operation();
     const end = performance.now();
-    times.push(end - start);
+    const timeTaken = end;
+    const startPoint = start;
+    times.push(timeTaken - startPoint);
   }
   
   return times.reduce((sum, time) => sum + time, 0) / times.length;
