@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useLogStoreActivity } from '@/hooks/useStoreActivityLogs';
 
 export const useEnhancedStoreData = () => {
   return useQuery({
@@ -39,23 +40,25 @@ export const useStoreActivityLogs = (storeId?: string) => {
   return useQuery({
     queryKey: ['store-activity-logs', storeId],
     queryFn: async () => {
-      // Since store_activity_logs table doesn't exist, return mock data
-      const mockLogs = [
-        {
-          id: '1',
-          activity_type: 'listing_created',
-          activity_data: { item: 'New coin listing' },
-          created_at: new Date().toISOString(),
-          stores: {
-            name: 'Mock Store',
-            user_id: 'mock-user-id'
-          }
-        }
-      ];
-      
-      return storeId ? mockLogs.filter(log => log.stores.name.includes('Mock')) : mockLogs;
+      if (!storeId) return [];
+
+      const { data, error } = await supabase
+        .from('store_activity_logs')
+        .select(`
+          *,
+          profiles:performed_by (
+            full_name,
+            email
+          )
+        `)
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return data || [];
     },
-    enabled: !storeId || !!storeId,
+    enabled: !!storeId,
   });
 };
 
@@ -118,23 +121,45 @@ export const useLogStoreActivity = () => {
     mutationFn: async ({ 
       storeId, 
       activityType, 
-      activityData 
+      activityDescription,
+      activityData = {},
+      severityLevel = 'info',
+      sourceComponent = 'admin_panel',
+      relatedEntityType,
+      relatedEntityId
     }: { 
       storeId: string; 
       activityType: string; 
-      activityData?: any 
+      activityDescription: string;
+      activityData?: Record<string, any>;
+      severityLevel?: 'info' | 'warning' | 'error' | 'critical';
+      sourceComponent?: string;
+      relatedEntityType?: string;
+      relatedEntityId?: string;
     }) => {
-      // Since store_activity_logs table doesn't exist, just log to console
-      console.log('Store activity:', { storeId, activityType, activityData });
+      const { data, error } = await supabase.rpc('log_store_activity', {
+        p_store_id: storeId,
+        p_activity_type: activityType,
+        p_activity_description: activityDescription,
+        p_activity_data: activityData,
+        p_severity_level: severityLevel,
+        p_source_component: sourceComponent,
+        p_related_entity_type: relatedEntityType,
+        p_related_entity_id: relatedEntityId
+      });
+
+      if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-activity-logs'] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['store-activity-logs', variables.storeId] });
     },
   });
 };
 
 export const useBulkStoreOperations = () => {
   const queryClient = useQueryClient();
+  const logActivity = useLogStoreActivity();
   
   return useMutation({
     mutationFn: async ({ 
@@ -157,8 +182,21 @@ export const useBulkStoreOperations = () => {
       
       if (error) throw error;
       
-      // Log the operation (since we don't have store_activity_logs table)
-      console.log('Bulk operation performed:', { storeIds, operation, value });
+      // Log activity for each store
+      for (const storeId of storeIds) {
+        await logActivity.mutateAsync({
+          storeId,
+          activityType: 'bulk_operation',
+          activityDescription: `Bulk ${operation} operation performed`,
+          activityData: { 
+            operation, 
+            value, 
+            affected_stores: storeIds.length 
+          },
+          severityLevel: 'info',
+          sourceComponent: 'admin_bulk_operations'
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-store-data'] });

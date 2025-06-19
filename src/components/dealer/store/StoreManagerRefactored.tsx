@@ -2,12 +2,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Store } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Store, Activity } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import CreateStoreForm from './CreateStoreForm';
 import StoreList from './StoreList';
+import StoreActivityLogs from './StoreActivityLogs';
+import { useLogStoreActivity } from '@/hooks/useStoreActivityLogs';
 
 interface Store {
   id: string;
@@ -40,6 +43,8 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
 }) => {
   const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('stores');
+  const logActivity = useLogStoreActivity();
 
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ['user-stores', user?.id],
@@ -58,13 +63,50 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
     enabled: !!user?.id,
   });
 
-  const handleCreateSuccess = (storeId: string) => {
+  const handleCreateSuccess = async (storeId: string) => {
     setShowCreateForm(false);
     onStoreSelect(storeId);
+    
+    // Log store creation activity
+    await logActivity.mutateAsync({
+      storeId,
+      activityType: 'store_created',
+      activityDescription: 'New store created successfully',
+      activityData: { store_id: storeId },
+      severityLevel: 'info',
+      sourceComponent: 'store_manager'
+    });
   };
 
-  const handleStoreEdit = (store: Store) => {
+  const handleStoreEdit = async (store: Store) => {
+    // Log store edit activity
+    await logActivity.mutateAsync({
+      storeId: store.id,
+      activityType: 'store_edit_initiated',
+      activityDescription: 'Store edit initiated',
+      activityData: { store_name: store.name },
+      severityLevel: 'info',
+      sourceComponent: 'store_manager'
+    });
+    
     console.log('Edit store:', store.id);
+  };
+
+  const handleStoreSelect = async (storeId: string) => {
+    onStoreSelect(storeId);
+    
+    // Log store selection activity
+    const selectedStore = stores.find(s => s.id === storeId);
+    if (selectedStore) {
+      await logActivity.mutateAsync({
+        storeId,
+        activityType: 'store_selected',
+        activityDescription: `Store "${selectedStore.name}" selected for management`,
+        activityData: { store_name: selectedStore.name },
+        severityLevel: 'info',
+        sourceComponent: 'store_manager'
+      });
+    }
   };
 
   if (isLoading) {
@@ -82,7 +124,7 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Store className="w-5 h-5" />
-          My Stores ({stores.length})
+          Store Management ({stores.length})
         </CardTitle>
         {!showCreateForm && (
           <Button onClick={() => setShowCreateForm(true)}>
@@ -98,12 +140,38 @@ const StoreManagerRefactored: React.FC<StoreManagerRefactoredProps> = ({
             onSuccess={handleCreateSuccess}
           />
         ) : (
-          <StoreList
-            stores={stores}
-            selectedStoreId={selectedStoreId}
-            onStoreSelect={onStoreSelect}
-            onStoreEdit={handleStoreEdit}
-          />
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="stores" className="flex items-center gap-2">
+                <Store className="w-4 h-4" />
+                My Stores
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Activity Logs
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="stores" className="mt-6">
+              <StoreList
+                stores={stores}
+                selectedStoreId={selectedStoreId}
+                onStoreSelect={handleStoreSelect}
+                onStoreEdit={handleStoreEdit}
+              />
+            </TabsContent>
+            
+            <TabsContent value="activity" className="mt-6">
+              {selectedStoreId ? (
+                <StoreActivityLogs storeId={selectedStoreId} />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>Select a store to view activity logs</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </CardContent>
     </Card>

@@ -3160,6 +3160,69 @@ export type Database = {
         }
         Relationships: []
       }
+      store_activity_logs: {
+        Row: {
+          activity_data: Json | null
+          activity_description: string
+          activity_type: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          performed_by: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          severity_level: string | null
+          source_component: string | null
+          store_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_description: string
+          activity_type: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          performed_by?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          severity_level?: string | null
+          source_component?: string | null
+          store_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_description?: string
+          activity_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          performed_by?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          severity_level?: string | null
+          source_component?: string | null
+          store_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_activity_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_activity_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_ratings: {
         Row: {
           comment: string | null
@@ -4227,6 +4290,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_store_activity_stats: {
+        Args: { p_store_id: string; p_days?: number }
+        Returns: Json
+      }
       get_store_average_rating: {
         Args: { store_uuid: string }
         Returns: number
@@ -4314,6 +4381,19 @@ export type Database = {
       log_security_event: {
         Args: { event_type: string; event_details?: Json }
         Returns: undefined
+      }
+      log_store_activity: {
+        Args: {
+          p_store_id: string
+          p_activity_type: string
+          p_activity_description: string
+          p_activity_data?: Json
+          p_severity_level?: string
+          p_source_component?: string
+          p_related_entity_type?: string
+          p_related_entity_id?: string
+        }
+        Returns: string
       }
       monitor_auth_sessions: {
         Args: Record<PropertyKey, never>

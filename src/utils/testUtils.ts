@@ -118,7 +118,7 @@ export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
 
-// Validate component props - using simple concatenation to avoid parsing issues
+// Validate component props - simplified to avoid parsing issues
 export const validateProps = (component: any, expectedProps: Record<string, any>) => {
   const errors: string[] = [];
   
@@ -127,8 +127,7 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
     const actualValue = component.props[key];
     
     if (actualValue !== expectedValue) {
-      const errorMsg = 'Expected ' + key + ' to be ' + String(expectedValue) + ', got ' + String(actualValue);
-      errors.push(errorMsg);
+      errors.push('Expected ' + key + ' to be ' + String(expectedValue) + ', got ' + String(actualValue));
     }
   }
   
