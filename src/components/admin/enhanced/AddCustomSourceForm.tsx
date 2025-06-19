@@ -18,7 +18,11 @@ interface CustomSource {
   data_types: string[];
 }
 
-const AddCustomSourceForm = () => {
+interface AddCustomSourceFormProps {
+  onSourceAdded: (source: any) => void;
+}
+
+const AddCustomSourceForm: React.FC<AddCustomSourceFormProps> = ({ onSourceAdded }) => {
   const [source, setSource] = useState<CustomSource>({
     name: '',
     url: '',
@@ -38,23 +42,35 @@ const AddCustomSourceForm = () => {
       // Generate production-safe reliability score
       const reliabilityScore = generateSecureRandomNumber(75, 95);
       
+      // Use external_price_sources table instead of custom_data_sources
       const { data, error } = await supabase
-        .from('custom_data_sources')
+        .from('external_price_sources')
         .insert({
           id: generateSecureId('src'),
-          name: source.name,
-          url: source.url,
-          category: source.category,
-          region: source.region,
-          reliability_score: reliabilityScore,
-          data_types: source.data_types,
-          status: 'active',
+          source_name: source.name,
+          base_url: source.url,
+          source_type: source.category,
+          reliability_score: reliabilityScore / 100,
+          is_active: true,
           created_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
       toast.success('Custom data source added successfully');
+      
+      // Call onSourceAdded with the created source
+      onSourceAdded({
+        id: generateSecureId('src'),
+        name: source.name,
+        url: source.url,
+        type: source.category,
+        description: `${source.name} - ${source.category} source`,
+        scraping_enabled: true,
+        status: 'active',
+        ai_integration: true,
+        created_at: new Date().toISOString()
+      });
       
       // Reset form
       setSource({

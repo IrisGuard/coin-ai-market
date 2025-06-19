@@ -1,174 +1,199 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { generateSecureRandomNumber } from '@/utils/productionRandomUtils';
+import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-interface PerformanceMetric {
-  name: string;
-  value: number;
-  trend: 'up' | 'down' | 'stable';
-  unit: string;
-}
-
-interface SystemMetric {
-  timestamp: string;
-  cpu_usage: number;
-  memory_usage: number;
-  response_time: number;
-  throughput: number;
-}
+import { Activity, TrendingUp, Clock, Zap } from 'lucide-react';
 
 const PerformanceAnalytics = () => {
-  const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
-  const [systemData, setSystemData] = useState<SystemMetric[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadPerformanceData();
-  }, []);
-
-  const loadPerformanceData = async () => {
-    try {
-      // Load real system metrics from database
-      const { data: realMetrics } = await supabase
+  // Fetch system metrics
+  const { data: metrics = [], isLoading } = useQuery({
+    queryKey: ['system-metrics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('system_metrics')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(24);
+        .order('recorded_at', { ascending: false })
+        .limit(50);
 
-      if (realMetrics && realMetrics.length > 0) {
-        // Use real data when available
-        const processedMetrics = realMetrics.map(metric => ({
-          timestamp: metric.created_at,
-          cpu_usage: metric.metric_value || 0,
-          memory_usage: metric.metric_value || 0,
-          response_time: metric.metric_value || 0,
-          throughput: metric.metric_value || 0
-        }));
-        setSystemData(processedMetrics);
-      } else {
-        // Generate production-safe baseline metrics when no data available
-        const baselineData = Array.from({ length: 24 }, (_, i) => ({
-          timestamp: new Date(Date.now() - (23 - i) * 3600000).toISOString(),
-          cpu_usage: generateSecureRandomNumber(15, 85),
-          memory_usage: generateSecureRandomNumber(30, 75),
-          response_time: generateSecureRandomNumber(50, 200),
-          throughput: generateSecureRandomNumber(800, 1200)
-        }));
-        setSystemData(baselineData);
+      if (error) {
+        console.error('Error fetching system metrics:', error);
+        return [];
       }
 
-      // Calculate current performance metrics
-      const currentMetrics: PerformanceMetric[] = [
-        {
-          name: 'API Response Time',
-          value: generateSecureRandomNumber(120, 180),
-          trend: 'up',
-          unit: 'ms'
-        },
-        {
-          name: 'Database Query Time',
-          value: generateSecureRandomNumber(25, 45),
-          trend: 'stable',
-          unit: 'ms'
-        },
-        {
-          name: 'AI Processing Time',
-          value: generateSecureRandomNumber(800, 1200),
-          trend: 'down',
-          unit: 'ms'
-        },
-        {
-          name: 'System Throughput',
-          value: generateSecureRandomNumber(850, 950),
-          trend: 'up',
-          unit: 'req/min'
-        }
-      ];
-
-      setMetrics(currentMetrics);
-    } catch (error) {
-      console.error('Failed to load performance data:', error);
-      
-      // Set fallback metrics on error
-      setMetrics([
-        { name: 'API Response Time', value: 150, trend: 'stable', unit: 'ms' },
-        { name: 'Database Query Time', value: 35, trend: 'stable', unit: 'ms' },
-        { name: 'AI Processing Time', value: 1000, trend: 'stable', unit: 'ms' },
-        { name: 'System Throughput', value: 900, trend: 'stable', unit: 'req/min' }
-      ]);
-    } finally {
-      setIsLoading(false);
+      return data || [];
     }
-  };
+  });
+
+  // Calculate performance analytics
+  const analytics = React.useMemo(() => {
+    if (!metrics.length) {
+      return {
+        avgResponseTime: 0,
+        totalMetrics: 0,
+        metricTypes: {},
+        recentMetrics: []
+      };
+    }
+
+    const responseTimeMetrics = metrics.filter(m => m.metric_name.includes('response'));
+    const avgResponseTime = responseTimeMetrics.length > 0 
+      ? responseTimeMetrics.reduce((sum, m) => sum + m.metric_value, 0) / responseTimeMetrics.length
+      : 0;
+
+    const metricTypes: Record<string, number> = {};
+    metrics.forEach(metric => {
+      metricTypes[metric.metric_type] = (metricTypes[metric.metric_type] || 0) + 1;
+    });
+
+    return {
+      avgResponseTime: Math.round(avgResponseTime),
+      totalMetrics: metrics.length,
+      metricTypes,
+      recentMetrics: metrics.slice(0, 10)
+    };
+  }, [metrics]);
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Performance Analytics</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Loading performance data...</div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric, index) => (
-          <Card key={index}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{metric.name}</p>
-                  <p className="text-2xl font-bold">
-                    {metric.value}
-                    <span className="text-sm font-normal text-muted-foreground ml-1">
-                      {metric.unit}
-                    </span>
-                  </p>
+      {/* Performance Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {analytics.avgResponseTime}ms
                 </div>
-                <div className={`text-sm ${
-                  metric.trend === 'up' ? 'text-green-600' : 
-                  metric.trend === 'down' ? 'text-red-600' : 
-                  'text-yellow-600'
-                }`}>
-                  {metric.trend === 'up' ? '↗' : metric.trend === 'down' ? '↘' : '→'}
-                </div>
+                <p className="text-xs text-muted-foreground">Avg Response Time</p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <Clock className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  {analytics.totalMetrics}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Metrics</p>
+              </div>
+              <Activity className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {Object.keys(analytics.metricTypes).length}
+                </div>
+                <p className="text-xs text-muted-foreground">Metric Types</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-orange-600">98%</div>
+                <p className="text-xs text-muted-foreground">System Health</p>
+              </div>
+              <Zap className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Metric Types Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>System Performance Over Time</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Metric Types Distribution
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={systemData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="timestamp" 
-                tickFormatter={(value) => new Date(value).toLocaleTimeString()} 
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(value) => new Date(value).toLocaleString()}
-              />
-              <Line type="monotone" dataKey="cpu_usage" stroke="#8884d8" name="CPU Usage %" />
-              <Line type="monotone" dataKey="memory_usage" stroke="#82ca9d" name="Memory Usage %" />
-              <Line type="monotone" dataKey="response_time" stroke="#ffc658" name="Response Time (ms)" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.entries(analytics.metricTypes).map(([type, count]) => (
+              <div key={type} className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-lg font-bold text-gray-800">{count}</div>
+                <div className="text-sm text-gray-600 capitalize">{type}</div>
+              </div>
+            ))}
+            
+            {Object.keys(analytics.metricTypes).length === 0 && (
+              <div className="col-span-4 text-center py-8 text-muted-foreground">
+                <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium">No metrics data available</p>
+                <p className="text-sm">Performance metrics will appear here once collected</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Recent Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {analytics.recentMetrics.map((metric) => (
+              <div key={metric.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <div className="font-medium">{metric.metric_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {metric.metric_type} • {new Date(metric.recorded_at).toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold">{metric.metric_value}</div>
+                  <Badge variant="outline">{metric.metric_type}</Badge>
+                </div>
+              </div>
+            ))}
+            
+            {analytics.recentMetrics.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium">No recent metrics</p>
+                <p className="text-sm">Performance metrics will be displayed here</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,265 +1,195 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Database, Activity, TrendingUp, RefreshCw, Search, CheckCircle } from 'lucide-react';
-import { useExternalSourcesManagement, useDataAggregation } from '@/hooks/admin/useExternalSourcesManagement';
-import { useAggregatedPrices, useProxyRotationLogs } from '@/hooks/useEnhancedDataSources';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Database, TrendingUp, Activity, AlertTriangle } from 'lucide-react';
 
 const DataAggregationDashboard = () => {
-  const { data: sources = [] } = useExternalSourcesManagement();
-  const { data: aggregatedPrices = [] } = useAggregatedPrices();
-  const { data: proxyLogs = [] } = useProxyRotationLogs();
-  const dataAggregationMutation = useDataAggregation();
-  
-  const [testCoin, setTestCoin] = useState('');
-
-  // Get real-time data flow metrics from database
-  const { data: dataFlowMetrics = [] } = useQuery({
-    queryKey: ['data-flow-metrics'],
+  // Fetch analytics events - using proper column names
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['analytics-events'],
     queryFn: async () => {
-      const { data: analytics } = await supabase
+      const { data, error } = await supabase
         .from('analytics_events')
-        .select('event_type, metadata, created_at')
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
 
-      const sourceMetrics = new Map();
-      
-      analytics?.forEach(event => {
-        const source = event.metadata?.source || 'Unknown';
-        if (!sourceMetrics.has(source)) {
-          sourceMetrics.set(source, { requests: 0, success: 0, errors: 0 });
-        }
-        const metric = sourceMetrics.get(source);
-        metric.requests++;
-        if (event.event_type === 'data_fetch_success') {
-          metric.success++;
-        } else if (event.event_type === 'data_fetch_error') {
-          metric.errors++;
-        }
-      });
+      if (error) {
+        console.error('Error fetching analytics events:', error);
+        return [];
+      }
 
-      return Array.from(sourceMetrics.entries()).map(([name, metrics]) => ({
-        name,
-        ...metrics
-      }));
+      return data || [];
     }
   });
 
-  // Get real performance data from AI performance metrics
-  const { data: performanceData = [] } = useQuery({
-    queryKey: ['performance-data'],
-    queryFn: async () => {
-      const { data: metrics } = await supabase
-        .from('ai_performance_metrics')
-        .select('metric_value, recorded_at, metric_name')
-        .gte('recorded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('recorded_at');
-
-      const hourlyData = new Map();
-      
-      metrics?.forEach(metric => {
-        const hour = new Date(metric.recorded_at).getHours();
-        const key = `${hour.toString().padStart(2, '0')}:00`;
-        
-        if (!hourlyData.has(key)) {
-          hourlyData.set(key, { time: key, response: 0, throughput: 0, count: 0 });
-        }
-        
-        const data = hourlyData.get(key);
-        if (metric.metric_name === 'response_time') {
-          data.response += metric.metric_value;
-        } else if (metric.metric_name === 'throughput') {
-          data.throughput += metric.metric_value;
-        }
-        data.count++;
-      });
-
-      return Array.from(hourlyData.values()).map(data => ({
-        time: data.time,
-        response: data.count > 0 ? data.response / data.count : 0,
-        throughput: data.count > 0 ? data.throughput / data.count : 0
-      }));
+  // Calculate aggregated metrics from the events
+  const aggregatedData = React.useMemo(() => {
+    if (!events.length) {
+      return {
+        totalEvents: 0,
+        eventTypes: {},
+        recentActivity: [],
+        topEvents: []
+      };
     }
-  });
 
-  // Real statistics calculation
-  const activeSources = sources.filter(s => s.is_active);
-  const totalSources = sources.length;
-  const reliabilityAvg = sources.length > 0 
-    ? sources.reduce((acc, s) => acc + (s.reliability_score || 0), 0) / sources.length 
-    : 0;
-
-  const handleTestAggregation = async () => {
-    if (!testCoin.trim()) return;
+    const eventTypes: Record<string, number> = {};
     
-    try {
-      await dataAggregationMutation.mutateAsync(testCoin);
-    } catch (error) {
-      console.error('Aggregation test failed:', error);
-    }
-  };
+    events.forEach(event => {
+      const eventType = event.event_type || 'unknown';
+      eventTypes[eventType] = (eventTypes[eventType] || 0) + 1;
+    });
+
+    const topEvents = Object.entries(eventTypes)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([type, count]) => ({ type, count }));
+
+    return {
+      totalEvents: events.length,
+      eventTypes,
+      recentActivity: events.slice(0, 10),
+      topEvents
+    };
+  }, [events]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Sources</p>
-                <p className="text-2xl font-bold">{activeSources.length}/{totalSources}</p>
+                <div className="text-2xl font-bold text-blue-600">
+                  {aggregatedData.totalEvents}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Events</p>
               </div>
-              <Database className="h-8 w-8 text-blue-500" />
+              <Activity className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Reliability</p>
-                <p className="text-2xl font-bold">{Math.round(reliabilityAvg * 100)}%</p>
+                <div className="text-2xl font-bold text-green-600">
+                  {Object.keys(aggregatedData.eventTypes).length}
+                </div>
+                <p className="text-xs text-muted-foreground">Event Types</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <Database className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Data Points</p>
-                <p className="text-2xl font-bold">{aggregatedPrices.length}</p>
+                <div className="text-2xl font-bold text-purple-600">
+                  {aggregatedData.topEvents[0]?.count || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">Top Event Count</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Proxy Rotations</p>
-                <p className="text-2xl font-bold">{proxyLogs.length}</p>
-              </div>
-              <Activity className="h-8 w-8 text-orange-500" />
+              <TrendingUp className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Test Aggregation */}
+      {/* Top Events */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="w-5 h-5" />
-            Test Data Aggregation
+            <TrendingUp className="w-5 h-5" />
+            Top Event Types
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
-            <Input
-              value={testCoin}
-              onChange={(e) => setTestCoin(e.target.value)}
-              placeholder="Enter coin identifier (e.g., 1909-S VDB Lincoln Cent)"
-              className="flex-1"
-            />
-            <Button
-              onClick={handleTestAggregation}
-              disabled={dataAggregationMutation.isPending || !testCoin.trim()}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${dataAggregationMutation.isPending ? 'animate-spin' : ''}`} />
-              Test Aggregation
-            </Button>
+          <div className="space-y-3">
+            {aggregatedData.topEvents.map((event, index) => (
+              <div key={event.type} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600">{index + 1}</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">{event.type}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {event.count} occurrence{event.count !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </div>
+                <Badge variant="outline">{event.count}</Badge>
+              </div>
+            ))}
+            
+            {aggregatedData.topEvents.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Database className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium">No events data available</p>
+                <p className="text-sm">Analytics events will appear here once data is collected</p>
+              </div>
+            )}
           </div>
-          {dataAggregationMutation.isPending && (
-            <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">Aggregating data from sources...</p>
-              <Progress value={65} className="w-full" />
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Data Flow Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Source Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dataFlowMetrics}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="success" fill="#10b981" />
-                <Bar dataKey="errors" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>System Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="response" stroke="#8884d8" strokeWidth={2} />
-                <Line type="monotone" dataKey="throughput" stroke="#82ca9d" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Source Status Grid */}
+      {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Source Status Overview</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Recent Activity
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sources.map((source) => (
-              <div key={source.id} className="p-4 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">{source.source_name}</h4>
-                  <Badge variant={source.is_active ? 'default' : 'secondary'}>
-                    {source.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Reliability</span>
-                    <span>{Math.round((source.reliability_score || 0) * 100)}%</span>
-                  </div>
-                  <Progress value={(source.reliability_score || 0) * 100} className="h-2" />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Rate: {source.rate_limit_per_hour}/hr</span>
-                    <span>Priority: {(source.priority_score || 0)}%</span>
+          <div className="space-y-3">
+            {aggregatedData.recentActivity.map((event) => (
+              <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <div className="font-medium">{event.event_type}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {event.page_url} • {new Date(event.timestamp).toLocaleString()}
                   </div>
                 </div>
+                <Badge variant="outline">{event.event_type}</Badge>
               </div>
             ))}
+            
+            {aggregatedData.recentActivity.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium">No recent activity</p>
+                <p className="text-sm">Recent analytics events will be displayed here</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
