@@ -1,0 +1,84 @@
+name: 🔍 Mock Data & Error Scanner
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Scan for Issues
+        run: |
+          echo "🔍 Starting scan..."
+          echo "==================="
+          
+          mkdir -p scan-results
+          
+          # Count Math.random()
+          MATH_RANDOM=$(find src -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | xargs grep -n "Math\.random()" 2>/dev/null | wc -l)
+          
+          # Count mock data
+          MOCK_DATA=$(find src -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | xargs grep -ni "mock\|fake\|demo\|sample" 2>/dev/null | wc -l)
+          
+          # Count console.log
+          CONSOLE_LOGS=$(find src -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | xargs grep -n "console\.log" 2>/dev/null | wc -l)
+          
+          # Count debugger
+          DEBUGGERS=$(find src -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | xargs grep -n "debugger" 2>/dev/null | wc -l)
+          
+          # Count TODO/FIXME
+          TODOS=$(find src -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | xargs grep -ni "TODO\|FIXME\|HACK" 2>/dev/null | wc -l)
+          
+          # Total files
+          TOTAL_FILES=$(find src -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null | wc -l)
+          
+          # Calculate totals
+          TOTAL_MOCK=$((MATH_RANDOM + MOCK_DATA))
+          TOTAL_ISSUES=$((CONSOLE_LOGS + DEBUGGERS + TODOS))
+          
+          echo "📊 SCAN RESULTS"
+          echo "==============="
+          echo "Files scanned: $TOTAL_FILES"
+          echo "Math.random(): $MATH_RANDOM"
+          echo "Mock data: $MOCK_DATA"
+          echo "Console.logs: $CONSOLE_LOGS"
+          echo "Debuggers: $DEBUGGERS"
+          echo "TODOs: $TODOS"
+          echo ""
+          echo "🎯 SUMMARY"
+          echo "Total Mock Issues: $TOTAL_MOCK"
+          echo "Total Code Issues: $TOTAL_ISSUES"
+          
+          # Save results
+          cat > scan-results/summary.txt << EOF
+          SCAN RESULTS - $(date)
+          ========================
+          Files Scanned: $TOTAL_FILES
+          
+          MOCK DATA ISSUES: $TOTAL_MOCK
+          - Math.random(): $MATH_RANDOM
+          - Mock/Fake data: $MOCK_DATA
+          
+          CODE ISSUES: $TOTAL_ISSUES
+          - Console.logs: $CONSOLE_LOGS
+          - Debuggers: $DEBUGGERS
+          - TODOs/FIXMEs: $TODOS
+          
+          STATUS: $([ $TOTAL_MOCK -eq 0 ] && echo "CLEAN" || echo "NEEDS ATTENTION")
+          EOF
+          
+          cat scan-results/summary.txt
+
+      - name: 📤 Upload Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results
+          path: scan-results/
