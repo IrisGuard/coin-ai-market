@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,8 +14,8 @@ import { useOptimizedDashboardStats, usePerformanceMonitoring } from '@/hooks/us
 import { useAdminStore } from '@/contexts/AdminStoreContext';
 import {
   Activity, Users, Coins, KeyRound, TrendingUp,
-  ExternalLink, Brain, Gear, MonitorHeart, Rocket,
-  AlertTriangle
+  ExternalLink, Brain, Settings, MonitorSpeaker,
+  AlertTriangle, Rocket
 } from 'lucide-react';
 import AdminSystemTab from '../tabs/AdminSystemTab';
 import AdminMockDataTab from '../tabs/AdminMockDataTab';
@@ -33,7 +34,7 @@ const FullSystemAdminPanel = () => {
   const { data: performanceMetrics, isLoading: performanceLoading, error: performanceError } = useRealPerformanceMetrics();
   const { data: dashboardStats, isLoading: dashboardLoading, error: dashboardError } = useOptimizedDashboardStats();
   const { data: performanceData, isLoading: performanceIsLoading, error: performanceErrorData } = usePerformanceMonitoring();
-  const { mutate: updateUserStatus, isLoading: isUpdating } = useSecureUpdateUserStatus();
+  const updateUserStatus = useSecureUpdateUserStatus();
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -67,7 +68,7 @@ const FullSystemAdminPanel = () => {
                         id={`user-${user.id}`}
                         checked={user.verified_dealer}
                         onCheckedChange={(checked) => {
-                          updateUserStatus({ userId: user.id, verified: checked });
+                          updateUserStatus.mutate({ userId: user.id, verified: checked });
                         }}
                       />
                       <Label htmlFor={`user-${user.id}`}>
@@ -103,7 +104,7 @@ const FullSystemAdminPanel = () => {
                   <Card key={coin.id}>
                     <CardContent>
                       <p>Name: {coin.name}</p>
-                      <p>Value: {coin.value}</p>
+                      <p>Price: {coin.price}</p>
                       <p>User: {coin.profiles?.name}</p>
                     </CardContent>
                   </Card>
@@ -214,8 +215,8 @@ const FullSystemAdminPanel = () => {
                 {aiCommands?.map((command) => (
                   <Card key={command.id}>
                     <CardContent>
-                      <p>Command: {command.command_name}</p>
-                      <p>Description: {command.command_description}</p>
+                      <p>Command: {command.name}</p>
+                      <p>Description: {command.description}</p>
                       <p>Priority: {command.priority}</p>
                     </CardContent>
                   </Card>
@@ -229,7 +230,7 @@ const FullSystemAdminPanel = () => {
     {
       id: 'automation-rules',
       name: 'Automation Rules',
-      icon: Gear,
+      icon: Settings,
       color: 'text-yellow-600',
       component: (
         <Card>
@@ -246,8 +247,8 @@ const FullSystemAdminPanel = () => {
                 {automationRules?.map((rule) => (
                   <Card key={rule.id}>
                     <CardContent>
-                      <p>Name: {rule.rule_name}</p>
-                      <p>Description: {rule.rule_description}</p>
+                      <p>Name: {rule.name}</p>
+                      <p>Description: {rule.description}</p>
                       <p>Created At: {rule.created_at}</p>
                     </CardContent>
                   </Card>
@@ -261,7 +262,7 @@ const FullSystemAdminPanel = () => {
     {
       id: 'system-metrics',
       name: 'System Metrics',
-      icon: MonitorHeart,
+      icon: MonitorSpeaker,
       color: 'text-red-600',
       component: (
         <Card>
@@ -280,7 +281,7 @@ const FullSystemAdminPanel = () => {
                     <CardContent>
                       <p>Metric: {metric.metric_name}</p>
                       <p>Value: {metric.metric_value}</p>
-                      <p>Created At: {metric.created_at}</p>
+                      <p>Recorded At: {metric.recorded_at}</p>
                     </CardContent>
                   </Card>
                 ))}

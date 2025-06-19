@@ -215,6 +215,39 @@ class MockDataBlocker {
 
 export const mockDataBlocker = MockDataBlocker.getInstance();
 
+// 🔒 COMPONENT PROPS VALIDATION
+export const validateComponentProps = (props: any, componentName: string): void => {
+  if (!props) return;
+  
+  const propsString = JSON.stringify(props);
+  const violations: string[] = [];
+  
+  // Check for forbidden patterns in props
+  const forbiddenPatterns = [
+    /mock/gi,
+    /fake/gi,
+    /demo/gi,
+    /sample/gi,
+    /placeholder/gi,
+    /test.*data/gi
+  ];
+  
+  forbiddenPatterns.forEach(pattern => {
+    if (pattern.test(propsString)) {
+      violations.push(`Found ${pattern.source} in ${componentName} props`);
+    }
+  });
+  
+  if (violations.length > 0) {
+    console.warn(`🚨 Mock data detected in ${componentName}:`, violations);
+    
+    // In production, this would throw an error
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Production violation: Mock data found in ${componentName}`);
+    }
+  }
+};
+
 // 🚨 RUNTIME PROTECTION - CRASH APP IF MOCK DATA DETECTED IN PRODUCTION
 export const productionMockGuard = () => {
   if (process.env.NODE_ENV === 'production') {
