@@ -19,8 +19,8 @@ import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminProductionTab from '@/components/admin/tabs/AdminProductionTab';
 import AdminGCAITokenTab from '@/components/admin/tabs/AdminGCAITokenTab';
 import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
-import MockDataDetectionPanel from './MockDataDetectionPanel';
-import SecurityBlockingMechanism from './SecurityBlockingMechanism';
+import RealMockDataDetectionPanel from './RealMockDataDetectionPanel';
+import RealSecurityBlockingMechanism from './RealSecurityBlockingMechanism';
 import { useRealTimeSystemStatus } from '@/hooks/useRealTimeSystemStatus';
 
 const FullSystemAdminPanel = () => {
@@ -43,11 +43,11 @@ const FullSystemAdminPanel = () => {
       color: 'text-red-600',
       component: () => (
         <div className="space-y-6">
-          <MockDataDetectionPanel />
-          <SecurityBlockingMechanism />
+          <RealMockDataDetectionPanel />
+          <RealSecurityBlockingMechanism />
         </div>
       ),
-      badge: 'PROTECTION'
+      badge: 'REAL PROTECTION'
     },
     {
       id: 'gcai-token',
