@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Coin } from '@/types/coin';
+import { Coin, mapSupabaseCoinToCoin, SupabaseCoin, CoinCategory } from '@/types/coin';
 
 export interface SearchParams {
   query: string;
@@ -46,7 +46,15 @@ class SearchService {
 
       // Apply filters
       if (params.category) {
-        query = query.eq('category', params.category);
+        // Type guard to ensure category is valid
+        const validCategories: CoinCategory[] = [
+          'ancient', 'modern', 'error_coin', 'greek', 'american', 'british', 
+          'european', 'asian', 'gold', 'silver', 'commemorative', 'unclassified'
+        ];
+        
+        if (validCategories.includes(params.category as CoinCategory)) {
+          query = query.eq('category', params.category as CoinCategory);
+        }
       }
 
       if (params.country) {
@@ -124,8 +132,13 @@ class SearchService {
       const searchTime = Date.now() - startTime;
       const suggestions = await this.generateSuggestions(params.query || '');
 
+      // Transform Supabase data to Coin interface
+      const transformedCoins: Coin[] = (data || []).map((coin: SupabaseCoin) => 
+        mapSupabaseCoinToCoin(coin)
+      );
+
       return {
-        coins: data || [],
+        coins: transformedCoins,
         total: count || 0,
         searchTime,
         suggestions
