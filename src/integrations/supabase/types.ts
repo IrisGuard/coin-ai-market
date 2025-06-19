@@ -2322,6 +2322,51 @@ export type Database = {
           },
         ]
       }
+      mock_data_violations: {
+        Row: {
+          created_at: string | null
+          detected_at: string | null
+          file_path: string
+          id: string
+          line_number: number
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          updated_at: string | null
+          violation_content: string
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          detected_at?: string | null
+          file_path: string
+          id?: string
+          line_number: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string | null
+          violation_content: string
+          violation_type: string
+        }
+        Update: {
+          created_at?: string | null
+          detected_at?: string | null
+          file_path?: string
+          id?: string
+          line_number?: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string | null
+          violation_content?: string
+          violation_type?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -3016,6 +3061,54 @@ export type Database = {
           severity_level?: string
           status?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      security_scan_results: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          initiated_by: string | null
+          scan_completed_at: string | null
+          scan_duration_ms: number | null
+          scan_id: string
+          scan_started_at: string | null
+          scan_status: string
+          scan_type: string
+          total_files_scanned: number | null
+          updated_at: string | null
+          violations_found: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          initiated_by?: string | null
+          scan_completed_at?: string | null
+          scan_duration_ms?: number | null
+          scan_id: string
+          scan_started_at?: string | null
+          scan_status?: string
+          scan_type?: string
+          total_files_scanned?: number | null
+          updated_at?: string | null
+          violations_found?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          initiated_by?: string | null
+          scan_completed_at?: string | null
+          scan_duration_ms?: number | null
+          scan_id?: string
+          scan_started_at?: string | null
+          scan_status?: string
+          scan_type?: string
+          total_files_scanned?: number | null
+          updated_at?: string | null
+          violations_found?: number | null
         }
         Relationships: []
       }
