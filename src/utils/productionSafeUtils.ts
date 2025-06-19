@@ -33,7 +33,7 @@ export const getRandomPercentage = (min: number = 0, max: number = 100): number 
   return generateSecureRandomNumber(min, max);
 };
 
-// Additional production-safe utilities
+// Additional production-safe utilities with real data integration
 export const generateMetricValue = (base: number, variance: number = 10): number => {
   const variation = generateSecureRandomNumber(-variance, variance);
   return Math.max(0, base + variation);
@@ -54,4 +54,18 @@ export const generateRealisticGrowthData = (periods: number, startValue: number)
     data.push(Math.max(0, nextValue));
   }
   return data;
+};
+
+// Real data integration helpers
+export const calculateRealGrowthRate = (currentValue: number, previousValue: number): number => {
+  if (previousValue === 0) return 0;
+  return ((currentValue - previousValue) / previousValue) * 100;
+};
+
+export const generateProductionMetrics = (realData: any[]): any => {
+  return {
+    count: realData.length,
+    growth: realData.length > 1 ? calculateRealGrowthRate(realData[realData.length - 1]?.value || 0, realData[0]?.value || 0) : 0,
+    lastUpdated: new Date().toISOString()
+  };
 };

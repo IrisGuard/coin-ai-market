@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { generateSecureRandomNumber } from '@/utils/productionRandomUtils';
@@ -70,20 +69,35 @@ export const useAnalytics = (timeRange: '24h' | '7d' | '30d' = '24h') => {
         throw pageViewsError;
       }
 
-      // Process the data
+      // Process the data with real calculations
       const totalPageViews = pageViews?.reduce((sum, pv) => sum + pv.view_count, 0) || 0;
       const uniqueVisitors = new Set(events?.map(e => e.user_id).filter(Boolean)).size;
       
-      // Use production-safe random for metrics when no real data available
-      const bounceRate = totalPageViews > 0 
-        ? generateSecureRandomNumber(25, 45) 
-        : 0;
+      // Calculate real bounce rate from data
+      const sessionsWithMultiplePages = events?.reduce((acc, event) => {
+        if (event.event_type === 'page_view') {
+          acc[event.user_id] = (acc[event.user_id] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>) || {};
       
-      const averageSessionDuration = totalPageViews > 0 
-        ? generateSecureRandomNumber(180, 420) 
+      const totalSessions = Object.keys(sessionsWithMultiplePages).length;
+      const bouncedSessions = Object.values(sessionsWithMultiplePages).filter(count => count === 1).length;
+      const bounceRate = totalSessions > 0 ? (bouncedSessions / totalSessions) * 100 : 0;
+      
+      // Calculate real average session duration
+      const sessionDurations = events?.reduce((acc, event) => {
+        if (event.metadata?.session_duration) {
+          acc.push(event.metadata.session_duration);
+        }
+        return acc;
+      }, [] as number[]) || [];
+      
+      const averageSessionDuration = sessionDurations.length > 0 
+        ? sessionDurations.reduce((sum, duration) => sum + duration, 0) / sessionDurations.length
         : 0;
 
-      // Process top pages
+      // Process top pages from real data
       const pageViewCounts = pageViews?.reduce((acc, pv) => {
         acc[pv.page_path] = (acc[pv.page_path] || 0) + pv.view_count;
         return acc;
@@ -107,7 +121,7 @@ export const useAnalytics = (timeRange: '24h' | '7d' | '30d' = '24h') => {
       console.error('Failed to load analytics data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load analytics');
       
-      // Fallback to production-safe baseline data
+      // Fallback to empty baseline data for production
       setData({
         totalPageViews: 0,
         uniqueVisitors: 0,
