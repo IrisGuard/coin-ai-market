@@ -4,7 +4,7 @@ import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 
 // Test query client with no retry
-export const createTestQueryClient = () => new QueryClient({
+export const createTestQueryClient = (): QueryClient => new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
@@ -19,7 +19,7 @@ export const createTestQueryClient = () => new QueryClient({
 export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => {
+): any => {
   const testQueryClient = createTestQueryClient();
   
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
