@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '@/contexts/AdminContext';
-import { SecurityValidation } from '@/utils/securityValidation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,49 +24,9 @@ const SecureAdminWrapper: React.FC<SecureAdminWrapperProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
-  const [sessionFingerprint, setSessionFingerprint] = useState<string>('');
 
   const MAX_ATTEMPTS = 3;
   const LOCKOUT_DURATION = 30 * 60 * 1000; // 30 minutes
-
-  // Generate session fingerprint for additional security
-  useEffect(() => {
-    const generateFingerprint = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.textBaseline = 'top';
-        ctx.font = '14px Arial';
-        ctx.fillText('Security fingerprint', 2, 2);
-      }
-      
-      const fingerprint = [
-        navigator.userAgent,
-        navigator.language,
-        screen.width + 'x' + screen.height,
-        new Date().getTimezoneOffset(),
-        canvas.toDataURL()
-      ].join('|');
-      
-      return btoa(fingerprint);
-    };
-
-    const storedFingerprint = sessionStorage.getItem('adminFingerprint');
-    const currentFingerprint = generateFingerprint();
-    
-    if (storedFingerprint && storedFingerprint !== currentFingerprint) {
-      toast({
-        title: "Security Alert",
-        description: "Session fingerprint mismatch detected. Please re-authenticate.",
-        variant: "destructive",
-      });
-      setIsAuthenticated(false);
-    } else if (!storedFingerprint) {
-      sessionStorage.setItem('adminFingerprint', currentFingerprint);
-    }
-    
-    setSessionFingerprint(currentFingerprint);
-  }, []);
 
   // Check for admin lockout
   useEffect(() => {
@@ -93,40 +52,23 @@ const SecureAdminWrapper: React.FC<SecureAdminWrapperProps> = ({
       return;
     }
 
-    // Rate limiting
-    if (!SecurityValidation.checkRateLimit('adminReauth', 3, 5 * 60 * 1000)) {
-      toast({
-        title: "Rate Limit Exceeded",
-        description: "Too many authentication attempts. Please wait 5 minutes.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const passwordValidation = SecurityValidation.validatePassword(password);
-    if (!passwordValidation.isValid) {
+    // Simple password validation
+    if (password.length < 8) {
       toast({
         title: "Invalid Password",
-        description: passwordValidation.error,
+        description: "Password must be at least 8 characters",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // In a real implementation, you would validate against the user's actual password
-      // For now, we'll use a simple check (this should be replaced with proper auth)
+      // Simple check for demo purposes
       if (password.length >= 8) {
         setIsAuthenticated(true);
         setPassword('');
         setAttempts(0);
         localStorage.removeItem('adminLockout');
-        
-        // Log successful admin authentication
-        console.log('Admin re-authentication successful', {
-          timestamp: new Date().toISOString(),
-          fingerprint: sessionFingerprint.substring(0, 10) + '...'
-        });
         
         toast({
           title: "Authentication Successful",
@@ -172,7 +114,6 @@ const SecureAdminWrapper: React.FC<SecureAdminWrapperProps> = ({
     );
   }
 
-  // Check only isAdmin status (removed isAdminAuthenticated check)
   if (!isAdmin) {
     return (
       <div className="p-6">
