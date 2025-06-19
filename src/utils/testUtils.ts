@@ -156,7 +156,7 @@ export const validateCoinData = async (coinId: string): Promise<boolean> => {
   const { data, error } = await supabase
     .from('coins')
     .select('id, name, price, grade, year')
-    .eq('id', coinId)
+    .eq('coinId', coinId)
     .single();
   
   if (error || !data) return false;
