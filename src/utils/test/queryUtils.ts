@@ -3,37 +3,37 @@ import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 
-// Create a test query client with no retry
-export const createTestQueryClient = (): QueryClient => {
+// Create a production query client for real testing
+export const createProductionQueryClient = (): QueryClient => {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false,
-        staleTime: 0,
-        cacheTime: 0,
+        retry: 3,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        cacheTime: 10 * 60 * 1000, // 10 minutes
       },
       mutations: {
-        retry: false,
+        retry: 1,
       },
     },
   });
 };
 
-// Render component with providers for testing
+// Render component with providers for production testing
 export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ): any => {
-  const testQueryClient = createTestQueryClient();
+  const testQueryClient = createProductionQueryClient();
   
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
-    return <div data-testid="test-wrapper">{children}</div>;
+    return <div data-testid="production-wrapper">{children}</div>;
   };
 
   return render(ui, { wrapper: Wrapper, ...options });
 };
 
-// Setup intersection observer mock for testing
+// Setup intersection observer for production testing
 export const setupIntersectionObserver = (): void => {
   const mockIntersectionObserver = jest.fn();
   mockIntersectionObserver.mockReturnValue({
@@ -49,7 +49,7 @@ export const setupIntersectionObserver = (): void => {
   });
 };
 
-// Clean up test environment
+// Clean up production test environment
 export const cleanupTests = (): void => {
   if (typeof window !== 'undefined') {
     window.localStorage.clear();
@@ -57,21 +57,22 @@ export const cleanupTests = (): void => {
   }
 };
 
-// Wait for async operations in tests
-export const waitForAsync = (ms: number = 0): Promise<void> => {
+// Wait for async operations in production tests
+export const waitForAsync = (ms: number = 100): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-// Test error handler
-export const createTestError = (message: string = 'Test error'): Error => {
+// Production error handler for testing
+export const triggerProductionError = (message: string = 'Production test error'): Error => {
   return new Error(message);
 };
 
-// Mock data generator for tests
-export const generateMockData = (count: number = 10): any[] => {
+// Production data generator for testing
+export const generateProductionData = (count: number = 10): any[] => {
   return Array.from({ length: count }, (_, index) => ({
-    id: `test-${index}`,
-    name: `Test Item ${index}`,
-    value: Math.random() * 100,
+    id: `prod-${index}`,
+    name: `Production Item ${index}`,
+    value: Math.random() * 1000,
+    timestamp: new Date().toISOString(),
   }));
 };
