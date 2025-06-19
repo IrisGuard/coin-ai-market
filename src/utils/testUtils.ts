@@ -29,7 +29,7 @@ export const renderWithProviders = (
   return render(ui, { wrapper: Wrapper, ...options });
 };
 
-// Performance testing helpers - Fixed syntax error
+// Performance testing helpers
 export const measureRenderTime = async (renderFn: () => void): Promise<number> => {
   const startTime = performance.now();
   renderFn();
