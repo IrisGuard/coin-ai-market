@@ -66,8 +66,11 @@ export const generateProductionNumber = (min: number = 0, max: number = 100): nu
     window.crypto.getRandomValues(array);
     return min + (array[0] % (max - min + 1));
   }
-  // Fallback for server-side
-  return min + Math.floor((max - min + 1) * (Date.now() % 1000) / 1000);
+  // Fallback for server-side using timestamp-based generation
+  const timestamp = Date.now();
+  const seed = (timestamp * 9301 + 49297) % 233280;
+  const normalized = seed / 233280;
+  return Math.floor(min + normalized * (max - min + 1));
 };
 
 // ESLint rule configuration for blocking forbidden data
@@ -148,6 +151,6 @@ export const withProductionValidation = <T extends (...args: any[]) => any>(
 export const initializeProductionMonitor = (): void => {
   if (!PRODUCTION_MODE) return;
   
-  console.log('🛡️ Production Data Monitor initialized');
-  console.log('🚨 Zero tolerance for forbidden data in production');
+  console.warn('🛡️ Production Data Monitor initialized');
+  console.warn('🚨 Zero tolerance for forbidden data in production');
 };

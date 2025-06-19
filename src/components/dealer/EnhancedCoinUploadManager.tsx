@@ -4,447 +4,262 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Upload, 
-  Camera, 
-  X, 
-  Check, 
-  AlertTriangle, 
-  Zap, 
-  Eye,
-  RotateCw,
-  Brain
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, Image, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { generateSecureId } from '@/utils/productionRandomUtils';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useDualImageAnalysis } from '@/hooks/useDualImageAnalysis';
-import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
-import { ItemTypeSelector } from '@/components/ui/item-type-selector';
-import { uploadImage } from '@/utils/imageUpload';
-import type { ItemType } from '@/types/upload';
 
-interface ProcessedImage {
-  file: File;
-  preview: string;
-  uploaded: boolean;
-  uploading: boolean;
-  aiAnalyzed: boolean;
-  errors: string[];
+interface UploadBatch {
   id: string;
-  itemType?: ItemType;
-  permanentUrl?: string; // Added for permanent URL tracking
+  name: string;
+  files: File[];
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  results?: any[];
 }
 
-interface AdvancedImageUploadManagerProps {
-  onImagesProcessed: (images: ProcessedImage[]) => void;
-  onAIAnalysisComplete: (results: any) => void;
-  maxImages?: number;
-}
+const EnhancedCoinUploadManager = () => {
+  const [batches, setBatches] = useState<UploadBatch[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-const AdvancedImageUploadManager: React.FC<AdvancedImageUploadManagerProps> = ({
-  onImagesProcessed,
-  onAIAnalysisComplete,
-  maxImages = 10
-}) => {
-  const [images, setImages] = useState<ProcessedImage[]>([]);
-  const [dragActive, setDragActive] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
-  
-  const { performDualAnalysis, isAnalyzing, analysisProgress, currentStep } = useDualImageAnalysis();
-  const { processImageWithItemType, isProcessing } = useEnhancedImageProcessing();
-
-  const convertFileToDataURL = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleFiles = useCallback(async (files: FileList | File[]) => {
-    const fileArray = Array.from(files);
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
     
-    if (images.length + fileArray.length > maxImages) {
-      toast.error(`Maximum ${maxImages} images allowed`);
-      return;
-    }
+    if (files.length === 0) return;
 
-    const processedImages: ProcessedImage[] = [];
-    
-    for (const file of fileArray) {
-      try {
-        const processedBlob = await processImageWithItemType(file, selectedItemType);
-        const processedFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
-        const dataURL = await convertFileToDataURL(processedFile);
-        
-        console.log('🖼️ DEBUG Preview URL:', dataURL.substring(0, 50) + '...');
-        
-        processedImages.push({
-          file: processedFile,
-          preview: dataURL,
-          uploaded: false,
-          uploading: false,
-          aiAnalyzed: false,
-          errors: [],
-          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          itemType: selectedItemType
-        });
-      } catch (error) {
-        console.error('Failed to process image:', error);
-        const dataURL = await convertFileToDataURL(file);
-        console.log('🖼️ DEBUG Fallback Preview URL:', dataURL.substring(0, 50) + '...');
-        
-        processedImages.push({
-          file,
-          preview: dataURL,
-          uploaded: false,
-          uploading: false,
-          aiAnalyzed: false,
-          errors: ['Processing failed - using original'],
-          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          itemType: selectedItemType
-        });
-      }
-    }
+    const newBatch: UploadBatch = {
+      id: generateSecureId('batch'),
+      name: `Batch ${new Date().toLocaleTimeString()}`,
+      files,
+      status: 'pending',
+      progress: 0
+    };
 
-    setImages(prev => [...prev, ...processedImages]);
-  }, [images.length, maxImages, selectedItemType, processImageWithItemType]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFiles(files);
-    }
-  }, [handleFiles]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(true);
+    setBatches(prev => [...prev, newBatch]);
+    toast.success(`Added ${files.length} files to upload queue`);
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-  }, []);
+  const processBatch = async (batchId: string) => {
+    setIsProcessing(true);
+    
+    setBatches(prev => 
+      prev.map(batch => 
+        batch.id === batchId 
+          ? { ...batch, status: 'processing', progress: 0 }
+          : batch
+      )
+    );
 
-  const removeImage = useCallback((id: string) => {
-    setImages(prev => prev.filter(img => img.id !== id));
-  }, []);
-
-  const uploadImages = async () => {
-    setIsUploading(true);
-    setUploadProgress(0);
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch) return;
 
     try {
-      const uploadedImages: ProcessedImage[] = [];
+      const results = [];
       
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
+      for (let i = 0; i < batch.files.length; i++) {
+        const file = batch.files[i];
+        const progress = ((i + 1) / batch.files.length) * 100;
         
-        setImages(prev => prev.map(img => 
-          img.id === image.id ? { ...img, uploading: true } : img
-        ));
+        // Update progress
+        setBatches(prev => 
+          prev.map(b => 
+            b.id === batchId 
+              ? { ...b, progress }
+              : b
+          )
+        );
 
-        console.log(`📸 Uploading image ${i + 1}/${images.length} to Supabase Storage...`);
+        // Upload file to Supabase storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${generateSecureId('coin')}.${fileExt}`;
         
-        // Upload to Supabase Storage for permanent URL
-        const permanentUrl = await uploadImage(image.file, 'coin-images');
-        
-        if (permanentUrl.startsWith('blob:')) {
-          throw new Error('Upload failed: temporary URL returned instead of permanent');
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('coin-images')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          continue;
         }
-        
-        console.log(`✅ Image ${i + 1} uploaded with permanent URL:`, permanentUrl);
-        
-        const uploadedImage = {
-          ...image,
-          uploading: false,
-          uploaded: true,
-          permanentUrl: permanentUrl
-        };
-        
-        uploadedImages.push(uploadedImage);
-        
-        setImages(prev => prev.map(img => 
-          img.id === image.id ? uploadedImage : img
-        ));
 
-        setUploadProgress(((i + 1) / images.length) * 100);
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('coin-images')
+          .getPublicUrl(fileName);
+
+        // Process with AI recognition
+        const { data: aiResult, error: aiError } = await supabase.functions
+          .invoke('enhanced-dual-recognition', {
+            body: { imageUrl: urlData.publicUrl }
+          });
+
+        if (aiError) {
+          console.error('AI processing error:', aiError);
+          continue;
+        }
+
+        results.push({
+          fileName: file.name,
+          imageUrl: urlData.publicUrl,
+          aiResult: aiResult || {}
+        });
+
+        // Small delay to prevent overwhelming the system
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      console.log(`🎉 All ${images.length} images uploaded successfully with permanent URLs`);
-      toast.success('All images uploaded successfully!');
-      
-      // CRITICAL FIX: Pass images with permanent URLs for proper storage
-      onImagesProcessed(uploadedImages);
+      setBatches(prev => 
+        prev.map(batch => 
+          batch.id === batchId 
+            ? { 
+                ...batch, 
+                status: 'completed', 
+                progress: 100,
+                results 
+              }
+            : batch
+        )
+      );
+
+      toast.success(`Batch processing completed: ${results.length} files processed`);
     } catch (error) {
-      console.error('❌ Upload failed:', error);
-      toast.error('Upload failed. Please try again.');
+      console.error('Batch processing failed:', error);
+      
+      setBatches(prev => 
+        prev.map(batch => 
+          batch.id === batchId 
+            ? { ...batch, status: 'failed' }
+            : batch
+        )
+      );
+
+      toast.error('Batch processing failed');
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   };
 
-  const performAIAnalysis = async () => {
-    if (images.length < 2) {
-      toast.error('Please upload at least 2 images (front and back) for AI analysis');
-      return;
-    }
-
-    try {
-      const frontImage = images[0].file;
-      const backImage = images[1].file;
-      
-      console.log('Starting enhanced Claude AI analysis with error coin detection...');
-      const results = await performDualAnalysis(frontImage, backImage);
-      
-      if (results) {
-        // Enhanced AI categorization for error coins
-        if (results.errorDetected || results.category === 'error_coin') {
-          results.category = 'error_coin';
-          results.rarity = 'Ultra Rare';
-          results.featured = true;
-          console.log('🚨 ERROR COIN DETECTED by AI - Auto-categorized as error_coin');
-        }
-        
-        setImages(prev => prev.map(img => ({ ...img, aiAnalyzed: true })));
-        onAIAnalysisComplete(results);
-        toast.success('Enhanced AI analysis completed successfully!');
-      }
-    } catch (error) {
-      console.error('Enhanced AI analysis failed:', error);
-      toast.error('AI analysis failed. Please try again.');
+  const getStatusIcon = (status: UploadBatch['status']) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+      case 'processing':
+        return <Upload className="w-4 h-4 text-blue-500 animate-spin" />;
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'failed':
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
     }
   };
 
-  const canUpload = images.length > 0 && !isUploading;
-  const canAnalyze = images.length >= 2 && images.some(img => img.uploaded) && !isAnalyzing;
+  const getStatusColor = (status: UploadBatch['status']) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+    }
+  };
 
   return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Camera className="w-5 h-5 text-blue-600" />
-          Enhanced Image Upload Manager
-          <Badge variant="outline">{images.length}/{maxImages}</Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <ItemTypeSelector 
-          value={selectedItemType}
-          onValueChange={setSelectedItemType}
-        />
-
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
-            dragActive 
-              ? 'border-blue-500 bg-blue-50' 
-              : 'border-gray-300 hover:border-gray-400'
-          }`}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        >
-          <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
-            Upload up to {maxImages} {selectedItemType === 'coin' ? 'coin' : 'banknote'} images
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Drag & drop images here, or click to select files
-          </p>
-          
-          <div className="flex gap-4 justify-center">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => e.target.files && handleFiles(e.target.files)}
-              className="hidden"
-              id="file-upload"
-            />
-            <label htmlFor="file-upload">
-              <Button asChild>
-                <span>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Choose Files
-                </span>
-              </Button>
-            </label>
-            
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={(e) => e.target.files && handleFiles(e.target.files)}
-              className="hidden"
-              id="camera-upload"
-            />
-            <label htmlFor="camera-upload">
-              <Button variant="outline" asChild>
-                <span>
-                  <Camera className="w-4 h-4 mr-2" />
-                  Camera
-                </span>
-              </Button>
-            </label>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="w-5 h-5" />
+            Enhanced Coin Upload Manager
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+              <Image className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium mb-2">Upload Coin Images</h3>
+              <p className="text-muted-foreground mb-4">
+                Select multiple images to create a new upload batch
+              </p>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload">
+                <Button asChild>
+                  <span>Select Files</span>
+                </Button>
+              </label>
+            </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <AnimatePresence>
-          {images.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
-            >
-              {images.map((image) => (
-                <motion.div
-                  key={image.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="relative group"
-                >
-                  <div className={`w-full border-2 border-gray-200 overflow-hidden ${
-                    image.itemType === 'coin' ? 'aspect-square rounded-full' : 'aspect-[2/1] rounded-lg'
-                  }`}>
-                    <img
-                      src={image.preview}
-                      alt={image.itemType === 'coin' ? 'Coin' : 'Banknote'}
-                      className="w-full h-full object-cover"
-                      style={{ imageRendering: 'crisp-edges' }}
-                      onError={(e) => {
-                        console.error('❌ Image failed to load:', image.preview);
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://images.unsplash.com/photo-1541963463532-d68292c34d19?w=200&h=200&fit=crop&crop=center';
-                        target.style.opacity = '0.5';
-                      }}
-                      onLoad={() => {
-                        console.log('✅ Image loaded successfully:', image.preview.substring(0, 50) + '...');
-                      }}
-                    />
+      {batches.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Batches</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {batches.map((batch) => (
+                <div key={batch.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(batch.status)}
+                      <div>
+                        <h4 className="font-medium">{batch.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {batch.files.length} files
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(batch.status)}>
+                        {batch.status}
+                      </Badge>
+                      {batch.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          onClick={() => processBatch(batch.id)}
+                          disabled={isProcessing}
+                        >
+                          Process
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className="absolute top-2 left-2 space-y-1">
-                    {image.uploading && (
-                      <Badge variant="secondary" className="text-xs">
-                        <RotateCw className="w-3 h-3 mr-1 animate-spin" />
-                        Uploading...
-                      </Badge>
-                    )}
-                    {image.uploaded && (
-                      <Badge variant="default" className="text-xs bg-green-500">
-                        <Check className="w-3 h-3 mr-1" />
-                        Uploaded
-                      </Badge>
-                    )}
-                    {image.aiAnalyzed && (
-                      <Badge variant="default" className="text-xs bg-purple-500">
-                        <Brain className="w-3 h-3 mr-1" />
-                        AI Analyzed
-                      </Badge>
-                    )}
-                  </div>
+                  {batch.status === 'processing' && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Processing...</span>
+                        <span>{Math.round(batch.progress)}%</span>
+                      </div>
+                      <Progress value={batch.progress} />
+                    </div>
+                  )}
 
-                  <Badge variant="outline" className="absolute bottom-2 left-2 text-xs">
-                    {image.itemType === 'coin' ? '🪙' : '💵'}
-                  </Badge>
-
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => removeImage(image.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-
-                  <div className="absolute bottom-2 right-2">
-                    <Badge variant="outline" className="text-xs">
-                      {images.indexOf(image) + 1}
-                    </Badge>
-                  </div>
-                </motion.div>
+                  {batch.status === 'completed' && batch.results && (
+                    <div className="mt-3">
+                      <p className="text-sm text-green-600 font-medium">
+                        ✅ Successfully processed {batch.results.length} images
+                      </p>
+                    </div>
+                  )}
+                </div>
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {isUploading && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Uploading images...</span>
-              <span>{Math.round(uploadProgress)}%</span>
             </div>
-            <Progress value={uploadProgress} />
-          </div>
-        )}
-
-        {isAnalyzing && (
-          <Alert>
-            <Brain className="h-4 w-4" />
-            <AlertDescription className="space-y-2">
-              <div className="flex justify-between">
-                <span>{currentStep}</span>
-                <span>{Math.round(analysisProgress)}%</span>
-              </div>
-              <Progress value={analysisProgress} />
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="flex gap-4">
-          <Button
-            onClick={uploadImages}
-            disabled={!canUpload}
-            className="flex-1"
-          >
-            {isUploading ? (
-              <>
-                <RotateCw className="w-4 h-4 mr-2 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Images
-              </>
-            )}
-          </Button>
-
-          <Button
-            onClick={performAIAnalysis}
-            disabled={!canAnalyze}
-            variant="outline"
-            className="flex-1"
-          >
-            {isAnalyzing ? (
-              <>
-                <Brain className="w-4 h-4 mr-2 animate-pulse" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4 mr-2" />
-                Enhanced AI Analysis
-              </>
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
-export default AdvancedImageUploadManager;
+export default EnhancedCoinUploadManager;
