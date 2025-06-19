@@ -185,10 +185,11 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     
-    // Check for unterminated regex - fixed regex pattern
+    // Check for unterminated regex - properly escaped pattern
     if (line.includes('/') && !line.includes('//') && !line.includes('*/') && !line.includes('/*')) {
-      const regexPattern = /\/[^\/\n]*[^\/]$/;
-      if (regexPattern.test(line)) {
+      // Use string methods instead of problematic regex
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('/') && !trimmedLine.endsWith('/') && !trimmedLine.includes('://')) {
         errors.push({
           type: 'syntax',
           severity: 'critical',
@@ -201,7 +202,7 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
     
     // Check for unused imports
     if (line.includes('import') && line.includes('{')) {
-      const importMatch = line.match(/import\s*{\s*([^}]+)\s*}/);
+      const importMatch = line.match(/import\s*\{\s*([^}]+)\s*\}/);
       if (importMatch) {
         const importedItems = importMatch[1].split(',').map(item => item.trim());
         importedItems.forEach(item => {
