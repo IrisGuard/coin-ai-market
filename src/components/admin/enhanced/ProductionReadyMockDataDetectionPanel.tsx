@@ -12,7 +12,19 @@ const ProductionReadyMockDataDetectionPanel = () => {
   const scanMutation = useRealMockDataScan();
 
   const handleScan = () => {
-    scanMutation.mutate();
+    scanMutation.mutate({
+      scan_type: 'manual',
+      patterns: {
+        math_random: true,
+        mock_strings: true,
+        demo_strings: true,
+        placeholder_strings: true,
+        sample_strings: true,
+        fake_strings: true
+      },
+      file_extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      excluded_paths: ['node_modules', '.git', 'dist', 'build']
+    });
   };
 
   const isProductionReady = violations.length === 0;
