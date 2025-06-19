@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -112,13 +111,6 @@ const Auctions = () => {
     ? auctions?.find(a => a.id === selectedAuction) 
     : null;
 
-  // Transform the selected auction data to include required properties
-  const transformedAuctionData = selectedAuctionData ? {
-    ...selectedAuctionData,
-    bid_increment: selectedAuctionData.bid_increment || 1,
-    reserve_price: selectedAuctionData.reserve_price || undefined
-  } : null;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
       <Navbar />
@@ -222,32 +214,32 @@ const Auctions = () => {
 
           {/* Auction Details Sidebar */}
           <div className="space-y-6">
-            {transformedAuctionData ? (
+            {selectedAuctionData ? (
               <>
                 {/* Auction Timer */}
                 <div className="bg-white rounded-lg p-6">
                   <AuctionTimer 
-                    endTime={transformedAuctionData.ends_at}
+                    endTime={selectedAuctionData.ends_at}
                     variant="large"
                   />
                 </div>
 
                 {/* Bidding Interface */}
                 <BiddingInterface
-                  auction={transformedAuctionData}
+                  auction={selectedAuctionData}
                   currentUserBid={userBids?.find(bid => 
-                    bid.marketplace_listings?.id === transformedAuctionData.id &&
+                    bid.marketplace_listings?.id === selectedAuctionData.id &&
                     bid.bidder_id === user?.id
                   )?.amount}
                   isHighestBidder={userBids?.some(bid => 
-                    bid.marketplace_listings?.id === transformedAuctionData.id &&
+                    bid.marketplace_listings?.id === selectedAuctionData.id &&
                     bid.bidder_id === user?.id &&
                     bid.is_winning
                   )}
                 />
 
                 {/* Bid History */}
-                <BidHistory auctionId={transformedAuctionData.id} />
+                <BidHistory auctionId={selectedAuctionData.id} />
               </>
             ) : (
               <div className="bg-white rounded-lg p-6 text-center">

@@ -1,31 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-export interface AuctionListing {
-  id: string;
-  coin_id: string;
-  seller_id: string;
-  starting_price: number;
-  current_price: number;
-  buyout_price?: number;
-  reserve_price?: number;
-  auction_end: string;
-  auto_extend: boolean;
-  bid_increment: number;
-  status: 'active' | 'ended' | 'cancelled';
-  created_at: string;
-  coins?: {
-    id: string;
-    name: string;
-    image: string;
-    year: number;
-    grade: string;
-    rarity: string;
-    condition?: string;
-    category: string;
-  };
-}
+import { AuctionListing } from '@/types/auctionTypes';
 
 export interface BidData {
   listing_id: string;
@@ -34,7 +10,7 @@ export interface BidData {
 }
 
 class AuctionService {
-  async getActiveAuctions() {
+  async getActiveAuctions(): Promise<AuctionListing[]> {
     try {
       const { data, error } = await supabase
         .from('marketplace_listings')
@@ -49,12 +25,44 @@ class AuctionService {
 
       if (error) throw error;
       
-      // Transform data to match expected format
+      // Transform data to match expected AuctionListing format
       return data?.map(listing => ({
-        ...listing,
-        auction_end: listing.ends_at,
-        bid_increment: 1, // Default bid increment
-        reserve_price: null // No reserve price in current schema
+        id: listing.id,
+        coin_id: listing.coin_id || '',
+        seller_id: listing.seller_id || '',
+        listing_type: 'auction' as const,
+        starting_price: listing.starting_price || 0,
+        current_price: listing.current_price || 0,
+        buyout_price: listing.buyout_price || undefined,
+        reserve_price: undefined, // Not in current schema
+        bid_increment: 1, // Default value
+        ends_at: listing.ends_at || '',
+        auto_extend: listing.auto_extend || false,
+        status: (listing.status as 'active' | 'ended' | 'cancelled' | 'sold') || 'active',
+        created_at: listing.created_at || '',
+        updated_at: listing.updated_at || '',
+        shipping_cost: listing.shipping_cost || undefined,
+        international_shipping: listing.international_shipping || false,
+        return_policy: listing.return_policy || undefined,
+        coins: listing.coins ? {
+          id: listing.coins.id,
+          name: listing.coins.name || '',
+          image: listing.coins.image || '',
+          year: listing.coins.year || 0,
+          grade: listing.coins.grade || '',
+          rarity: listing.coins.rarity || '',
+          condition: listing.coins.condition || undefined,
+          category: listing.coins.category || '',
+          country: listing.coins.country || undefined,
+          denomination: listing.coins.denomination || undefined,
+          mint: listing.coins.mint || undefined,
+          composition: listing.coins.composition || undefined,
+          weight: listing.coins.weight || undefined,
+          diameter: listing.coins.diameter || undefined,
+          mintage: listing.coins.mintage || undefined,
+          description: listing.coins.description || undefined,
+          images: listing.coins.images || undefined
+        } : undefined
       })) || [];
     } catch (error) {
       console.error('Error fetching active auctions:', error);
@@ -62,7 +70,7 @@ class AuctionService {
     }
   }
 
-  async getAuctionById(auctionId: string) {
+  async getAuctionById(auctionId: string): Promise<AuctionListing> {
     try {
       const { data, error } = await supabase
         .from('marketplace_listings')
@@ -76,12 +84,44 @@ class AuctionService {
 
       if (error) throw error;
       
-      // Transform data to match expected format
+      // Transform data to match expected AuctionListing format
       return {
-        ...data,
-        auction_end: data.ends_at,
-        bid_increment: 1, // Default bid increment
-        reserve_price: null // No reserve price in current schema
+        id: data.id,
+        coin_id: data.coin_id || '',
+        seller_id: data.seller_id || '',
+        listing_type: 'auction' as const,
+        starting_price: data.starting_price || 0,
+        current_price: data.current_price || 0,
+        buyout_price: data.buyout_price || undefined,
+        reserve_price: undefined, // Not in current schema
+        bid_increment: 1, // Default value
+        ends_at: data.ends_at || '',
+        auto_extend: data.auto_extend || false,
+        status: (data.status as 'active' | 'ended' | 'cancelled' | 'sold') || 'active',
+        created_at: data.created_at || '',
+        updated_at: data.updated_at || '',
+        shipping_cost: data.shipping_cost || undefined,
+        international_shipping: data.international_shipping || false,
+        return_policy: data.return_policy || undefined,
+        coins: data.coins ? {
+          id: data.coins.id,
+          name: data.coins.name || '',
+          image: data.coins.image || '',
+          year: data.coins.year || 0,
+          grade: data.coins.grade || '',
+          rarity: data.coins.rarity || '',
+          condition: data.coins.condition || undefined,
+          category: data.coins.category || '',
+          country: data.coins.country || undefined,
+          denomination: data.coins.denomination || undefined,
+          mint: data.coins.mint || undefined,
+          composition: data.coins.composition || undefined,
+          weight: data.coins.weight || undefined,
+          diameter: data.coins.diameter || undefined,
+          mintage: data.coins.mintage || undefined,
+          description: data.coins.description || undefined,
+          images: data.coins.images || undefined
+        } : undefined
       };
     } catch (error) {
       console.error('Error fetching auction:', error);
