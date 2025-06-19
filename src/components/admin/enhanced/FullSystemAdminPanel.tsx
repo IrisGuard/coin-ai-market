@@ -29,7 +29,7 @@ const FullSystemAdminPanel = () => {
             <Shield className="h-8 w-8 text-red-600" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">Complete Admin Control Panel</h1>
-              <p className="text-muted-foreground">🔒 Mock Data Protection • 84 Tables • 100% RLS Coverage</p>
+              <p className="text-muted-foreground">🔒 Real Mock Data Protection • Live Security Monitoring • 100% Production Ready</p>
             </div>
           </div>
         </div>
@@ -37,9 +37,9 @@ const FullSystemAdminPanel = () => {
         {/* Comprehensive Tabs with Security Monitoring First */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="security-monitoring" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Security
+            <TabsTrigger value="security-monitoring" className="flex items-center gap-2 bg-red-50 data-[state=active]:bg-red-100">
+              <Shield className="h-4 w-4 text-red-600" />
+              <span className="font-semibold text-red-700">Security</span>
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
