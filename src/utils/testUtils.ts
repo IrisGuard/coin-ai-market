@@ -62,7 +62,7 @@ export const waitForAsync = (ms: number = 0): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms));
 
 // Production error trigger
-export const triggerProductionError = (message = 'Production error'): never => {
+export const triggerProductionError = (message: string = 'Production error'): never => {
   throw new Error(message);
 };
 
@@ -109,7 +109,7 @@ export const validateRealDataStructure = (data: any, requiredFields: string[]): 
 };
 
 // Performance benchmark utilities using real timing
-export const benchmarkOperation = async (operation: () => Promise<any>, iterations = 1): Promise<number> => {
+export const benchmarkOperation = async (operation: () => Promise<any>, iterations: number = 1): Promise<number> => {
   const times: number[] = [];
   
   for (let i = 0; i < iterations; i++) {
@@ -124,7 +124,7 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
 };
 
 // Real database testing utilities
-export const getProductionDataFromSupabase = async (table: string, limit = 10) => {
+export const getProductionDataFromSupabase = async (table: string, limit: number = 10) => {
   const { data, error } = await supabase
     .from(table)
     .select('*')

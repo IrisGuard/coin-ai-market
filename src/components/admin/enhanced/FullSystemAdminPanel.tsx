@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Database, Users, Coins, Brain, CreditCard, BarChart3, Cog, Settings } from 'lucide-react';
+import { Shield, Database, Users, Coins, Brain, CreditCard, BarChart3, Cog, Settings, Search } from 'lucide-react';
 
 // Import existing sections
 import PerformanceOptimizedDashboard from '../PerformanceOptimizedDashboard';
@@ -16,6 +16,9 @@ import AdminSystemSection from '../sections/AdminSystemSection';
 
 // Import Production Security Monitoring Component
 import UnifiedSecurityMonitoringPanel from './UnifiedSecurityMonitoringPanel';
+
+// Import Phase 15 Validation Panel
+import Phase15ValidationPanel from '../validation/Phase15ValidationPanel';
 
 const FullSystemAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('security-monitoring');
@@ -36,10 +39,14 @@ const FullSystemAdminPanel = () => {
 
         {/* Comprehensive Tabs with Security Monitoring First */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="security-monitoring" className="flex items-center gap-2 bg-red-50 data-[state=active]:bg-red-100">
               <Shield className="h-4 w-4 text-red-600" />
               <span className="font-semibold text-red-700">Security</span>
+            </TabsTrigger>
+            <TabsTrigger value="phase-validation" className="flex items-center gap-2 bg-blue-50 data-[state=active]:bg-blue-100">
+              <Search className="h-4 w-4 text-blue-600" />
+              <span className="font-semibold text-blue-700">15 Phases</span>
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -77,6 +84,10 @@ const FullSystemAdminPanel = () => {
           
           <TabsContent value="security-monitoring">
             <UnifiedSecurityMonitoringPanel />
+          </TabsContent>
+
+          <TabsContent value="phase-validation">
+            <Phase15ValidationPanel />
           </TabsContent>
 
           <TabsContent value="dashboard">
