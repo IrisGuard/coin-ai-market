@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Shield, Scan, Clock, FileText, Lock, Activity, GitBranch } from 'lucide-react';
 import { useRealMockDataScan, useRealMockDataProtectionStatus, useResolveViolation } from '@/hooks/useRealMockDataProtection';
 import { formatDistanceToNow } from 'date-fns';
+import ErrorDetectionPanel from './ErrorDetectionPanel';
 
 const UnifiedSecurityMonitoringPanel = () => {
   const productionDataScan = useRealMockDataScan();
@@ -157,6 +158,9 @@ const UnifiedSecurityMonitoringPanel = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Error Detection Panel - NEW */}
+      <ErrorDetectionPanel />
 
       {/* No Violations Card - Production Clean */}
       <Card>

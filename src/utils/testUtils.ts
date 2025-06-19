@@ -151,15 +151,74 @@ export const validateUserData = async (userId: string): Promise<boolean> => {
   return !!(data.id && data.name && data.email);
 };
 
-// Real coin data validation
+// Validate coin data structure
 export const validateCoinData = async (coinId: string): Promise<boolean> => {
   const { data, error } = await supabase
     .from('coins')
     .select('id, name, price, grade, year')
-    .eq('coinId', coinId)
+    .eq('id', coinId)
     .single();
   
   if (error || !data) return false;
   
   return !!(data.id && data.name && data.price && data.grade && data.year);
+};
+
+// Code error detection utilities
+export const detectCodeErrors = (filePath: string, content: string): Array<{
+  type: 'typescript' | 'syntax' | 'import' | 'deprecated';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  line: number;
+  message: string;
+  file: string;
+}> => {
+  const errors: Array<{
+    type: 'typescript' | 'syntax' | 'import' | 'deprecated';
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    line: number;
+    message: string;
+    file: string;
+  }> = [];
+
+  const lines = content.split('\n');
+  
+  lines.forEach((line, index) => {
+    const lineNumber = index + 1;
+    
+    // Check for unterminated regex
+    const regexMatches = line.match(/\/[^\/\n]*$/g);
+    if (regexMatches && !line.includes('//')) {
+      errors.push({
+        type: 'syntax',
+        severity: 'critical',
+        line: lineNumber,
+        message: 'Unterminated regular expression literal',
+        file: filePath
+      });
+    }
+    
+    // Check for unused imports
+    if (line.includes('import') && !content.includes(line.split(' ')[1]?.replace(/[{}]/g, ''))) {
+      errors.push({
+        type: 'import',
+        severity: 'medium',
+        line: lineNumber,
+        message: 'Unused import detected',
+        file: filePath
+      });
+    }
+    
+    // Check for deprecated React patterns
+    if (line.includes('React.FC') || line.includes('React.FunctionComponent')) {
+      errors.push({
+        type: 'deprecated',
+        severity: 'low',
+        line: lineNumber,
+        message: 'React.FC is deprecated, use function declaration instead',
+        file: filePath
+      });
+    }
+  });
+  
+  return errors;
 };
