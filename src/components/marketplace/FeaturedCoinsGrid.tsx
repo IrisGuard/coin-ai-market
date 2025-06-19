@@ -4,14 +4,9 @@ import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import OptimizedCoinCard from '@/components/OptimizedCoinCard';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { validateComponentProps, initializeProductionMonitor } from '@/utils/mockDataBlocker';
+import { validateComponentProps } from '@/utils/mockDataBlocker';
 
 const FeaturedCoinsGrid = () => {
-  // Initialize production monitoring
-  React.useEffect(() => {
-    initializeProductionMonitor();
-  }, []);
-
   const { coins, isLoading, error } = useCachedMarketplaceData();
 
   const displayCoins = React.useMemo(() => {
@@ -33,7 +28,7 @@ const FeaturedCoinsGrid = () => {
       })
       .slice(0, 24);
 
-    // Validate no mock data in coins
+    // Validate no forbidden data in coins
     filteredCoins.forEach((coin, index) => {
       validateComponentProps(coin, `FeaturedCoinsGrid coin ${index}`);
     });

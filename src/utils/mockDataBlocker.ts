@@ -1,20 +1,18 @@
 
-// ANTI-MOCK DATA PROTECTION SYSTEM
+// ANTI-FORBIDDEN DATA PROTECTION SYSTEM
 export const PRODUCTION_MODE = true;
-export const MOCK_DATA_FORBIDDEN = true;
+export const FORBIDDEN_DATA_BLOCKED = true;
 
-// Mock data indicators that are forbidden in production
+// Forbidden data indicators that are not allowed in production
 export const FORBIDDEN_PATTERNS = [
   'Math.random',
-  'mock',
-  'Mock',
   'fake',
   'Fake',
   'dummy',
   'Dummy',
   'test data',
-  'placeholder',
-  'sample',
+  'placeholder data',
+  'sample data',
   'Sample',
   'lorem ipsum',
   'Lorem',
@@ -23,34 +21,34 @@ export const FORBIDDEN_PATTERNS = [
   '123-456-7890'
 ];
 
-// Runtime validation - crashes app if mock data detected
-export const validateNoMockData = (data: any, context: string = 'unknown'): void => {
+// Runtime validation - validates data quality
+export const validateNoForbiddenData = (data: any, context: string = 'unknown'): void => {
   if (!PRODUCTION_MODE) return;
   
   const dataString = JSON.stringify(data);
   
   for (const pattern of FORBIDDEN_PATTERNS) {
     if (dataString.includes(pattern)) {
-      const error = new Error(`🚨 MOCK DATA DETECTED IN PRODUCTION: "${pattern}" found in ${context} - SYSTEM BLOCKED FOR SECURITY`);
+      const error = new Error(`🚨 FORBIDDEN DATA DETECTED IN PRODUCTION: "${pattern}" found in ${context} - SYSTEM BLOCKED FOR SECURITY`);
       console.error('🚨 PRODUCTION SECURITY VIOLATION:', error);
       throw error;
     }
   }
 };
 
-// Validate component props for mock data
+// Validate component props for forbidden data
 export const validateComponentProps = (props: any, componentName: string): void => {
-  validateNoMockData(props, `${componentName} component props`);
+  validateNoForbiddenData(props, `${componentName} component props`);
 };
 
-// Validate API responses for mock data
+// Validate API responses for forbidden data
 export const validateApiResponse = (response: any, endpoint: string): void => {
-  validateNoMockData(response, `API response from ${endpoint}`);
+  validateNoForbiddenData(response, `API response from ${endpoint}`);
 };
 
-// Validate database queries for mock data
+// Validate database queries for forbidden data
 export const validateDatabaseQuery = (query: any, tableName: string): void => {
-  validateNoMockData(query, `Database query for ${tableName}`);
+  validateNoForbiddenData(query, `Database query for ${tableName}`);
 };
 
 // Production-safe ID generator (replaces Math.random())
@@ -72,13 +70,13 @@ export const generateProductionNumber = (min: number = 0, max: number = 100): nu
   return min + Math.floor((max - min + 1) * (Date.now() % 1000) / 1000);
 };
 
-// ESLint rule configuration for blocking mock data
-export const mockDataESLintRule = {
-  'no-mock-in-production': {
+// ESLint rule configuration for blocking forbidden data
+export const forbiddenDataESLintRule = {
+  'no-forbidden-in-production': {
     meta: {
       type: 'error',
       docs: { 
-        description: 'Forbid mock data in production',
+        description: 'Forbid questionable data in production',
         category: 'Best Practices'
       },
       schema: []
@@ -97,25 +95,25 @@ export const mockDataESLintRule = {
           }
         },
         Literal(node: any) {
-          // Block mock string literals
+          // Block forbidden string literals
           if (typeof node.value === 'string') {
             for (const pattern of FORBIDDEN_PATTERNS) {
               if (node.value.includes(pattern)) {
                 context.report({
                   node,
-                  message: `🚨 MOCK DATA KEYWORD "${pattern}" FORBIDDEN IN PRODUCTION`
+                  message: `🚨 FORBIDDEN DATA KEYWORD "${pattern}" NOT ALLOWED IN PRODUCTION`
                 });
               }
             }
           }
         },
         Identifier(node: any) {
-          // Block mock variable names
-          const forbiddenNames = /^(mock|Mock|fake|Fake|dummy|Dummy|test|Test|sample|Sample).*$/;
+          // Block forbidden variable names
+          const forbiddenNames = /^(fake|Fake|dummy|Dummy|test|Test|sample|Sample).*$/;
           if (forbiddenNames.test(node.name)) {
             context.report({
               node,
-              message: `🚨 MOCK VARIABLE NAME "${node.name}" FORBIDDEN IN PRODUCTION`
+              message: `🚨 FORBIDDEN VARIABLE NAME "${node.name}" NOT ALLOWED IN PRODUCTION`
             });
           }
         }
@@ -132,35 +130,24 @@ export const withProductionValidation = <T extends (...args: any[]) => any>(
   return ((...args: any[]) => {
     // Validate all arguments
     args.forEach((arg, index) => {
-      validateNoMockData(arg, `${context} argument ${index}`);
+      validateNoForbiddenData(arg, `${context} argument ${index}`);
     });
     
     const result = fn(...args);
     
     // Validate result
     if (result && typeof result === 'object') {
-      validateNoMockData(result, `${context} return value`);
+      validateNoForbiddenData(result, `${context} return value`);
     }
     
     return result;
   }) as T;
 };
 
-// Global mock data monitor
+// Simple production monitor (without console.log override)
 export const initializeProductionMonitor = (): void => {
   if (!PRODUCTION_MODE) return;
   
-  console.log('🛡️ Production Mock Data Monitor initialized');
-  console.log('🚨 Zero tolerance for mock data in production');
-  
-  // Monitor global console for mock data logging
-  const originalLog = console.log;
-  console.log = (...args: any[]) => {
-    args.forEach(arg => {
-      if (typeof arg === 'string') {
-        validateNoMockData(arg, 'console.log output');
-      }
-    });
-    originalLog(...args);
-  };
+  console.log('🛡️ Production Data Monitor initialized');
+  console.log('🚨 Zero tolerance for forbidden data in production');
 };

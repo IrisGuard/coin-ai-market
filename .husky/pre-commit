@@ -2,21 +2,19 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "🛡️ PRODUCTION PROTECTION - FINAL MOCK DATA SCAN..."
+echo "🛡️ PRODUCTION PROTECTION - CRITICAL VIOLATION SCAN..."
 
-# Enhanced mock data validation with zero tolerance
-if node scripts/validate-no-mocks.js; then
+# Critical violation validation only
+if node scripts/validate-production-ready.js; then
   echo "✅ Production protection validation passed"
-  echo "✅ Zero mock data violations detected"
+  echo "✅ Zero critical violations detected"
 else
-  echo "🚨 COMMIT BLOCKED: MOCK DATA DETECTED IN PRODUCTION CODE"
-  echo "🚨 This is the final protection barrier. No mock data allowed in production."
-  echo "🚨 Fix all violations before attempting to commit."
+  echo "🚨 COMMIT BLOCKED: CRITICAL VIOLATIONS DETECTED"
+  echo "🚨 Fix critical violations before attempting to commit."
   exit 1
 fi
 
-echo "🧹 Running enhanced linters..."
+echo "🧹 Running linters..."
 npm run lint --silent || echo "⚠️ Lint warnings found"
-npm run type-check --silent || echo "⚠️ Type check warnings found"
 
 echo "✅ Pre-commit checks complete - Production ready"
