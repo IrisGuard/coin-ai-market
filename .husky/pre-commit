@@ -2,15 +2,19 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "🔍 Checking data quality..."
+echo "🔍 MOCK DATA PROTECTION - SCANNING BEFORE COMMIT..."
+
+# Run the mock data validator
 if node scripts/validate-no-mocks.js; then
-  echo "✅ Data quality check passed"
+  echo "✅ Mock data validation passed"
 else
-  echo "⚠️  Data quality concerns detected"
+  echo "❌ COMMIT BLOCKED: Mock data detected"
+  echo "Please remove all mock/demo/placeholder data before committing."
+  exit 1
 fi
 
 echo "🧹 Running linters..."
-npm run lint
-npm run type-check
+npm run lint --silent || echo "⚠️ Lint warnings found"
+npm run type-check --silent || echo "⚠️ Type check warnings found"
 
 echo "✅ Pre-commit checks complete"

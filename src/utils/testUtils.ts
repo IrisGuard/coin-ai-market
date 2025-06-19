@@ -35,8 +35,7 @@ export const measureRenderTime = async (renderFn: () => void): Promise<number> =
   const startTime = performance.now();
   renderFn();
   const endTime = performance.now();
-  const timeDiff = endTime - startTime;
-  return timeDiff;
+  return endTime - startTime;
 };
 
 // Mock intersection observer for testing
@@ -109,7 +108,7 @@ export const validateRealDataStructure = (data: any, requiredFields: string[]): 
   });
 };
 
-// Performance benchmark utilities using real timing instead of random numbers
+// Performance benchmark utilities using real timing
 export const benchmarkOperation = async (operation: () => Promise<any>, iterations = 1): Promise<number> => {
   const times: number[] = [];
   
@@ -121,8 +120,7 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
   }
 
   const totalTime = times.reduce((sum, time) => sum + time, 0);
-  const averageTime = totalTime / times.length;
-  return averageTime;
+  return totalTime / times.length;
 };
 
 // Real database testing utilities

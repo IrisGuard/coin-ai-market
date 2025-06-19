@@ -1,0 +1,16 @@
+
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🛡️ PRODUCTION PROTECTION - FINAL MOCK DATA SCAN..."
+
+# Final scan before push to production
+if node scripts/validate-no-mocks.js; then
+  echo "✅ Production protection validation passed"
+else
+  echo "🚨 PUSH BLOCKED: MOCK DATA DETECTED IN PRODUCTION CODE"
+  echo "This is the final protection barrier. No mock data allowed in production."
+  exit 1
+fi
+
+echo "✅ Push to production approved"
