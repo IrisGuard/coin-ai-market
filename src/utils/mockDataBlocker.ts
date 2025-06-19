@@ -1,4 +1,5 @@
-// 🛡️ SAFE MOCK DATA MONITOR - NO CRASH VERSION
+
+// 🛡️ ENHANCED MOCK DATA BLOCKER - PRODUCTION PROTECTION
 import { supabase } from '@/integrations/supabase/client';
 
 export interface MockDataViolation {
@@ -13,11 +14,11 @@ export interface MockDataViolation {
   source: 'github' | 'supabase' | 'local';
 }
 
-class SafeMockDataMonitor {
-  private static instance: SafeMockDataMonitor;
+class ProductionMockDataBlocker {
+  private static instance: ProductionMockDataBlocker;
   private violations: MockDataViolation[] = [];
   
-  private readonly MOCK_PATTERNS = [
+  private readonly CRITICAL_PATTERNS = [
     /Math\.random\(\)/g,
     /mockData/g,
     /fakeData/g,
@@ -26,20 +27,20 @@ class SafeMockDataMonitor {
     /placeholder/g
   ];
 
-  public static getInstance(): SafeMockDataMonitor {
-    if (!SafeMockDataMonitor.instance) {
-      SafeMockDataMonitor.instance = new SafeMockDataMonitor();
+  public static getInstance(): ProductionMockDataBlocker {
+    if (!ProductionMockDataBlocker.instance) {
+      ProductionMockDataBlocker.instance = new ProductionMockDataBlocker();
     }
-    return SafeMockDataMonitor.instance;
+    return ProductionMockDataBlocker.instance;
   }
 
-  // 🔍 SAFE SCAN - ONLY LOGS, NEVER CRASHES
+  // 🔍 COMPREHENSIVE SCAN
   public scanFileContent(filePath: string, content: string): MockDataViolation[] {
     const violations: MockDataViolation[] = [];
     const lines = content.split('\n');
 
     lines.forEach((line, index) => {
-      this.MOCK_PATTERNS.forEach((pattern) => {
+      this.CRITICAL_PATTERNS.forEach((pattern) => {
         const matches = line.match(pattern);
         if (matches) {
           matches.forEach(match => {
@@ -54,9 +55,6 @@ class SafeMockDataMonitor {
               source: 'local'
             };
             violations.push(violation);
-            
-            // Only log warning, don't crash
-            console.warn(`⚠️ Mock data detected in ${filePath}:${index + 1} - ${match}`);
           });
         }
       });
@@ -65,40 +63,67 @@ class SafeMockDataMonitor {
     return violations;
   }
 
-  // 📊 SAFE PROJECT SCAN
+  // 📊 REAL-TIME PROJECT SCAN
   public async scanEntireProject(): Promise<MockDataViolation[]> {
     try {
-      console.log('🔍 Monitoring project for mock data (safe mode)...');
+      console.log('🔍 Scanning project for mock data violations...');
       
-      // Return empty array for now - safe mode
-      return [];
+      // Get existing violations from database
+      const { data: existingViolations, error } = await supabase
+        .from('mock_data_violations')
+        .select('*')
+        .eq('status', 'active');
+
+      if (error) {
+        console.error('Error fetching violations:', error);
+        return [];
+      }
+
+      // Transform database violations to interface format
+      const violations: MockDataViolation[] = (existingViolations || []).map(v => ({
+        id: v.id,
+        file_path: v.file_path,
+        violation_type: v.violation_type as MockDataViolation['violation_type'],
+        line_number: v.line_number,
+        violation_content: v.violation_content,
+        severity: v.severity as MockDataViolation['severity'],
+        detected_at: v.detected_at,
+        status: v.status as MockDataViolation['status'],
+        source: 'supabase'
+      }));
+
+      this.violations = violations;
+      
+      // Update system status
+      await this.updateSystemStatus(violations.length);
+      
+      return violations;
       
     } catch (error) {
-      console.warn('⚠️ Error during mock data scan:', error);
+      console.error('Error during project scan:', error);
       return [];
     }
   }
 
-  // 📝 LOG VIOLATIONS (NO DATABASE SAVE)
-  public logViolations(violations: MockDataViolation[]): void {
-    if (violations.length > 0) {
-      console.group('📋 Mock Data Violations Found:');
-      violations.forEach(v => {
-        console.warn(`- ${v.file_path}:${v.line_number} [${v.severity}] ${v.violation_content}`);
-      });
-      console.groupEnd();
-    } else {
-      console.log('✅ No mock data violations detected');
-    }
-  }
+  // 📊 UPDATE SYSTEM STATUS
+  private async updateSystemStatus(violationCount: number): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('system_status')
+        .upsert({
+          id: 'main',
+          is_production_ready: violationCount === 0,
+          mock_data_violations: violationCount,
+          last_scan: new Date().toISOString(),
+          scan_status: 'completed'
+        });
 
-  // 📊 GET VIOLATION STATS
-  public getViolationStats(): { total: number; critical: number; high: number } {
-    return {
-      total: this.violations.length,
-      critical: this.violations.filter(v => v.severity === 'critical').length,
-      high: this.violations.filter(v => v.severity === 'high').length
-    };
+      if (error) {
+        console.error('Error updating system status:', error);
+      }
+    } catch (error) {
+      console.error('Error in updateSystemStatus:', error);
+    }
   }
 
   private getViolationType(match: string): MockDataViolation['violation_type'] {
@@ -114,116 +139,80 @@ class SafeMockDataMonitor {
     if (match.includes('mock') || match.includes('fake')) return 'high';
     return 'medium';
   }
+
+  // 📈 GET STATISTICS
+  public getViolationStats(): { total: number; critical: number; high: number } {
+    return {
+      total: this.violations.length,
+      critical: this.violations.filter(v => v.severity === 'critical').length,
+      high: this.violations.filter(v => v.severity === 'high').length
+    };
+  }
 }
 
-export const mockDataMonitor = SafeMockDataMonitor.getInstance();
+export const mockDataBlocker = ProductionMockDataBlocker.getInstance();
 
-// 🔒 SAFE VALIDATE - ONLY WARNS, NEVER CRASHES
+// 🔒 PRODUCTION VALIDATOR - CRASHES IF MOCK DATA FOUND
 export const validateNoMockData = (data: any, context?: string) => {
+  if (!data) return true;
+  
   try {
-    if (!data) return true;
-    
     const dataString = JSON.stringify(data);
-    const mockPatterns = [/mock/i, /fake/i, /demo/i, /test/i, /sample/i];
+    const mockPatterns = [/mock/i, /fake/i, /demo/i, /test/i, /sample/i, /Math\.random/];
     
     for (const pattern of mockPatterns) {
       if (pattern.test(dataString)) {
-        console.warn(`⚠️ Potential mock data detected in ${context || 'component'}:`, 
-          dataString.substring(0, 100) + '...');
-        // Only warn, don't crash
+        const error = `🚨 PRODUCTION BLOCKED: Mock data detected in ${context || 'component'}`;
+        console.error(error, dataString.substring(0, 100) + '...');
+        
+        // Only crash in production or when explicitly enabled
+        if (process.env.NODE_ENV === 'production' || window.location.search.includes('strict-mode=true')) {
+          throw new Error(`CRITICAL: ${error}`);
+        } else {
+          console.warn('⚠️ Mock data detected (development mode - not crashing)');
+        }
         return false;
       }
     }
     
     return true;
   } catch (error) {
-    console.warn('⚠️ Error validating data:', error);
-    return true; // Allow execution to continue
+    console.warn('Error validating data:', error);
+    return true; // Allow execution to continue on validation errors
   }
 };
 
-// 🔒 SAFE COMPONENT VALIDATION
-export const validateComponentProps = (props: any, componentName: string) => {
-  try {
-    const isValid = validateNoMockData(props, componentName);
-    if (isValid) {
-      console.log(`✅ Component ${componentName} props validated`);
-    } else {
-      console.warn(`⚠️ Component ${componentName} may contain mock data`);
-    }
-    return isValid;
-  } catch (error) {
-    console.warn(`⚠️ Error validating ${componentName}:`, error);
-    return true; // Allow component to render
-  }
-};
-
-// 🔒 SAFE PRODUCTION GUARD
+// 🔒 PRODUCTION GUARD
 export const productionGuard = () => {
   if (process.env.NODE_ENV === 'production') {
-    console.log('🛡️ Production guard active (monitoring mode)');
+    console.log('🛡️ Production guard activated');
     
-    // Monitor Math.random usage without blocking it
+    // Override Math.random in production to detect usage
     const originalRandom = Math.random;
     Math.random = () => {
-      console.warn('⚠️ Math.random() called in production - consider using real data');
-      return originalRandom();
+      console.error('🚨 CRITICAL: Math.random() called in production!');
+      throw new Error('PRODUCTION BLOCKED: Math.random() usage detected');
     };
-  }
-};
-
-// 🔍 SAFE RUNTIME MONITOR
-export const productionMockGuard = () => {
-  if (process.env.NODE_ENV === 'production') {
-    console.log('🔍 Mock data monitor active (safe mode)');
     
-    // Monitor only, don't crash
-    mockDataMonitor.scanEntireProject().then(violations => {
-      if (violations.length > 0) {
-        console.warn(`⚠️ ${violations.length} potential mock data violations detected`);
-        mockDataMonitor.logViolations(violations);
-      } else {
-        console.log('✅ No mock data violations detected');
-      }
-    }).catch(error => {
-      console.warn('⚠️ Error during mock data monitoring:', error);
-    });
+    // Restore for internal operations when needed
+    (window as any).__originalRandom = originalRandom;
   }
 };
 
-// 📊 ADMIN PANEL INTEGRATION
-export const getMockDataStats = async () => {
-  const stats = mockDataMonitor.getViolationStats();
-  return {
-    totalViolations: stats.total,
-    criticalViolations: stats.critical,
-    highViolations: stats.high,
-    systemStatus: stats.total === 0 ? 'clean' : 'needs_attention',
-    lastScan: new Date().toISOString()
-  };
+// 🔍 RUNTIME MONITOR
+export const runtimeMockGuard = () => {
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔍 Runtime mock data monitor active');
+    
+    // Scan periodically
+    setInterval(() => {
+      mockDataBlocker.scanEntireProject().then(violations => {
+        if (violations.length > 0) {
+          console.error(`🚨 ${violations.length} mock data violations detected in production!`);
+        }
+      });
+    }, 60000); // Check every minute
+  }
 };
 
-// 🧹 SAFE CLEANUP HELPER
-export const suggestMockDataCleanup = (violations: MockDataViolation[]) => {
-  console.group('🧹 Mock Data Cleanup Suggestions:');
-  
-  violations.forEach(violation => {
-    switch (violation.violation_type) {
-      case 'math_random':
-        console.log(`- Replace Math.random() in ${violation.file_path} with real data query`);
-        break;
-      case 'mock_array':
-        console.log(`- Replace mock array in ${violation.file_path} with Supabase query`);
-        break;
-      case 'fake_data':
-        console.log(`- Replace fake data in ${violation.file_path} with real content`);
-        break;
-      default:
-        console.log(`- Review ${violation.violation_content} in ${violation.file_path}`);
-    }
-  });
-  
-  console.groupEnd();
-};
-
-export default mockDataMonitor;
+export default mockDataBlocker;

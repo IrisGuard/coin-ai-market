@@ -1,7 +1,9 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { monitoringService } from '@/services/monitoringService';
 import { supabase } from '@/integrations/supabase/client';
+import { validateNoMockData } from '@/utils/mockDataBlocker';
 
 interface SystemStatus {
   overallHealth: 'healthy' | 'warning' | 'critical';
@@ -57,7 +59,7 @@ export const useRealTimeSystemStatus = (refreshInterval: number = 30000) => {
       
       setLastHealthCheck(new Date());
       
-      return {
+      const status: SystemStatus = {
         overallHealth,
         uptime: uptimeStats.uptime,
         responseTime: uptimeStats.avgResponseTime,
@@ -70,6 +72,11 @@ export const useRealTimeSystemStatus = (refreshInterval: number = 30000) => {
           disk: diskMetric?.metric_value || 0
         }
       };
+
+      // Validate no mock data in status
+      validateNoMockData(status, 'SystemStatus');
+
+      return status;
     },
     refetchInterval: isMonitoring ? refreshInterval : false,
     enabled: isMonitoring

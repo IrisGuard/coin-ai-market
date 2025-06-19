@@ -1,3 +1,6 @@
+
+import { validateNoMockData } from '@/utils/mockDataBlocker';
+
 export class PerformanceMetrics {
   private metrics: Map<string, number> = new Map();
   private observers: PerformanceObserver[] = [];
@@ -26,6 +29,10 @@ export class PerformanceMetrics {
     this.metrics.forEach((value, key) => {
       result[key] = value;
     });
+
+    // Validate no mock data in metrics
+    validateNoMockData(result, 'PerformanceMetrics');
+    
     return result;
   }
 
@@ -76,24 +83,34 @@ export class PerformanceMetrics {
   getMemoryUsage(): Record<string, number> | null {
     if ('memory' in performance) {
       const memory = (performance as any).memory;
-      return {
+      const usage = {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
         jsHeapSizeLimit: memory.jsHeapSizeLimit
       };
+
+      // Validate no mock data
+      validateNoMockData(usage, 'MemoryUsage');
+      
+      return usage;
     }
     return null;
   }
 
   // Generate performance report
   generateReport(): Record<string, any> {
-    return {
+    const report = {
       timestamp: new Date().toISOString(),
       metrics: this.getAllMetrics(),
       memory: this.getMemoryUsage(),
       navigation: this.getNavigationTiming(),
       resources: this.getResourceTiming()
     };
+
+    // Validate entire report for mock data
+    validateNoMockData(report, 'PerformanceReport');
+
+    return report;
   }
 
   private getNavigationTiming(): Record<string, number> {
@@ -153,7 +170,12 @@ export const measurePageLoadTime = (): number => {
   if (typeof window !== 'undefined' && performance.timing) {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (navigation) {
-      return navigation.loadEventEnd - navigation.fetchStart;
+      const loadTime = navigation.loadEventEnd - navigation.fetchStart;
+      
+      // Validate no mock data
+      validateNoMockData({ loadTime }, 'PageLoadTime');
+      
+      return loadTime;
     }
   }
   return 0;

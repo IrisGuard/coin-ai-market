@@ -1,3 +1,4 @@
+
 import { 
   extractUserStoreData, 
   analyzePriceConsistency, 
@@ -6,6 +7,7 @@ import {
   generateMarketplaceInsights 
 } from './marketplace';
 import { supabase } from '@/integrations/supabase/client';
+import { validateNoMockData } from '@/utils/mockDataBlocker';
 
 export const extractMarketPrices = (webResults: any[]) => {
   const prices = webResults
@@ -15,13 +17,18 @@ export const extractMarketPrices = (webResults: any[]) => {
   
   if (prices.length === 0) return { average: 0, range: { low: 0, high: 0 } };
   
-  return {
+  const priceData = {
     average: prices.reduce((sum, price) => sum + price, 0) / prices.length,
     range: {
       low: Math.min(...prices),
       high: Math.max(...prices)
     }
   };
+
+  // Validate no mock data
+  validateNoMockData(priceData, 'MarketPrices');
+  
+  return priceData;
 };
 
 export const extractTechnicalSpecs = (webResults: any[]) => {
@@ -44,6 +51,9 @@ export const extractTechnicalSpecs = (webResults: any[]) => {
       }
     }
   }
+
+  // Validate no mock data
+  validateNoMockData(specs, 'TechnicalSpecs');
   
   return specs;
 };
@@ -62,12 +72,15 @@ export const extractGradingData = (webResults: any[]) => {
       gradingData.ngc_number = result.extracted_data.grade;
     }
   }
+
+  // Validate no mock data
+  validateNoMockData(gradingData, 'GradingData');
   
   return gradingData;
 };
 
 export const extractPopulationData = (webResults: any[]) => {
-  return webResults
+  const populationData = webResults
     .filter(result => result.extracted_data?.population_higher !== undefined)
     .map(result => ({
       grade: result.extracted_data.grade,
@@ -75,10 +88,15 @@ export const extractPopulationData = (webResults: any[]) => {
       population_same: result.extracted_data.population_same,
       total_graded: result.extracted_data.total_graded
     }));
+
+  // Validate no mock data
+  validateNoMockData(populationData, 'PopulationData');
+
+  return populationData;
 };
 
 export const extractRecentSales = (webResults: any[]) => {
-  return webResults
+  const salesData = webResults
     .filter(result => result.price_data && result.auction_data)
     .map(result => ({
       price: result.price_data.current_price || result.price_data.realized_price,
@@ -88,10 +106,20 @@ export const extractRecentSales = (webResults: any[]) => {
     }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
+
+  // Validate no mock data
+  validateNoMockData(salesData, 'RecentSales');
+
+  return salesData;
 };
 
 export const extractDataSources = (webResults: any[]): string[] => {
-  return [...new Set(webResults.map(result => result.source_type))];
+  const sources = [...new Set(webResults.map(result => result.source_type))];
+
+  // Validate no mock data
+  validateNoMockData(sources, 'DataSources');
+
+  return sources;
 };
 
 export const calculateEnrichmentScore = (claudeResult: any, webResults: any[]): number => {
@@ -102,7 +130,12 @@ export const calculateEnrichmentScore = (claudeResult: any, webResults: any[]): 
   if (webResults.some(r => r.source_type === 'pcgs' || r.source_type === 'ngc')) score += 0.1;
   if (webResults.some(r => r.price_data && r.price_data.current_price)) score += 0.1;
   
-  return Math.min(1.0, score);
+  const finalScore = Math.min(1.0, score);
+
+  // Validate no mock data
+  validateNoMockData({ score: finalScore }, 'EnrichmentScore');
+
+  return finalScore;
 };
 
 export const extractMarketplaceIntelligence = async (coinData: any) => {
@@ -115,7 +148,7 @@ export const extractMarketplaceIntelligence = async (coinData: any) => {
     // Analyze the coin against marketplace patterns
     const insights = generateMarketplaceInsights(coinData, marketHistory);
     
-    return {
+    const intelligence = {
       marketplaceData: marketHistory,
       priceIntelligence: analyzePriceConsistency(coinData.estimated_value || 0, coinData, marketHistory),
       categoryValidation: validateCoinCategory(coinData.category || 'USA COINS', coinData, marketHistory),
@@ -124,6 +157,11 @@ export const extractMarketplaceIntelligence = async (coinData: any) => {
       overallConfidence: insights.overallConfidence,
       hasAdjustments: insights.recommendedAdjustments
     };
+
+    // Validate no mock data
+    validateNoMockData(intelligence, 'MarketplaceIntelligence');
+
+    return intelligence;
   } catch (error) {
     console.error('❌ Marketplace intelligence extraction failed:', error);
     return {
@@ -179,6 +217,9 @@ export const enhanceWithMarketplaceData = (claudeResult: any, webResults: any[],
   // Add marketplace insights
   enhanced.marketplace_insights = marketplaceIntelligence.insights;
   enhanced.marketplace_confidence = marketplaceIntelligence.overallConfidence;
+
+  // Validate no mock data in enhanced result
+  validateNoMockData(enhanced, 'EnhancedMarketplaceData');
   
   return enhanced;
 };
@@ -195,11 +236,16 @@ export const extractCoinIdentificationData = async (imageData: string, metadata?
       return null;
     }
 
-    return {
+    const identificationData = {
       identificationData: coinData || [],
       metadata: metadata || {},
       extractedAt: new Date().toISOString()
     };
+
+    // Validate no mock data
+    validateNoMockData(identificationData, 'CoinIdentificationData');
+
+    return identificationData;
   } catch (error) {
     console.error('Error in coin identification:', error);
     return null;

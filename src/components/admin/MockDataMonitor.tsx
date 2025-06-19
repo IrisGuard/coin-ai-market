@@ -3,20 +3,54 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, CheckCircle, Scan, Shield } from 'lucide-react';
-import { mockDataBlocker, validateNoMockData } from '@/utils/mockDataBlocker';
+import { AlertTriangle, CheckCircle, Scan, Shield, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { mockDataBlocker, validateNoMockData } from '@/utils/mockDataBlocker';
 
 const MockDataMonitor = () => {
-  const [violations, setViolations] = useState<any[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
-  const [systemStatus, setSystemStatus] = useState<'clean' | 'violations' | 'unknown'>('unknown');
 
-  useEffect(() => {
-    // Perform initial scan
-    performMockDataScan();
-  }, []);
+  // Fetch system status
+  const { data: systemStatus, refetch: refetchStatus } = useQuery({
+    queryKey: ['system-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('system_status')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching system status:', error);
+        return { is_production_ready: false, mock_data_violations: 0, scan_status: 'unknown' };
+      }
+
+      return data;
+    }
+  });
+
+  // Fetch violations
+  const { data: violations = [], refetch: refetchViolations } = useQuery({
+    queryKey: ['mock-data-violations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mock_data_violations')
+        .select('*')
+        .eq('status', 'active')
+        .order('detected_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching violations:', error);
+        return [];
+      }
+
+      return data || [];
+    }
+  });
 
   const performMockDataScan = async () => {
     setIsScanning(true);
@@ -25,66 +59,64 @@ const MockDataMonitor = () => {
       
       // Real-time scan implementation
       const scanResults = await mockDataBlocker.scanEntireProject();
-      setViolations(scanResults);
       setLastScanTime(new Date());
-      
-      if (scanResults.length > 0) {
-        setSystemStatus('violations');
-        console.error(`🚨 ${scanResults.length} mock data violations found!`);
-      } else {
-        setSystemStatus('clean');
-        console.log('✅ System is 100% clean - no mock data detected');
-      }
       
       // Validate current component data
       try {
-        validateNoMockData({ component: 'MockDataMonitor', scanResults });
+        validateNoMockData({ component: 'MockDataMonitor', scanResults }, 'MockDataMonitor');
         console.log('✅ Component validation passed');
       } catch (error) {
         console.error('❌ Component validation failed:', error);
       }
       
+      // Refresh data
+      await refetchStatus();
+      await refetchViolations();
+      
+      if (scanResults.length > 0) {
+        console.error(`🚨 ${scanResults.length} mock data violations found!`);
+      } else {
+        console.log('✅ System is 100% clean - no mock data detected');
+      }
+      
     } catch (error) {
       console.error('❌ Mock data scan failed:', error);
-      setSystemStatus('violations');
     } finally {
       setIsScanning(false);
     }
   };
 
   const getStatusColor = () => {
-    switch (systemStatus) {
-      case 'clean': return 'text-green-600';
-      case 'violations': return 'text-red-600';
-      default: return 'text-yellow-600';
-    }
+    if (!systemStatus) return 'text-yellow-600';
+    return systemStatus.is_production_ready ? 'text-green-600' : 'text-red-600';
   };
 
   const getStatusIcon = () => {
-    switch (systemStatus) {
-      case 'clean': return <CheckCircle className="h-12 w-12 text-green-600" />;
-      case 'violations': return <AlertTriangle className="h-12 w-12 text-red-600" />;
-      default: return <Shield className="h-12 w-12 text-yellow-600" />;
-    }
+    if (!systemStatus) return <AlertCircle className="h-12 w-12 text-yellow-600" />;
+    return systemStatus.is_production_ready ? 
+      <CheckCircle className="h-12 w-12 text-green-600" /> : 
+      <AlertTriangle className="h-12 w-12 text-red-600" />;
   };
 
   const getStatusMessage = () => {
-    switch (systemStatus) {
-      case 'clean': return 'SYSTEM CLEAN - 100% PRODUCTION READY';
-      case 'violations': return `${violations.length} VIOLATIONS DETECTED - PRODUCTION BLOCKED`;
-      default: return 'SCANNING REQUIRED';
-    }
+    if (!systemStatus) return 'SYSTEM STATUS UNKNOWN';
+    return systemStatus.is_production_ready ? 
+      'SYSTEM CLEAN - 100% PRODUCTION READY' : 
+      `${systemStatus.mock_data_violations} VIOLATIONS DETECTED - PRODUCTION BLOCKED`;
   };
+
+  const criticalViolations = violations.filter(v => v.severity === 'critical');
+  const highViolations = violations.filter(v => v.severity === 'high');
 
   return (
     <div className="space-y-6">
-      <Card className={`border-2 ${systemStatus === 'clean' ? 'border-green-200' : 'border-red-200'}`}>
+      <Card className={`border-2 ${systemStatus?.is_production_ready ? 'border-green-200' : 'border-red-200'}`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-6 h-6" />
             🚨 Mock Data Protection System
-            <Badge variant={systemStatus === 'clean' ? 'default' : 'destructive'}>
-              {systemStatus === 'clean' ? 'SECURE' : 'ALERT'}
+            <Badge variant={systemStatus?.is_production_ready ? 'default' : 'destructive'}>
+              {systemStatus?.is_production_ready ? 'SECURE' : 'ALERT'}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -97,12 +129,14 @@ const MockDataMonitor = () => {
             <p className="text-gray-600 mt-2">
               {lastScanTime 
                 ? `Last scan: ${lastScanTime.toLocaleString()}`
+                : systemStatus?.last_scan
+                ? `Last scan: ${new Date(systemStatus.last_scan).toLocaleString()}`
                 : 'No scan performed yet'
               }
             </p>
           </div>
 
-          {systemStatus === 'violations' && violations.length > 0 && (
+          {violations.length > 0 && (
             <Alert className="border-red-300 bg-red-50 mt-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
@@ -114,10 +148,15 @@ const MockDataMonitor = () => {
                 </div>
                 <div className="mt-3 space-y-2">
                   {violations.slice(0, 5).map((violation, index) => (
-                    <div key={index} className="text-sm bg-white p-2 rounded border">
-                      <strong>{violation.violation_type}</strong> in {violation.file_path}:{violation.line_number}
-                      <br />
-                      <code className="text-xs">{violation.violation_content}</code>
+                    <div key={violation.id || index} className="text-sm bg-white p-2 rounded border">
+                      <div className="flex items-center justify-between">
+                        <strong>{violation.violation_type}</strong>
+                        <Badge variant="destructive">{violation.severity}</Badge>
+                      </div>
+                      <div className="text-gray-600">
+                        {violation.file_path}:{violation.line_number}
+                      </div>
+                      <code className="text-xs text-red-600">{violation.violation_content}</code>
                     </div>
                   ))}
                   {violations.length > 5 && (
@@ -130,7 +169,7 @@ const MockDataMonitor = () => {
             </Alert>
           )}
 
-          {systemStatus === 'clean' && (
+          {systemStatus?.is_production_ready && (
             <Alert className="border-green-300 bg-green-50 mt-6">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
@@ -148,7 +187,7 @@ const MockDataMonitor = () => {
             onClick={performMockDataScan} 
             disabled={isScanning}
             className="w-full mt-6"
-            variant={systemStatus === 'violations' ? "destructive" : "default"}
+            variant={violations.length > 0 ? "destructive" : "default"}
           >
             {isScanning ? (
               <>
@@ -164,24 +203,30 @@ const MockDataMonitor = () => {
           </Button>
 
           {/* Production Status Summary */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t">
+          <div className="grid grid-cols-4 gap-4 mt-6 pt-4 border-t">
             <div className="text-center">
               <div className={`text-2xl font-bold ${getStatusColor()}`}>
-                {systemStatus === 'clean' ? '0' : violations.length}
+                {violations.length}
               </div>
-              <div className="text-xs text-gray-500">Violations</div>
+              <div className="text-xs text-gray-500">Total Violations</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl font-bold ${systemStatus === 'clean' ? 'text-green-600' : 'text-red-600'}`}>
-                {systemStatus === 'clean' ? '100%' : '0%'}
+              <div className="text-2xl font-bold text-red-600">
+                {criticalViolations.length}
+              </div>
+              <div className="text-xs text-gray-500">Critical</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {highViolations.length}
+              </div>
+              <div className="text-xs text-gray-500">High Priority</div>
+            </div>
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${systemStatus?.is_production_ready ? 'text-green-600' : 'text-red-600'}`}>
+                {systemStatus?.is_production_ready ? '✓' : '✗'}
               </div>
               <div className="text-xs text-gray-500">Production Ready</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {lastScanTime ? '✓' : '?'}
-              </div>
-              <div className="text-xs text-gray-500">Last Scan</div>
             </div>
           </div>
         </CardContent>
