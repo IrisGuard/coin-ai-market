@@ -65,17 +65,16 @@ export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
 
-// Validate component props
+// Validate component props - rewritten to avoid regex literal error
 export const validateProps = (component: any, expectedProps: Record<string, any>) => {
   const errors: string[] = [];
   
-  Object.keys(expectedProps).forEach(key => {
-    const expectedValue = expectedProps[key];
-    const actualValue = component.props[key];
+  Object.keys(expectedProps).forEach(propKey => {
+    const expectedVal = expectedProps[propKey];
+    const actualVal = component.props[propKey];
     
-    if (actualValue !== expectedValue) {
-      const message = 'Expected ' + key + ' to be ' + String(expectedValue) + ', got ' + String(actualValue);
-      errors.push(message);
+    if (actualVal !== expectedVal) {
+      errors.push(`Expected ${propKey} to be ${String(expectedVal)}, got ${String(actualVal)}`);
     }
   });
   
