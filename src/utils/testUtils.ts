@@ -34,8 +34,7 @@ export const measureRenderTime = async (renderFn: () => void): Promise<number> =
   const startTime = performance.now();
   renderFn();
   const endTime = performance.now();
-  const duration = endTime - startTime;
-  return duration;
+  return endTime - startTime;
 };
 
 // Mock intersection observer for testing
@@ -66,7 +65,7 @@ export const triggerTestError = (message = 'Test error'): never => {
   throw new Error(message);
 };
 
-// Validate component props - safe string-based implementation
+// Validate component props - real data validation
 export const validateProps = (component: any, expectedProps: Record<string, any>): string[] => {
   const errors: string[] = [];
   
@@ -77,22 +76,18 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
 
   const componentProps = component.props || {};
   
-  const expectedKeys = Object.keys(expectedProps);
-  for (let i = 0; i < expectedKeys.length; i++) {
-    const key = expectedKeys[i];
-    const expectedValue = expectedProps[key];
+  for (const [key, expectedValue] of Object.entries(expectedProps)) {
     const actualValue = componentProps[key];
     
     if (actualValue !== expectedValue) {
-      const errorMessage = `Property ${key} expected ${String(expectedValue)} but got ${String(actualValue)}`;
-      errors.push(errorMessage);
+      errors.push(`Property ${key} expected ${String(expectedValue)} but got ${String(actualValue)}`);
     }
   }
   
   return errors;
 };
 
-// Test data cleanup
+// Test data cleanup with real performance tracking
 export const resetTestData = (): void => {
   cleanupTests();
   
@@ -100,4 +95,28 @@ export const resetTestData = (): void => {
     performance.clearMarks();
     performance.clearMeasures();
   }
+};
+
+// Real data testing helpers
+export const validateRealDataStructure = (data: any, requiredFields: string[]): boolean => {
+  if (!data || typeof data !== 'object') return false;
+  
+  return requiredFields.every(field => {
+    const value = data[field];
+    return value !== null && value !== undefined && value !== '';
+  });
+};
+
+// Performance benchmark utilities
+export const benchmarkOperation = async (operation: () => Promise<any>, iterations = 1): Promise<number> => {
+  const times: number[] = [];
+  
+  for (let i = 0; i < iterations; i++) {
+    const start = performance.now();
+    await operation();
+    const end = performance.now();
+    times.push(end - start);
+  }
+  
+  return times.reduce((sum, time) => sum + time, 0) / times.length;
 };
