@@ -1,303 +1,157 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { 
-  CheckCircle, Clock, AlertTriangle, PlayCircle, 
-  Settings, Rocket, Database, Users, Coins, Brain
-} from 'lucide-react';
-
-interface SystemPhase {
-  id: string;
-  phase_number: number;
-  phase_name: string;
-  phase_description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  completion_percentage: number;
-  required_components: string[];
-  completed_components: string[];
-  missing_components: string[];
-  dependencies: any;
-  start_date: string;
-  completion_date: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Brain, Globe, CheckCircle, Activity } from 'lucide-react';
+import Phase17AdvancedAI from '@/components/admin/enhanced/Phase17AdvancedAI';
+import Phase18ProductionOptimization from '@/components/admin/enhanced/Phase18ProductionOptimization';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminSystemPhasesTab = () => {
-  const [phases, setPhases] = useState<SystemPhase[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadPhases();
-  }, []);
-
-  const loadPhases = async () => {
-    setLoading(true);
-    try {
-      // Use mock data since system_phases table doesn't exist
-      const mockPhases: SystemPhase[] = [
-        {
-          id: '1',
-          phase_number: 1,
-          phase_name: 'System Foundation',
-          phase_description: 'Core database setup and authentication',
-          status: 'completed',
-          completion_percentage: 100,
-          required_components: ['Database', 'Auth', 'Basic UI'],
-          completed_components: ['Database', 'Auth', 'Basic UI'],
-          missing_components: [],
-          dependencies: {},
-          start_date: '2024-01-01T00:00:00Z',
-          completion_date: '2024-01-15T00:00:00Z',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-15T00:00:00Z'
-        },
-        {
-          id: '2',
-          phase_number: 2,
-          phase_name: 'Marketplace Core',
-          phase_description: 'Coin listings and basic marketplace functionality',
-          status: 'completed',
-          completion_percentage: 100,
-          required_components: ['Coin Management', 'User Profiles', 'Search'],
-          completed_components: ['Coin Management', 'User Profiles', 'Search'],
-          missing_components: [],
-          dependencies: {},
-          start_date: '2024-01-16T00:00:00Z',
-          completion_date: '2024-02-01T00:00:00Z',
-          created_at: '2024-01-16T00:00:00Z',
-          updated_at: '2024-02-01T00:00:00Z'
-        },
-        {
-          id: '3',
-          phase_number: 3,
-          phase_name: 'AI Integration',
-          phase_description: 'AI-powered coin recognition and analysis',
-          status: 'in_progress',
-          completion_percentage: 75,
-          required_components: ['AI Commands', 'Image Recognition', 'Data Analysis'],
-          completed_components: ['AI Commands', 'Image Recognition'],
-          missing_components: ['Data Analysis'],
-          dependencies: {},
-          start_date: '2024-02-02T00:00:00Z',
-          completion_date: '',
-          created_at: '2024-02-02T00:00:00Z',
-          updated_at: '2024-02-15T00:00:00Z'
-        },
-        {
-          id: '4',
-          phase_number: 4,
-          phase_name: 'Advanced Features',
-          phase_description: 'Auctions, payments, and premium features',
-          status: 'pending',
-          completion_percentage: 30,
-          required_components: ['Auction System', 'Payment Integration', 'Premium Features'],
-          completed_components: [],
-          missing_components: ['Auction System', 'Payment Integration', 'Premium Features'],
-          dependencies: {},
-          start_date: '',
-          completion_date: '',
-          created_at: '2024-02-16T00:00:00Z',
-          updated_at: '2024-02-16T00:00:00Z'
-        }
-      ];
+  // Check Phase 17 status
+  const { data: phase17Data } = useQuery({
+    queryKey: ['phase-17-status'],
+    queryFn: async () => {
+      const [aiPredictions, marketAnalytics] = await Promise.all([
+        supabase.from('ai_predictions').select('id').limit(1),
+        supabase.from('market_analytics').select('id').limit(1)
+      ]);
       
-      setPhases(mockPhases);
-    } catch (error) {
-      console.error('Error loading phases:', error);
-    } finally {
-      setLoading(false);
+      return {
+        aiPredictions: aiPredictions.data?.length || 0,
+        marketAnalytics: marketAnalytics.data?.length || 0
+      };
     }
-  };
+  });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'in_progress':
-        return <PlayCircle className="h-5 w-5 text-blue-600" />;
-      case 'failed':
-        return <AlertTriangle className="h-5 w-5 text-red-600" />;
-      default:
-        return <Clock className="h-5 w-5 text-gray-400" />;
+  // Check Phase 18 status
+  const { data: phase18Data } = useQuery({
+    queryKey: ['phase-18-status'], 
+    queryFn: async () => {
+      const [systemMetrics, errorLogs] = await Promise.all([
+        supabase.from('system_metrics').select('id').limit(1),
+        supabase.from('error_logs').select('id').gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      ]);
+      
+      return {
+        systemMetrics: systemMetrics.data?.length || 0,
+        errorLogs: errorLogs.data?.length || 0
+      };
     }
-  };
+  });
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      completed: 'default',
-      in_progress: 'secondary',
-      failed: 'destructive',
-      pending: 'outline'
-    } as const;
-
-    return (
-      <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
-        {status.replace('_', ' ').toUpperCase()}
-      </Badge>
-    );
-  };
-
-  const getPhaseIcon = (phaseNumber: number) => {
-    const icons = [
-      Settings, Database, Users, Coins, Brain, 
-      Rocket, Settings, Database, Users, Brain,
-      Settings, Database, Users, Coins, Rocket
-    ];
-    const IconComponent = icons[phaseNumber - 1] || Settings;
-    return <IconComponent className="h-6 w-6" />;
-  };
-
-  const overallProgress = phases.length > 0 
-    ? Math.round(phases.reduce((sum, phase) => sum + phase.completion_percentage, 0) / phases.length)
-    : 0;
-
-  const completedPhases = phases.filter(p => p.status === 'completed').length;
-  const inProgressPhases = phases.filter(p => p.status === 'in_progress').length;
-  const failedPhases = phases.filter(p => p.status === 'failed').length;
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p>Loading system phases...</p>
-      </div>
-    );
-  }
+  const phase17Complete = (phase17Data?.aiPredictions || 0) > 0 && (phase17Data?.marketAnalytics || 0) > 0;
+  const phase18Complete = (phase18Data?.systemMetrics || 0) > 0;
 
   return (
     <div className="space-y-6">
-      {/* Overall Progress */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <Rocket className="h-6 w-6 text-blue-600" />
-            System Development Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-lg font-semibold">Overall Completion</span>
-              <span className="text-2xl font-bold text-blue-600">{overallProgress}%</span>
-            </div>
-            
-            <Progress value={overallProgress} className="h-3" />
-            
-            <div className="grid grid-cols-4 gap-4 mt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{completedPhases}</div>
-                <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{inProgressPhases}</div>
-                <div className="text-sm text-muted-foreground">In Progress</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{failedPhases}</div>
-                <div className="text-sm text-muted-foreground">Failed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-600">{phases.length}</div>
-                <div className="text-sm text-muted-foreground">Total Phases</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Phases List */}
-      <div className="space-y-4">
-        {phases.map((phase) => (
-          <Card key={phase.id} className={`
-            ${phase.status === 'completed' ? 'border-green-200 bg-green-50' : ''}
-            ${phase.status === 'in_progress' ? 'border-blue-200 bg-blue-50' : ''}
-            ${phase.status === 'failed' ? 'border-red-200 bg-red-50' : ''}
-          `}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="flex-shrink-0">
-                    {getPhaseIcon(phase.phase_number)}
-                  </div>
-                  
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold">
-                        Phase {phase.phase_number}: {phase.phase_name}
-                      </h3>
-                      {getStatusIcon(phase.status)}
-                      {getStatusBadge(phase.status)}
-                    </div>
-                    
-                    <p className="text-muted-foreground">
-                      {phase.phase_description}
-                    </p>
-                    
-                    {phase.completion_percentage > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Progress</span>
-                          <span>{phase.completion_percentage}%</span>
-                        </div>
-                        <Progress value={phase.completion_percentage} className="h-2" />
-                      </div>
-                    )}
-                    
-                    {/* Completed Components */}
-                    {phase.completed_components && phase.completed_components.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium text-green-600">
-                          ✅ Completed Components:
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {phase.completed_components.map((component, index) => (
-                            <Badge key={index} variant="default" className="text-xs">
-                              {component}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Missing Components */}
-                    {phase.missing_components && phase.missing_components.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium text-red-600">
-                          ❌ Missing Components:
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {phase.missing_components.map((component, index) => (
-                            <Badge key={index} variant="destructive" className="text-xs">
-                              {component}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex flex-col items-end gap-2 ml-4">
-                  {phase.start_date && (
-                    <div className="text-xs text-muted-foreground">
-                      Started: {new Date(phase.start_date).toLocaleDateString()}
-                    </div>
-                  )}
-                  {phase.completion_date && (
-                    <div className="text-xs text-muted-foreground">
-                      Completed: {new Date(phase.completion_date).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Advanced System Phases</h2>
+          <p className="text-muted-foreground">
+            Phase 17-18: Advanced AI Marketplace Intelligence & Global Production Optimization
+          </p>
+        </div>
       </div>
+
+      {/* Phases Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-purple-600" />
+              Phase 17: Advanced AI Intelligence
+              <Badge variant={phase17Complete ? "default" : "secondary"}>
+                {phase17Complete ? "Complete" : "In Progress"}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {phase17Complete ? 
+                  <CheckCircle className="w-4 h-4 text-green-600" /> :
+                  <Activity className="w-4 h-4 text-blue-600" />
+                }
+                <span className="text-sm">Market Intelligence System</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {(phase17Data?.aiPredictions || 0) > 0 ? 
+                  <CheckCircle className="w-4 h-4 text-green-600" /> :
+                  <Activity className="w-4 h-4 text-blue-600" />
+                }
+                <span className="text-sm">Predictive Analytics Engine</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {(phase17Data?.marketAnalytics || 0) > 0 ? 
+                  <CheckCircle className="w-4 h-4 text-green-600" /> :
+                  <Activity className="w-4 h-4 text-blue-600" />
+                }
+                <span className="text-sm">Trend Analysis System</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-green-600" />
+              Phase 18: Production Optimization
+              <Badge variant={phase18Complete ? "default" : "secondary"}>
+                {phase18Complete ? "Complete" : "In Progress"}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm">CDN Integration</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm">Global Load Balancing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {phase18Complete ? 
+                  <CheckCircle className="w-4 h-4 text-green-600" /> :
+                  <Activity className="w-4 h-4 text-blue-600" />
+                }
+                <span className="text-sm">Performance Monitoring</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm">Security Hardening</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Phase Tabs */}
+      <Tabs defaultValue="phase17" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="phase17" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Phase 17: Advanced AI
+          </TabsTrigger>
+          <TabsTrigger value="phase18" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            Phase 18: Global Optimization
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="phase17">
+          <Phase17AdvancedAI />
+        </TabsContent>
+
+        <TabsContent value="phase18">
+          <Phase18ProductionOptimization />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -1,1 +1,46 @@
+
 project_id = "wdgnllgbfvjgurbqhfqb"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+port = 54327
+
+[auth]
+enabled = true
+port = 54328
+
+[edge_functions]
+enabled = true
+port = 54329
+
+[functions.market-intelligence-engine]
+verify_jwt = true
+
+[functions.predictive-analytics-processor]
+verify_jwt = true
+
+[functions.trend-analysis-generator]
+verify_jwt = true
+
+[functions.ai-source-discovery]
+verify_jwt = true
