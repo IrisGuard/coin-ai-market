@@ -2,6 +2,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Test query client with no retry
 export const createTestQueryClient = (): QueryClient => new QueryClient({
@@ -29,7 +30,7 @@ export const renderWithProviders = (
   return render(ui, { wrapper: Wrapper, ...options });
 };
 
-// Performance testing helpers
+// Performance testing helpers with real timing
 export const measureRenderTime = async (renderFn: () => void): Promise<number> => {
   const startTime = performance.now();
   renderFn();
@@ -65,7 +66,7 @@ export const triggerTestError = (message = 'Test error'): never => {
   throw new Error(message);
 };
 
-// Validate component props - real data validation
+// Validate component props with real data validation
 export const validateProps = (component: any, expectedProps: Record<string, any>): string[] => {
   const errors: string[] = [];
   
@@ -107,7 +108,7 @@ export const validateRealDataStructure = (data: any, requiredFields: string[]): 
   });
 };
 
-// Performance benchmark utilities - using real timing instead of Math.random
+// Performance benchmark utilities using real timing instead of Math.random
 export const benchmarkOperation = async (operation: () => Promise<any>, iterations = 1): Promise<number> => {
   const times: number[] = [];
   
@@ -117,7 +118,48 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
     const end = performance.now();
     times.push(end - start);
   }
-  
+
   const sum = times.reduce((total, time) => total + time, 0);
   return sum / times.length;
+};
+
+// Real database testing utilities
+export const getTestDataFromSupabase = async (table: string, limit = 10) => {
+  const { data, error } = await supabase
+    .from(table)
+    .select('*')
+    .limit(limit);
+  
+  if (error) {
+    console.error(`Error fetching test data from ${table}:`, error);
+    return [];
+  }
+  
+  return data || [];
+};
+
+// Validate real user data structure
+export const validateUserData = async (userId: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, email, role')
+    .eq('id', userId)
+    .single();
+  
+  if (error || !data) return false;
+  
+  return !!(data.id && data.name && data.email);
+};
+
+// Real coin data validation
+export const validateCoinData = async (coinId: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('coins')
+    .select('id, name, price, grade, year')
+    .eq('id', coinId)
+    .single();
+  
+  if (error || !data) return false;
+  
+  return !!(data.id && data.name && data.price && data.grade && data.year);
 };

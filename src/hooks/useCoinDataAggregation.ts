@@ -45,40 +45,46 @@ export const useCoinDataAggregation = () => {
   return useQuery({
     queryKey: ['coin-data-aggregation'],
     queryFn: async (): Promise<AggregatedCoinData> => {
-      // Get all coins with basic data
+      // Get all coins with real data from Supabase
       const { data: allCoins, error } = await supabase
         .from('coins')
         .select('*');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching coins for aggregation:', error);
+        throw error;
+      }
 
       const coins = allCoins || [];
-      const verifiedCoins = coins.filter(coin => coin.authentication_status === 'verified');
-
-      // Calculate basic metrics
       const totalCoins = coins.length;
-      const verifiedCount = verifiedCoins.length;
-      const averagePrice = verifiedCoins.length > 0 
-        ? verifiedCoins.reduce((sum, coin) => sum + (coin.price || 0), 0) / verifiedCoins.length 
+      const verifiedCoins = coins.filter(coin => coin.authentication_status === 'verified').length;
+      
+      // Calculate real average price
+      const validPrices = coins.filter(coin => coin.price && coin.price > 0);
+      const averagePrice = validPrices.length > 0 
+        ? validPrices.reduce((sum, coin) => sum + coin.price, 0) / validPrices.length 
         : 0;
 
-      // Price ranges
+      // Real price ranges calculation
       const priceRanges = {
-        under100: verifiedCoins.filter(coin => (coin.price || 0) < 100).length,
-        between100and1000: verifiedCoins.filter(coin => (coin.price || 0) >= 100 && (coin.price || 0) < 1000).length,
-        between1000and10000: verifiedCoins.filter(coin => (coin.price || 0) >= 1000 && (coin.price || 0) < 10000).length,
-        above10000: verifiedCoins.filter(coin => (coin.price || 0) >= 10000).length
+        under100: coins.filter(coin => coin.price && coin.price < 100).length,
+        between100and1000: coins.filter(coin => coin.price && coin.price >= 100 && coin.price < 1000).length,
+        between1000and10000: coins.filter(coin => coin.price && coin.price >= 1000 && coin.price < 10000).length,
+        above10000: coins.filter(coin => coin.price && coin.price >= 10000).length,
       };
 
-      // Category breakdown
+      // Real category breakdown
       const categoryMap = new Map<string, { count: number; totalPrice: number }>();
-      verifiedCoins.forEach(coin => {
+      coins.forEach(coin => {
         const category = coin.category || 'unclassified';
-        const current = categoryMap.get(category) || { count: 0, totalPrice: 0 };
-        categoryMap.set(category, {
-          count: current.count + 1,
-          totalPrice: current.totalPrice + (coin.price || 0)
-        });
+        if (!categoryMap.has(category)) {
+          categoryMap.set(category, { count: 0, totalPrice: 0 });
+        }
+        const data = categoryMap.get(category)!;
+        data.count++;
+        if (coin.price) {
+          data.totalPrice += coin.price;
+        }
       });
 
       const categoryBreakdown = Array.from(categoryMap.entries()).map(([category, data]) => ({
@@ -87,9 +93,9 @@ export const useCoinDataAggregation = () => {
         avgPrice: data.count > 0 ? data.totalPrice / data.count : 0
       }));
 
-      // Rarity distribution
+      // Real rarity distribution
       const rarityMap = new Map<string, number>();
-      verifiedCoins.forEach(coin => {
+      coins.forEach(coin => {
         const rarity = coin.rarity || 'unknown';
         rarityMap.set(rarity, (rarityMap.get(rarity) || 0) + 1);
       });
@@ -97,12 +103,12 @@ export const useCoinDataAggregation = () => {
       const rarityDistribution = Array.from(rarityMap.entries()).map(([rarity, count]) => ({
         rarity,
         count,
-        percentage: verifiedCoins.length > 0 ? (count / verifiedCoins.length) * 100 : 0
+        percentage: totalCoins > 0 ? (count / totalCoins) * 100 : 0
       }));
 
-      // Grade distribution
+      // Real grade distribution
       const gradeMap = new Map<string, number>();
-      verifiedCoins.forEach(coin => {
+      coins.forEach(coin => {
         const grade = coin.grade || 'ungraded';
         gradeMap.set(grade, (gradeMap.get(grade) || 0) + 1);
       });
@@ -112,65 +118,83 @@ export const useCoinDataAggregation = () => {
         count
       }));
 
-      // Country breakdown
+      // Real country breakdown
       const countryMap = new Map<string, number>();
-      verifiedCoins.forEach(coin => {
+      coins.forEach(coin => {
         const country = coin.country || 'unknown';
         countryMap.set(country, (countryMap.get(country) || 0) + 1);
       });
 
-      const countryBreakdown = Array.from(countryMap.entries())
-        .map(([country, count]) => ({ country, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+      const countryBreakdown = Array.from(countryMap.entries()).map(([country, count]) => ({
+        country,
+        count
+      })).sort((a, b) => b.count - a.count).slice(0, 10);
 
-      // Year/decade distribution
+      // Real year distribution by decades
       const decadeMap = new Map<string, number>();
-      verifiedCoins.forEach(coin => {
+      coins.forEach(coin => {
         if (coin.year) {
           const decade = `${Math.floor(coin.year / 10) * 10}s`;
           decadeMap.set(decade, (decadeMap.get(decade) || 0) + 1);
         }
       });
 
-      const yearDistribution = Array.from(decadeMap.entries())
-        .map(([decade, count]) => ({ decade, count }))
-        .sort((a, b) => a.decade.localeCompare(b.decade));
+      const yearDistribution = Array.from(decadeMap.entries()).map(([decade, count]) => ({
+        decade,
+        count
+      })).sort((a, b) => b.count - a.count);
 
-      // Recent trends
+      // Real recent trends
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const newListingsLast7Days = coins.filter(coin => 
-        new Date(coin.created_at) > sevenDaysAgo
-      ).length;
+      const recentCoins = coins.filter(coin => 
+        coin.created_at && new Date(coin.created_at) >= sevenDaysAgo
+      );
 
-      // Most active category (by recent listings)
       const recentCategoryMap = new Map<string, number>();
-      coins.filter(coin => new Date(coin.created_at) > sevenDaysAgo).forEach(coin => {
+      recentCoins.forEach(coin => {
         const category = coin.category || 'unclassified';
         recentCategoryMap.set(category, (recentCategoryMap.get(category) || 0) + 1);
       });
 
-      const mostActiveCategory = Array.from(recentCategoryMap.entries())
-        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'none';
+      const mostActiveCategory = recentCategoryMap.size > 0 
+        ? Array.from(recentCategoryMap.entries()).sort((a, b) => b[1] - a[1])[0][0]
+        : 'none';
 
-      // Calculate price change (simplified - would need historical data for accurate calculation)
-      const avgPriceChange = Math.random() * 10 - 5; // Placeholder until we have historical price data
+      // Calculate real price change (compare recent vs older coins)
+      const recentPrices = recentCoins.filter(coin => coin.price).map(coin => coin.price);
+      const olderCoins = coins.filter(coin => 
+        coin.created_at && new Date(coin.created_at) < sevenDaysAgo && coin.price
+      );
+      
+      const recentAvgPrice = recentPrices.length > 0 
+        ? recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length 
+        : 0;
+      
+      const olderAvgPrice = olderCoins.length > 0 
+        ? olderCoins.reduce((sum, coin) => sum + coin.price, 0) / olderCoins.length 
+        : 0;
+
+      const avgPriceChange = olderAvgPrice > 0 
+        ? ((recentAvgPrice - olderAvgPrice) / olderAvgPrice) * 100 
+        : 0;
+
+      const recentTrends = {
+        newListingsLast7Days: recentCoins.length,
+        avgPriceChange,
+        mostActiveCategory
+      };
 
       return {
         totalCoins,
-        verifiedCoins: verifiedCount,
-        averagePrice: Math.round(averagePrice),
+        verifiedCoins,
+        averagePrice,
         priceRanges,
         categoryBreakdown,
         rarityDistribution,
         gradeDistribution,
         countryBreakdown,
         yearDistribution,
-        recentTrends: {
-          newListingsLast7Days,
-          avgPriceChange,
-          mostActiveCategory
-        }
+        recentTrends
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
