@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 import { Coins, TrendingUp, Star, Package } from 'lucide-react';
 
 const CategoriesGrid = () => {
-  // Fetch real categories from Supabase
   const { data: categories, isLoading, error } = useQuery({
     queryKey: ['categories-with-stats'],
     queryFn: async () => {
@@ -20,7 +19,6 @@ const CategoriesGrid = () => {
       
       if (categoriesError) throw categoriesError;
 
-      // Get coin counts for each category
       const categoriesWithStats = await Promise.all(
         (categoriesData || []).map(async (category) => {
           const { count } = await supabase

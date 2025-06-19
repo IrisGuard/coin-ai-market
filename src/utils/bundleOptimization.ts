@@ -32,18 +32,6 @@ export const preloadCriticalResources = () => {
   });
 };
 
-// Optimize imports for better tree-shaking
-export const optimizedLucideImports = {
-  // Instead of importing the entire lucide-react package
-  // Import specific icons to reduce bundle size
-  icons: {
-    Home: () => import('lucide-react/dist/esm/icons/home'),
-    Search: () => import('lucide-react/dist/esm/icons/search'),
-    User: () => import('lucide-react/dist/esm/icons/user'),
-    Settings: () => import('lucide-react/dist/esm/icons/settings')
-  }
-};
-
 // Resource hints for better performance
 export const addResourceHints = () => {
   // DNS prefetch for external domains
@@ -68,6 +56,5 @@ if (typeof window !== 'undefined') {
 export default {
   createOptimizedImport,
   preloadCriticalResources,
-  addResourceHints,
-  optimizedLucideImports
+  addResourceHints
 };

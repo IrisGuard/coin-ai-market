@@ -2,26 +2,41 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
-
-interface RealTimeMetrics {
-  active_users: number;
-  active_sessions: number;
-  pending_transactions: number;
-  system_alerts: number;
-  performance_score: number;
-  last_updated: string;
-}
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RealTimeMetricsGridProps {
-  metrics: RealTimeMetrics;
   isLive: boolean;
 }
 
-const RealTimeMetricsGrid = ({ metrics, isLive }: RealTimeMetricsGridProps) => {
+const RealTimeMetricsGrid = ({ isLive }: RealTimeMetricsGridProps) => {
+  const { data: metrics } = useQuery({
+    queryKey: ['real-time-metrics'],
+    queryFn: async () => {
+      const [usersCount, sessionsCount, transactionsCount, alertsCount] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('updated_at', new Date(Date.now() - 15 * 60 * 1000).toISOString()),
+        supabase.from('payment_transactions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('error_logs').select('*', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      ]);
+
+      return {
+        active_users: usersCount.count || 0,
+        active_sessions: sessionsCount.count || 0,
+        pending_transactions: transactionsCount.count || 0,
+        system_alerts: alertsCount.count || 0,
+        performance_score: 95,
+        last_updated: new Date().toISOString()
+      };
+    },
+    refetchInterval: isLive ? 10000 : false,
+    enabled: true
+  });
+
   const metricCards = [
     {
       title: 'Active Users',
-      value: metrics.active_users,
+      value: metrics?.active_users || 0,
       icon: Users,
       color: 'blue',
       description: 'Currently online',
@@ -29,7 +44,7 @@ const RealTimeMetricsGrid = ({ metrics, isLive }: RealTimeMetricsGridProps) => {
     },
     {
       title: 'Active Sessions',
-      value: metrics.active_sessions,
+      value: metrics?.active_sessions || 0,
       icon: Activity,
       color: 'green',
       description: 'Current sessions',
@@ -37,7 +52,7 @@ const RealTimeMetricsGrid = ({ metrics, isLive }: RealTimeMetricsGridProps) => {
     },
     {
       title: 'Pending Transactions',
-      value: metrics.pending_transactions,
+      value: metrics?.pending_transactions || 0,
       icon: TrendingUp,
       color: 'purple',
       description: 'Awaiting processing',
@@ -45,7 +60,7 @@ const RealTimeMetricsGrid = ({ metrics, isLive }: RealTimeMetricsGridProps) => {
     },
     {
       title: 'System Alerts',
-      value: metrics.system_alerts,
+      value: metrics?.system_alerts || 0,
       icon: AlertTriangle,
       color: 'red',
       description: 'Active alerts',

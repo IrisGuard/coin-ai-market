@@ -3,22 +3,38 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity } from 'lucide-react';
-
-interface RealTimeMetrics {
-  active_users: number;
-  active_sessions: number;
-  pending_transactions: number;
-  system_alerts: number;
-  performance_score: number;
-  last_updated: string;
-}
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PerformanceOverviewProps {
-  metrics: RealTimeMetrics;
   isLive: boolean;
 }
 
-const PerformanceOverview = ({ metrics, isLive }: PerformanceOverviewProps) => {
+const PerformanceOverview = ({ isLive }: PerformanceOverviewProps) => {
+  const { data: metrics } = useQuery({
+    queryKey: ['performance-metrics'],
+    queryFn: async () => {
+      const [systemHealth, errorCount] = await Promise.all([
+        supabase.from('system_metrics').select('*').order('created_at', { ascending: false }).limit(1),
+        supabase.from('error_logs').select('*', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      ]);
+
+      const errors24h = errorCount.count || 0;
+      const performanceScore = Math.max(0, 100 - errors24h);
+
+      return {
+        active_users: 0,
+        active_sessions: 0,
+        pending_transactions: 0,
+        system_alerts: errors24h,
+        performance_score: performanceScore,
+        last_updated: new Date().toISOString()
+      };
+    },
+    refetchInterval: isLive ? 5000 : false,
+    enabled: true
+  });
+
   const getPerformanceColor = (score: number) => {
     if (score >= 90) return 'text-green-600';
     if (score >= 70) return 'text-yellow-600';
@@ -30,6 +46,8 @@ const PerformanceOverview = ({ metrics, isLive }: PerformanceOverviewProps) => {
     if (score >= 70) return 'bg-yellow-500';
     return 'bg-red-500';
   };
+
+  const performanceScore = metrics?.performance_score || 0;
 
   return (
     <Card>
@@ -44,18 +62,18 @@ const PerformanceOverview = ({ metrics, isLive }: PerformanceOverviewProps) => {
           <div>
             <div className="text-sm font-medium">Overall Performance Score</div>
             <div className="text-xs text-muted-foreground">
-              Last updated: {new Date(metrics.last_updated).toLocaleTimeString()}
+              Last updated: {metrics ? new Date(metrics.last_updated).toLocaleTimeString() : 'Loading...'}
             </div>
           </div>
-          <div className={`text-4xl font-bold ${getPerformanceColor(metrics.performance_score)}`}>
-            {metrics.performance_score}%
+          <div className={`text-4xl font-bold ${getPerformanceColor(performanceScore)}`}>
+            {performanceScore}%
           </div>
         </div>
         
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div 
-            className={`h-3 rounded-full transition-all duration-500 ${getPerformanceBarColor(metrics.performance_score)}`}
-            style={{ width: `${metrics.performance_score}%` }}
+            className={`h-3 rounded-full transition-all duration-500 ${getPerformanceBarColor(performanceScore)}`}
+            style={{ width: `${performanceScore}%` }}
           />
         </div>
 
