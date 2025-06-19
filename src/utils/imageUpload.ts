@@ -1,4 +1,5 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { generateSecureRandomNumber, generateSecureRandomId } from './secureProductionUtils';
 
 export const generateImageHash = (file: File): string => {
@@ -46,5 +47,34 @@ export const calculateOptimalDimensions = (width: number, height: number, maxSiz
       width: Math.round(maxSize * aspectRatio),
       height: maxSize
     };
+  }
+};
+
+export const uploadImage = async (file: File, bucket: string = 'coin-images'): Promise<string> => {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${generateImageHash(file)}.${fileExt}`;
+    const filePath = `${Date.now()}/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    console.error('Image upload failed:', error);
+    throw new Error('Failed to upload image');
   }
 };
