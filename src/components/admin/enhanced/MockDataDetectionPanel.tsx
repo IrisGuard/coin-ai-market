@@ -4,77 +4,76 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle, Shield, Scan } from 'lucide-react';
-
-interface MockDataIssue {
-  file: string;
-  line: number;
-  type: 'mock' | 'math_random' | 'demo' | 'sample' | 'placeholder' | 'fake';
-  content: string;
-}
+import { CheckCircle, Shield, Scan } from 'lucide-react';
+import { useRealMockDataScan, useRealMockDataProtectionStatus } from '@/hooks/useRealMockDataProtection';
+import { resolveAllMockDataViolations, verifySystemCleanStatus } from '@/utils/databaseCleanup';
 
 const MockDataDetectionPanel = () => {
   const [isScanning, setIsScanning] = useState(false);
-  const [issues, setIssues] = useState<MockDataIssue[]>([]);
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
-  const [isProductionReady, setIsProductionReady] = useState(true);
+  const [isResolving, setIsResolving] = useState(false);
+  
+  const { mutate: scanForViolations } = useRealMockDataScan();
+  const { 
+    isProductionReady, 
+    totalViolations, 
+    activeViolations,
+    criticalViolations 
+  } = useRealMockDataProtectionStatus();
 
-  const scanForMockData = async () => {
+  const handleRealScan = async () => {
     setIsScanning(true);
     
-    // Simulate scanning the codebase for mock data patterns
-    // This is a monitoring tool only - it does not modify anything
-    const mockPatterns = [
-      /Math\.random\(\)/g,
-      /"mock"/gi,
-      /"demo"/gi,
-      /"sample"/gi,
-      /"placeholder"/gi,
-      /"fake"/gi,
-      /mockData/gi,
-      /demoData/gi,
-      /sampleData/gi,
-      /placeholderData/gi,
-      /fakeData/gi
-    ];
-
-    // In a real implementation, this would scan actual files
-    // For now, we simulate a clean system based on the requirement
-    const foundIssues: MockDataIssue[] = [];
-    
-    // Simulate scan delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIssues(foundIssues);
-    setIsProductionReady(foundIssues.length === 0);
-    setLastScanTime(new Date());
-    setIsScanning(false);
+    try {
+      scanForViolations(undefined, {
+        onSuccess: () => {
+          setLastScanTime(new Date());
+          console.log('✅ Real database scan completed');
+        },
+        onError: (error) => {
+          console.error('❌ Real scan failed:', error);
+        }
+      });
+    } finally {
+      setIsScanning(false);
+    }
   };
 
-  useEffect(() => {
-    // Auto-scan on component mount
-    scanForMockData();
-  }, []);
+  const handleResolveAll = async () => {
+    setIsResolving(true);
+    
+    try {
+      const result = await resolveAllMockDataViolations();
+      if (result.success) {
+        console.log(`✅ Resolved ${result.resolved} violations`);
+        await verifySystemCleanStatus();
+      }
+    } catch (error) {
+      console.error('❌ Resolution failed:', error);
+    } finally {
+      setIsResolving(false);
+    }
+  };
 
   const getStatusIcon = () => {
     if (isProductionReady) {
       return <CheckCircle className="h-6 w-6 text-green-600" />;
     }
-    return <AlertTriangle className="h-6 w-6 text-red-600" />;
+    return <Shield className="h-6 w-6 text-blue-600" />;
   };
 
   const getStatusMessage = () => {
     if (isProductionReady) {
-      return "No mock data detected – 100% production";
+      return "System verified clean – 100% production ready";
     }
-    return "Mock/demo data detected – system is not fully production ready";
+    return `${totalViolations} violations detected in real database scan`;
   };
 
   const getStatusBadge = () => {
     if (isProductionReady) {
       return <Badge className="bg-green-100 text-green-800">✅ PRODUCTION READY</Badge>;
     }
-    return <Badge className="bg-red-100 text-red-800">❗ MOCK DATA DETECTED</Badge>;
+    return <Badge className="bg-red-100 text-red-800">🔍 VIOLATIONS FOUND</Badge>;
   };
 
   return (
@@ -82,7 +81,7 @@ const MockDataDetectionPanel = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-blue-600" />
-          Mock Data Detection Panel
+          Real Database Violation Detection
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -101,54 +100,72 @@ const MockDataDetectionPanel = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">
-              {lastScanTime ? `Last scan: ${lastScanTime.toLocaleString()}` : 'No scan performed'}
+              {lastScanTime ? `Last scan: ${lastScanTime.toLocaleString()}` : 'Real database scan required'}
             </p>
           </div>
-          <Button 
-            onClick={scanForMockData} 
-            disabled={isScanning}
-            variant="outline"
-            size="sm"
-          >
-            {isScanning ? (
-              <>
-                <Scan className="h-4 w-4 mr-2 animate-spin" />
-                Scanning...
-              </>
-            ) : (
-              <>
-                <Scan className="h-4 w-4 mr-2" />
-                Scan Now
-              </>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleRealScan} 
+              disabled={isScanning}
+              variant="outline"
+              size="sm"
+            >
+              {isScanning ? (
+                <>
+                  <Scan className="h-4 w-4 mr-2 animate-spin" />
+                  Scanning Database...
+                </>
+              ) : (
+                <>
+                  <Scan className="h-4 w-4 mr-2" />
+                  Scan Real Database
+                </>
+              )}
+            </Button>
+            
+            {totalViolations > 0 && (
+              <Button 
+                onClick={handleResolveAll} 
+                disabled={isResolving}
+                variant="destructive"
+                size="sm"
+              >
+                {isResolving ? 'Resolving...' : 'Resolve All'}
+              </Button>
             )}
-          </Button>
+          </div>
         </div>
 
-        {/* Issues List */}
-        {issues.length > 0 && (
+        {/* Violations List */}
+        {activeViolations.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-semibold text-red-600">Detected Issues:</h4>
-            {issues.map((issue, index) => (
-              <div key={index} className="border rounded-lg p-3 bg-red-50">
+            <h4 className="font-semibold text-red-600">Active Database Violations:</h4>
+            {activeViolations.slice(0, 5).map((violation) => (
+              <div key={violation.id} className="border rounded-lg p-3 bg-red-50">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{issue.file}:{issue.line}</span>
-                  <Badge variant="destructive">{issue.type}</Badge>
+                  <span className="font-medium">{violation.file_path}:{violation.line_number}</span>
+                  <Badge variant="destructive">{violation.violation_type}</Badge>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{issue.content}</p>
+                <p className="text-sm text-gray-600 mt-1">{violation.violation_content}</p>
+                <p className="text-xs text-gray-500">Severity: {violation.severity}</p>
               </div>
             ))}
           </div>
         )}
 
         {/* Production Status Summary */}
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+        <div className="grid grid-cols-3 gap-4 pt-4 border-t">
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">{issues.length === 0 ? '100%' : '0%'}</p>
-            <p className="text-xs text-muted-foreground">Production Ready</p>
+            <p className="text-2xl font-bold text-red-600">{totalViolations}</p>
+            <p className="text-xs text-muted-foreground">Total Violations</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-red-600">{issues.length}</p>
-            <p className="text-xs text-muted-foreground">Issues Found</p>
+            <p className="text-2xl font-bold text-orange-600">{criticalViolations.length}</p>
+            <p className="text-xs text-muted-foreground">Critical</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-600">{isProductionReady ? '100%' : '0%'}</p>
+            <p className="text-xs text-muted-foreground">Production Ready</p>
           </div>
         </div>
       </CardContent>

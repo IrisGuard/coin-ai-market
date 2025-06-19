@@ -3,10 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Shield, CheckCircle, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import MockDataMonitor from '@/components/admin/MockDataMonitor';
+import MockDataDetectionPanel from '@/components/admin/enhanced/MockDataDetectionPanel';
+import SecurityBlockingMechanism from '@/components/admin/enhanced/SecurityBlockingMechanism';
 import { useRealMockDataProtectionStatus } from '@/hooks/useRealMockDataProtection';
+import { resolveAllMockDataViolations, logSystemCleanupComplete } from '@/utils/databaseCleanup';
 
 const AdminMockDataTab = () => {
   const {
@@ -16,18 +19,24 @@ const AdminMockDataTab = () => {
     criticalViolations
   } = useRealMockDataProtectionStatus();
 
-  const handleQuickScan = async () => {
-    console.log('🔍 Quick real data scan initiated...');
-  };
-
-  const handleFullSystemScan = async () => {
-    console.log('🔍 Full real system scan initiated...');
+  const handleEmergencyCleanup = async () => {
+    console.log('🚨 Starting emergency cleanup...');
+    
+    try {
+      const result = await resolveAllMockDataViolations();
+      if (result.success) {
+        await logSystemCleanupComplete();
+        console.log('✅ Emergency cleanup completed successfully');
+      }
+    } catch (error) {
+      console.error('❌ Emergency cleanup failed:', error);
+    }
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">Loading real mock data protection status...</div>
+        <div className="animate-pulse">Loading real production data protection status...</div>
       </div>
     );
   }
@@ -36,19 +45,18 @@ const AdminMockDataTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Real Mock Data Detection</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Production Data Protection</h2>
           <p className="text-muted-foreground">
-            Monitor and eliminate mock data for production readiness - REAL DATABASE DATA
+            Real-time monitoring and protection against development data contamination
           </p>
         </div>
         
         <div className="flex gap-2">
-          <Button onClick={handleQuickScan} variant="outline" size="sm">
-            Quick Real Scan
-          </Button>
-          <Button onClick={handleFullSystemScan} size="sm">
-            Full Real Scan
-          </Button>
+          {!isProductionReady && (
+            <Button onClick={handleEmergencyCleanup} variant="destructive" size="sm">
+              Emergency Cleanup
+            </Button>
+          )}
         </div>
       </div>
 
@@ -59,11 +67,11 @@ const AdminMockDataTab = () => {
           <div className="flex items-center justify-between">
             <span className={`font-semibold ${isProductionReady ? 'text-green-800' : 'text-red-800'}`}>
               {isProductionReady 
-                ? "✅ System Clean - Production Ready (Real Data)"
+                ? "✅ System Clean - 100% Production Ready (Real Database)"
                 : `🚫 ${totalViolations} Real Violations - Production Blocked`
               }
             </span>
-            <Badge variant={isProductionReady ? "default" : "destructive"} className={isProductionReady ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+            <Badge variant={isProductionReady ? "default" : "destructive"}>
               {isProductionReady ? 'VALIDATED' : 'VIOLATIONS'}
             </Badge>
           </div>
@@ -73,50 +81,37 @@ const AdminMockDataTab = () => {
       {/* Main Monitor Component with Real Data */}
       <MockDataMonitor />
 
-      {/* Quick Actions with Real Data */}
+      {/* Detection Panel */}
+      <MockDataDetectionPanel />
+
+      {/* Security Mechanism */}
+      <SecurityBlockingMechanism />
+
+      {/* Real Statistics Dashboard */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Real Data Actions
+            <Activity className="h-5 w-5" />
+            Real-Time System Health
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button onClick={handleQuickScan} variant="outline" className="h-20 flex-col">
-              <CheckCircle className="h-6 w-6 mb-2" />
-              Real Validation
-            </Button>
-            <Button onClick={handleFullSystemScan} variant="outline" className="h-20 flex-col">
-              <Shield className="h-6 w-6 mb-2" />
-              Database Scan
-            </Button>
-            <Button variant="outline" className="h-20 flex-col" disabled={totalViolations === 0}>
-              <AlertTriangle className="h-6 w-6 mb-2" />
-              Violation Report
-            </Button>
-          </div>
-          
-          {/* Real Statistics */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold mb-2">Real System Status:</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-red-600">{totalViolations}</p>
-                <p className="text-xs text-muted-foreground">Real Violations</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-orange-600">{criticalViolations.length}</p>
-                <p className="text-xs text-muted-foreground">Critical Issues</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">{isProductionReady ? '100%' : '0%'}</p>
-                <p className="text-xs text-muted-foreground">Ready</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-600">LIVE</p>
-                <p className="text-xs text-muted-foreground">Monitoring</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <p className="text-3xl font-bold text-red-600">{totalViolations}</p>
+              <p className="text-sm text-muted-foreground">Real Violations</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <p className="text-3xl font-bold text-orange-600">{criticalViolations.length}</p>
+              <p className="text-sm text-muted-foreground">Critical Issues</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <p className="text-3xl font-bold text-green-600">{isProductionReady ? '100%' : '0%'}</p>
+              <p className="text-sm text-muted-foreground">Production Ready</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <p className="text-3xl font-bold text-blue-600">REAL</p>
+              <p className="text-sm text-muted-foreground">Data Source</p>
             </div>
           </div>
         </CardContent>
