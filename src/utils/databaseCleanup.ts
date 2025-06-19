@@ -83,6 +83,25 @@ export const logEmergencyCleanupComplete = async () => {
   }
 };
 
+export const logSystemCleanupComplete = async () => {
+  try {
+    await supabase.from('analytics_events').insert({
+      event_type: 'system_cleanup_complete',
+      page_url: '/admin/mock-data',
+      metadata: {
+        cleanup_type: 'manual_system_cleanup',
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        triggered_by: 'admin_interface'
+      }
+    });
+    
+    console.log('✅ System cleanup completion logged');
+  } catch (error) {
+    console.error('❌ Failed to log system cleanup:', error);
+  }
+};
+
 export const executeEmergencyCleanupPlan = async () => {
   console.log('🚨 STARTING EMERGENCY CLEANUP - ALL 4 PHASES');
   
