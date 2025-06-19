@@ -36,6 +36,25 @@ const CategoryNavigationFromDatabase = () => {
     }
   });
 
+  // Real-time category coin counts
+  const { data: categoryCounts = {} } = useQuery({
+    queryKey: ['category-coin-counts'],
+    queryFn: async () => {
+      const { data: coins } = await supabase
+        .from('coins')
+        .select('category');
+      
+      const counts: Record<string, number> = {};
+      coins?.forEach(coin => {
+        if (coin.category) {
+          counts[coin.category] = (counts[coin.category] || 0) + 1;
+        }
+      });
+      
+      return counts;
+    }
+  });
+
   const getIconComponent = (iconName: string) => {
     const icons: { [key: string]: React.ReactNode } = {
       'MapPin': <MapPin className="w-6 h-6" />,
@@ -63,6 +82,10 @@ const CategoryNavigationFromDatabase = () => {
   };
 
   const getCategoryStats = (categoryName: string) => {
+    // Use real data from categoryCounts, with stats mapping as fallback
+    const realCount = categoryCounts[categoryName];
+    if (realCount !== undefined) return realCount;
+
     // Enhanced mapping for all 30+ categories
     const statsMap: { [key: string]: string } = {
       'US Coins': 'american',
@@ -98,7 +121,7 @@ const CategoryNavigationFromDatabase = () => {
     };
     
     const statKey = statsMap[categoryName];
-    return statKey ? stats[statKey] || 0 : Math.floor(Math.random() * 1000); // Fallback with random for demo
+    return statKey ? stats[statKey] || 0 : 0; // Remove Math.random fallback
   };
 
   if (categoriesLoading || loading) {

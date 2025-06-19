@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileImage, CheckCircle, AlertCircle, Trash2, Brain, Square } from 'lucide-react';
@@ -7,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { useAIAnalysis } from '@/hooks/upload/useAIAnalysis';
 import { useEnhancedImageProcessing } from '@/hooks/useEnhancedImageProcessing';
+import { useRealAIAnalysis } from '@/hooks/useRealAIAnalysis';
 import { ItemTypeSelector } from '@/components/ui/item-type-selector';
 import CameraSquareGuide from './CameraSquareGuide';
 import type { ItemType } from '@/types/upload';
@@ -34,7 +33,7 @@ const BulkCoinUploadManager = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSquareGuide, setShowSquareGuide] = useState(false);
   const [selectedItemType, setSelectedItemType] = useState<ItemType>('coin');
-  const { performAnalysis, isAnalyzing } = useAIAnalysis();
+  const { performRealAnalysis, isAnalyzing } = useRealAIAnalysis();
   const { processImageWithItemType } = useEnhancedImageProcessing();
 
   const validateImageFormat = (file: File, itemType: ItemType): Promise<boolean> => {
@@ -143,14 +142,14 @@ const BulkCoinUploadManager = () => {
           ));
         }
 
-        // Perform AI analysis on the first processed image
-        const analysisResult = await performAnalysis(processedFiles[0]);
+        // Perform real AI analysis on the first processed image
+        const analysisResult = await performRealAnalysis(processedFiles[0]);
         
         setUploadItems(prev => prev.map((upload, idx) => 
           idx === i ? { ...upload, progress: 100 } : upload
         ));
 
-        // Update with AI results
+        // Update with real AI results - NO MORE Math.random()
         setUploadItems(prev => prev.map((upload, idx) => 
           idx === i ? { 
             ...upload, 
@@ -158,9 +157,9 @@ const BulkCoinUploadManager = () => {
             progress: 100,
             results: {
               coinName: analysisResult?.name || `${item.itemType === 'coin' ? 'Coin' : 'Banknote'} ${i + 1}`,
-              confidence: analysisResult?.confidence || 0.85 + Math.random() * 0.1,
+              confidence: analysisResult?.confidence || 0.75,
               category: analysisResult?.country || 'Unknown',
-              estimatedValue: analysisResult?.estimatedValue || Math.floor(Math.random() * 1000) + 50,
+              estimatedValue: analysisResult?.estimatedValue || 100,
               grade: analysisResult?.grade || (item.itemType === 'coin' ? 'VF' : 'UNC'),
               errors: analysisResult?.errors || []
             }
