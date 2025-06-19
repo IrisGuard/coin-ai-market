@@ -18,7 +18,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   categoryCounts = {}
 }) => {
   // Fetch real category data from Supabase
-  const { data: realCategoryCounts = {} } = useQuery({
+  const { data: realCategoryCounts = { all: 0, featured: 0, auctions: 0, new: 0 } } = useQuery({
     queryKey: ['category-counts'],
     queryFn: async () => {
       const { data: allCoins } = await supabase

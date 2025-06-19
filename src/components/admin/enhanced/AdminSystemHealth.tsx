@@ -29,11 +29,11 @@ const AdminSystemHealth = () => {
 
       const { data: errors } = await supabase
         .from('error_logs')
-        .select('count(*)')
+        .select('id')
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       // Calculate real health score based on actual metrics
-      const errorCount = errors?.[0]?.count || 0;
+      const errorCount = errors?.length || 0;
       const healthScore = Math.max(60, 100 - (errorCount * 2));
 
       return {
@@ -52,7 +52,7 @@ const AdminSystemHealth = () => {
       const checks = [];
       
       // Database health check
-      const { error: dbError } = await supabase.from('profiles').select('count(*)').limit(1);
+      const { error: dbError } = await supabase.from('profiles').select('id').limit(1);
       checks.push({
         name: 'Database Connection',
         status: dbError ? 'critical' : 'healthy',
@@ -63,7 +63,7 @@ const AdminSystemHealth = () => {
       });
 
       // API Services check
-      const { error: apiError } = await supabase.from('api_keys').select('count(*)').limit(1);
+      const { error: apiError } = await supabase.from('api_keys').select('id').limit(1);
       checks.push({
         name: 'API Services',
         status: apiError ? 'warning' : 'healthy',
@@ -76,10 +76,10 @@ const AdminSystemHealth = () => {
       // Security check
       const { data: securityData } = await supabase
         .from('security_incidents')
-        .select('count(*)')
+        .select('id')
         .eq('status', 'open');
       
-      const openIncidents = securityData?.[0]?.count || 0;
+      const openIncidents = securityData?.length || 0;
       checks.push({
         name: 'Security Systems',
         status: openIncidents > 0 ? 'warning' : 'healthy',
@@ -153,15 +153,6 @@ const AdminSystemHealth = () => {
         return <Badge className="bg-red-100 text-red-800">Critical</Badge>;
       default:
         return <Badge variant="secondary">Unknown</Badge>;
-    }
-  };
-
-  const getProgressColor = (status: string) => {
-    switch (status) {
-      case 'good': return 'bg-green-500';
-      case 'warning': return 'bg-yellow-500';
-      case 'critical': return 'bg-red-500';
-      default: return 'bg-blue-500';
     }
   };
 
