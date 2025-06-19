@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, Filter, X, Command } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchableItem {
   id: string;
@@ -30,57 +32,80 @@ const AdminAdvancedSearch: React.FC<AdminAdvancedSearchProps> = ({
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // Mock searchable items - in real app, this would come from props or context
-  const searchableItems: SearchableItem[] = [
-    {
-      id: '1',
-      title: 'User Management',
-      description: 'Manage users, roles, and permissions',
-      category: 'users',
-      tags: ['admin', 'roles', 'permissions'],
-      path: 'users'
-    },
-    {
-      id: '2',
-      title: 'AI Brain Configuration',
-      description: 'Configure AI models and automation',
-      category: 'ai',
-      tags: ['ai', 'automation', 'models'],
-      path: 'ai-brain'
-    },
-    {
-      id: '3',
-      title: 'API Key Management',
-      description: 'Manage API keys and integrations',
-      category: 'api',
-      tags: ['api', 'keys', 'integrations'],
-      path: 'api-keys'
-    },
-    {
-      id: '4',
-      title: 'System Health',
-      description: 'Monitor system performance and health',
-      category: 'system',
-      tags: ['health', 'performance', 'monitoring'],
-      path: 'system'
-    },
-    {
-      id: '5',
-      title: 'Data Sources',
-      description: 'Configure external data sources',
-      category: 'data',
-      tags: ['data', 'sources', 'external'],
-      path: 'data-sources'
-    },
-    {
-      id: '6',
-      title: 'Analytics Dashboard',
-      description: 'View analytics and insights',
-      category: 'analytics',
-      tags: ['analytics', 'insights', 'dashboard'],
-      path: 'analytics'
+  // Get real searchable items from database
+  const { data: searchableItems = [] } = useQuery({
+    queryKey: ['admin-search-items'],
+    queryFn: async (): Promise<SearchableItem[]> => {
+      const [
+        { data: users },
+        { data: coins },
+        { data: stores },
+        { data: categories },
+        { data: analytics }
+      ] = await Promise.all([
+        supabase.from('profiles').select('id, name, role').limit(10),
+        supabase.from('coins').select('id, name, category').limit(10),
+        supabase.from('stores').select('id, name, description').limit(10),
+        supabase.from('categories').select('id, name, description').limit(10),
+        supabase.from('analytics_events').select('event_type').limit(10)
+      ]);
+
+      const items: SearchableItem[] = [];
+
+      // Add static admin items
+      items.push(
+        {
+          id: '1',
+          title: 'User Management',
+          description: 'Manage users, roles, and permissions',
+          category: 'users',
+          tags: ['admin', 'roles', 'permissions'],
+          path: 'users'
+        },
+        {
+          id: '2',
+          title: 'AI Brain Configuration',
+          description: 'Configure AI models and automation',
+          category: 'ai',
+          tags: ['ai', 'automation', 'models'],
+          path: 'ai-brain'
+        },
+        {
+          id: '3',
+          title: 'System Health',
+          description: 'Monitor system performance and health',
+          category: 'system',
+          tags: ['health', 'performance', 'monitoring'],
+          path: 'system'
+        }
+      );
+
+      // Add real data items
+      users?.forEach(user => {
+        items.push({
+          id: `user-${user.id}`,
+          title: `User: ${user.name}`,
+          description: `Role: ${user.role}`,
+          category: 'users',
+          tags: ['user', user.role],
+          path: `users/${user.id}`
+        });
+      });
+
+      coins?.forEach(coin => {
+        items.push({
+          id: `coin-${coin.id}`,
+          title: `Coin: ${coin.name}`,
+          description: `Category: ${coin.category}`,
+          category: 'coins',
+          tags: ['coin', coin.category],
+          path: `coins/${coin.id}`
+        });
+      });
+
+      return items;
     }
-  ];
+  });
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -88,7 +113,7 @@ const AdminAdvancedSearch: React.FC<AdminAdvancedSearchProps> = ({
     { value: 'ai', label: 'AI & Automation' },
     { value: 'api', label: 'API & Integrations' },
     { value: 'system', label: 'System' },
-    { value: 'data', label: 'Data' },
+    { value: 'coins', label: 'Coins' },
     { value: 'analytics', label: 'Analytics' }
   ];
 
@@ -115,7 +140,7 @@ const AdminAdvancedSearch: React.FC<AdminAdvancedSearchProps> = ({
     }
 
     return items;
-  }, [query, selectedCategory]);
+  }, [searchableItems, query, selectedCategory]);
 
   const handleItemClick = (item: SearchableItem) => {
     if (item.path && onNavigate) {

@@ -9,6 +9,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Database, Activity, TrendingUp, RefreshCw, Search, CheckCircle } from 'lucide-react';
 import { useExternalSourcesManagement, useDataAggregation } from '@/hooks/admin/useExternalSourcesManagement';
 import { useAggregatedPrices, useProxyRotationLogs } from '@/hooks/useEnhancedDataSources';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const DataAggregationDashboard = () => {
   const { data: sources = [] } = useExternalSourcesManagement();
@@ -18,27 +20,78 @@ const DataAggregationDashboard = () => {
   
   const [testCoin, setTestCoin] = useState('');
 
+  // Get real-time data flow metrics from database
+  const { data: dataFlowMetrics = [] } = useQuery({
+    queryKey: ['data-flow-metrics'],
+    queryFn: async () => {
+      const { data: analytics } = await supabase
+        .from('analytics_events')
+        .select('event_type, metadata, created_at')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      const sourceMetrics = new Map();
+      
+      analytics?.forEach(event => {
+        const source = event.metadata?.source || 'Unknown';
+        if (!sourceMetrics.has(source)) {
+          sourceMetrics.set(source, { requests: 0, success: 0, errors: 0 });
+        }
+        const metric = sourceMetrics.get(source);
+        metric.requests++;
+        if (event.event_type === 'data_fetch_success') {
+          metric.success++;
+        } else if (event.event_type === 'data_fetch_error') {
+          metric.errors++;
+        }
+      });
+
+      return Array.from(sourceMetrics.entries()).map(([name, metrics]) => ({
+        name,
+        ...metrics
+      }));
+    }
+  });
+
+  // Get real performance data
+  const { data: performanceData = [] } = useQuery({
+    queryKey: ['performance-data'],
+    queryFn: async () => {
+      const { data: metrics } = await supabase
+        .from('ai_performance_metrics')
+        .select('metric_value, recorded_at, metric_name')
+        .gte('recorded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('recorded_at');
+
+      const hourlyData = new Map();
+      
+      metrics?.forEach(metric => {
+        const hour = new Date(metric.recorded_at).getHours();
+        const key = `${hour.toString().padStart(2, '0')}:00`;
+        
+        if (!hourlyData.has(key)) {
+          hourlyData.set(key, { time: key, response: 0, throughput: 0, count: 0 });
+        }
+        
+        const data = hourlyData.get(key);
+        if (metric.metric_name === 'response_time') {
+          data.response += metric.metric_value;
+        } else if (metric.metric_name === 'throughput') {
+          data.throughput += metric.metric_value;
+        }
+        data.count++;
+      });
+
+      return Array.from(hourlyData.values()).map(data => ({
+        time: data.time,
+        response: data.count > 0 ? data.response / data.count : 0,
+        throughput: data.count > 0 ? data.throughput / data.count : 0
+      }));
+    }
+  });
+
   const activeSources = sources.filter(s => s.is_active);
   const totalSources = sources.length;
   const reliabilityAvg = sources.reduce((acc, s) => acc + (s.reliability_score || 0), 0) / sources.length;
-
-  // Mock real-time data flow metrics
-  const dataFlowMetrics = [
-    { name: 'Heritage', requests: 245, success: 98, errors: 2 },
-    { name: 'eBay', requests: 189, success: 92, errors: 8 },
-    { name: 'PCGS', requests: 156, success: 100, errors: 0 },
-    { name: 'Numista', requests: 134, success: 87, errors: 13 },
-    { name: 'CoinAPI', requests: 98, success: 95, errors: 5 }
-  ];
-
-  const performanceData = [
-    { time: '00:00', response: 245, throughput: 1200 },
-    { time: '04:00', response: 198, throughput: 1350 },
-    { time: '08:00', response: 267, throughput: 1100 },
-    { time: '12:00', response: 234, throughput: 1250 },
-    { time: '16:00', response: 189, throughput: 1400 },
-    { time: '20:00', response: 223, throughput: 1180 }
-  ];
 
   const handleTestAggregation = async () => {
     if (!testCoin.trim()) return;
