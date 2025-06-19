@@ -16,7 +16,10 @@ export const useMarketplaceStats = () => {
         { data: coinPrices },
         { count: verifiedCoins },
         { count: newListingsToday },
-        { data: recentSales }
+        { data: recentSales },
+        { data: historicalCoins },
+        { data: historicalUsers },
+        { data: historicalVolume }
       ] = await Promise.all([
         // Total coins
         supabase.from('coins').select('*', { count: 'exact', head: true }),
@@ -63,7 +66,27 @@ export const useMarketplaceStats = () => {
           .from('payment_transactions')
           .select('amount, created_at')
           .eq('status', 'completed')
-          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        
+        // Historical data for growth calculations - coins from 30 days ago
+        supabase
+          .from('coins')
+          .select('id, created_at')
+          .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        
+        // Historical users for growth calculations
+        supabase
+          .from('profiles')
+          .select('id, created_at')
+          .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        
+        // Historical volume for growth calculations
+        supabase
+          .from('payment_transactions')
+          .select('amount, created_at')
+          .eq('status', 'completed')
+          .gte('created_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
+          .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       ]);
 
       // Calculate total marketplace value
@@ -98,6 +121,41 @@ export const useMarketplaceStats = () => {
         .select('*', { count: 'exact', head: true })
         .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
+      // Calculate real growth metrics
+      const currentCoinsCount = totalCoins || 0;
+      const historicalCoinsCount = historicalCoins?.length || 0;
+      const coinsGrowth = historicalCoinsCount > 0 
+        ? ((currentCoinsCount - historicalCoinsCount) / historicalCoinsCount) * 100 
+        : 0;
+
+      const currentUsersCount = activeUsers || 0;
+      const historicalUsersCount = historicalUsers?.length || 0;
+      const usersGrowth = historicalUsersCount > 0 
+        ? ((currentUsersCount - historicalUsersCount) / historicalUsersCount) * 100 
+        : 0;
+
+      const currentVolume = monthlyVolume;
+      const historicalVolume30Days = historicalVolume?.reduce((sum, sale) => sum + (sale.amount || 0), 0) || 0;
+      const volumeGrowth = historicalVolume30Days > 0 
+        ? ((currentVolume - historicalVolume30Days) / historicalVolume30Days) * 100 
+        : 0;
+
+      // Calculate average price growth
+      const currentAvgPrice = averagePrice;
+      const { data: historicalPrices } = await supabase
+        .from('coins')
+        .select('price')
+        .not('price', 'is', null)
+        .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      const historicalAvgPrice = historicalPrices?.length > 0 
+        ? historicalPrices.reduce((sum, coin) => sum + (coin.price || 0), 0) / historicalPrices.length
+        : 0;
+      
+      const averagePriceGrowth = historicalAvgPrice > 0 
+        ? ((currentAvgPrice - historicalAvgPrice) / historicalAvgPrice) * 100 
+        : 0;
+
       return {
         total: totalCoins || 0,
         auctions: activeAuctions || 0,
@@ -113,12 +171,12 @@ export const useMarketplaceStats = () => {
         recentActivity: recentActivity || 0,
         loading: false,
         
-        // Growth metrics (calculated from historical data when available)
+        // Real growth metrics calculated from historical data
         growthMetrics: {
-          coinsGrowth: 12.5, // Placeholder - would calculate from historical data
-          usersGrowth: 8.3,
-          volumeGrowth: 15.7,
-          averagePriceGrowth: 4.2
+          coinsGrowth: Math.round(coinsGrowth * 100) / 100,
+          usersGrowth: Math.round(usersGrowth * 100) / 100,
+          volumeGrowth: Math.round(volumeGrowth * 100) / 100,
+          averagePriceGrowth: Math.round(averagePriceGrowth * 100) / 100
         },
         
         // Market health indicators
