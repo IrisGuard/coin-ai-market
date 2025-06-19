@@ -1,128 +1,340 @@
-
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Database, Users, Coins, Brain, CreditCard, BarChart3, Cog, Settings, Search } from 'lucide-react';
-
-// Import existing sections
-import PerformanceOptimizedDashboard from '../PerformanceOptimizedDashboard';
-import AdminUsersSection from '../AdminUsersSection';
-import AdminCoinsSection from '../AdminCoinsSection';
-import AdminDatabaseSection from '../sections/AdminDatabaseSection';
-import AdminAISection from '../sections/AdminAISection';
-import AdminMarketplaceSection from '../sections/AdminMarketplaceSection';
-import AdminAnalyticsSection from '../sections/AdminAnalyticsSection';
-import AdminDataSourcesSection from '../sections/AdminDataSourcesSection';
-import AdminSystemSection from '../sections/AdminSystemSection';
-
-// Import Production Security Monitoring Component
-import UnifiedSecurityMonitoringPanel from './UnifiedSecurityMonitoringPanel';
-
-// Import Phase 15 Validation Panel
-import Phase15ValidationPanel from '../validation/Phase15ValidationPanel';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "@/hooks/use-toast";
+import { useSecureAdminUsers, useSecureAdminCoins, useSecureUpdateUserStatus, useSecureApiKeys } from '@/hooks/useSecureAdminData';
+import { useRealExternalSources, useRealMarketAnalytics, useRealAICommands, useRealAutomationRules, useRealSystemMetrics, useRealPerformanceMetrics } from '@/hooks/useRealAdminData';
+import { useOptimizedDashboardStats, usePerformanceMonitoring } from '@/hooks/useOptimizedAdminData';
+import { useAdminStore } from '@/contexts/AdminStoreContext';
+import {
+  Activity, Users, Coins, KeyRound, TrendingUp,
+  ExternalLink, Brain, Gear, MonitorHeart, Rocket,
+  AlertTriangle
+} from 'lucide-react';
+import AdminSystemTab from '../tabs/AdminSystemTab';
+import AdminMockDataTab from '../tabs/AdminMockDataTab';
+import AdminSystemPhasesTab from '../tabs/AdminSystemPhasesTab';
 
 const FullSystemAdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('security-monitoring');
+  const [activeTab, setActiveTab] = useState('users');
+  const { selectedStoreId, isAdminUser } = useAdminStore();
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useSecureAdminUsers();
+  const { data: coinsData, isLoading: coinsLoading, error: coinsError } = useSecureAdminCoins();
+  const { data: externalSources, isLoading: sourcesLoading, error: sourcesError } = useRealExternalSources();
+  const { data: marketAnalytics, isLoading: analyticsLoading, error: analyticsError } = useRealMarketAnalytics();
+  const { data: aiCommands, isLoading: commandsLoading, error: commandsError } = useRealAICommands();
+  const { data: automationRules, isLoading: rulesLoading, error: rulesError } = useRealAutomationRules();
+  const { data: systemMetrics, isLoading: metricsLoading, error: metricsError } = useRealSystemMetrics();
+  const { data: performanceMetrics, isLoading: performanceLoading, error: performanceError } = useRealPerformanceMetrics();
+  const { data: dashboardStats, isLoading: dashboardLoading, error: dashboardError } = useOptimizedDashboardStats();
+  const { data: performanceData, isLoading: performanceIsLoading, error: performanceErrorData } = usePerformanceMonitoring();
+  const { mutate: updateUserStatus, isLoading: isUpdating } = useSecureUpdateUserStatus();
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
+  const adminTabs = [
+    {
+      id: 'users',
+      name: 'Users',
+      icon: Users,
+      color: 'text-blue-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Users</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {usersLoading ? (
+              <p>Loading users...</p>
+            ) : usersError ? (
+              <p>Error: {usersError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {usersData?.data.map((user) => (
+                  <Card key={user.id}>
+                    <CardContent>
+                      <p>Name: {user.name}</p>
+                      <p>Email: {user.email}</p>
+                      <p>Role: {user.role}</p>
+                      <Switch
+                        id={`user-${user.id}`}
+                        checked={user.verified_dealer}
+                        onCheckedChange={(checked) => {
+                          updateUserStatus({ userId: user.id, verified: checked });
+                        }}
+                      />
+                      <Label htmlFor={`user-${user.id}`}>
+                        {user.verified_dealer ? 'Verified' : 'Unverified'}
+                      </Label>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'coins',
+      name: 'Coins',
+      icon: Coins,
+      color: 'text-yellow-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Coins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {coinsLoading ? (
+              <p>Loading coins...</p>
+            ) : coinsError ? (
+              <p>Error: {coinsError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {coinsData?.data.map((coin) => (
+                  <Card key={coin.id}>
+                    <CardContent>
+                      <p>Name: {coin.name}</p>
+                      <p>Value: {coin.value}</p>
+                      <p>User: {coin.profiles?.name}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'api-keys',
+      name: 'API Keys',
+      icon: KeyRound,
+      color: 'text-purple-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>API Keys</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Manage API keys here.</p>
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'analytics',
+      name: 'Analytics',
+      icon: TrendingUp,
+      color: 'text-orange-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>Market Analytics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {analyticsLoading ? (
+              <p>Loading analytics...</p>
+            ) : analyticsError ? (
+              <p>Error: {analyticsError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {marketAnalytics?.map((analytic) => (
+                  <Card key={analytic.id}>
+                    <CardContent>
+                      <p>Metric: {analytic.metric_name}</p>
+                      <p>Value: {analytic.metric_value}</p>
+                      <p>Recorded At: {analytic.recorded_at}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'external-sources',
+      name: 'External Sources',
+      icon: ExternalLink,
+      color: 'text-blue-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>External Price Sources</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sourcesLoading ? (
+              <p>Loading sources...</p>
+            ) : sourcesError ? (
+              <p>Error: {sourcesError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {externalSources?.map((source) => (
+                  <Card key={source.id}>
+                    <CardContent>
+                      <p>Name: {source.source_name}</p>
+                      <p>URL: {source.base_url}</p>
+                      <p>Priority: {source.priority_score}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'ai-commands',
+      name: 'AI Commands',
+      icon: Brain,
+      color: 'text-green-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Commands</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {commandsLoading ? (
+              <p>Loading commands...</p>
+            ) : commandsError ? (
+              <p>Error: {commandsError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {aiCommands?.map((command) => (
+                  <Card key={command.id}>
+                    <CardContent>
+                      <p>Command: {command.command_name}</p>
+                      <p>Description: {command.command_description}</p>
+                      <p>Priority: {command.priority}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'automation-rules',
+      name: 'Automation Rules',
+      icon: Gear,
+      color: 'text-yellow-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>Automation Rules</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rulesLoading ? (
+              <p>Loading rules...</p>
+            ) : rulesError ? (
+              <p>Error: {rulesError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {automationRules?.map((rule) => (
+                  <Card key={rule.id}>
+                    <CardContent>
+                      <p>Name: {rule.rule_name}</p>
+                      <p>Description: {rule.rule_description}</p>
+                      <p>Created At: {rule.created_at}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'system-metrics',
+      name: 'System Metrics',
+      icon: MonitorHeart,
+      color: 'text-red-600',
+      component: (
+        <Card>
+          <CardHeader>
+            <CardTitle>System Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {metricsLoading ? (
+              <p>Loading metrics...</p>
+            ) : metricsError ? (
+              <p>Error: {metricsError.message}</p>
+            ) : (
+              <div className="grid gap-4">
+                {systemMetrics?.map((metric) => (
+                  <Card key={metric.id}>
+                    <CardContent>
+                      <p>Metric: {metric.metric_name}</p>
+                      <p>Value: {metric.metric_value}</p>
+                      <p>Created At: {metric.created_at}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: 'system',
+      name: 'System Health',
+      icon: Activity,
+      color: 'text-green-600',
+      component: AdminSystemTab,
+    },
+    {
+      id: 'mock-data',
+      name: 'Mock Data Monitor', 
+      icon: AlertTriangle,
+      color: 'text-red-600',
+      component: AdminMockDataTab,
+      badge: 'CRITICAL'
+    },
+    {
+      id: 'system-phases',
+      name: 'System Phases',
+      icon: Rocket, 
+      color: 'text-purple-600',
+      component: AdminSystemPhasesTab,
+      badge: '15 Phases'
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8 text-red-600" />
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Complete Admin Control Panel</h1>
-              <p className="text-muted-foreground">🔒 Production Data Protection • Live Security Monitoring • 100% Production Ready</p>
-            </div>
-          </div>
-        </div>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Full System Admin Panel</h1>
 
-        {/* Comprehensive Tabs with Security Monitoring First */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-10">
-            <TabsTrigger value="security-monitoring" className="flex items-center gap-2 bg-red-50 data-[state=active]:bg-red-100">
-              <Shield className="h-4 w-4 text-red-600" />
-              <span className="font-semibold text-red-700">Security</span>
+      <Tabs defaultValue={activeTab} className="w-full">
+        <TabsList>
+          {adminTabs.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id} onClick={() => handleTabChange(tab.id)} className="flex items-center space-x-2">
+              <tab.icon className="h-4 w-4" />
+              <span>{tab.name}</span>
+              {tab.badge && <span className="ml-2 text-xs font-bold">{tab.badge}</span>}
             </TabsTrigger>
-            <TabsTrigger value="phase-validation" className="flex items-center gap-2 bg-blue-50 data-[state=active]:bg-blue-100">
-              <Search className="h-4 w-4 text-blue-600" />
-              <span className="font-semibold text-blue-700">15 Phases</span>
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="database" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Database
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="coins" className="flex items-center gap-2">
-              <Coins className="h-4 w-4" />
-              Coins
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              AI System
-            </TabsTrigger>
-            <TabsTrigger value="marketplace" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Marketplace
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              System
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="security-monitoring">
-            <UnifiedSecurityMonitoringPanel />
+          ))}
+        </TabsList>
+        {adminTabs.map((tab) => (
+          <TabsContent key={tab.id} value={tab.id} className="mt-4">
+            {typeof tab.component === 'function' ? <tab.component /> : tab.component}
           </TabsContent>
-
-          <TabsContent value="phase-validation">
-            <Phase15ValidationPanel />
-          </TabsContent>
-
-          <TabsContent value="dashboard">
-            <PerformanceOptimizedDashboard />
-          </TabsContent>
-
-          <TabsContent value="database">
-            <AdminDatabaseSection />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <AdminUsersSection />
-          </TabsContent>
-
-          <TabsContent value="coins">
-            <AdminCoinsSection />
-          </TabsContent>
-
-          <TabsContent value="ai">
-            <AdminAISection />
-          </TabsContent>
-
-          <TabsContent value="marketplace">
-            <AdminMarketplaceSection />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdminAnalyticsSection />
-          </TabsContent>
-
-          <TabsContent value="system">
-            <AdminSystemSection />
-          </TabsContent>
-        </Tabs>
-      </div>
+        ))}
+      </Tabs>
     </div>
   );
 };
