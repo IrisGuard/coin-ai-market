@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 
-// Production query client with no retry
+// Create a test query client with no retry
 export const createProductionQueryClient = (): QueryClient => new QueryClient({
   defaultOptions: {
     queries: {
@@ -15,7 +15,7 @@ export const createProductionQueryClient = (): QueryClient => new QueryClient({
   },
 });
 
-// Production render with providers
+// Render component with providers for testing
 export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
@@ -29,18 +29,18 @@ export const renderWithProviders = (
   return render(ui, { wrapper: Wrapper, ...options });
 };
 
-// Production intersection observer for testing
+// Setup intersection observer mock for testing
 export const setupIntersectionObserver = (): void => {
-  const productionIntersectionObserver = jest.fn();
-  productionIntersectionObserver.mockReturnValue({
+  const mockIntersectionObserver = jest.fn();
+  mockIntersectionObserver.mockReturnValue({
     observe: () => null,
     unobserve: () => null,
     disconnect: () => null
   });
-  (window as any).IntersectionObserver = productionIntersectionObserver;
+  (window as any).IntersectionObserver = mockIntersectionObserver;
 };
 
-// Cleanup utilities
+// Clean up test environment
 export const cleanupTests = (): void => {
   if (typeof window !== 'undefined') {
     window.localStorage.clear();
@@ -48,11 +48,11 @@ export const cleanupTests = (): void => {
   }
 };
 
-// Wait for async operations
+// Wait for async operations in tests
 export const waitForAsync = (ms: number = 0): Promise<void> => 
   new Promise(resolve => setTimeout(resolve, ms));
 
-// Production error trigger
+// Trigger test error for error handling tests
 export const triggerProductionError = (message: string = 'Production error'): never => {
   throw new Error(message);
 };
