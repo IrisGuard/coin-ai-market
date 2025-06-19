@@ -120,7 +120,8 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
   }
 
   const sum = times.reduce((total, time) => total + time, 0);
-  return sum / times.length;
+  const averageTime = sum / times.length;
+  return averageTime;
 };
 
 // Real database testing utilities
