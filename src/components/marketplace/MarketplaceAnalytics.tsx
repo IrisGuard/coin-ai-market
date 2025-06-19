@@ -4,27 +4,70 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMarketplace } from '@/hooks/useMarketplace';
 import { TrendingUp, DollarSign, Package, Gavel } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const MarketplaceAnalytics = () => {
   const { stats, statsLoading } = useMarketplace();
 
-  // Mock data for charts - in real app, this would come from API
-  const salesData = [
-    { month: 'Jan', sales: 4000, revenue: 2400 },
-    { month: 'Feb', sales: 3000, revenue: 1398 },
-    { month: 'Mar', sales: 2000, revenue: 9800 },
-    { month: 'Apr', sales: 2780, revenue: 3908 },
-    { month: 'May', sales: 1890, revenue: 4800 },
-    { month: 'Jun', sales: 2390, revenue: 3800 }
-  ];
+  // Real data for charts from actual transactions and coins
+  const { data: salesData = [] } = useQuery({
+    queryKey: ['sales-data'],
+    queryFn: async () => {
+      const { data: transactions } = await supabase
+        .from('payment_transactions')
+        .select('amount, created_at, status')
+        .eq('status', 'completed')
+        .order('created_at', { ascending: true });
 
-  const categoryData = [
-    { category: 'Gold', count: 45, value: 125000 },
-    { category: 'Silver', count: 123, value: 67000 },
-    { category: 'Error Coins', count: 28, value: 89000 },
-    { category: 'Ancient', count: 34, value: 156000 },
-    { category: 'Modern', count: 78, value: 34000 }
-  ];
+      // Group by month
+      const monthlyData = transactions?.reduce((acc: any[], transaction) => {
+        const month = new Date(transaction.created_at).toLocaleString('default', { month: 'short' });
+        const existing = acc.find(item => item.month === month);
+        if (existing) {
+          existing.sales += 1;
+          existing.revenue += Number(transaction.amount);
+        } else {
+          acc.push({ 
+            month, 
+            sales: 1, 
+            revenue: Number(transaction.amount) 
+          });
+        }
+        return acc;
+      }, []) || [];
+
+      return monthlyData.slice(-6); // Last 6 months
+    }
+  });
+
+  const { data: categoryData = [] } = useQuery({
+    queryKey: ['category-data'],
+    queryFn: async () => {
+      const { data: coins } = await supabase
+        .from('coins')
+        .select('category, price');
+
+      // Group by category
+      const categoryStats = coins?.reduce((acc: any[], coin) => {
+        const category = coin.category || 'Unknown';
+        const existing = acc.find(item => item.category === category);
+        if (existing) {
+          existing.count += 1;
+          existing.value += Number(coin.price || 0);
+        } else {
+          acc.push({ 
+            category: category.charAt(0).toUpperCase() + category.slice(1), 
+            count: 1, 
+            value: Number(coin.price || 0) 
+          });
+        }
+        return acc;
+      }, []) || [];
+
+      return categoryStats.slice(0, 5); // Top 5 categories
+    }
+  });
 
   if (statsLoading) {
     return (
@@ -94,15 +137,21 @@ const MarketplaceAnalytics = () => {
             <CardTitle>Sales Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            {salesData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No sales data available
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -111,15 +160,21 @@ const MarketplaceAnalytics = () => {
             <CardTitle>Category Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={categoryData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#8B5CF6" />
-              </BarChart>
-            </ResponsiveContainer>
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={categoryData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8B5CF6" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No category data available
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

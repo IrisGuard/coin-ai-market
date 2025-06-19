@@ -113,7 +113,7 @@ export const cleanupTests = () => {
 export const waitForAsync = (ms: number = 0) => 
   new Promise(resolve => setTimeout(resolve, ms));
 
-// Mock error for testing
+// Test error trigger
 export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };

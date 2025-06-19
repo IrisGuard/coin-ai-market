@@ -61,7 +61,7 @@ export const useRealTimeAnalytics = () => {
 
   const collectSystemMetrics = useCallback(async () => {
     try {
-      // Get real system metrics from database with fallback values
+      // Get real system metrics from database
       const { data: metrics } = await supabase
         .from('system_metrics')
         .select('metric_name, metric_value')
@@ -75,34 +75,24 @@ export const useRealTimeAnalytics = () => {
         }, {} as Record<string, number>);
 
         setSystemMetrics({
-          cpuUsage: metricsMap['cpu_usage'] || 25,
-          memoryUsage: metricsMap['memory_usage'] || 60,
-          diskUsage: metricsMap['disk_usage'] || 70,
-          networkLatency: metricsMap['network_latency'] || 30,
-          activeConnections: Math.floor(metricsMap['active_connections'] || 75),
-          requestsPerMinute: Math.floor(metricsMap['requests_per_minute'] || 350)
-        });
-      } else {
-        // Fallback values for new installations
-        setSystemMetrics({
-          cpuUsage: 25,
-          memoryUsage: 60,
-          diskUsage: 70,
-          networkLatency: 30,
-          activeConnections: 75,
-          requestsPerMinute: 350
+          cpuUsage: metricsMap['cpu_usage'] || 0,
+          memoryUsage: metricsMap['memory_usage'] || 0,
+          diskUsage: metricsMap['disk_usage'] || 0,
+          networkLatency: metricsMap['network_latency'] || 0,
+          activeConnections: Math.floor(metricsMap['active_connections'] || 0),
+          requestsPerMinute: Math.floor(metricsMap['requests_per_minute'] || 0)
         });
       }
     } catch (error) {
       console.error('Failed to collect system metrics:', error);
-      // Fallback values on error
+      // Set defaults on error
       setSystemMetrics({
-        cpuUsage: 25,
-        memoryUsage: 60,
-        diskUsage: 70,
-        networkLatency: 30,
-        activeConnections: 75,
-        requestsPerMinute: 350
+        cpuUsage: 0,
+        memoryUsage: 0,
+        diskUsage: 0,
+        networkLatency: 0,
+        activeConnections: 0,
+        requestsPerMinute: 0
       });
     }
   }, []);
@@ -135,23 +125,23 @@ export const useRealTimeAnalytics = () => {
         .gte('timestamp', new Date(Date.now() - 60 * 60 * 1000).toISOString());
 
       setUserBehavior({
-        activeUsers: profiles?.length || 35,
-        newRegistrations: newUsers?.length || 8,
-        coinUploads: recentCoins?.length || 20,
-        searchQueries: searchData?.length || 150,
-        averageSessionDuration: 450, // 7.5 minutes average
-        bounceRate: 25 // 25% bounce rate
+        activeUsers: profiles?.length || 0,
+        newRegistrations: newUsers?.length || 0,
+        coinUploads: recentCoins?.length || 0,
+        searchQueries: searchData?.length || 0,
+        averageSessionDuration: 450, // 7.5 minutes average - could be calculated from session data
+        bounceRate: 25 // 25% bounce rate - would need session tracking
       });
     } catch (error) {
       console.error('Failed to collect user behavior metrics:', error);
-      // Fallback values on error
+      // Set defaults on error
       setUserBehavior({
-        activeUsers: 35,
-        newRegistrations: 8,
-        coinUploads: 20,
-        searchQueries: 150,
-        averageSessionDuration: 450,
-        bounceRate: 25
+        activeUsers: 0,
+        newRegistrations: 0,
+        coinUploads: 0,
+        searchQueries: 0,
+        averageSessionDuration: 0,
+        bounceRate: 0
       });
     }
   }, []);
@@ -172,7 +162,7 @@ export const useRealTimeAnalytics = () => {
 
       const avgAiProcessingTime = aiCache?.length 
         ? aiCache.reduce((sum, item) => sum + (item.processing_time_ms || 0), 0) / aiCache.length
-        : 1500;
+        : 0;
 
       // Get error rate from error logs
       const { data: errors } = await supabase
@@ -194,14 +184,14 @@ export const useRealTimeAnalytics = () => {
       });
     } catch (error) {
       console.error('Failed to collect performance metrics:', error);
-      // Fallback values on error
+      // Set defaults on error
       setPerformance({
-        apiResponseTime: 200,
-        aiProcessingTime: 1500,
-        databaseResponseTime: 50,
-        errorRate: 2,
-        successRate: 98,
-        throughput: 250
+        apiResponseTime: 0,
+        aiProcessingTime: 0,
+        databaseResponseTime: 0,
+        errorRate: 0,
+        successRate: 100,
+        throughput: 0
       });
     }
   }, []);
