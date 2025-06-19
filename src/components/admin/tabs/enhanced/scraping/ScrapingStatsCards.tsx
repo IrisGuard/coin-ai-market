@@ -44,7 +44,7 @@ const ScrapingStatsCards: React.FC<ScrapingStatsCardsProps> = ({ stats: provided
       const { data: recentJobs, error: jobsError } = await supabase
         .from('analytics_events')
         .select('*')
-        .ilike('event_type', '%scraping%')
+        .eq('event_type', 'scraping_job')
         .order('timestamp', { ascending: false })
         .limit(100);
       
@@ -54,17 +54,14 @@ const ScrapingStatsCards: React.FC<ScrapingStatsCardsProps> = ({ stats: provided
       const activeJobs = dataSources?.filter(ds => ds.is_active)?.length || 0;
       const recentJobsCount = recentJobs?.length || 0;
       
-      // Calculate success rate from recent jobs
       const successfulJobs = recentJobs?.filter(job => {
         const metadata = job.metadata as JobMetadata;
-        return metadata?.status === 'success' || 
-               job.event_type.includes('complete');
+        return metadata?.status === 'success';
       })?.length || 0;
       
       const successRate = recentJobsCount > 0 ? 
-        Math.round((successfulJobs / recentJobsCount) * 100) : 100;
+        Math.round((successfulJobs / recentJobsCount) * 100) : 0;
 
-      // Calculate average duration from metadata
       const jobsWithDuration = recentJobs?.filter(job => {
         const metadata = job.metadata as JobMetadata;
         return metadata?.duration_ms;
@@ -76,18 +73,16 @@ const ScrapingStatsCards: React.FC<ScrapingStatsCardsProps> = ({ stats: provided
             const metadata = job.metadata as JobMetadata;
             return sum + ((metadata.duration_ms || 0) / 60000);
           }, 0) / jobsWithDuration.length
-        ) : 5;
+        ) : 0;
 
-      // Estimate data collected
       const dataCollected = recentJobs?.reduce((sum, job) => {
         const metadata = job.metadata as JobMetadata;
-        return sum + (metadata?.records_collected || 10);
+        return sum + (metadata?.records_collected || 0);
       }, 0) || 0;
 
-      // Get last run time
       const lastRun = recentJobs?.[0]?.timestamp ? 
         new Date(recentJobs[0].timestamp).toLocaleString() : 
-        'Not available';
+        'No runs yet';
 
       return {
         totalJobs,
@@ -98,7 +93,7 @@ const ScrapingStatsCards: React.FC<ScrapingStatsCardsProps> = ({ stats: provided
         lastRun
       };
     },
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: 60000
   });
 
   const stats = providedStats || scrapingStats || {

@@ -54,7 +54,7 @@ const MarketPredictions: React.FC<MarketPredictionsProps> = ({
       return [];
     }
 
-    const baseValue = portfolioValue || 10000;
+    const baseValue = portfolioValue || 1000;
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
     
     return months.map((month, index) => {
@@ -75,15 +75,7 @@ const MarketPredictions: React.FC<MarketPredictionsProps> = ({
   // Generate market trends from real data
   const marketTrends = React.useMemo(() => {
     if (!marketAnalytics || marketAnalytics.length === 0) {
-      return [
-        {
-          category: "No Data Available",
-          trend: "stable",
-          prediction: "0%",
-          confidence: 50,
-          factors: ["Insufficient market data"]
-        }
-      ];
+      return [];
     }
 
     return marketAnalytics.slice(0, 3).map((analytics, index) => {
@@ -196,33 +188,39 @@ const MarketPredictions: React.FC<MarketPredictionsProps> = ({
         <div>
           <h4 className="font-semibold mb-3">Market Analysis</h4>
           <div className="space-y-3">
-            {marketTrends.map((trend, index) => (
-              <motion.div
-                key={trend.category}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`p-3 rounded-lg border ${getTrendColor(trend.trend)}`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {getTrendIcon(trend.trend)}
-                    <h5 className="font-medium text-sm">{trend.category}</h5>
+            {marketTrends.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                No market data available
+              </div>
+            ) : (
+              marketTrends.map((trend, index) => (
+                <motion.div
+                  key={trend.category}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`p-3 rounded-lg border ${getTrendColor(trend.trend)}`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {getTrendIcon(trend.trend)}
+                      <h5 className="font-medium text-sm">{trend.category}</h5>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-sm">{trend.prediction}</div>
+                      <div className="text-xs opacity-75">{trend.confidence}% confidence</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-sm">{trend.prediction}</div>
-                    <div className="text-xs opacity-75">{trend.confidence}% confidence</div>
+                  <div className="flex flex-wrap gap-1">
+                    {trend.factors.map((factor, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs">
+                        {factor}
+                      </Badge>
+                    ))}
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {trend.factors.map((factor, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {factor}
-                    </Badge>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
 
