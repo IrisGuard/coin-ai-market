@@ -1,3 +1,4 @@
+
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -30,10 +31,10 @@ export const renderWithProviders = (
 
 // Performance testing helpers
 export const measureRenderTime = async (renderFn: () => void) => {
-  const start = performance.now();
+  const startTime = performance.now();
   renderFn();
-  const end = performance.now();
-  return (end - start);
+  const endTime = performance.now();
+  return endTime - startTime;
 };
 
 // Mock intersection observer for testing
@@ -82,7 +83,7 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
     const actualValue = componentProps[key];
     
     if (actualValue !== expectedValue) {
-      const errorMessage = 'Property ' + key + ' expected ' + String(expectedValue) + ' but got ' + String(actualValue);
+      const errorMessage = `Property ${key} expected ${String(expectedValue)} but got ${String(actualValue)}`;
       errors.push(errorMessage);
     }
   }

@@ -21,7 +21,7 @@ export const generateSearchAnalytics = async (searchResults: any[], searchQuery:
 
     // Calculate real metrics
     const totalResults = searchResults.length;
-    const searchTime = performance.now() - (performance.getEntriesByType('navigation')[0]?.startTime || 0);
+    const searchStartTime = performance.now();
     
     // Calculate relevance based on actual search patterns
     const relevanceScore = calculateRelevanceScore(searchResults, searchQuery, popularSearches || []);
@@ -37,6 +37,8 @@ export const generateSearchAnalytics = async (searchResults: any[], searchQuery:
     
     // Real rarity distribution
     const rarityDistribution = calculateRarityDistribution(searchResults);
+
+    const searchTime = (performance.now() - searchStartTime) / 1000;
 
     // Log search analytics
     await supabase
@@ -55,7 +57,7 @@ export const generateSearchAnalytics = async (searchResults: any[], searchQuery:
 
     return {
       totalResults,
-      searchTime: Math.round(searchTime) / 1000, // Convert to seconds
+      searchTime,
       relevanceScore,
       popularityIndex,
       priceRange,
