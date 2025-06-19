@@ -3,50 +3,6 @@ import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 
-// Mock data generators for testing
-export const generateMockCoin = (overrides = {}) => ({
-  id: 'test-coin-1',
-  title: 'Test Coin',
-  year: 2023,
-  country: 'USA',
-  denomination: '$1',
-  grade: 'MS-70',
-  price: 100,
-  dealer_id: 'test-dealer',
-  category: 'test-category',
-  images: ['test-image.jpg'],
-  created_at: new Date().toISOString(),
-  ...overrides
-});
-
-export const generateMockUser = (overrides = {}) => ({
-  id: 'test-user-1',
-  email: 'test@example.com',
-  role: 'buyer',
-  created_at: new Date().toISOString(),
-  ...overrides
-});
-
-export const generateMockAuction = (overrides = {}) => ({
-  id: 'test-auction-1',
-  coin_id: 'test-coin-1',
-  starting_price: 50,
-  current_price: 75,
-  ends_at: new Date(Date.now() + 86400000).toISOString(),
-  status: 'active',
-  ...overrides
-});
-
-export const generateMockStore = (overrides = {}) => ({
-  id: 'test-store-1',
-  name: 'Test Store',
-  description: 'A test store',
-  owner_id: 'test-dealer',
-  is_active: true,
-  created_at: new Date().toISOString(),
-  ...overrides
-});
-
 // Test query client with no retry
 export const createTestQueryClient = () => new QueryClient({
   defaultOptions: {
@@ -72,15 +28,6 @@ export const renderWithProviders = (
 
   return render(ui, { wrapper: Wrapper, ...options });
 };
-
-// Mock Supabase responses
-export const mockSupabaseResponse = (data: any[], error: any = null) => ({
-  data,
-  error,
-  count: data?.length || 0,
-  status: error ? 400 : 200,
-  statusText: error ? 'Bad Request' : 'OK'
-});
 
 // Performance testing helpers
 export const measureRenderTime = async (renderFn: () => void) => {
