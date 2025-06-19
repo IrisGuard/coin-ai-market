@@ -1,3 +1,4 @@
+
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -119,8 +120,8 @@ export const benchmarkOperation = async (operation: () => Promise<any>, iteratio
     times.push(end - start);
   }
 
-  const sum = times.reduce((total, time) => total + time, 0);
-  const averageTime = sum / times.length;
+  const totalTime = times.reduce((sum, time) => sum + time, 0);
+  const averageTime = totalTime / times.length;
   return averageTime;
 };
 
