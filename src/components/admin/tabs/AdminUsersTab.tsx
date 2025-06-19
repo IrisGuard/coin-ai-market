@@ -10,7 +10,7 @@ import { Users, UserCheck, UserX, Shield, Search, Mail } from 'lucide-react';
 const AdminUsersTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Use the improved hook with left join
+  // Use the improved hook with simplified query
   const { data: users, isLoading } = useAdminUsers();
   const updateUserStatus = useUpdateUserStatus();
   const updateUserRole = useUpdateUserRole();
@@ -22,7 +22,13 @@ const AdminUsersTab = () => {
 
   const totalUsers = users?.length || 0;
   const verifiedDealers = users?.filter(user => user.verified_dealer)?.length || 0;
-  const adminUsers = users?.filter(user => user.user_roles?.some((role: any) => role.role === 'admin'))?.length || 0;
+  // Safe check for user_roles with fallback
+  const adminUsers = users?.filter(user => {
+    if (Array.isArray(user.user_roles)) {
+      return user.user_roles.some((role: any) => role.role === 'admin');
+    }
+    return false;
+  })?.length || 0;
 
   if (isLoading) {
     return (
@@ -114,12 +120,12 @@ const AdminUsersTab = () => {
                         <Badge variant={user.verified_dealer ? "default" : "secondary"}>
                           {user.verified_dealer ? "Verified Dealer" : "Regular User"}
                         </Badge>
-                        {user.user_roles?.map((roleData: any) => (
+                        {Array.isArray(user.user_roles) && user.user_roles.map((roleData: any) => (
                           <Badge key={roleData.role} variant="outline">
                             {roleData.role}
                           </Badge>
                         ))}
-                        {user.stores?.length > 0 && (
+                        {Array.isArray(user.stores) && user.stores.length > 0 && (
                           <Badge variant="outline">Has Store</Badge>
                         )}
                       </div>
@@ -151,7 +157,7 @@ const AdminUsersTab = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const currentRole = user.user_roles?.[0]?.role || 'user';
+                        const currentRole = Array.isArray(user.user_roles) && user.user_roles[0]?.role || 'user';
                         const newRole = currentRole === 'admin' ? 'user' : 'admin';
                         updateUserRole.mutate({ userId: user.id, role: newRole });
                       }}

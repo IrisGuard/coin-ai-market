@@ -2,7 +2,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { useLogStoreActivity } from '@/hooks/useStoreActivityLogs';
 
 export const useEnhancedStoreData = () => {
   return useQuery({
@@ -114,7 +113,7 @@ export const useStorePerformanceMetrics = () => {
   });
 };
 
-export const useLogStoreActivity = () => {
+export const useStoreActivityLogger = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -159,7 +158,7 @@ export const useLogStoreActivity = () => {
 
 export const useBulkStoreOperations = () => {
   const queryClient = useQueryClient();
-  const logActivity = useLogStoreActivity();
+  const logActivity = useStoreActivityLogger();
   
   return useMutation({
     mutationFn: async ({ 

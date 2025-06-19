@@ -30,4 +30,23 @@ export class SecurityValidation {
     
     return { isValid: true };
   }
+
+  static validateFileUpload(file: File): { isValid: boolean; error?: string } {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      return { isValid: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' };
+    }
+    
+    if (file.size > maxSize) {
+      return { isValid: false, error: 'File too large. Maximum size is 10MB.' };
+    }
+    
+    return { isValid: true };
+  }
+
+  static sanitizeInput(input: string): string {
+    return input.replace(/[<>\"']/g, '');
+  }
 }

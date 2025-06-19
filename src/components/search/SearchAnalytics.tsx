@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { generateSearchAnalytics } from '@/utils/searchAnalyticsUtils';
 import SearchPerformanceCard from './analytics/SearchPerformanceCard';
 import PriceAnalysisCard from './analytics/PriceAnalysisCard';
@@ -18,7 +18,9 @@ const SearchAnalytics: React.FC<SearchAnalyticsProps> = ({
   searchResults,
   searchTime
 }) => {
-  const analytics = generateSearchAnalytics(searchResults);
+  const analytics = useMemo(() => {
+    return generateSearchAnalytics(searchResults);
+  }, [searchResults]);
 
   return (
     <div className="space-y-6">
