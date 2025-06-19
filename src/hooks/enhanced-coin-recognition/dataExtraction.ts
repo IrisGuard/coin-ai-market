@@ -5,6 +5,7 @@ import {
   assessGradeReliability,
   generateMarketplaceInsights 
 } from './marketplace';
+import { supabase } from '@/integrations/supabase/client';
 
 export const extractMarketPrices = (webResults: any[]) => {
   const prices = webResults
@@ -109,7 +110,7 @@ export const extractMarketplaceIntelligence = async (coinData: any) => {
   
   try {
     // Get marketplace data from existing user stores
-    const marketHistory = await extractUserStoreData();
+    const marketHistory = await extractUserStoreData(coinData);
     
     // Analyze the coin against marketplace patterns
     const insights = generateMarketplaceInsights(coinData, marketHistory);
@@ -184,7 +185,6 @@ export const enhanceWithMarketplaceData = (claudeResult: any, webResults: any[],
 
 export const extractCoinIdentificationData = async (imageData: string, metadata?: any) => {
   try {
-    // Use existing secure random function with proper parameters
     const { data: coinData, error } = await supabase
       .from('coins')
       .select('*')

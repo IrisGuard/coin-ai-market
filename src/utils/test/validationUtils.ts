@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 // Validate component props with real data validation
@@ -33,7 +34,7 @@ export const validateRealDataStructure = (data: any, requiredFields: string[]): 
 };
 
 // Real database testing utilities
-export const getProductionDataFromSupabase = async (table: string, limit: number = 10) => {
+export const getProductionDataFromSupabase = async (table: 'coins' | 'profiles' | 'stores', limit: number = 10) => {
   const { data, error } = await supabase
     .from(table)
     .select('*')
@@ -73,11 +74,10 @@ export const validateCoinData = async (coinId: string): Promise<boolean> => {
   return !!(data.id && data.name && data.price && data.grade && data.year);
 };
 
-export const validateTableExists = async (tableName: string): Promise<boolean> => {
+export const validateTableExists = async (tableName: 'coins' | 'profiles' | 'stores'): Promise<boolean> => {
   try {
-    // Use a known table from the allowed tables list instead of dynamic query
     const { data, error } = await supabase
-      .from('profiles')
+      .from(tableName)
       .select('id')
       .limit(1);
     

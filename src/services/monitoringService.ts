@@ -128,7 +128,8 @@ export const monitoringService = {
         .from('analytics_events')
         .insert({
           event_type: 'resource_usage',
-          metadata: usage,
+          page_url: '/system/monitoring',
+          metadata: usage as any,
           timestamp: new Date().toISOString()
         });
     } catch (error) {
@@ -142,7 +143,8 @@ export const monitoringService = {
         .from('analytics_events')
         .insert({
           event_type: 'alert_created',
-          metadata: alert,
+          page_url: '/system/alerts',
+          metadata: alert as any,
           timestamp: new Date().toISOString()
         });
     } catch (error) {

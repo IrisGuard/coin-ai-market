@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { monitoringService } from '@/services/monitoringService';
@@ -126,8 +125,7 @@ export const useRealTimeSystemStatus = (refreshInterval: number = 30000) => {
       alert_type: type,
       severity,
       title,
-      description,
-      auto_resolve: false
+      description
     });
     refetch();
   }, [refetch]);

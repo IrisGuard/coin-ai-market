@@ -103,7 +103,7 @@ export class PerformanceMetrics {
     return {
       domContentLoaded: nav.domContentLoadedEventEnd - nav.domContentLoadedEventStart,
       load: nav.loadEventEnd - nav.loadEventStart,
-      domInteractive: nav.domInteractive - nav.navigationStart,
+      domInteractive: nav.domInteractive - nav.fetchStart,
       firstPaint: this.getFirstPaint(),
       firstContentfulPaint: this.getFirstContentfulPaint()
     };
