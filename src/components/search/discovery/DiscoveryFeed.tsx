@@ -74,20 +74,15 @@ const DiscoveryFeed: React.FC<DiscoveryFeedProps> = ({ onCoinClick }) => {
             {coins?.map((coin) => (
               <CoinCard 
                 key={coin.id} 
-                coin={{
-                  id: coin.id,
-                  name: coin.name,
-                  price: coin.price,
-                  views: coin.views || 0,
-                  trend: coin.rarity === 'extremely_rare' ? '+15%' : '+8%',
-                  addedHours: Math.floor((Date.now() - new Date(coin.created_at).getTime()) / (1000 * 60 * 60)),
-                  rarity: coin.rarity,
-                  featured: coin.featured,
-                  image: coin.image,
-                  grade: coin.grade,
-                  year: coin.year
-                }}
-                onClick={() => onCoinClick(coin.id)}
+                id={coin.id}
+                name={coin.name}
+                imageUrl={coin.image}
+                year={coin.year}
+                mint={coin.mint || 'Unknown'}
+                grade={coin.grade}
+                price={coin.price}
+                onViewDetails={() => onCoinClick(coin.id)}
+                onAddToWatchlist={() => console.log('Add to watchlist:', coin.id)}
               />
             ))}
           </div>

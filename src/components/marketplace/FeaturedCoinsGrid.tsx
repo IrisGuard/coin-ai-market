@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { validateComponentProps } from '@/utils/mockDataBlocker';
 
 interface Coin {
   id: string;
@@ -30,7 +30,16 @@ const FeaturedCoinsGrid = () => {
         return [];
       }
 
-      return data || [];
+      // Map the database data to match the expected interface
+      return (data || []).map(coin => ({
+        id: coin.id,
+        name: coin.name,
+        year: coin.year,
+        country: coin.country || '',
+        grade: coin.grade,
+        price: coin.price,
+        image_url: coin.image // Map 'image' to 'image_url'
+      }));
     }
   });
 
