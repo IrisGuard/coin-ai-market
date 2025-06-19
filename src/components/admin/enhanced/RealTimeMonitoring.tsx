@@ -7,6 +7,14 @@ import { Activity, Users, AlertTriangle, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+interface PerformanceMetrics {
+  avg_response_time?: number;
+  errors_last_hour?: number;
+  active_sessions?: number;
+  critical_alerts?: number;
+  system_health?: string;
+}
+
 const RealTimeMonitoring: React.FC = () => {
   // Fetch real performance metrics
   const { data: performanceData, isLoading } = useQuery({
@@ -16,7 +24,7 @@ const RealTimeMonitoring: React.FC = () => {
         .rpc('get_system_performance_metrics');
       
       if (error) throw error;
-      return data;
+      return data as PerformanceMetrics;
     },
     refetchInterval: 30000 // Refresh every 30 seconds
   });
@@ -172,7 +180,7 @@ const RealTimeMonitoring: React.FC = () => {
             </div>
             <div className="mt-2">
               <Badge 
-                variant={performanceData?.errors_last_hour > 5 ? 'destructive' : 'secondary'} 
+                variant={(performanceData?.errors_last_hour || 0) > 5 ? 'destructive' : 'secondary'} 
                 className="text-xs"
               >
                 Last hour

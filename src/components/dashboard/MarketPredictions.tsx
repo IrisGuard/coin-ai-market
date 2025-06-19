@@ -23,6 +23,12 @@ interface MarketPredictionsProps {
   isAnalyzing: boolean;
 }
 
+interface TrendAnalysis {
+  trend?: number;
+  confidence?: number;
+  [key: string]: any;
+}
+
 const MarketPredictions: React.FC<MarketPredictionsProps> = ({ 
   portfolioValue, 
   isAnalyzing 
@@ -53,7 +59,8 @@ const MarketPredictions: React.FC<MarketPredictionsProps> = ({
     
     return months.map((month, index) => {
       const isHistorical = index < 4;
-      const trend = marketAnalytics[0]?.trend_analysis?.trend || 0;
+      const trendAnalysis = marketAnalytics[0]?.trend_analysis as TrendAnalysis;
+      const trend = trendAnalysis?.trend || 0;
       const multiplier = 1 + (trend * 0.01 * (index + 1));
       
       return {
@@ -80,14 +87,15 @@ const MarketPredictions: React.FC<MarketPredictionsProps> = ({
     }
 
     return marketAnalytics.slice(0, 3).map((analytics, index) => {
-      const trendValue = analytics.trend_analysis?.trend || 0;
+      const trendAnalysis = analytics.trend_analysis as TrendAnalysis;
+      const trendValue = trendAnalysis?.trend || 0;
       const trend = trendValue > 5 ? "bullish" : trendValue < -5 ? "bearish" : "stable";
       
       return {
         category: analytics.metric_name || `Market Segment ${index + 1}`,
         trend,
         prediction: `${trendValue > 0 ? '+' : ''}${trendValue.toFixed(1)}%`,
-        confidence: Math.round(analytics.trend_analysis?.confidence || 75),
+        confidence: Math.round(trendAnalysis?.confidence || 75),
         factors: [
           "Real market data",
           "Historical analysis",

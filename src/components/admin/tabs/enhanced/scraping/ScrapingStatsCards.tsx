@@ -23,6 +23,13 @@ interface ScrapingStatsCardsProps {
   };
 }
 
+interface JobMetadata {
+  status?: string;
+  duration_ms?: number;
+  records_collected?: number;
+  [key: string]: any;
+}
+
 const ScrapingStatsCards: React.FC<ScrapingStatsCardsProps> = ({ stats: providedStats }) => {
   // Fetch real scraping statistics from data sources
   const { data: scrapingStats, isLoading } = useQuery({
@@ -48,30 +55,34 @@ const ScrapingStatsCards: React.FC<ScrapingStatsCardsProps> = ({ stats: provided
       const recentJobsCount = recentJobs?.length || 0;
       
       // Calculate success rate from recent jobs
-      const successfulJobs = recentJobs?.filter(job => 
-        job.metadata?.status === 'success' || 
-        job.event_type.includes('complete')
-      )?.length || 0;
+      const successfulJobs = recentJobs?.filter(job => {
+        const metadata = job.metadata as JobMetadata;
+        return metadata?.status === 'success' || 
+               job.event_type.includes('complete');
+      })?.length || 0;
       
       const successRate = recentJobsCount > 0 ? 
         Math.round((successfulJobs / recentJobsCount) * 100) : 100;
 
       // Calculate average duration from metadata
-      const jobsWithDuration = recentJobs?.filter(job => 
-        job.metadata?.duration_ms
-      ) || [];
+      const jobsWithDuration = recentJobs?.filter(job => {
+        const metadata = job.metadata as JobMetadata;
+        return metadata?.duration_ms;
+      }) || [];
       
       const avgDuration = jobsWithDuration.length > 0 ?
         Math.round(
-          jobsWithDuration.reduce((sum, job) => 
-            sum + (job.metadata.duration_ms / 60000), 0
-          ) / jobsWithDuration.length
+          jobsWithDuration.reduce((sum, job) => {
+            const metadata = job.metadata as JobMetadata;
+            return sum + ((metadata.duration_ms || 0) / 60000);
+          }, 0) / jobsWithDuration.length
         ) : 5;
 
       // Estimate data collected
-      const dataCollected = recentJobs?.reduce((sum, job) => 
-        sum + (job.metadata?.records_collected || 10), 0
-      ) || 0;
+      const dataCollected = recentJobs?.reduce((sum, job) => {
+        const metadata = job.metadata as JobMetadata;
+        return sum + (metadata?.records_collected || 10);
+      }, 0) || 0;
 
       // Get last run time
       const lastRun = recentJobs?.[0]?.timestamp ? 
