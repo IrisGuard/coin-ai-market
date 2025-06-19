@@ -1,4 +1,3 @@
-
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -185,9 +184,8 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     
-    // Check for unterminated regex - properly escaped pattern
+    // Check for unterminated regex - using string methods to avoid regex issues
     if (line.includes('/') && !line.includes('//') && !line.includes('*/') && !line.includes('/*')) {
-      // Use string methods instead of problematic regex
       const trimmedLine = line.trim();
       if (trimmedLine.startsWith('/') && !trimmedLine.endsWith('/') && !trimmedLine.includes('://')) {
         errors.push({
@@ -200,13 +198,16 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
       }
     }
     
-    // Check for unused imports
+    // Check for unused imports - fixed regex pattern with escaped braces
     if (line.includes('import') && line.includes('{')) {
-      const importMatch = line.match(/import\s*\{\s*([^}]+)\s*\}/);
-      if (importMatch) {
-        const importedItems = importMatch[1].split(',').map(item => item.trim());
+      // Use string methods instead of regex to avoid compilation issues
+      const importStart = line.indexOf('{');
+      const importEnd = line.indexOf('}');
+      if (importStart !== -1 && importEnd !== -1 && importEnd > importStart) {
+        const importContent = line.substring(importStart + 1, importEnd);
+        const importedItems = importContent.split(',').map(item => item.trim());
         importedItems.forEach(item => {
-          if (!content.includes(item.replace(/\s+as\s+\w+/, ''))) {
+          if (item && !content.includes(item.replace(/\s+as\s+\w+/, ''))) {
             errors.push({
               type: 'import',
               severity: 'medium',
