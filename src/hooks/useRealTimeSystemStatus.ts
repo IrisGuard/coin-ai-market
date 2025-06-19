@@ -1,115 +1,146 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { monitoringService } from '@/services/monitoringService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SystemStatus {
-  activeUsers: number;
-  totalCoins: number;
-  scrapingJobs: number;
-  aiCommands: number;
-  liveAuctions: number;
-  automationRules: number;
-  lastUpdated: Date;
+  overallHealth: 'healthy' | 'warning' | 'critical';
+  uptime: number;
+  responseTime: number;
+  activeAlerts: number;
+  criticalAlerts: number;
+  errorRate: number;
+  resourceUsage: {
+    cpu: number;
+    memory: number;
+    disk: number;
+  };
 }
 
-export const useRealTimeSystemStatus = () => {
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+export const useRealTimeSystemStatus = (refreshInterval: number = 30000) => {
+  const [isMonitoring, setIsMonitoring] = useState(true);
+  const [lastHealthCheck, setLastHealthCheck] = useState<Date | null>(null);
 
-  // Query real data from Supabase
-  const { data: systemData, refetch } = useQuery({
+  // Real-time system status query
+  const { data: systemStatus, isLoading, error, refetch } = useQuery({
     queryKey: ['real-time-system-status'],
-    queryFn: async () => {
-      console.log('🔄 Fetching real system status...');
+    queryFn: async (): Promise<SystemStatus> => {
+      // Perform health check
+      const healthChecks = await monitoringService.performSystemHealthCheck();
       
-      // Get real data from multiple tables
-      const [
-        usersResult,
-        coinsResult,
-        aiCommandsResult,
-        automationRulesResult,
-        dataSourcesResult,
-        auctionsResult
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('coins').select('*', { count: 'exact', head: true }),
-        supabase.from('ai_commands').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('automation_rules').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('data_sources').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('is_auction', true).gt('auction_end', new Date().toISOString())
-      ]);
-
-      const realStats = {
-        activeUsers: usersResult.count || 0,
-        totalCoins: coinsResult.count || 0,
-        scrapingJobs: dataSourcesResult.count || 0,
-        aiCommands: aiCommandsResult.count || 0,
-        liveAuctions: auctionsResult.count || 0,
-        automationRules: automationRulesResult.count || 0
+      // Get active alerts
+      const activeAlerts = await monitoringService.getActiveAlerts();
+      const criticalAlerts = activeAlerts?.filter(alert => alert.severity === 'critical') || [];
+      
+      // Get uptime stats for main services
+      const uptimeStats = await monitoringService.getUptimeStats('main_application', 24);
+      
+      // Get recent system health metrics
+      const recentMetrics = await monitoringService.getSystemHealthMetrics(60);
+      
+      // Calculate overall health status
+      const hasCritical = healthChecks.some(check => check.status === 'critical') || criticalAlerts.length > 0;
+      const hasWarning = healthChecks.some(check => check.status === 'warning');
+      
+      const overallHealth = hascritical ? 'critical' : hasWarning ? 'warning' : 'healthy';
+      
+      // Calculate resource usage from recent metrics
+      const cpuMetric = recentMetrics?.find(m => m.metric_name === 'cpu_usage');
+      const memoryMetric = recentMetrics?.find(m => m.metric_name === 'memory_usage');
+      const diskMetric = recentMetrics?.find(m => m.metric_name === 'disk_usage');
+      
+      // Get error rate from recent errors
+      const { data: recentErrors } = await supabase
+        .from('error_logs')
+        .select('id')
+        .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString());
+      
+      setLastHealthCheck(new Date());
+      
+      return {
+        overallHealth,
+        uptime: uptimeStats.uptime,
+        responseTime: uptimeStats.avgResponseTime,
+        activeAlerts: activeAlerts?.length || 0,
+        criticalAlerts: criticalAlerts.length,
+        errorRate: recentErrors?.length || 0,
+        resourceUsage: {
+          cpu: cpuMetric?.metric_value || 0,
+          memory: memoryMetric?.metric_value || 0,
+          disk: diskMetric?.metric_value || 0
+        }
       };
-
-      console.log('✅ Real system stats:', realStats);
-      return realStats;
     },
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+    refetchInterval: isMonitoring ? refreshInterval : false,
+    enabled: isMonitoring
   });
 
-  // Update timestamp whenever data refreshes
+  // Auto-escalation check
   useEffect(() => {
-    if (systemData) {
-      setLastUpdated(new Date());
+    if (isMonitoring) {
+      const escalationInterval = setInterval(() => {
+        monitoringService.checkAndEscalateAlerts();
+      }, 5 * 60 * 1000); // Check every 5 minutes
+
+      return () => clearInterval(escalationInterval);
     }
-  }, [systemData]);
+  }, [isMonitoring]);
 
-  // Set up real-time subscriptions for live updates
-  useEffect(() => {
-    console.log('🔄 Setting up real-time subscriptions...');
-    
-    const channel = supabase
-      .channel('system-status-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        console.log('👤 Profiles updated, refreshing...');
-        refetch();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'coins' }, () => {
-        console.log('🪙 Coins updated, refreshing...');
-        refetch();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_commands' }, () => {
-        console.log('🧠 AI Commands updated, refreshing...');
-        refetch();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'automation_rules' }, () => {
-        console.log('⚙️ Automation Rules updated, refreshing...');
-        refetch();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'data_sources' }, () => {
-        console.log('📊 Data Sources updated, refreshing...');
-        refetch();
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Real-time subscriptions established');
-        }
+  // Resource usage logging
+  const logCurrentResourceUsage = useCallback(async () => {
+    if (typeof window !== 'undefined' && (performance as any).memory) {
+      const memory = (performance as any).memory;
+      const memoryUsagePercent = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100;
+      
+      await monitoringService.logResourceUsage({
+        resource_type: 'memory',
+        usage_percentage: memoryUsagePercent,
+        absolute_value: memory.usedJSHeapSize,
+        unit: 'bytes',
+        recorded_at: new Date().toISOString()
       });
+    }
+  }, []);
 
-    return () => {
-      console.log('🛑 Cleaning up real-time subscriptions');
-      supabase.removeChannel(channel);
-    };
+  // Trigger manual health check
+  const triggerHealthCheck = useCallback(async () => {
+    await monitoringService.performSystemHealthCheck();
+    await logCurrentResourceUsage();
+    refetch();
+  }, [refetch, logCurrentResourceUsage]);
+
+  // Toggle monitoring
+  const toggleMonitoring = useCallback(() => {
+    setIsMonitoring(prev => !prev);
+  }, []);
+
+  // Create alert manually
+  const createAlert = useCallback(async (
+    type: 'performance' | 'error' | 'security' | 'uptime',
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    title: string,
+    description: string
+  ) => {
+    await monitoringService.createAlert({
+      alert_type: type,
+      severity,
+      title,
+      description,
+      auto_resolve: false
+    });
+    refetch();
   }, [refetch]);
 
-  // Return real status data
-  const status: SystemStatus = {
-    activeUsers: systemData?.activeUsers || 0,
-    totalCoins: systemData?.totalCoins || 0,
-    scrapingJobs: systemData?.scrapingJobs || 0,
-    aiCommands: systemData?.aiCommands || 0,
-    liveAuctions: systemData?.liveAuctions || 0,
-    automationRules: systemData?.automationRules || 0,
-    lastUpdated
+  return {
+    systemStatus,
+    isLoading,
+    error,
+    isMonitoring,
+    lastHealthCheck,
+    triggerHealthCheck,
+    toggleMonitoring,
+    createAlert,
+    refetch
   };
-
-  console.log('📊 Returning real system status:', status);
-  return status;
 };

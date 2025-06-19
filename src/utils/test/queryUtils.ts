@@ -23,7 +23,7 @@ export const createProductionQueryClient = (): QueryClient => {
 export const renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-): any => {
+) => {
   const testQueryClient = createProductionQueryClient();
   
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
