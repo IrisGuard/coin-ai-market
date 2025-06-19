@@ -7,17 +7,28 @@ export const useAdminUsers = () => {
   return useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
+      // Use left join to include all users even without roles
       const { data, error } = await supabase
         .from('profiles')
         .select(`
           *,
-          user_roles!inner(role),
+          user_roles(role),
           stores(id, name, verified)
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Ensure all users have default values even without roles
+      const usersWithDefaults = (data || []).map(user => ({
+        ...user,
+        user_roles: user.user_roles || [],
+        stores: user.stores || [],
+        verified_dealer: user.verified_dealer || false,
+        role: user.role || 'user'
+      }));
+      
+      return usersWithDefaults;
     },
   });
 };
@@ -36,6 +47,7 @@ export const useUpdateUserStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users-simple'] });
       toast({
         title: "Success",
         description: "User status updated successfully.",
@@ -76,6 +88,7 @@ export const useUpdateUserRole = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users-simple'] });
       toast({
         title: "Success",
         description: "User role updated successfully.",
