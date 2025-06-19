@@ -98,7 +98,7 @@ export const mockIntersectionObserver = () => {
     unobserve: () => null,
     disconnect: () => null
   });
-  window.IntersectionObserver = mockIntersectionObserver;
+  (window as any).IntersectionObserver = mockIntersectionObserver;
 };
 
 // Cleanup utilities
