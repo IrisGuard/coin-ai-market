@@ -1,4 +1,6 @@
 
+import { supabase } from '@/integrations/supabase/client';
+
 export interface CoinData {
   name?: string;
   year?: number;
@@ -35,24 +37,22 @@ export class UniversalCoinScraper {
       console.log(`Starting analysis of: ${url}`);
       
       // Fetch page content using the existing url-reader function
-      const response = await fetch('/api/url-reader', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+      const response = await supabase.functions.invoke('url-reader', {
+        body: { url }
       });
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch content: ${response.status}`);
+      if (response.error) {
+        throw new Error(`Failed to fetch content: ${response.error.message}`);
       }
 
-      const contentData = await response.json();
+      const contentData = response.data;
       
       if (!contentData.success) {
         throw new Error(contentData.error || 'Failed to fetch content');
       }
 
-      // AI-powered content extraction
-      const aiAnalysis = await this.aiExtractCoinData(contentData.content, url);
+      // Real AI-powered content extraction using existing AI function
+      const aiAnalysis = await this.performRealAIExtraction(contentData.content, url);
       
       // Structured data extraction
       const structuredData = this.extractStructuredData(contentData.content);
@@ -66,25 +66,41 @@ export class UniversalCoinScraper {
     }
   }
 
-  private async aiExtractCoinData(content: string, url: string): Promise<any> {
+  private async performRealAIExtraction(content: string, url: string): Promise<any> {
     try {
-      // Simulate AI analysis for now - in production this would call actual AI API
-      const mockAiResponse = {
-        name: this.extractCoinName(content),
-        year: this.extractYear(content),
-        price: this.extractPrice(content),
-        grade: this.extractGrade(content),
-        confidence: 0.85,
-        rarity: this.extractRarity(content),
-        mint_marks: this.extractMintMarks(content),
-        errors: this.extractErrors(content)
-      };
+      // Use the existing AI coin recognition function
+      const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
+        body: {
+          content: content,
+          url: url,
+          analysis_type: 'web_content_extraction'
+        }
+      });
 
-      return mockAiResponse;
+      if (error) {
+        console.error('AI extraction error:', error);
+        // Return structured extraction as fallback
+        return this.extractBasicDataFromContent(content);
+      }
+
+      return data?.analysis || this.extractBasicDataFromContent(content);
     } catch (error) {
       console.error('AI extraction failed:', error);
-      return { confidence: 0.1 };
+      return this.extractBasicDataFromContent(content);
     }
+  }
+
+  private extractBasicDataFromContent(content: string): any {
+    return {
+      name: this.extractCoinName(content),
+      year: this.extractYear(content),
+      price: this.extractPrice(content),
+      grade: this.extractGrade(content),
+      confidence: this.calculateBasicConfidence(content),
+      rarity: this.extractRarity(content),
+      mint_marks: this.extractMintMarks(content),
+      errors: this.extractErrors(content)
+    };
   }
 
   private extractStructuredData(content: string): any {
@@ -126,7 +142,7 @@ export class UniversalCoinScraper {
       grade: aiData.grade || structuredData.grades?.[0],
       source_url: url,
       extracted_at: new Date().toISOString(),
-      confidence_score: this.calculateConfidence(aiData, structuredData),
+      confidence_score: this.calculateRealConfidence(aiData, structuredData),
       additional_data: {
         ai_analysis: aiData,
         structured_extraction: structuredData
@@ -257,7 +273,7 @@ export class UniversalCoinScraper {
     return numericPrices[0];
   }
 
-  private calculateConfidence(aiData: any, structuredData: any): number {
+  private calculateRealConfidence(aiData: any, structuredData: any): number {
     let confidence = 0.5; // Base confidence
     
     // Boost confidence based on data quality
@@ -273,6 +289,18 @@ export class UniversalCoinScraper {
     }
     
     return Math.min(1.0, Math.max(0.1, confidence));
+  }
+
+  private calculateBasicConfidence(content: string): number {
+    let score = 0.3; // Base score
+    
+    if (content.length > 1000) score += 0.1;
+    if (content.includes('$')) score += 0.1;
+    if (/\b(18|19|20)\d{2}\b/.test(content)) score += 0.1;
+    if (/\b(MS|AU|XF|VF)\b/i.test(content)) score += 0.1;
+    if (/\b(coin|numismatic|grade)\b/i.test(content)) score += 0.1;
+    
+    return Math.min(0.9, score);
   }
 }
 

@@ -128,11 +128,18 @@ export class SecurityValidation {
     return true;
   }
 
-  // CSRF token generation and validation
+  // Secure CSRF token generation using Crypto API
   static generateCSRFToken(): string {
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    sessionStorage.setItem('csrfToken', token);
-    return token;
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const array = new Uint32Array(4);
+      crypto.getRandomValues(array);
+      return Array.from(array, (num) => num.toString(36)).join('');
+    }
+    
+    // Fallback for environments without crypto.getRandomValues
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.floor(Math.random() * 1000000).toString(36);
+    return `${timestamp}-${randomPart}`;
   }
 
   static validateCSRFToken(token: string): boolean {
