@@ -13,7 +13,8 @@ export const resolveAllMockDataViolations = async () => {
         resolved_at: new Date().toISOString(),
         resolved_by: 'system_cleanup'
       })
-      .eq('status', 'active');
+      .eq('status', 'active')
+      .select();
 
     if (error) {
       console.error('Error resolving violations:', error);
@@ -21,7 +22,7 @@ export const resolveAllMockDataViolations = async () => {
     }
 
     console.log('✅ All violations resolved:', data);
-    return { success: true, resolved: (data && Array.isArray(data) ? data.length : 0) };
+    return { success: true, resolved: data?.length || 0 };
   } catch (error) {
     console.error('❌ Database cleanup failed:', error);
     return { success: false, error };
