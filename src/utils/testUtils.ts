@@ -185,27 +185,37 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     
-    // Check for unterminated regex
-    const regexMatches = line.match(/\/[^\/\n]*$/g);
-    if (regexMatches && !line.includes('//')) {
-      errors.push({
-        type: 'syntax',
-        severity: 'critical',
-        line: lineNumber,
-        message: 'Unterminated regular expression literal',
-        file: filePath
-      });
+    // Check for unterminated regex - fixed regex pattern
+    if (line.includes('/') && !line.includes('//') && !line.includes('*/') && !line.includes('/*')) {
+      const regexPattern = /\/[^\/\n]*[^\/]$/;
+      if (regexPattern.test(line)) {
+        errors.push({
+          type: 'syntax',
+          severity: 'critical',
+          line: lineNumber,
+          message: 'Potential unterminated regular expression literal',
+          file: filePath
+        });
+      }
     }
     
     // Check for unused imports
-    if (line.includes('import') && !content.includes(line.split(' ')[1]?.replace(/[{}]/g, ''))) {
-      errors.push({
-        type: 'import',
-        severity: 'medium',
-        line: lineNumber,
-        message: 'Unused import detected',
-        file: filePath
-      });
+    if (line.includes('import') && line.includes('{')) {
+      const importMatch = line.match(/import\s*{\s*([^}]+)\s*}/);
+      if (importMatch) {
+        const importedItems = importMatch[1].split(',').map(item => item.trim());
+        importedItems.forEach(item => {
+          if (!content.includes(item.replace(/\s+as\s+\w+/, ''))) {
+            errors.push({
+              type: 'import',
+              severity: 'medium',
+              line: lineNumber,
+              message: `Unused import detected: ${item}`,
+              file: filePath
+            });
+          }
+        });
+      }
     }
     
     // Check for deprecated React patterns
