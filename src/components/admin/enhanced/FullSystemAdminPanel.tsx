@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Database, Users, Coins, ShoppingCart, CreditCard, Brain, 
   BarChart3, Settings, Shield, AlertTriangle, Activity,
-  Rocket, Bot, Zap, TrendingUp, Store
+  Rocket, Bot, Zap, TrendingUp, Store, Lock
 } from 'lucide-react';
 
 // Import existing admin components
@@ -19,6 +19,8 @@ import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminProductionTab from '@/components/admin/tabs/AdminProductionTab';
 import AdminGCAITokenTab from '@/components/admin/tabs/AdminGCAITokenTab';
 import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
+import MockDataDetectionPanel from './MockDataDetectionPanel';
+import SecurityBlockingMechanism from './SecurityBlockingMechanism';
 import { useRealTimeSystemStatus } from '@/hooks/useRealTimeSystemStatus';
 
 const FullSystemAdminPanel = () => {
@@ -33,6 +35,19 @@ const FullSystemAdminPanel = () => {
       color: 'text-red-600',
       component: AdminProductionTab,
       badge: 'LIVE'
+    },
+    {
+      id: 'security-monitoring',
+      name: 'Security Monitoring',
+      icon: Lock,
+      color: 'text-red-600',
+      component: () => (
+        <div className="space-y-6">
+          <MockDataDetectionPanel />
+          <SecurityBlockingMechanism />
+        </div>
+      ),
+      badge: 'PROTECTION'
     },
     {
       id: 'gcai-token',
@@ -122,13 +137,17 @@ const FullSystemAdminPanel = () => {
               <div>
                 <div className="text-2xl font-bold">Full System Admin Panel</div>
                 <div className="text-sm text-muted-foreground">
-                  Complete platform management with GCAI Token integration
+                  Complete platform management with GCAI Token integration and security monitoring
                 </div>
               </div>
               <div className="ml-auto flex gap-2">
                 <Badge className="bg-green-100 text-green-800">
                   <Activity className="h-3 w-3 mr-1" />
                   LIVE PLATFORM
+                </Badge>
+                <Badge className="bg-red-100 text-red-800">
+                  <Lock className="h-3 w-3 mr-1" />
+                  SECURED
                 </Badge>
                 <Badge className="bg-orange-100 text-orange-800">
                   <Coins className="h-3 w-3 mr-1" />
@@ -244,6 +263,10 @@ const FullSystemAdminPanel = () => {
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-sm font-medium">System Status: LIVE</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium">Security: PROTECTED</span>
+                </div>
                 <div className="text-sm text-muted-foreground">
                   Last Updated: {systemStatus.lastUpdated.toLocaleTimeString()}
                 </div>
@@ -252,6 +275,7 @@ const FullSystemAdminPanel = () => {
                 <span>GCAI Token: Live</span>
                 <span>Database: 87 Tables Active</span>
                 <span>Platform: Production Mode</span>
+                <span className="text-red-600 font-medium">🛡️ SECURED</span>
               </div>
             </div>
           </CardContent>
