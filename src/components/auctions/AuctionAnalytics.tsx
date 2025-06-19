@@ -3,12 +3,62 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { TrendingUp, Users, Clock, DollarSign } from 'lucide-react';
-import { useBidding } from '@/hooks/useBidding';
-import { useAuction } from '@/hooks/useAuction';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AuctionAnalytics: React.FC = () => {
-  const { auctionStats, statsLoading } = useBidding();
-  const { auctions, auctionsLoading } = useAuction();
+  // Fetch real auction stats
+  const { data: auctionStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['auction-stats'],
+    queryFn: async () => {
+      const { data: auctions, error } = await supabase
+        .from('marketplace_listings')
+        .select('*')
+        .eq('listing_type', 'auction');
+      
+      if (error) throw error;
+
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      const activeAuctions = auctions?.filter(a => 
+        a.status === 'active' && new Date(a.ends_at || '') > now
+      ).length || 0;
+
+      const endingSoon = auctions?.filter(a => {
+        const endTime = new Date(a.ends_at || '');
+        return a.status === 'active' && endTime > now && endTime < new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      }).length || 0;
+
+      const totalValue = auctions?.reduce((sum, a) => sum + (a.current_price || 0), 0) || 0;
+
+      return {
+        active_auctions: activeAuctions,
+        ending_soon: endingSoon,
+        total_bids_24h: 0, // Would need bids table
+        total_value: totalValue
+      };
+    }
+  });
+
+  // Fetch auctions for chart data
+  const { data: auctions, isLoading: auctionsLoading } = useQuery({
+    queryKey: ['auctions-chart-data'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('marketplace_listings')
+        .select(`
+          *,
+          coins (
+            category
+          )
+        `)
+        .eq('listing_type', 'auction');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   // Generate real activity data based on actual auctions
   const bidActivityData = React.useMemo(() => {
@@ -20,7 +70,7 @@ const AuctionAnalytics: React.FC = () => {
       
       // Count auctions ending in this time window
       const auctionsInWindow = auctions.filter(auction => {
-        const endTime = new Date(auction.ends_at);
+        const endTime = new Date(auction.ends_at || '');
         const endHour = endTime.getHours();
         return endHour >= hour && endHour < hour + 4;
       }).length;
@@ -44,7 +94,7 @@ const AuctionAnalytics: React.FC = () => {
         acc[category] = { count: 0, totalValue: 0 };
       }
       acc[category].count += 1;
-      acc[category].totalValue += auction.current_price;
+      acc[category].totalValue += auction.current_price || 0;
       return acc;
     }, {} as Record<string, { count: number; totalValue: number }>);
 
