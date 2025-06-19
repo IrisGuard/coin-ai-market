@@ -157,7 +157,7 @@ const PredictiveAnalytics = () => {
                     <Badge variant="outline">{model.model_type}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {model.description}
+                    {model.target_metric || 'No description available'}
                   </p>
                   <Button
                     size="sm"

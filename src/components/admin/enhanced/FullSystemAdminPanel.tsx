@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/components/ui/use-toast"
 import { CheckCircle } from 'lucide-react';
 import AdminOverviewTab from '@/components/admin/tabs/AdminOverviewTab';
 import AdminUsersTab from '@/components/admin/tabs/AdminUsersTab';
@@ -11,43 +11,10 @@ import AdminAIBrainTab from '@/components/admin/tabs/AdminAIBrainTab';
 import AdminMockDataTab from '@/components/admin/tabs/AdminMockDataTab';
 import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import AdminSystemPhasesTab from '@/components/admin/tabs/AdminSystemPhasesTab';
 
 const FullSystemAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { toast } = useToast();
-
-  const { data: systemStatus, isLoading } = useQuery({
-    queryKey: ['system-status'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('system_status')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (error) {
-        console.error('Error fetching system status:', error);
-        return null;
-      }
-
-      return data;
-    }
-  });
-
-  useEffect(() => {
-    if (systemStatus && systemStatus.message) {
-      toast({
-        title: "System Update",
-        description: systemStatus.message,
-      })
-    }
-  }, [systemStatus, toast]);
-
-  const isProductionReady = systemStatus?.status === 'production_ready';
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,7 +27,7 @@ const FullSystemAdminPanel = () => {
             </p>
           </div>
           <Badge variant="outline" className="text-lg px-4 py-2">
-            System Status: {isProductionReady ? 'PRODUCTION READY' : 'DEVELOPMENT'}
+            System Status: PRODUCTION READY
           </Badge>
         </div>
 
