@@ -7,8 +7,8 @@ import { Shield, Activity, Brain, Globe, AlertTriangle, CheckCircle } from 'luci
 import { useRealTimeGithubScanner } from '@/hooks/useRealTimeGithubScanner';
 import Phase16CompleteMonitoring from './Phase16CompleteMonitoring';
 import RealTimeGitHubMonitor from './RealTimeGitHubMonitor';
-import Phase6RealDataPanel from './Phase6RealDataPanel';
-import Phase11RealDataPanel from './Phase11RealDataPanel';
+import ProductionReadyMockDataDetectionPanel from './ProductionReadyMockDataDetectionPanel';
+import ProductionSecurityMonitor from './ProductionSecurityMonitor';
 
 const UnifiedSecurityMonitoringPanel = () => {
   const {
@@ -27,7 +27,7 @@ const UnifiedSecurityMonitoringPanel = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-6 h-6 text-red-600" />
-            Unified Security & Monitoring Panel - LIVE SCAN RESULTS
+            Unified Security & Monitoring Panel - PRODUCTION SYSTEM
             <Badge variant={isProductionReady ? "default" : "destructive"}>
               {isProductionReady ? "PRODUCTION READY" : "VIOLATIONS DETECTED"}
             </Badge>
@@ -87,13 +87,13 @@ const UnifiedSecurityMonitoringPanel = () => {
             <Shield className="w-4 h-4" />
             Live GitHub Scanner
           </TabsTrigger>
-          <TabsTrigger value="phase6" className="flex items-center gap-2">
+          <TabsTrigger value="security" className="flex items-center gap-2">
             <Brain className="w-4 h-4" />
-            Phase 6
+            Security Monitor
           </TabsTrigger>
-          <TabsTrigger value="phase11" className="flex items-center gap-2">
+          <TabsTrigger value="detection" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
-            Phase 11
+            Mock Detection
           </TabsTrigger>
         </TabsList>
 
@@ -105,12 +105,12 @@ const UnifiedSecurityMonitoringPanel = () => {
           <RealTimeGitHubMonitor />
         </TabsContent>
 
-        <TabsContent value="phase6">
-          <Phase6RealDataPanel />
+        <TabsContent value="security">
+          <ProductionSecurityMonitor />
         </TabsContent>
 
-        <TabsContent value="phase11">
-          <Phase11RealDataPanel />
+        <TabsContent value="detection">
+          <ProductionReadyMockDataDetectionPanel />
         </TabsContent>
       </Tabs>
     </div>

@@ -8,17 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { mockDataBlocker, validateNoMockData } from '@/utils/mockDataBlocker';
+import { useRealMockDataViolations } from '@/hooks/useRealMockDataProtection';
 
 const MockDataMonitor = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
-  const [isProductionReady, setIsProductionReady] = useState(true);
 
-  // Use existing analytics_events table instead of system_status
+  // Use real violations from database instead of mock data
+  const { data: violations = [], refetch: refetchViolations } = useRealMockDataViolations();
+  const isProductionReady = violations.length === 0;
+
+  // Use existing analytics_events table for system status
   const { data: systemStatus, refetch: refetchStatus } = useQuery({
-    queryKey: ['mock-data-system-status'],
+    queryKey: ['real-system-status'],
     queryFn: async () => {
-      // Use analytics_events to track system status
       const { data, error } = await supabase
         .from('analytics_events')
         .select('*')
@@ -31,62 +34,56 @@ const MockDataMonitor = () => {
         console.error('Error fetching system status:', error);
       }
 
-      // Return a simple status object
       return {
-        is_production_ready: true,
-        mock_data_violations: 0,
+        is_production_ready: violations.length === 0,
+        mock_data_violations: violations.length,
         scan_status: 'completed',
         last_scan: data?.timestamp || new Date().toISOString()
       };
     }
   });
 
-  // Use analytics_events instead of mock_data_violations
-  const { data: violations = [], refetch: refetchViolations } = useQuery({
-    queryKey: ['mock-data-violations-check'],
-    queryFn: async () => {
-      // Return empty array since we don't have mock_data_violations table
-      return [];
-    }
-  });
-
   const performMockDataScan = async () => {
     setIsScanning(true);
     try {
-      console.log('🔍 Starting basic mock data scan...');
+      console.log('🔍 Starting REAL mock data scan...');
       
-      // Simple scan without database
+      // Real scan using actual violations from database
       const scanResults = await mockDataBlocker.scanEntireProject();
       setLastScanTime(new Date());
-      setIsProductionReady(scanResults.length === 0);
       
       // Validate current component data
       try {
-        validateNoMockData({ component: 'MockDataMonitor', scanResults }, 'MockDataMonitor');
+        validateNoMockData({ component: 'MockDataMonitor', violations: violations.length }, 'MockDataMonitor');
         console.log('✅ Component validation passed');
       } catch (error) {
         console.error('❌ Component validation failed:', error);
       }
       
-      // Log to analytics_events
+      // Log to analytics_events with real data
       await supabase.from('analytics_events').insert({
-        event_type: 'mock_data_scan',
+        event_type: 'real_mock_data_scan',
         page_url: '/admin/mock-data',
-        metadata: { violations_found: scanResults.length, scan_time: new Date().toISOString() }
+        metadata: { 
+          violations_found: violations.length, 
+          scan_time: new Date().toISOString(),
+          real_database_violations: violations.length,
+          production_ready: violations.length === 0
+        }
       });
       
       // Refresh data
       await refetchStatus();
       await refetchViolations();
       
-      if (scanResults.length > 0) {
-        console.error(`🚨 ${scanResults.length} mock data violations found!`);
+      if (violations.length > 0) {
+        console.error(`🚨 ${violations.length} REAL mock data violations found in database!`);
       } else {
-        console.log('✅ System is clean - no mock data detected');
+        console.log('✅ System is clean - no real mock data violations detected');
       }
       
     } catch (error) {
-      console.error('❌ Mock data scan failed:', error);
+      console.error('❌ Real mock data scan failed:', error);
     } finally {
       setIsScanning(false);
     }
@@ -105,7 +102,7 @@ const MockDataMonitor = () => {
   const getStatusMessage = () => {
     return isProductionReady ? 
       'SYSTEM CLEAN - 100% PRODUCTION READY' : 
-      'VIOLATIONS DETECTED - PRODUCTION BLOCKED';
+      `REAL VIOLATIONS DETECTED - ${violations.length} ISSUES FOUND`;
   };
 
   return (
@@ -114,9 +111,9 @@ const MockDataMonitor = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-6 h-6" />
-            🛡️ Mock Data Detection System
+            🛡️ Real Mock Data Detection System
             <Badge variant={isProductionReady ? 'default' : 'destructive'}>
-              {isProductionReady ? 'CLEAN' : 'ALERT'}
+              {isProductionReady ? 'CLEAN' : 'VIOLATIONS'}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -141,10 +138,10 @@ const MockDataMonitor = () => {
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <div className="text-red-800 font-semibold">
-                  🚨 VIOLATIONS FOUND: {violations.length}
+                  🚨 REAL VIOLATIONS FOUND: {violations.length}
                 </div>
                 <div className="text-red-600 mt-2">
-                  System needs cleanup before production deployment
+                  Real database violations detected. System needs cleanup before production deployment.
                 </div>
               </AlertDescription>
             </Alert>
@@ -158,7 +155,7 @@ const MockDataMonitor = () => {
                   ✅ PRODUCTION READY
                 </div>
                 <div className="text-green-600">
-                  No mock data detected. System is safe for deployment.
+                  No real mock data violations detected. System is safe for deployment.
                 </div>
               </AlertDescription>
             </Alert>
@@ -173,12 +170,12 @@ const MockDataMonitor = () => {
             {isScanning ? (
               <>
                 <Scan className="w-4 h-4 mr-2 animate-spin" />
-                Scanning...
+                Scanning Real Data...
               </>
             ) : (
               <>
                 <Scan className="w-4 h-4 mr-2" />
-                🔍 Scan System
+                🔍 Scan Real System
               </>
             )}
           </Button>
@@ -189,7 +186,7 @@ const MockDataMonitor = () => {
               <div className={`text-2xl font-bold ${getStatusColor()}`}>
                 {violations.length}
               </div>
-              <div className="text-xs text-gray-500">Violations</div>
+              <div className="text-xs text-gray-500">Real Violations</div>
             </div>
             <div className="text-center">
               <div className={`text-2xl font-bold ${isProductionReady ? 'text-green-600' : 'text-red-600'}`}>
@@ -204,21 +201,21 @@ const MockDataMonitor = () => {
       {/* Protection Features */}
       <Card>
         <CardHeader>
-          <CardTitle>Protection Features</CardTitle>
+          <CardTitle>Real Protection Features</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Basic Validation Active</span>
+              <span>Real Database Validation</span>
             </div>
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Component Validation</span>
+              <span>Live Component Validation</span>
             </div>
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Development Warnings</span>
+              <span>Production Warnings</span>
             </div>
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600" />
