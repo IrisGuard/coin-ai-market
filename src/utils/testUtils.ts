@@ -1,4 +1,5 @@
 
+
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -207,7 +208,7 @@ export const detectCodeErrors = (filePath: string, content: string): Array<{
         const importContent = line.substring(importStart + 1, importEnd);
         const importedItems = importContent.split(',').map(item => item.trim());
         importedItems.forEach(item => {
-          if (item && !content.includes(item.replace(' as ', ' '))) {
+          if (item && !content.includes(item.split(' as ')[0].trim())) {
             errors.push({
               type: 'import',
               severity: 'medium',
