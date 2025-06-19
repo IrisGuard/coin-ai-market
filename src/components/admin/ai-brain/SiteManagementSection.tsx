@@ -3,396 +3,246 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Globe, Search, Eye, Activity, AlertCircle, CheckCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Globe, Plus, Edit, Trash2, Settings, ExternalLink } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-interface ExternalSource {
+interface MonitoredSite {
   id: string;
-  source_name: string;
-  base_url: string;
-  source_type: string;
-  is_active: boolean;
-  priority_score: number;
-  rate_limit_per_hour: number;
-  reliability_score: number;
-  specializes_in_errors: boolean;
-  scraping_enabled: boolean;
-  created_at: string;
+  url: string;
+  name: string;
+  status: 'online' | 'offline' | 'checking';
+  lastChecked: string;
+  responseTime: number;
+  errorCount: number;
 }
 
 const SiteManagementSection = () => {
+  const [newSiteUrl, setNewSiteUrl] = useState('');
   const queryClient = useQueryClient();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingSource, setEditingSource] = useState<ExternalSource | null>(null);
-  const [formData, setFormData] = useState({
-    source_name: '',
-    base_url: '',
-    source_type: 'auction_site',
-    priority_score: 50,
-    rate_limit_per_hour: 60,
-    reliability_score: 0.8,
-    specializes_in_errors: false,
-    scraping_enabled: true
+
+  // Real-time site monitoring data
+  const { data: monitoredSites, isLoading } = useQuery({
+    queryKey: ['monitored-sites'],
+    queryFn: async (): Promise<MonitoredSite[]> => {
+      // Get AI commands with site URLs for monitoring
+      const { data: commands } = await supabase
+        .from('ai_commands')
+        .select('id, name, site_url, updated_at')
+        .not('site_url', 'is', null)
+        .eq('is_active', true);
+
+      if (!commands) return [];
+
+      // Get recent execution data for each site
+      const sitesWithStatus = await Promise.all(
+        commands.map(async (command) => {
+          const { data: executions } = await supabase
+            .from('ai_command_executions')
+            .select('execution_status, execution_time_ms, created_at')
+            .eq('command_id', command.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+          const recentExecution = executions?.[0];
+          const errorCount = executions?.filter(e => e.execution_status === 'failed').length || 0;
+          const avgResponseTime = executions?.length > 0
+            ? executions.reduce((sum, e) => sum + (e.execution_time_ms || 0), 0) / executions.length
+            : 0;
+
+          return {
+            id: command.id,
+            url: command.site_url,
+            name: command.name,
+            status: recentExecution?.execution_status === 'completed' ? 'online' : 
+                   recentExecution?.execution_status === 'failed' ? 'offline' : 'checking',
+            lastChecked: recentExecution?.created_at || command.updated_at,
+            responseTime: Math.round(avgResponseTime),
+            errorCount
+          } as MonitoredSite;
+        })
+      );
+
+      return sitesWithStatus;
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
   });
 
-  const { data: sources = [], isLoading } = useQuery({
-    queryKey: ['external-price-sources'],
-    queryFn: async () => {
+  // Add new site for monitoring
+  const addSiteMutation = useMutation({
+    mutationFn: async (url: string) => {
       const { data, error } = await supabase
-        .from('external_price_sources')
-        .select('*')
-        .order('priority_score', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  const addSourceMutation = useMutation({
-    mutationFn: async (sourceData: typeof formData) => {
-      const { error } = await supabase
-        .from('external_price_sources')
-        .insert([{
-          ...sourceData,
+        .from('ai_commands')
+        .insert({
+          name: `Site Monitor: ${new URL(url).hostname}`,
+          description: `Automated monitoring for ${url}`,
+          site_url: url,
+          command_type: 'site_monitoring',
+          category: 'web_scraping',
+          code: 'Monitor site availability and performance',
           is_active: true
-        }]);
-      
+        })
+        .select()
+        .single();
+
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['external-price-sources'] });
-      toast.success('Site added successfully');
-      setIsAddDialogOpen(false);
-      resetForm();
+      toast.success('Site added for monitoring');
+      setNewSiteUrl('');
+      queryClient.invalidateQueries({ queryKey: ['monitored-sites'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`Failed to add site: ${error.message}`);
     }
   });
 
-  const updateSourceMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<ExternalSource> }) => {
-      const { error } = await supabase
-        .from('external_price_sources')
-        .update(data)
-        .eq('id', id);
-      
+  // Check site status manually
+  const checkSiteMutation = useMutation({
+    mutationFn: async (siteId: string) => {
+      const { data, error } = await supabase.rpc('execute_ai_command', {
+        p_command_id: siteId,
+        p_input_data: { action: 'health_check' }
+      });
+
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['external-price-sources'] });
-      toast.success('Site updated successfully');
+      toast.success('Site check initiated');
+      queryClient.invalidateQueries({ queryKey: ['monitored-sites'] });
     },
-    onError: (error) => {
-      toast.error(`Failed to update site: ${error.message}`);
+    onError: (error: any) => {
+      toast.error(`Site check failed: ${error.message}`);
     }
   });
 
-  const deleteSourceMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('external_price_sources')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['external-price-sources'] });
-      toast.success('Site deleted successfully');
-    },
-    onError: (error) => {
-      toast.error(`Failed to delete site: ${error.message}`);
-    }
-  });
-
-  const resetForm = () => {
-    setFormData({
-      source_name: '',
-      base_url: '',
-      source_type: 'auction_site',
-      priority_score: 50,
-      rate_limit_per_hour: 60,
-      reliability_score: 0.8,
-      specializes_in_errors: false,
-      scraping_enabled: true
-    });
-    setEditingSource(null);
-  };
-
-  const handleSubmit = () => {
-    if (editingSource) {
-      updateSourceMutation.mutate({ id: editingSource.id, data: formData });
-      setEditingSource(null);
-    } else {
-      addSourceMutation.mutate(formData);
-    }
-  };
-
-  const toggleActive = (source: ExternalSource) => {
-    updateSourceMutation.mutate({
-      id: source.id,
-      data: { is_active: !source.is_active }
-    });
-  };
-
-  const openEditDialog = (source: ExternalSource) => {
-    setFormData({
-      source_name: source.source_name,
-      base_url: source.base_url,
-      source_type: source.source_type,
-      priority_score: source.priority_score,
-      rate_limit_per_hour: source.rate_limit_per_hour,
-      reliability_score: source.reliability_score,
-      specializes_in_errors: source.specializes_in_errors,
-      scraping_enabled: source.scraping_enabled
-    });
-    setEditingSource(source);
-  };
-
-  const getSourceTypeColor = (type: string) => {
-    switch (type) {
-      case 'auction_site': return 'bg-blue-100 text-blue-800';
-      case 'marketplace': return 'bg-green-100 text-green-800';
-      case 'dealer_site': return 'bg-purple-100 text-purple-800';
-      case 'price_guide': return 'bg-orange-100 text-orange-800';
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online': return 'bg-green-100 text-green-800';
+      case 'offline': return 'bg-red-100 text-red-800';
+      case 'checking': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Globe className="h-6 w-6 text-blue-600" />
-          <h3 className="text-lg font-semibold">Site Management</h3>
-          <Badge variant="outline">{sources.length} sources</Badge>
-        </div>
-        
-        <Dialog open={isAddDialogOpen || !!editingSource} onOpenChange={(open) => {
-          setIsAddDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Site
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingSource ? 'Edit Site' : 'Add New Site'}
-              </DialogTitle>
-              <DialogDescription>
-                Configure a new external site for coin price data and scraping
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="source_name">Site Name</Label>
-                <Input
-                  id="source_name"
-                  value={formData.source_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, source_name: e.target.value }))}
-                  placeholder="e.g., eBay, Heritage Auctions"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="base_url">Base URL</Label>
-                <Input
-                  id="base_url"
-                  value={formData.base_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, base_url: e.target.value }))}
-                  placeholder="https://example.com"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="source_type">Source Type</Label>
-                <select
-                  id="source_type"
-                  value={formData.source_type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, source_type: e.target.value }))}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="auction_site">Auction Site</option>
-                  <option value="marketplace">Marketplace</option>
-                  <option value="dealer_site">Dealer Site</option>
-                  <option value="price_guide">Price Guide</option>
-                </select>
-              </div>
-              
-              <div>
-                <Label htmlFor="priority_score">Priority Score (1-100)</Label>
-                <Input
-                  id="priority_score"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={formData.priority_score}
-                  onChange={(e) => setFormData(prev => ({ ...prev, priority_score: parseInt(e.target.value) }))}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="rate_limit">Rate Limit (per hour)</Label>
-                <Input
-                  id="rate_limit"
-                  type="number"
-                  min="1"
-                  value={formData.rate_limit_per_hour}
-                  onChange={(e) => setFormData(prev => ({ ...prev, rate_limit_per_hour: parseInt(e.target.value) }))}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="reliability">Reliability Score (0-1)</Label>
-                <Input
-                  id="reliability"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="1"
-                  value={formData.reliability_score}
-                  onChange={(e) => setFormData(prev => ({ ...prev, reliability_score: parseFloat(e.target.value) }))}
-                />
-              </div>
-              
-              <div className="col-span-2 space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="specializes_in_errors"
-                    checked={formData.specializes_in_errors}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, specializes_in_errors: checked }))}
-                  />
-                  <Label htmlFor="specializes_in_errors">Specializes in Error Coins</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="scraping_enabled"
-                    checked={formData.scraping_enabled}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, scraping_enabled: checked }))}
-                  />
-                  <Label htmlFor="scraping_enabled">Enable Scraping</Label>
-                </div>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setIsAddDialogOpen(false);
-                resetForm();
-              }}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={!formData.source_name || !formData.base_url}
-              >
-                {editingSource ? 'Update' : 'Add'} Site
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'online': return <CheckCircle className="h-4 w-4" />;
+      case 'offline': return <AlertCircle className="h-4 w-4" />;
+      case 'checking': return <Activity className="h-4 w-4 animate-pulse" />;
+      default: return <Globe className="h-4 w-4" />;
+    }
+  };
 
-      {isLoading ? (
-        <div className="text-center py-8">Loading sites...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sources.map((source) => (
-            <Card key={source.id} className={`${source.is_active ? '' : 'opacity-60'}`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{source.source_name}</CardTitle>
-                    <Badge className={getSourceTypeColor(source.source_type)}>
-                      {source.source_type.replace('_', ' ')}
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Globe className="h-5 w-5" />
+          Live Site Management & Monitoring
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Add New Site */}
+        <div className="flex gap-2">
+          <Input
+            placeholder="Enter website URL to monitor..."
+            value={newSiteUrl}
+            onChange={(e) => setNewSiteUrl(e.target.value)}
+            className="flex-1"
+          />
+          <Button
+            onClick={() => newSiteUrl && addSiteMutation.mutate(newSiteUrl)}
+            disabled={!newSiteUrl || addSiteMutation.isPending}
+          >
+            <Search className="h-4 w-4 mr-2" />
+            {addSiteMutation.isPending ? 'Adding...' : 'Add Site'}
+          </Button>
+        </div>
+
+        {/* Monitored Sites List */}
+        <div className="space-y-3">
+          {isLoading ? (
+            <div className="text-center py-4">
+              <div className="animate-spin h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-sm text-gray-600 mt-2">Loading monitored sites...</p>
+            </div>
+          ) : monitoredSites?.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Globe className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No sites being monitored yet</p>
+              <p className="text-sm">Add a website URL above to start monitoring</p>
+            </div>
+          ) : (
+            monitoredSites?.map((site) => (
+              <div key={site.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(site.status)}
+                      <span className="font-medium">{site.name}</span>
+                    </div>
+                    <Badge className={getStatusColor(site.status)}>
+                      {site.status}
                     </Badge>
                   </div>
-                  <Switch
-                    checked={source.is_active}
-                    onCheckedChange={() => toggleActive(source)}
-                  />
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <ExternalLink className="h-3 w-3" />
-                    <a 
-                      href={source.base_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline truncate"
-                    >
-                      {source.base_url}
-                    </a>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>Priority: {source.priority_score}</div>
-                    <div>Rate: {source.rate_limit_per_hour}/h</div>
-                    <div>Reliability: {(source.reliability_score * 100).toFixed(0)}%</div>
-                    <div>{source.specializes_in_errors ? '🎯 Errors' : '📊 General'}</div>
-                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => checkSiteMutation.mutate(site.id)}
+                    disabled={checkSiteMutation.isPending}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Check Now
+                  </Button>
                 </div>
                 
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditDialog(source)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-red-600">
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Site</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{source.source_name}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteSourceMutation.mutate(source.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div>URL: {site.url}</div>
+                  <div className="flex items-center gap-4">
+                    <span>Response: {site.responseTime}ms</span>
+                    <span>Last checked: {new Date(site.lastChecked).toLocaleTimeString()}</span>
+                    {site.errorCount > 0 && (
+                      <span className="text-red-600">
+                        {site.errorCount} recent errors
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            ))
+          )}
         </div>
-      )}
-    </div>
+
+        {/* Quick Stats */}
+        {monitoredSites && monitoredSites.length > 0 && (
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-600">
+                {monitoredSites.filter(s => s.status === 'online').length}
+              </div>
+              <div className="text-xs text-gray-600">Online</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-red-600">
+                {monitoredSites.filter(s => s.status === 'offline').length}
+              </div>
+              <div className="text-xs text-gray-600">Offline</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-600">
+                {Math.round(monitoredSites.reduce((sum, s) => sum + s.responseTime, 0) / monitoredSites.length)}ms
+              </div>
+              <div className="text-xs text-gray-600">Avg Response</div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

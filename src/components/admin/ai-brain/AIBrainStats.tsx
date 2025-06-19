@@ -2,84 +2,83 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Brain, Zap, Target, Activity, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Brain, Zap, Activity, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+interface AIBrainMetrics {
+  activeCommands: number;
+  executionsToday: number;
+  averageExecutionTime: number;
+  successRate: number;
+  errorCount: number;
+  systemHealth: 'healthy' | 'warning' | 'critical';
+}
+
 const AIBrainStats = () => {
-  const { data: stats, isLoading } = useQuery({
+  // Real-time AI Brain metrics from database
+  const { data: metrics, isLoading } = useQuery({
     queryKey: ['ai-brain-stats'],
-    queryFn: async () => {
-      console.log('Fetching AI Brain stats...');
-      
-      // Get AI Commands stats
-      const { data: commands, error: commandsError } = await supabase
+    queryFn: async (): Promise<AIBrainMetrics> => {
+      // Get active commands count
+      const { data: activeCommands } = await supabase
         .from('ai_commands')
-        .select('*');
-      
-      if (commandsError) {
-        console.error('Error fetching commands:', commandsError);
-      }
-      
-      // Get Automation Rules stats
-      const { data: rules, error: rulesError } = await supabase
-        .from('automation_rules')
-        .select('*');
-      
-      if (rulesError) {
-        console.error('Error fetching rules:', rulesError);
-      }
-      
-      // Get Prediction Models stats
-      const { data: models, error: modelsError } = await supabase
-        .from('prediction_models')
-        .select('*');
-      
-      if (modelsError) {
-        console.error('Error fetching models:', modelsError);
-      }
-      
-      // Get recent executions
-      const { data: executions, error: executionsError } = await supabase
+        .select('id')
+        .eq('is_active', true);
+
+      // Get executions from last 24 hours
+      const { data: executions } = await supabase
         .from('ai_command_executions')
-        .select('*')
+        .select('execution_time_ms, execution_status')
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      // Get recent performance metrics
+      const { data: performanceMetrics } = await supabase
+        .from('ai_performance_metrics')
+        .select('metric_value, metric_name')
+        .eq('metric_type', 'execution_time')
+        .gte('recorded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      // Calculate real metrics
+      const totalExecutions = executions?.length || 0;
+      const successfulExecutions = executions?.filter(e => e.execution_status === 'completed').length || 0;
+      const failedExecutions = executions?.filter(e => e.execution_status === 'failed').length || 0;
       
-      if (executionsError) {
-        console.error('Error fetching executions:', executionsError);
+      const avgExecutionTime = executions?.length > 0 
+        ? executions.reduce((sum, e) => sum + (e.execution_time_ms || 0), 0) / executions.length
+        : 0;
+
+      const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 100;
+
+      // Determine system health
+      let systemHealth: 'healthy' | 'warning' | 'critical' = 'healthy';
+      if (failedExecutions > 5 || successRate < 80) {
+        systemHealth = 'critical';
+      } else if (failedExecutions > 2 || successRate < 90) {
+        systemHealth = 'warning';
       }
-      
-      const result = {
-        commands: commands || [],
-        rules: rules || [],
-        models: models || [],
-        executions: executions || []
+
+      return {
+        activeCommands: activeCommands?.length || 0,
+        executionsToday: totalExecutions,
+        averageExecutionTime: Math.round(avgExecutionTime),
+        successRate: Math.round(successRate),
+        errorCount: failedExecutions,
+        systemHealth
       };
-      
-      console.log('AI Brain stats fetched:', {
-        commandsCount: result.commands.length,
-        rulesCount: result.rules.length,
-        modelsCount: result.models.length,
-        executionsCount: result.executions.length
-      });
-      
-      return result;
     },
-    refetchInterval: 10000, // Refresh every 10 seconds
-    retry: 3,
-    retryDelay: 1000,
+    refetchInterval: 10000 // Refresh every 10 seconds for real-time updates
   });
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
           <Card key={i}>
-            <CardContent className="p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            <CardContent className="p-4">
+              <div className="animate-pulse space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
               </div>
             </CardContent>
           </Card>
@@ -88,161 +87,75 @@ const AIBrainStats = () => {
     );
   }
 
-  const activeCommands = stats?.commands?.filter(c => c.is_active).length || 0;
-  const totalCommands = stats?.commands?.length || 0;
-  const activeRules = stats?.rules?.filter(r => r.is_active).length || 0;
-  const totalRules = stats?.rules?.length || 0;
-  const activeModels = stats?.models?.filter(m => m.is_active).length || 0;
-  const totalModels = stats?.models?.length || 0;
-  const executions24h = stats?.executions?.length || 0;
-
-  const commandsHealth = totalCommands > 0 ? (activeCommands / totalCommands) * 100 : 0;
-  const rulesHealth = totalRules > 0 ? (activeRules / totalRules) * 100 : 0;
-  const modelsHealth = totalModels > 0 ? (activeModels / totalModels) * 100 : 0;
-
-  const overallHealth = totalCommands + totalRules + totalModels > 0 
-    ? ((activeCommands + activeRules + activeModels) / (totalCommands + totalRules + totalModels)) * 100 
-    : 0;
-
-  const getHealthIcon = (health: number) => {
-    if (health >= 80) return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-    if (health >= 50) return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
-    return <AlertTriangle className="w-4 h-4 text-red-600" />;
+  const getHealthColor = (health: string) => {
+    switch (health) {
+      case 'healthy': return 'text-green-600';
+      case 'warning': return 'text-yellow-600';
+      case 'critical': return 'text-red-600';
+      default: return 'text-gray-600';
+    }
   };
 
-  const getHealthColor = (health: number) => {
-    if (health >= 80) return 'text-green-600';
-    if (health >= 50) return 'text-yellow-600';
-    return 'text-red-600';
+  const getHealthIcon = (health: string) => {
+    switch (health) {
+      case 'healthy': return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case 'warning': return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+      case 'critical': return <AlertTriangle className="h-5 w-5 text-red-600" />;
+      default: return <Activity className="h-5 w-5 text-gray-600" />;
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Overall Status */}
-      <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">AI Brain Status</h3>
-              <div className="flex items-center gap-2">
-                {getHealthIcon(overallHealth)}
-                <span className="text-sm">
-                  {overallHealth >= 80 ? 'Excellent' : overallHealth >= 50 ? 'Good' : 'Needs Attention'}
-                </span>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">{Math.round(overallHealth)}%</div>
-              <div className="text-sm opacity-90">Overall Health</div>
-            </div>
-          </div>
-          <Progress value={overallHealth} className="mt-4 bg-white/20" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Active Commands */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Active Commands</CardTitle>
+          <Brain className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{metrics?.activeCommands || 0}</div>
+          <p className="text-xs text-muted-foreground">Ready for execution</p>
         </CardContent>
       </Card>
 
-      {/* Detailed Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">AI Commands</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-2xl font-bold">{activeCommands}</p>
-                  <span className="text-sm text-muted-foreground">/ {totalCommands}</span>
-                  {getHealthIcon(commandsHealth)}
-                </div>
-                <div className={`text-xs mt-1 ${getHealthColor(commandsHealth)}`}>
-                  {Math.round(commandsHealth)}% Active
-                </div>
-              </div>
-              <Brain className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Automation Rules</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-2xl font-bold">{activeRules}</p>
-                  <span className="text-sm text-muted-foreground">/ {totalRules}</span>
-                  {getHealthIcon(rulesHealth)}
-                </div>
-                <div className={`text-xs mt-1 ${getHealthColor(rulesHealth)}`}>
-                  {Math.round(rulesHealth)}% Active
-                </div>
-              </div>
-              <Zap className="w-8 h-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Prediction Models</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-2xl font-bold">{activeModels}</p>
-                  <span className="text-sm text-muted-foreground">/ {totalModels}</span>
-                  {getHealthIcon(modelsHealth)}
-                </div>
-                <div className={`text-xs mt-1 ${getHealthColor(modelsHealth)}`}>
-                  {Math.round(modelsHealth)}% Active
-                </div>
-              </div>
-              <Target className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Executions (24h)</p>
-                <p className="text-2xl font-bold mt-1">{executions24h}</p>
-                <Badge variant={executions24h > 0 ? "default" : "secondary"} className="text-xs mt-1">
-                  {executions24h > 0 ? "Active" : "Idle"}
-                </Badge>
-              </div>
-              <Activity className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
+      {/* Executions Today */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Quick Brain Insights</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Executions (24h)</CardTitle>
+          <Zap className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3">
-            <div className="flex justify-between items-center text-sm">
-              <span>Commands Health:</span>
-              <div className="flex items-center gap-2">
-                <Progress value={commandsHealth} className="w-20 h-2" />
-                <span className={getHealthColor(commandsHealth)}>{Math.round(commandsHealth)}%</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span>Automation Health:</span>
-              <div className="flex items-center gap-2">
-                <Progress value={rulesHealth} className="w-20 h-2" />
-                <span className={getHealthColor(rulesHealth)}>{Math.round(rulesHealth)}%</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span>Models Health:</span>
-              <div className="flex items-center gap-2">
-                <Progress value={modelsHealth} className="w-20 h-2" />
-                <span className={getHealthColor(modelsHealth)}>{Math.round(modelsHealth)}%</span>
-              </div>
-            </div>
+          <div className="text-2xl font-bold">{metrics?.executionsToday || 0}</div>
+          <p className="text-xs text-muted-foreground">
+            Avg: {metrics?.averageExecutionTime || 0}ms
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Success Rate */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2">
+            <div className="text-2xl font-bold">{metrics?.successRate || 0}%</div>
+            {metrics?.systemHealth && getHealthIcon(metrics.systemHealth)}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Badge 
+              variant={metrics?.systemHealth === 'healthy' ? 'default' : 'destructive'}
+              className="text-xs"
+            >
+              {metrics?.systemHealth || 'unknown'}
+            </Badge>
+            {metrics?.errorCount > 0 && (
+              <span className="text-xs text-red-600">
+                {metrics.errorCount} errors
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>
