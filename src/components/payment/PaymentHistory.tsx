@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +52,7 @@ const PaymentHistory = ({ userId }: PaymentHistoryProps) => {
         amount: tx.amount,
         currency: tx.currency,
         status: tx.status as any,
-        paymentMethod: tx.crypto_currency || 'Credit Card',
+        paymentMethod: tx.payment_method || 'Credit Card',
         transactionDate: new Date(tx.created_at),
         coinName: 'Coin Purchase',
         fees: {
