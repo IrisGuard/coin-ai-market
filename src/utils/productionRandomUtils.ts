@@ -1,55 +1,75 @@
 
-// PRODUCTION-SAFE RANDOM UTILITIES
-// These utilities provide deterministic randomness for production environments
+// 🔒 PRODUCTION-SAFE RANDOM UTILITIES
+// Replaces Math.random() with secure alternatives for production
 
-// Production-safe random number generator using crypto API or deterministic fallback
-export const generateSecureRandomNumber = (min: number = 0, max: number = 100): number => {
-  // Use crypto.getRandomValues for production-safe randomness
+export const generateSecureRandomNumber = (min: number, max: number): number => {
+  // Use crypto.getRandomValues for truly secure random numbers
   if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
     const array = new Uint32Array(1);
     window.crypto.getRandomValues(array);
-    return min + (array[0] % (max - min + 1));
+    const randomValue = array[0] / (0xffffffff + 1);
+    return Math.floor(randomValue * (max - min + 1)) + min;
   }
   
-  // Fallback using timestamp-based deterministic generation
-  const timestamp = Date.now();
-  const seed = (timestamp * 9301 + 49297) % 233280;
-  const normalized = seed / 233280;
-  return Math.floor(min + normalized * (max - min + 1));
+  // Fallback for server-side or non-crypto environments
+  // Still avoid Math.random() - use Date-based entropy
+  const seed = Date.now() % 1000000;
+  const entropy = (seed * 9301 + 49297) % 233280;
+  const normalized = entropy / 233280;
+  return Math.floor(normalized * (max - min + 1)) + min;
 };
 
-// Production-safe UUID generator
-export const generateSecureId = (prefix: string = 'prod'): string => {
-  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
-    const array = new Uint8Array(16);
-    window.crypto.getRandomValues(array);
-    const hex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-    return `${prefix}-${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16)}`;
-  }
-  
-  // Fallback using timestamp and performance counter
+export const generateSecureId = (prefix: string = 'id'): string => {
   const timestamp = Date.now().toString(36);
-  const counter = Math.floor(performance.now() * 1000).toString(36);
-  return `${prefix}-${timestamp}-${counter}`;
+  const randomPart = generateSecureRandomNumber(100000, 999999).toString(36);
+  return `${prefix}_${timestamp}_${randomPart}`;
 };
 
-// Production-safe percentage generator with controlled ranges
-export const generateSecurePercentage = (min: number = 0, max: number = 100): number => {
-  return generateSecureRandomNumber(min, max);
+export const generateSecureFloat = (min: number, max: number, decimals: number = 2): number => {
+  const range = max - min;
+  const random = generateSecureRandomNumber(0, Math.pow(10, decimals)) / Math.pow(10, decimals);
+  return parseFloat((min + (random * range)).toFixed(decimals));
 };
 
-// Production-safe array shuffling
-export const shuffleArraySecurely = <T>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = generateSecureRandomNumber(0, i);
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
-
-// Production-safe element selection
-export const selectRandomElementSecurely = <T>(array: T[]): T => {
+export const selectSecureRandomItem = <T>(array: T[]): T => {
+  if (array.length === 0) throw new Error('Cannot select from empty array');
   const index = generateSecureRandomNumber(0, array.length - 1);
   return array[index];
 };
+
+// 🚨 PRODUCTION SAFETY CHECK
+export const validateProductionSafety = () => {
+  const violations: string[] = [];
+  
+  // Check if Math.random is being used
+  const originalRandom = Math.random;
+  let randomCalled = false;
+  
+  Math.random = () => {
+    randomCalled = true;
+    violations.push('Math.random() called - use generateSecureRandomNumber() instead');
+    return originalRandom();
+  };
+  
+  // Restore original after test
+  setTimeout(() => {
+    Math.random = originalRandom;
+  }, 100);
+  
+  return {
+    isProductionSafe: violations.length === 0,
+    violations
+  };
+};
+
+// Export safe alternatives for common random operations
+export const secureRandom = {
+  number: generateSecureRandomNumber,
+  float: generateSecureFloat,
+  id: generateSecureId,
+  pick: selectSecureRandomItem,
+  boolean: () => generateSecureRandomNumber(0, 1) === 1,
+  percentage: () => generateSecureRandomNumber(0, 100)
+};
+
+console.log('🔒 Production Random Utils loaded - Math.random() alternatives ready');

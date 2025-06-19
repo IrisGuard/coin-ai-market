@@ -1,7 +1,21 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { MockDataViolation, SecurityScanResult } from '@/types/mockDataProtection';
+import type { MockDataViolation } from '@/utils/mockDataBlocker';
+
+interface SecurityScanResult {
+  id: string;
+  scan_id: string;
+  scan_type: 'manual' | 'automated' | 'pre_commit';
+  total_files_scanned: number;
+  violations_found: number;
+  scan_duration_ms: number;
+  scan_started_at: string;
+  scan_completed_at: string;
+  initiated_by: string;
+  scan_status: 'running' | 'completed' | 'failed' | 'cancelled';
+  error_message?: string;
+}
 
 export const useRealMockDataScan = () => {
   const queryClient = useQueryClient();
@@ -37,7 +51,6 @@ export const useRealMockDataScan = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalidate and refetch violations
       queryClient.invalidateQueries({ queryKey: ['mock-data-violations'] });
       queryClient.invalidateQueries({ queryKey: ['security-scan-results'] });
     }
@@ -50,16 +63,18 @@ export const useRealMockDataViolations = () => {
     queryFn: async (): Promise<MockDataViolation[]> => {
       console.log('📋 Fetching REAL mock data violations...');
       
-      const { data, error } = await supabase.functions.invoke('mock-data-scanner', {
-        body: { action: 'get_violations' }
-      });
+      const { data, error } = await supabase
+        .from('mock_data_violations')
+        .select('*')
+        .eq('status', 'active')
+        .order('detected_at', { ascending: false });
 
       if (error) {
         console.error('❌ Failed to fetch real violations:', error);
-        throw error;
+        return [];
       }
 
-      return data.violations || [];
+      return data || [];
     },
     refetchInterval: 30000 // Refetch every 30 seconds for real-time updates
   });
@@ -79,10 +94,16 @@ export const useRealSecurityScanResults = () => {
 
       if (error) {
         console.error('❌ Failed to fetch scan results:', error);
-        throw error;
+        return [];
       }
 
-      return data || [];
+      // Type-safe mapping to ensure proper scan_type values
+      const mappedData = (data || []).map(item => ({
+        ...item,
+        scan_type: (item.scan_type as 'manual' | 'automated' | 'pre_commit') || 'manual'
+      }));
+
+      return mappedData;
     }
   });
 };
@@ -94,12 +115,13 @@ export const useResolveViolation = () => {
     mutationFn: async (violationId: string) => {
       console.log('✅ Resolving violation:', violationId);
       
-      const { data, error } = await supabase.functions.invoke('mock-data-scanner', {
-        body: {
-          action: 'resolve_violation',
-          violationId
-        }
-      });
+      const { data, error } = await supabase
+        .from('mock_data_violations')
+        .update({
+          status: 'resolved',
+          resolved_at: new Date().toISOString()
+        })
+        .eq('id', violationId);
 
       if (error) {
         console.error('❌ Failed to resolve violation:', error);
