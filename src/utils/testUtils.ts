@@ -34,7 +34,8 @@ export const measureRenderTime = async (renderFn: () => void) => {
   const startTime = performance.now();
   renderFn();
   const endTime = performance.now();
-  return endTime - startTime;
+  const duration = endTime - startTime;
+  return duration;
 };
 
 // Mock intersection observer for testing
