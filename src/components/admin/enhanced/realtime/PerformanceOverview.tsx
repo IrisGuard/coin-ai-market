@@ -14,13 +14,14 @@ const PerformanceOverview = ({ isLive }: PerformanceOverviewProps) => {
   const { data: metrics } = useQuery({
     queryKey: ['performance-metrics'],
     queryFn: async () => {
-      const [systemHealth, errorCount] = await Promise.all([
+      const [systemHealth, errorCount, responseTime] = await Promise.all([
         supabase.from('system_metrics').select('*').order('created_at', { ascending: false }).limit(1),
-        supabase.from('error_logs').select('*', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        supabase.from('error_logs').select('*', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+        supabase.rpc('get_system_performance_metrics')
       ]);
 
       const errors24h = errorCount.count || 0;
-      const performanceScore = Math.max(0, 100 - errors24h);
+      const performanceScore = Math.max(0, 100 - (errors24h * 2));
 
       return {
         active_users: 0,
@@ -28,6 +29,7 @@ const PerformanceOverview = ({ isLive }: PerformanceOverviewProps) => {
         pending_transactions: 0,
         system_alerts: errors24h,
         performance_score: performanceScore,
+        avg_response_time: responseTime?.avg_response_time || 150,
         last_updated: new Date().toISOString()
       };
     },
@@ -76,6 +78,12 @@ const PerformanceOverview = ({ isLive }: PerformanceOverviewProps) => {
             style={{ width: `${performanceScore}%` }}
           />
         </div>
+
+        {metrics && (
+          <div className="mt-4 text-sm text-muted-foreground">
+            Average Response Time: {metrics.avg_response_time}ms
+          </div>
+        )}
 
         {isLive && (
           <div className="mt-4 text-center">

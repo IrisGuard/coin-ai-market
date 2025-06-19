@@ -25,7 +25,7 @@ const RealTimeMetricsGrid = ({ isLive }: RealTimeMetricsGridProps) => {
         active_sessions: sessionsCount.count || 0,
         pending_transactions: transactionsCount.count || 0,
         system_alerts: alertsCount.count || 0,
-        performance_score: 95,
+        performance_score: Math.max(95 - (alertsCount.count || 0) * 5, 60),
         last_updated: new Date().toISOString()
       };
     },
