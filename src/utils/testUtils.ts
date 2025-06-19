@@ -127,7 +127,7 @@ export const validateProps = (component: any, expectedProps: Record<string, any>
     const actualValue = component.props[key];
     
     if (actualValue !== expectedValue) {
-      errors.push('Expected ' + key + ' to be ' + String(expectedValue) + ', got ' + String(actualValue));
+      errors.push(`Expected ${key} to be ${String(expectedValue)}, got ${String(actualValue)}`);
     }
   }
   
