@@ -65,7 +65,7 @@ export const triggerTestError = (message = 'Test error') => {
   throw new Error(message);
 };
 
-// Validate component props - FIXED: Using template literals for proper string concatenation
+// Validate component props
 export const validateProps = (component: any, expectedProps: Record<string, any>) => {
   const errors: string[] = [];
   
