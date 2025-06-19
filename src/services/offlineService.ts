@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface QueuedOperation {
@@ -117,32 +118,39 @@ class OfflineService {
   private async executeOperation(operation: QueuedOperation) {
     const { type, table, data } = operation;
 
-    switch (type) {
-      case 'create':
-        const { error: createError } = await supabase
-          .from(table)
-          .insert(data);
-        if (createError) throw createError;
-        break;
+    // Only work with existing tables
+    if (table === 'coins') {
+      switch (type) {
+        case 'create':
+          const { error: createError } = await supabase
+            .from('coins')
+            .insert(data);
+          if (createError) throw createError;
+          break;
 
-      case 'update':
-        const { error: updateError } = await supabase
-          .from(table)
-          .update(data.values)
-          .eq('id', data.id);
-        if (updateError) throw updateError;
-        break;
+        case 'update':
+          const { error: updateError } = await supabase
+            .from('coins')
+            .update(data.values)
+            .eq('id', data.id);
+          if (updateError) throw updateError;
+          break;
 
-      case 'delete':
-        const { error: deleteError } = await supabase
-          .from(table)
-          .delete()
-          .eq('id', data.id);
-        if (deleteError) throw deleteError;
-        break;
+        case 'delete':
+          const { error: deleteError } = await supabase
+            .from('coins')
+            .delete()
+            .eq('id', data.id);
+          if (deleteError) throw deleteError;
+          break;
 
-      default:
-        throw new Error(`Unknown operation type: ${type}`);
+        default:
+          throw new Error(`Unknown operation type: ${type}`);
+      }
+    } else {
+      // For other tables, store in localStorage for now
+      const storageKey = `offline_${table}_${operation.id}`;
+      localStorage.setItem(storageKey, JSON.stringify({ ...data, _operation: type, _timestamp: Date.now() }));
     }
   }
 

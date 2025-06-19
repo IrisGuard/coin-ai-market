@@ -68,7 +68,7 @@ const MobileNavigation = () => {
                 <h2 className="text-xl font-bold text-gray-900">CoinAI</h2>
                 {user && (
                   <p className="text-sm text-gray-600 mt-1">
-                    Welcome, {user.name || user.email}
+                    Welcome, {user.email}
                   </p>
                 )}
               </div>

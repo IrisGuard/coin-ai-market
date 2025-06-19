@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { uploadImage } from '@/utils/imageUpload';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MobileCameraUploadProps {
@@ -67,25 +66,22 @@ const MobileCameraUpload = ({
 
       const imageUrls = await Promise.all(uploadPromises);
 
-      // Store image metadata in database
+      // Store image URLs in localStorage or pass to parent component
       if (coinData) {
-        const { error } = await supabase
-          .from('coin_images')
-          .insert(
-            imageUrls.map((url, index) => ({
-              coin_id: coinData.id,
-              image_url: url,
-              image_type: index === 0 ? 'front' : index === 1 ? 'back' : 'detail',
-              uploaded_by: user.id,
-              upload_metadata: {
-                original_filename: capturedImages[index].name,
-                file_size: capturedImages[index].size,
-                upload_method: 'mobile_camera'
-              }
-            }))
-          );
+        const imageMetadata = imageUrls.map((url, index) => ({
+          coin_id: coinData.id,
+          image_url: url,
+          image_type: index === 0 ? 'front' : index === 1 ? 'back' : 'detail',
+          uploaded_by: user.id,
+          upload_metadata: {
+            original_filename: capturedImages[index].name,
+            file_size: capturedImages[index].size,
+            upload_method: 'mobile_camera'
+          }
+        }));
 
-        if (error) throw error;
+        // Store in localStorage for now
+        localStorage.setItem(`coin_images_${coinData.id}`, JSON.stringify(imageMetadata));
       }
 
       onImagesUploaded?.(imageUrls);
