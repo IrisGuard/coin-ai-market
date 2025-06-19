@@ -2,7 +2,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
-import { generateProductionId, generateProductionNumber } from '../mockDataBlocker';
+import { generateSecureId, generateSecureRandomNumber } from '../productionRandomUtils';
 
 // Create a production query client for real testing
 export const createProductionQueryClient = (): QueryClient => {
@@ -71,7 +71,7 @@ export const triggerProductionError = (message: string = 'Production error'): Er
 // Production data generator using deterministic values
 export const generateProductionData = (count: number = 10): any[] => {
   return Array.from({ length: count }, (_, index) => ({
-    id: generateProductionId('prod'),
+    id: generateSecureId('prod'),
     name: `Production Item ${index + 1}`,
     value: (index + 1) * 100, // Deterministic values
     timestamp: new Date().toISOString(),
