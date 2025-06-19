@@ -39,7 +39,7 @@ export const measureRenderTime = async (renderFn: () => void): Promise<number> =
 };
 
 // Mock intersection observer for testing
-export const mockIntersectionObserver = () => {
+export const mockIntersectionObserver = (): void => {
   const mockIntersectionObserver = jest.fn();
   mockIntersectionObserver.mockReturnValue({
     observe: () => null,
@@ -50,7 +50,7 @@ export const mockIntersectionObserver = () => {
 };
 
 // Cleanup utilities
-export const cleanupTests = () => {
+export const cleanupTests = (): void => {
   if (typeof window !== 'undefined') {
     window.localStorage.clear();
     window.sessionStorage.clear();
