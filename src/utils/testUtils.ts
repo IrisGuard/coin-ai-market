@@ -1,4 +1,3 @@
-
 import { QueryClient } from '@tanstack/react-query';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -34,7 +33,7 @@ export const measureRenderTime = async (renderFn: () => void) => {
   const start = performance.now();
   renderFn();
   const end = performance.now();
-  return end - start;
+  return (end - start);
 };
 
 // Mock intersection observer for testing
