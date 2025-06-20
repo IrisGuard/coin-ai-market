@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAdmin } from '@/contexts/AdminContext';
 import { useSearchEnhancement } from '@/hooks/useSearchEnhancement';
 import Navbar from "@/components/Navbar";
 import CategoryNavigationFix from "@/components/marketplace/CategoryNavigationFix";
@@ -13,20 +12,13 @@ import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection"
 import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
-import StoreManagementLanding from "@/components/admin/StoreManagementLanding";
 import { motion } from 'framer-motion';
 
 const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
   const { isAuthenticated } = useAuth();
-  const { isAdmin } = useAdmin();
   const { performSearch } = useSearchEnhancement();
-
-  // Redirect admin users to store management
-  if (isAdmin) {
-    return <StoreManagementLanding />;
-  }
 
   const handleSearch = (query: string) => {
     performSearch(query);

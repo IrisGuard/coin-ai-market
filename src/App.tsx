@@ -24,7 +24,6 @@ import CategoryPage from "./pages/CategoryPage";
 import TokenPage from "./pages/TokenPage";
 import DealerStorePage from "./pages/DealerStorePage";
 import DealerPanel from "./pages/DealerPanel";
-import MarketplacePanelPage from "./pages/MarketplacePanelPage";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +42,6 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/marketplace" element={<ActiveMarketplace />} />
-                  <Route path="/marketplace/open-store" element={<MarketplacePanelPage />} />
                   <Route path="/auctions" element={<Auctions />} />
                   <Route path="/upload" element={<CoinUpload />} />
                   <Route path="/profile" element={<Profile />} />
