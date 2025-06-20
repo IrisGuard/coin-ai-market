@@ -21,19 +21,19 @@ const ProductionDataFlowSwitch = () => {
       console.log('🔄 SWITCHING TO PRODUCTION DATA FLOW');
 
       // Count active external sources
-      const { data: externalSources } = await supabase
+      const { count: externalSourcesCount } = await supabase
         .from('external_price_sources')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      setDataFlow(prev => ({ ...prev, externalSources: externalSources?.count || 0 }));
+      setDataFlow(prev => ({ ...prev, externalSources: externalSourcesCount || 0 }));
 
       // Count processed coins from live data
-      const { data: coins } = await supabase
+      const { count: coinsCount } = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true });
 
-      setDataFlow(prev => ({ ...prev, processedCoins: coins?.count || 0 }));
+      setDataFlow(prev => ({ ...prev, processedCoins: coinsCount || 0 }));
 
       // Verify marketplace is receiving live data
       const { data: aggregatedPrices } = await supabase
@@ -47,12 +47,12 @@ const ProductionDataFlowSwitch = () => {
       }
 
       // Verify dealer panels are connected to AI
-      const { data: aiCommands } = await supabase
+      const { count: aiCommandsCount } = await supabase
         .from('ai_commands')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      if (aiCommands && aiCommands.count && aiCommands.count > 0) {
+      if (aiCommandsCount && aiCommandsCount > 0) {
         setDataFlow(prev => ({ ...prev, dealerPanelsConnected: true }));
         console.log('✅ Dealer Panels: AI CONNECTED');
       }
