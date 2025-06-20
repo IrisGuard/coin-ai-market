@@ -29,9 +29,12 @@ interface CoinDetailsContentProps {
     starting_bid?: number;
     user_id: string;
     profiles?: {
+      id?: string;
       name?: string;
+      full_name?: string;
       username?: string;
       verified_dealer?: boolean;
+      email?: string;
     };
   };
   dealerStore?: {
@@ -143,7 +146,7 @@ const CoinDetailsContent = ({
     return { __html: htmlContent };
   };
 
-  // Get proper seller name with fallback logic
+  // Get proper seller name with fallback logic - FIXED
   const getSellerName = () => {
     if (!coin.profiles) {
       console.log('🏪 CoinDetailsContent - No profiles data');
