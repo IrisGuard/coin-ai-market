@@ -1,77 +1,65 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle } from 'lucide-react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import ExpandedAdminTabs from './ExpandedAdminTabs';
+
+// Import all existing tabs
 import AdminOverviewTab from '@/components/admin/tabs/AdminOverviewTab';
-import AdminUsersTab from '@/components/admin/tabs/AdminUsersTab';
-import AdminCoinsTab from '@/components/admin/tabs/AdminCoinsTab';
-import AdminAIBrainTab from '@/components/admin/tabs/AdminAIBrainTab';
-import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
-import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
-import AdminSystemPhasesTab from '@/components/admin/tabs/AdminSystemPhasesTab';
+import AdminOpenStoreTab from '@/components/admin/tabs/AdminOpenStoreTab';
 import AdminCleanupTab from '@/components/admin/tabs/AdminCleanupTab';
 
 const FullSystemAdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('cleanup');
+  const [activeTab, setActiveTab] = useState('open-store');
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Full System Admin Panel</h1>
-            <p className="text-muted-foreground">
-              Complete administration interface with Production Optimization - Ready for Live Launch
-            </p>
-          </div>
-          <Badge variant="outline" className="text-lg px-4 py-2">
-            System Status: READY FOR OPTIMIZATION
-          </Badge>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4">
+      <div className="max-w-[95vw] mx-auto space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            🧠 Complete Admin System
+          </h1>
+          <p className="text-gray-600">
+            Full AI-powered marketplace management with unlimited store creation
+          </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="cleanup">🚀 Cleanup</TabsTrigger>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="coins">Coins</TabsTrigger>
-            <TabsTrigger value="ai-brain">AI Brain</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="system-phases">System Phases</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="cleanup" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <ExpandedAdminTabs />
+          
+          {/* Store Management */}
+          <TabsContent value="open-store">
+            <AdminOpenStoreTab />
+          </TabsContent>
+          
+          <TabsContent value="cleanup">
             <AdminCleanupTab />
           </TabsContent>
 
-          <TabsContent value="overview" className="space-y-6">
+          {/* Core Tabs */}
+          <TabsContent value="overview">
             <AdminOverviewTab />
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-6">
+          <TabsContent value="users">
             <AdminUsersTab />
           </TabsContent>
 
-          <TabsContent value="coins" className="space-y-6">
+          <TabsContent value="coins">
             <AdminCoinsTab />
           </TabsContent>
 
-          <TabsContent value="ai-brain" className="space-y-6">
+          <TabsContent value="ai-brain">
             <AdminAIBrainTab />
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-6">
+          <TabsContent value="security">
             <AdminSecurityTab />
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
+          <TabsContent value="analytics">
             <AdminAnalyticsTab />
           </TabsContent>
 
-          <TabsContent value="system-phases" className="space-y-6">
+          <TabsContent value="system-phases">
             <AdminSystemPhasesTab />
           </TabsContent>
         </Tabs>

@@ -5,14 +5,23 @@ import {
   BarChart3, Database, Users, Coins, Bot, Brain, Target, 
   TrendingUp, Store, ShoppingCart, ExternalLink, Cog, 
   Shield, Key, Bell, FileText, Activity, Search, Globe,
-  AlertTriangle, Eye, DollarSign, Zap, Settings, Lock
+  AlertTriangle, Eye, DollarSign, Zap, Settings, Lock,
+  Plus, Rocket
 } from 'lucide-react';
 
 const ExpandedAdminTabs = () => {
   return (
     <TabsList className="h-auto p-2 bg-white border rounded-lg shadow-sm w-full">
       <div className="grid grid-cols-8 xl:grid-cols-10 gap-2 w-full">
-        {/* Row 1 - AI & Core Features */}
+        {/* Row 1 - Store Management & Core Features */}
+        <TabsTrigger value="open-store" className="flex flex-col items-center gap-1 h-16 bg-gradient-to-r from-green-500 to-blue-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-blue-700">
+          <Store className="h-5 w-5" />
+          <span className="text-xs font-bold">🏪 OPEN STORE</span>
+        </TabsTrigger>
+        <TabsTrigger value="cleanup" className="flex flex-col items-center gap-1 h-16 bg-gradient-to-r from-orange-500 to-red-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-700">
+          <Rocket className="h-5 w-5" />
+          <span className="text-xs font-bold">🚀 CLEANUP</span>
+        </TabsTrigger>
         <TabsTrigger value="ai-brain" className="flex flex-col items-center gap-1 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-700">
           <Brain className="h-5 w-5" />
           <span className="text-xs font-bold">🧠 AI BRAIN</span>
@@ -37,24 +46,16 @@ const ExpandedAdminTabs = () => {
           <Store className="h-4 w-4" />
           <span className="text-xs">Stores</span>
         </TabsTrigger>
-        <TabsTrigger value="ai-commands" className="flex flex-col items-center gap-1 h-16">
-          <Bot className="h-4 w-4" />
-          <span className="text-xs">AI Commands</span>
-        </TabsTrigger>
-        <TabsTrigger value="ai-executions" className="flex flex-col items-center gap-1 h-16">
-          <Zap className="h-4 w-4" />
-          <span className="text-xs">Executions</span>
-        </TabsTrigger>
         <div className="hidden xl:flex xl:flex-col xl:items-center xl:gap-1 xl:h-16">
-          <TabsTrigger value="ai-predictions" className="flex flex-col items-center gap-1 h-16 w-full">
-            <Brain className="h-4 w-4" />
-            <span className="text-xs">Predictions</span>
+          <TabsTrigger value="ai-commands" className="flex flex-col items-center gap-1 h-16 w-full">
+            <Bot className="h-4 w-4" />
+            <span className="text-xs">AI Commands</span>
           </TabsTrigger>
         </div>
         <div className="hidden xl:flex xl:flex-col xl:items-center xl:gap-1 xl:h-16">
-          <TabsTrigger value="automation-rules" className="flex flex-col items-center gap-1 h-16 w-full">
-            <Target className="h-4 w-4" />
-            <span className="text-xs">Automation</span>
+          <TabsTrigger value="ai-executions" className="flex flex-col items-center gap-1 h-16 w-full">
+            <Zap className="h-4 w-4" />
+            <span className="text-xs">Executions</span>
           </TabsTrigger>
         </div>
 
