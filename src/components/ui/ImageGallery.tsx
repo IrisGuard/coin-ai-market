@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 interface ImageGalleryProps {
   images: string[];
@@ -31,10 +29,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
     setLoadedImages(prev => new Set([...prev, index]));
   };
 
-  const handleImageError = (index: number, imageUrl: string) => {
-    console.error(`Image failed to load: ${imageUrl}`);
-  };
-
   if (validImages.length === 0) {
     return (
       <div className={`aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center ${className}`}>
@@ -46,14 +40,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
     );
   }
 
-  const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % validImages.length);
-  };
-
-  const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
-  };
-
   const goToImage = (index: number) => {
     setCurrentIndex(index);
   };
@@ -62,7 +48,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
 
   return (
     <div className={`relative ${className}`}>
-      {/* Main Image Display */}
+      {/* Main Image Display - Clean and minimal */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
         <img
           src={currentImageUrl}
@@ -76,12 +62,11 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             opacity: loadedImages.has(currentIndex) ? 1 : 0.8
           }}
           onLoad={() => handleImageLoad(currentIndex)}
-          onError={() => handleImageError(currentIndex, currentImageUrl)}
           onClick={() => setIsZoomed(!isZoomed)}
           loading="eager"
         />
         
-        {/* Enhanced Loading indicator */}
+        {/* Loading indicator only */}
         {!loadedImages.has(currentIndex) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
             <div className="flex flex-col items-center gap-3">
@@ -90,44 +75,9 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             </div>
           </div>
         )}
-        
-        {/* Enhanced Image Counter & Zoom Indicator */}
-        <div className="absolute top-4 right-4 flex gap-2">
-          {validImages.length > 1 && (
-            <Badge className="bg-black/80 text-white border-0 backdrop-blur-sm shadow-lg">
-              {currentIndex + 1} / {validImages.length}
-            </Badge>
-          )}
-          <Badge variant="outline" className="bg-white/90 text-gray-700 border-gray-200 backdrop-blur-sm">
-            <ZoomIn className="h-3 w-3 mr-1" />
-            Click to zoom
-          </Badge>
-        </div>
-        
-        {/* Navigation Buttons - Only show when there are multiple images */}
-        {validImages.length > 1 && (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-0 shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-110"
-              onClick={prevImage}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white border-0 shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-110"
-              onClick={nextImage}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </>
-        )}
       </div>
       
-      {/* Enhanced Thumbnail Navigation - Only show when there are multiple images */}
+      {/* Thumbnail Navigation - Only show when there are multiple images */}
       {validImages.length > 1 && (
         <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
           {validImages.map((image, index) => (
@@ -145,7 +95,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 alt={`${coinName} thumbnail ${index + 1}`}
                 className="w-full h-full object-cover transition-opacity duration-200"
                 loading="lazy"
-                onError={() => handleImageError(index, image)}
               />
               
               {/* Thumbnail loading indicator */}

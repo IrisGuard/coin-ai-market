@@ -245,7 +245,7 @@ const FeaturedCoinsGrid = () => {
                     </Link>
                     
                     {store && (
-                      <Link to={`/store/${store.id}`}>
+                      <Link to={`/dealer-direct?dealer=${store.user_id}`}>
                         <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700">
                           <Store className="h-4 w-4" />
                         </Button>
