@@ -1,9 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { generateProductionAnalytics } from '@/utils/emergencyMockDataCleanup';
-
-// 🔒 PRODUCTION-ONLY DATA HOOKS - ZERO MOCK DATA - ALL PHASES COMPLETE
 
 export const useProductionCoins = () => {
   return useQuery({
@@ -22,7 +19,7 @@ export const useProductionCoins = () => {
 
       return data || [];
     },
-    refetchInterval: 30000 // Real-time updates every 30 seconds
+    refetchInterval: 30000
   });
 };
 
@@ -50,7 +47,6 @@ export const useProductionAnalytics = () => {
   return useQuery({
     queryKey: ['production-analytics'],
     queryFn: async () => {
-      // Connect to real Supabase analytics
       const [coinsCount, usersCount, transactionsCount] = await Promise.all([
         supabase.from('coins').select('id', { count: 'exact' }),
         supabase.from('profiles').select('id', { count: 'exact' }),
@@ -61,19 +57,10 @@ export const useProductionAnalytics = () => {
         totalCoins: coinsCount.count || 0,
         totalUsers: usersCount.count || 0,
         totalEvents: transactionsCount.count || 0,
-        // Production-safe generated data (Phase 1-4 complete)
-        ...generateProductionAnalytics(),
         lastUpdated: new Date().toISOString(),
-        source: 'production_database',
-        cleanupStatus: 'all_4_phases_complete',
-        mathRandomEliminated: 25,
-        referencesEliminated: 851,
-        violationsResolved: 4,
-        productionValidated: true
+        source: 'production_database'
       };
     },
-    refetchInterval: 60000 // Update every minute
+    refetchInterval: 60000
   });
 };
-
-console.log('🔒 Production Data Hooks loaded - 100% real data, 0% mock - ALL 4 PHASES COMPLETE');

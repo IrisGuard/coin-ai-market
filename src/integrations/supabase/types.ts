@@ -2322,51 +2322,6 @@ export type Database = {
           },
         ]
       }
-      mock_data_violations: {
-        Row: {
-          created_at: string | null
-          detected_at: string | null
-          file_path: string
-          id: string
-          line_number: number
-          resolved_at: string | null
-          resolved_by: string | null
-          severity: string
-          status: string
-          updated_at: string | null
-          violation_content: string
-          violation_type: string
-        }
-        Insert: {
-          created_at?: string | null
-          detected_at?: string | null
-          file_path: string
-          id?: string
-          line_number: number
-          resolved_at?: string | null
-          resolved_by?: string | null
-          severity?: string
-          status?: string
-          updated_at?: string | null
-          violation_content: string
-          violation_type: string
-        }
-        Update: {
-          created_at?: string | null
-          detected_at?: string | null
-          file_path?: string
-          id?: string
-          line_number?: number
-          resolved_at?: string | null
-          resolved_by?: string | null
-          severity?: string
-          status?: string
-          updated_at?: string | null
-          violation_content?: string
-          violation_type?: string
-        }
-        Relationships: []
-      }
       notifications: {
         Row: {
           action_url: string | null

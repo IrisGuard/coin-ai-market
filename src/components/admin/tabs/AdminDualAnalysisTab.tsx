@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { 
   Eye, 
@@ -24,7 +23,6 @@ const AdminDualAnalysisTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Fetch dual analysis data
   const { data: analysisData = [], isLoading } = useQuery({
     queryKey: ['admin-dual-analysis'],
     queryFn: async () => {
@@ -45,7 +43,6 @@ const AdminDualAnalysisTab = () => {
     }
   });
 
-  // Get statistics
   const stats = {
     totalAnalyses: analysisData.length,
     highConfidence: analysisData.filter(a => (a.confidence_score || 0) > 0.8).length,
@@ -78,7 +75,6 @@ const AdminDualAnalysisTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Dual Analysis Management</h2>
@@ -94,7 +90,6 @@ const AdminDualAnalysisTab = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -141,7 +136,6 @@ const AdminDualAnalysisTab = () => {
         </Card>
       </div>
 
-      {/* Filters and Search */}
       <Card>
         <CardHeader>
           <CardTitle>Analysis Results</CardTitle>
@@ -170,7 +164,6 @@ const AdminDualAnalysisTab = () => {
             </select>
           </div>
 
-          {/* Results Table */}
           <div className="space-y-4">
             {filteredData.map((analysis) => (
               <div key={analysis.id} className="border rounded-lg p-4">
@@ -217,7 +210,6 @@ const AdminDualAnalysisTab = () => {
                   </div>
                 </div>
 
-                {/* Small preview of front/back images */}
                 <div className="flex gap-2 mt-3">
                   <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center">
                     <span className="text-xs text-gray-500">Front</span>
