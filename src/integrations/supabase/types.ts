@@ -485,53 +485,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ai_predictions: {
-        Row: {
-          accuracy_check: string | null
-          actual_value: Json | null
-          confidence_score: number | null
-          created_at: string | null
-          id: string
-          input_data: Json
-          model_id: string | null
-          predicted_value: Json
-          prediction_date: string | null
-          prediction_type: string
-        }
-        Insert: {
-          accuracy_check?: string | null
-          actual_value?: Json | null
-          confidence_score?: number | null
-          created_at?: string | null
-          id?: string
-          input_data: Json
-          model_id?: string | null
-          predicted_value: Json
-          prediction_date?: string | null
-          prediction_type: string
-        }
-        Update: {
-          accuracy_check?: string | null
-          actual_value?: Json | null
-          confidence_score?: number | null
-          created_at?: string | null
-          id?: string
-          input_data?: Json
-          model_id?: string | null
-          predicted_value?: Json
-          prediction_date?: string | null
-          prediction_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_predictions_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "prediction_models"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ai_recognition_cache: {
         Row: {
           confidence_score: number | null

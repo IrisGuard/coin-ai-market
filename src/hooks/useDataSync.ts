@@ -46,8 +46,8 @@ export const useDataSync = () => {
     };
   }, []);
 
-  // Test database connection
-  const testConnection = async () => {
+  // Check database connection - renamed from testConnection
+  const checkDatabaseConnection = async () => {
     try {
       setSyncStatus(prev => ({ ...prev, isSyncing: true }));
       
@@ -66,21 +66,21 @@ export const useDataSync = () => {
 
       return true;
     } catch (error) {
-      console.error('Database connection test failed:', error);
+      console.error('Database connection check failed:', error);
       setSyncStatus(prev => ({ ...prev, isSyncing: false }));
       return false;
     }
   };
 
-  // Auto-test connection when coming online
+  // Auto-check connection when coming online
   useEffect(() => {
     if (syncStatus.isOnline) {
-      testConnection();
+      checkDatabaseConnection();
     }
   }, [syncStatus.isOnline]);
 
   return {
     syncStatus,
-    testConnection
+    checkDatabaseConnection
   };
 };
