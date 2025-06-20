@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ const AdminPredictionsTab = () => {
         .insert([{
           name: modelData.name,
           model_type: modelData.type,
-          description: modelData.description,
+          target_metric: modelData.description || 'general_prediction',
           is_active: true
         }]);
       
@@ -226,12 +227,12 @@ const AdminPredictionsTab = () => {
             </div>
           </div>
           <div>
-            <Label htmlFor="model-description">Description</Label>
+            <Label htmlFor="model-description">Target Metric</Label>
             <Textarea
               id="model-description"
               value={newModelDescription}
               onChange={(e) => setNewModelDescription(e.target.value)}
-              placeholder="Enter model description"
+              placeholder="Enter target metric description"
               rows={3}
             />
           </div>
@@ -259,8 +260,8 @@ const AdminPredictionsTab = () => {
                   <p className="text-sm text-gray-600">
                     Type: {model.model_type} • Created: {new Date(model.created_at).toLocaleDateString()}
                   </p>
-                  {model.description && (
-                    <p className="text-sm text-gray-500 mt-1">{model.description}</p>
+                  {model.target_metric && (
+                    <p className="text-sm text-gray-500 mt-1">Target: {model.target_metric}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
