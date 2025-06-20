@@ -50,10 +50,15 @@ export const useCreateStore = () => {
       phone?: string;
       website?: string;
     }) => {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('stores')
         .insert({
           ...storeData,
+          user_id: user.id, // Add the required user_id
           is_active: true,
           verified: true, // Admin creates verified stores by default
         })

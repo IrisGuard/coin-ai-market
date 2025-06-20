@@ -24,6 +24,7 @@ import CategoryPage from "./pages/CategoryPage";
 import TokenPage from "./pages/TokenPage";
 import DealerStorePage from "./pages/DealerStorePage";
 import DealerPanel from "./pages/DealerPanel";
+import MarketplacePanelPage from "./pages/MarketplacePanelPage";
 
 const queryClient = new QueryClient();
 
