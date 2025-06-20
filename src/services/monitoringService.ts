@@ -21,7 +21,7 @@ export class MonitoringService {
     }
   }
 
-  static async getMetrics(metricName: string, hours = 24): Promise<MonitoringMetric[]> => {
+  static async getMetrics(metricName: string, hours = 24): Promise<MonitoringMetric[]> {
     try {
       const { data, error } = await supabase
         .from('system_metrics')
