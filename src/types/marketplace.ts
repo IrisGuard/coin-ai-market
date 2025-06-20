@@ -6,9 +6,6 @@ export interface StoreProfile {
   avatar_url?: string;
   verified_dealer?: boolean;
   rating?: number;
-  username?: string;
-  bio?: string;
-  location?: string;
 }
 
 export interface MarketplaceStore {
@@ -26,11 +23,7 @@ export interface MarketplaceStore {
   phone?: string;
   website?: string;
   shipping_options?: any;
-  bank_name?: string;
-  iban?: string;
-  bitcoin_wallet_address?: string;
-  ethereum_wallet_address?: string;
-  profiles?: StoreProfile; // Single object, not array
+  profiles?: StoreProfile; // Changed from StoreProfile[] to StoreProfile
 }
 
 export interface MarketplaceStats {

@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ArrowRight } from 'lucide-react';
+import { Heart, Eye, Star, Store, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
@@ -81,37 +81,22 @@ const FeaturedCoinsGrid = () => {
     }
   });
 
+  // Helper function to get all available images for a coin
   const getAllImages = (coin: Coin): string[] => {
     const allImages: string[] = [];
     
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      const validImages = coin.images.filter(img => 
-        img && 
-        typeof img === 'string' && 
-        img.trim() !== '' && 
-        img !== 'null' && 
-        img !== 'undefined' &&
-        !img.startsWith('blob:') &&
-        (img.startsWith('http') || img.startsWith('/'))
-      );
-      allImages.push(...validImages);
+      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
     } else {
-      const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
-        .filter(img => 
-          img && 
-          typeof img === 'string' && 
-          img.trim() !== '' && 
-          img !== 'null' && 
-          img !== 'undefined' &&
-          !img.startsWith('blob:') &&
-          (img.startsWith('http') || img.startsWith('/'))
-        );
-      allImages.push(...individualImages);
+      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
+      if (coin.obverse_image && !coin.obverse_image.startsWith('blob:')) allImages.push(coin.obverse_image);
+      if (coin.reverse_image && !coin.reverse_image.startsWith('blob:')) allImages.push(coin.reverse_image);
     }
     
     return allImages;
   };
 
+  // Helper function to get store for a coin
   const getStoreForCoin = (coin: Coin) => {
     return stores?.find(store => store.user_id === coin.user_id);
   };
@@ -156,6 +141,7 @@ const FeaturedCoinsGrid = () => {
 
   return (
     <div className="space-y-8">
+      {/* Modern Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {featuredCoins.map((coin, index) => {
           const allImages = getAllImages(coin);
@@ -170,15 +156,44 @@ const FeaturedCoinsGrid = () => {
               className="group"
             >
               <Card className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] border-0 rounded-xl">
+                {/* Enhanced Image Gallery */}
                 <div className="relative">
                   <ImageGallery 
                     images={allImages}
                     coinName={coin.name}
                     className="aspect-square"
                   />
+                  
+                  {/* Premium Overlay Badges */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    {coin.featured && (
+                      <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white border-0 shadow-lg">
+                        <Star className="h-3 w-3 mr-1 fill-current" />
+                        Featured
+                      </Badge>
+                    )}
+                    {coin.rarity && (
+                      <Badge variant="outline" className={`text-xs ${getRarityColor(coin.rarity)} backdrop-blur-sm`}>
+                        {coin.rarity}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Views Counter */}
+                  <div className="absolute top-4 right-4">
+                    <Badge variant="secondary" className="bg-black/70 text-white border-0 backdrop-blur-sm">
+                      <Eye className="h-3 w-3 mr-1" />
+                      {coin.views}
+                    </Badge>
+                  </div>
+
+                  {/* Gradient Overlay for better text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
+                {/* Enhanced Card Content */}
                 <CardContent className="p-6 space-y-4">
+                  {/* Coin Title & Year */}
                   <div className="space-y-2">
                     <h3 className="font-bold text-lg text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                       {coin.name}
@@ -192,12 +207,7 @@ const FeaturedCoinsGrid = () => {
                     </div>
                   </div>
 
-                  {coin.rarity && (
-                    <Badge variant="outline" className={`text-xs ${getRarityColor(coin.rarity)}`}>
-                      {coin.rarity}
-                    </Badge>
-                  )}
-
+                  {/* Price Display */}
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Price</div>
@@ -210,24 +220,37 @@ const FeaturedCoinsGrid = () => {
                     </Button>
                   </div>
 
+                  {/* Store Information & Navigation */}
                   {store && (
                     <div className="pt-4 border-t border-gray-100">
-                      <div className="text-sm text-gray-600">
-                        Sold by {store.name}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Store className="h-4 w-4" />
+                          <span>Sold by {store.name}</span>
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  <div className="pt-2">
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-2">
                     <Link 
                       to={`/coin/${coin.id}`}
-                      className="w-full"
+                      className="flex-1"
                     >
                       <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200">
                         View Details
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
                     </Link>
+                    
+                    {store && (
+                      <Link to={`/dealer-direct?dealer=${store.user_id}`}>
+                        <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700">
+                          <Store className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -236,6 +259,7 @@ const FeaturedCoinsGrid = () => {
         })}
       </div>
 
+      {/* Enhanced Call to Action */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -244,7 +268,7 @@ const FeaturedCoinsGrid = () => {
       >
         <Link to="/marketplace">
           <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            View All Coins
+            Explore All Coins
             <ArrowRight className="ml-3 w-5 h-5" />
           </Button>
         </Link>

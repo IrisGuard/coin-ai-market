@@ -20,18 +20,16 @@ export const useCoinDetails = (id: string) => {
           obverse_image,
           reverse_image,
           profiles!coins_user_id_fkey (
-            id,
             name,
-            full_name,
             username,
-            verified_dealer,
-            email
+            verified_dealer
           )
         `)
         .eq('id', id)
         .single();
       
       if (error) {
+        console.error('Error fetching coin:', error);
         throw error;
       }
       
@@ -172,6 +170,7 @@ export const useCoinDetails = (id: string) => {
     }
   });
 
+  // Simplified purchase handler - just creates a basic transaction record
   const purchaseMutation = useMutation({
     mutationFn: async () => {
       const { data: user } = await supabase.auth.getUser();

@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Table, 
   TableBody, 
@@ -25,12 +24,14 @@ import {
   Percent,
   Target
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const ErrorMarketDataManager = () => {
   const [selectedGrade, setSelectedGrade] = useState('all');
   const [selectedRegion, setSelectedRegion] = useState('all');
 
+  // Fetch real error market data from Supabase
   const { data: marketData, isLoading } = useQuery({
     queryKey: ['error-market-data'],
     queryFn: async () => {
@@ -40,15 +41,16 @@ const ErrorMarketDataManager = () => {
           *,
           error_coins_knowledge!knowledge_base_id (
             error_name,
-            error_type
+            error_type,
+            error_category
           )
-        `);
+        `)
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching market data:', error);
-        return [];
+        throw error;
       }
-      
       return data || [];
     }
   });
@@ -92,7 +94,7 @@ const ErrorMarketDataManager = () => {
     return 'bg-red-100 text-red-800';
   };
 
-  // Calculate enhanced statistics
+  // Calculate enhanced statistics from real data
   const avgConfidence = marketData ? 
     marketData.reduce((sum, entry) => sum + (entry.data_confidence || 0), 0) / marketData.length : 0;
   

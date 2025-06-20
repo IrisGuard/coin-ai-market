@@ -119,7 +119,7 @@ const EnhancedCoinDetailsModal: React.FC<EnhancedCoinDetailsModalProps> = ({
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Image Section with Gallery - NO OVERLAYS */}
+          {/* Image Section with Gallery */}
           <div className="space-y-4">
             <div className="relative">
               <ImageGallery 
@@ -127,6 +127,14 @@ const EnhancedCoinDetailsModal: React.FC<EnhancedCoinDetailsModalProps> = ({
                 coinName={coin.name}
                 className="w-full h-80"
               />
+              
+              {/* Views counter */}
+              <div className="absolute top-2 right-2">
+                <Badge variant="secondary" className="bg-black/50 text-white">
+                  <Eye className="h-3 w-3 mr-1" />
+                  {coin.views}
+                </Badge>
+              </div>
             </div>
           </div>
 

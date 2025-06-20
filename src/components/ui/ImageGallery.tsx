@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ImageGalleryProps {
   images: string[];
@@ -13,30 +13,12 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [isZoomed, setIsZoomed] = useState(false);
   
+  // Memoize valid images to prevent unnecessary recalculation
   const validImages = useMemo(() => {
-    if (!Array.isArray(images)) {
-      return [];
-    }
-    
-    const filtered = images
-      .filter((img, index) => {
-        const isValid = img && 
-          typeof img === 'string' && 
-          img.trim() !== '' && 
-          img !== 'null' && 
-          img !== 'undefined' &&
-          img !== 'NULL' &&
-          img !== 'UNDEFINED' &&
-          !img.startsWith('blob:') &&
-          (img.startsWith('http') || img.startsWith('/'));
-        
-        return isValid;
-      })
-      .slice(0, 10);
-    
-    return filtered;
+    return images.filter(img => img && img.length > 0 && !img.startsWith('blob:'));
   }, [images]);
   
+  // Reset current index if it's out of bounds
   useEffect(() => {
     if (currentIndex >= validImages.length && validImages.length > 0) {
       setCurrentIndex(0);
@@ -46,19 +28,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const handleImageLoad = (index: number) => {
     setLoadedImages(prev => new Set([...prev, index]));
   };
-
-  useEffect(() => {
-    validImages.forEach((src, index) => {
-      const img = new Image();
-      img.onload = () => {
-        handleImageLoad(index);
-      };
-      img.onerror = () => {
-        // Silent fail for production
-      };
-      img.src = src;
-    });
-  }, [validImages]);
 
   if (validImages.length === 0) {
     return (
@@ -72,31 +41,19 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   }
 
   const goToImage = (index: number) => {
-    if (index >= 0 && index < validImages.length) {
-      setCurrentIndex(index);
-      setIsZoomed(false);
-    }
-  };
-
-  const goToPrevious = () => {
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : validImages.length - 1;
-    goToImage(newIndex);
-  };
-
-  const goToNext = () => {
-    const newIndex = currentIndex < validImages.length - 1 ? currentIndex + 1 : 0;
-    goToImage(newIndex);
+    setCurrentIndex(index);
   };
 
   const currentImageUrl = validImages[currentIndex];
 
   return (
-    <div className={`relative group ${className}`}>
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
+    <div className={`relative ${className}`}>
+      {/* Main Image Display - Clean and minimal */}
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
         <img
           src={currentImageUrl}
-          alt={`${coinName} - Image ${currentIndex + 1} of ${validImages.length}`}
-          className={`w-full h-full object-cover transition-all duration-300 ${
+          alt={`${coinName} - Image ${currentIndex + 1}`}
+          className={`w-full h-full object-cover transition-all duration-500 ${
             isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
           }`}
           style={{ 
@@ -109,83 +66,54 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           loading="eager"
         />
         
+        {/* Loading indicator only */}
         {!loadedImages.has(currentIndex) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
             <div className="flex flex-col items-center gap-3">
               <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-200 border-t-blue-600"></div>
-              <span className="text-sm text-gray-600 font-medium">Loading image {currentIndex + 1}...</span>
+              <span className="text-sm text-gray-600 font-medium">Loading...</span>
             </div>
           </div>
         )}
-
-        {validImages.length > 1 && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                goToPrevious();
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-3 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                goToNext();
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-3 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
-              aria-label="Next image"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </>
-        )}
       </div>
       
+      {/* Thumbnail Navigation - Only show when there are multiple images */}
       {validImages.length > 1 && (
-        <div className="mt-6">
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {validImages.map((image, index) => (
-              <button
-                key={`${image}-${index}`}
-                onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 shadow-md ${
-                  index === currentIndex 
-                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-blue-200 scale-105' 
-                    : 'border-gray-300 hover:border-blue-300 hover:shadow-lg hover:scale-102'
-                }`}
-              >
-                <img
-                  src={image}
-                  alt={`${coinName} thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover transition-opacity duration-200"
-                  loading="lazy"
-                />
-                
-                {!loadedImages.has(index) && (
-                  <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                    <div className="w-4 h-4 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-
-                {index === currentIndex && (
-                  <div className="absolute inset-0 bg-blue-500/15 border border-blue-500/30 rounded-lg"></div>
-                )}
-
-                <div className="absolute top-1 left-1 bg-black/70 text-white text-xs rounded px-1.5 py-0.5 leading-none font-medium">
-                  {index + 1}
+        <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
+          {validImages.map((image, index) => (
+            <button
+              key={index}
+              onClick={() => goToImage(index)}
+              className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                index === currentIndex 
+                  ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg scale-105' 
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md hover:scale-102'
+              }`}
+            >
+              <img
+                src={image}
+                alt={`${coinName} thumbnail ${index + 1}`}
+                className="w-full h-full object-cover transition-opacity duration-200"
+                loading="lazy"
+              />
+              
+              {/* Thumbnail loading indicator */}
+              {!loadedImages.has(index) && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                 </div>
-              </button>
-            ))}
-          </div>
-          
-          <div className="mt-3 text-center">
-            <span className="text-sm text-gray-500 font-medium">
-              {currentIndex + 1} of {validImages.length} images
-            </span>
-          </div>
+              )}
+
+              {/* Active indicator */}
+              {index === currentIndex && (
+                <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                </div>
+              )}
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -8,9 +8,13 @@ export const useAICommandExecution = () => {
 
   const executeCommandMutation = useMutation({
     mutationFn: async ({ commandId, inputData = {} }: { commandId: string; inputData?: any }) => {
+      console.log('▶️ Executing AI command:', commandId, inputData);
+      
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Get command details first
       const { data: command, error: cmdError } = await supabase
         .from('ai_commands')
         .select('*')
@@ -18,9 +22,13 @@ export const useAICommandExecution = () => {
         .single();
 
       if (cmdError) {
+        console.error('❌ Failed to get command:', cmdError);
         throw cmdError;
       }
 
+      console.log('📋 Command details:', { name: command.name, site_url: command.site_url });
+
+      // Create execution record FIRST
       const { data: executionRecord, error: execError } = await supabase
         .from('ai_command_executions')
         .insert([{
@@ -33,15 +41,21 @@ export const useAICommandExecution = () => {
         .single();
 
       if (execError) {
+        console.error('❌ Failed to create execution record:', execError);
         throw execError;
       }
+
+      console.log('✅ Execution record created:', executionRecord.id);
 
       const startTime = Date.now();
       
       try {
         let result;
         
+        // Execute command based on whether it has site_url
         if (command.site_url && command.site_url.trim()) {
+          console.log('🔗 Command has site URL, calling parsing function:', command.site_url);
+          
           const { data: parseResult, error: parseError } = await supabase.functions.invoke('parse-website', {
             body: { 
               url: command.site_url, 
@@ -51,6 +65,7 @@ export const useAICommandExecution = () => {
           });
 
           if (parseError) {
+            console.error('❌ Parse website function error:', parseError);
             throw parseError;
           }
 
@@ -61,6 +76,8 @@ export const useAICommandExecution = () => {
             timestamp: new Date().toISOString()
           };
         } else {
+          // Regular command execution without website parsing
+          console.log('⚡ Executing regular command without website parsing...');
           result = {
             status: 'completed',
             message: `Command "${command.name}" executed successfully`,
@@ -72,6 +89,7 @@ export const useAICommandExecution = () => {
 
         const executionTime = Date.now() - startTime;
 
+        // Update execution record with success
         const { error: updateError } = await supabase
           .from('ai_command_executions')
           .update({
@@ -82,9 +100,13 @@ export const useAICommandExecution = () => {
           .eq('id', executionRecord.id);
 
         if (updateError) {
-          // Log but don't throw
+          console.error('❌ Failed to update execution record:', updateError);
+          // Don't throw here, just log the error
         }
+
+        console.log('✅ Command executed successfully, execution time:', executionTime + 'ms');
         
+        // Invalidate execution history queries
         queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
         
         return result;
@@ -92,6 +114,9 @@ export const useAICommandExecution = () => {
       } catch (error: any) {
         const executionTime = Date.now() - startTime;
         
+        console.error('❌ Command execution failed:', error);
+        
+        // Update execution record with error
         await supabase
           .from('ai_command_executions')
           .update({
@@ -101,6 +126,7 @@ export const useAICommandExecution = () => {
           })
           .eq('id', executionRecord.id);
 
+        // Invalidate execution history queries
         queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
 
         throw error;
@@ -115,6 +141,7 @@ export const useAICommandExecution = () => {
       });
     },
     onError: (error: any) => {
+      console.error('❌ Execute command error:', error);
       toast({
         title: "Execution Failed",
         description: `Failed to execute command: ${error.message}`,
