@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +8,15 @@ import { Heart, Store, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface Coin {
   id: string;
@@ -33,20 +42,38 @@ interface Store {
 }
 
 const FeaturedCoinsGrid = () => {
-  const { data: featuredCoins, isLoading, error } = useQuery({
-    queryKey: ['featuredCoins'],
-    queryFn: async (): Promise<Coin[]> => {
-      const { data, error } = await supabase
+  const [currentPage, setCurrentPage] = useState(1);
+  const coinsPerPage = 100;
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['featuredCoins', currentPage],
+    queryFn: async () => {
+      const from = (currentPage - 1) * coinsPerPage;
+      const to = from + coinsPerPage - 1;
+
+      // Fetch coins for the current page
+      const { data: coins, error: coinsError } = await supabase
         .from('coins')
         .select('*')
         .eq('featured', true)
-        .limit(1000);
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
-      if (error) {
-        return [];
+      if (coinsError) {
+        throw coinsError;
       }
 
-      return (data || []).map(coin => ({
+      // Fetch the total count of featured coins
+      const { count, error: countError } = await supabase
+        .from('coins')
+        .select('*', { count: 'exact', head: true })
+        .eq('featured', true);
+
+      if (countError) {
+        throw countError;
+      }
+      
+      const coinData = (coins || []).map(coin => ({
         id: coin.id,
         name: coin.name,
         year: coin.year,
@@ -62,8 +89,14 @@ const FeaturedCoinsGrid = () => {
         featured: coin.featured,
         views: coin.views || 0
       }));
+
+      return { coins: coinData, count: count ?? 0 };
     }
   });
+
+  const featuredCoins = data?.coins;
+  const totalCoins = data?.count ?? 0;
+  const totalPages = Math.ceil(totalCoins / coinsPerPage);
 
   const { data: stores } = useQuery({
     queryKey: ['stores'],
@@ -238,6 +271,40 @@ const FeaturedCoinsGrid = () => {
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage(prev => Math.max(1, prev - 1));
+                }}
+                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+
+            {/* Simplified pagination logic for display */}
+            <PaginationItem>
+              <PaginationLink href="#">{`Page ${currentPage} of ${totalPages}`}</PaginationLink>
+            </PaginationItem>
+            
+            <PaginationItem>
+              <PaginationNext 
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                }}
+                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* Enhanced Call to Action */}
       <motion.div
