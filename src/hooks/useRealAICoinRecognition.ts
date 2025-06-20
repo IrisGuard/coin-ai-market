@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAICoinRecognition } from '@/hooks/useAICoinRecognition';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface EnhancedAIResult {
@@ -28,41 +28,10 @@ export interface EnhancedAIResult {
   ai_confidence?: number;
 }
 
-// Simple marketplace intelligence function
-const extractMarketplaceIntelligence = async (claudeResult: any) => {
-  return {
-    priceIntelligence: {
-      averagePrice: claudeResult.estimated_value || 0,
-      priceRange: { low: 0, high: claudeResult.estimated_value * 2 || 0 }
-    },
-    categoryValidation: {
-      suggestedCategory: 'WORLD COINS',
-      confidence: 0.8
-    },
-    gradeAssessment: {
-      suggestedGrade: claudeResult.grade || 'Ungraded',
-      confidence: 0.7
-    },
-    insights: ['AI-powered analysis completed'],
-    overallConfidence: 0.85
-  };
-};
-
-// Simple data merger function
-const mergeAnalysisData = async (claudeResult: any, webResults: any[]) => {
-  return {
-    ...claudeResult,
-    enhanced_with_marketplace: true,
-    final_confidence: claudeResult.confidence || 0.75
-  };
-};
-
 export const useRealAICoinRecognition = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<EnhancedAIResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  const { mutateAsync: recognizeCoin } = useAICoinRecognition();
 
   const analyzeImage = async (imageFile: File): Promise<EnhancedAIResult | null> => {
     setIsAnalyzing(true);
@@ -71,72 +40,68 @@ export const useRealAICoinRecognition = () => {
     const startTime = Date.now();
     
     try {
-      console.log('🧠 Starting complete AI coin recognition...');
-      
+      // Convert image to base64
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(imageFile);
       });
 
-      console.log('🎯 Claude AI Analysis...');
-      const claudeResult = await recognizeCoin({
-        image: base64,
-        aiProvider: 'claude'
+      // Call the enhanced dual recognition Edge Function
+      const { data, error } = await supabase.functions.invoke('enhanced-dual-recognition', {
+        body: {
+          images: [base64.split(',')[1]], // Remove data URL prefix
+          analysisType: 'comprehensive'
+        }
       });
 
-      if (!claudeResult.success) {
-        throw new Error('Claude AI analysis failed');
+      if (error) {
+        throw new Error(error.message || 'AI analysis failed');
       }
 
-      console.log('🏪 Marketplace Intelligence Integration...');
-      const marketplaceIntelligence = await extractMarketplaceIntelligence(claudeResult.analysis);
-      
-      console.log('🔗 Data Merger...');
-      const mergedData = await mergeAnalysisData(claudeResult.analysis, []);
-      
-      const structuredDescription = generateEnhancedStructuredDescription(mergedData, claudeResult.analysis);
-      const autoDescription = generateAutoDescription(mergedData, claudeResult.analysis);
-      const suggestedCategory = determineCategory(mergedData.country || claudeResult.analysis.country, mergedData.denomination || claudeResult.analysis.denomination);
-      
+      if (!data?.success) {
+        throw new Error('Analysis service unavailable');
+      }
+
+      const analysis = data.primary_analysis;
+      const processingTime = Date.now() - startTime;
+
       const enhancedResult: EnhancedAIResult = {
-        name: mergedData.name || claudeResult.analysis.name || 'Unknown Coin',
-        year: mergedData.year || claudeResult.analysis.year || new Date().getFullYear(),
-        country: mergedData.country || claudeResult.analysis.country || 'Unknown',
-        denomination: mergedData.denomination || claudeResult.analysis.denomination || 'Unknown',
-        composition: mergedData.composition || claudeResult.analysis.composition || 'Unknown',
-        grade: mergedData.grade || claudeResult.analysis.grade || 'Ungraded',
-        estimatedValue: mergedData.estimated_value || claudeResult.analysis.estimated_value || 0,
-        rarity: mergedData.rarity || claudeResult.analysis.rarity || 'Common',
-        mint: mergedData.mint || claudeResult.analysis.mint || '',
-        diameter: mergedData.diameter || claudeResult.analysis.diameter || 0,
-        weight: mergedData.weight || claudeResult.analysis.weight || 0,
-        errors: mergedData.errors || claudeResult.analysis.errors || [],
-        confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75,
-        aiProvider: 'claude-enhanced',
-        processingTime: Date.now() - startTime,
-        description: autoDescription,
-        structured_description: structuredDescription,
-        category: suggestedCategory,
-        market_intelligence: marketplaceIntelligence,
-        condition: mergedData.grade || claudeResult.analysis.grade || 'Ungraded',
+        name: analysis.name || 'Unknown Coin',
+        year: analysis.year || new Date().getFullYear(),
+        country: analysis.country || 'Unknown',
+        denomination: analysis.denomination || 'Unknown',
+        composition: analysis.composition || 'Unknown',
+        grade: analysis.grade || 'Ungraded',
+        estimatedValue: analysis.estimated_value || 0,
+        rarity: analysis.rarity || 'Common',
+        mint: analysis.mint || '',
+        diameter: analysis.diameter || 0,
+        weight: analysis.weight || 0,
+        errors: analysis.errors || [],
+        confidence: analysis.confidence || 0.75,
+        aiProvider: 'dual-ai-enhanced',
+        processingTime,
+        description: analysis.description || `${analysis.name} from ${analysis.year}`,
+        structured_description: generateStructuredDescription(analysis),
+        category: determineCategory(analysis.country, analysis.denomination),
+        market_intelligence: data.processing_metadata,
+        condition: analysis.grade || 'Ungraded',
         authentication_status: 'ai_verified',
-        ai_confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75
+        ai_confidence: analysis.confidence || 0.75
       };
 
-      console.log('✅ Complete Analysis Ready:', enhancedResult);
       setResult(enhancedResult);
       
       toast.success(
-        `Analysis Complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence.`
+        `Dual AI Analysis Complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence.`
       );
 
       return enhancedResult;
       
     } catch (error: any) {
-      console.error('❌ AI analysis failed:', error);
       setError(error.message || 'Analysis failed');
-      toast.error(`Analysis failed: ${error.message}`);
+      toast.error(`AI analysis failed: ${error.message}`);
       return null;
     } finally {
       setIsAnalyzing(false);
@@ -157,30 +122,23 @@ export const useRealAICoinRecognition = () => {
   };
 };
 
-const generateAutoDescription = (mergedData: any, claudeData: any): string => {
-  const name = mergedData.name || claudeData.name || 'Coin';
-  const year = mergedData.year || claudeData.year || 'unknown year';
-  const grade = mergedData.grade || claudeData.grade || 'Ungraded';
-  const composition = mergedData.composition || claudeData.composition || 'Unknown composition';
-  const rarity = mergedData.rarity || claudeData.rarity || 'Common';
-  const weight = mergedData.weight || claudeData.weight || 0;
-  const diameter = mergedData.diameter || claudeData.diameter || 0;
-  const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
+const generateStructuredDescription = (analysis: any): string => {
+  const parts = [];
   
-  return `${name} from ${year}. Grade: ${grade}. Composition: ${composition}. Weight: ${weight}g, Diameter: ${diameter}mm. ${rarity} rarity coin with AI analysis. Estimated value: $${estimatedValue}.`;
-};
-
-const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any): string => {
-  const name = mergedData.name || claudeData.name || 'Unknown Coin';
-  const year = mergedData.year || claudeData.year || 'Unknown';
-  const grade = mergedData.grade || claudeData.grade || 'Ungraded';
-  const composition = mergedData.composition || claudeData.composition || 'Unknown composition';
-  const country = mergedData.country || claudeData.country || 'Unknown origin';
-  const rarity = mergedData.rarity || claudeData.rarity || 'Common';
-  const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
-  const confidence = mergedData.final_confidence || claudeData.confidence || 0.75;
+  if (analysis.name) parts.push(`COIN: ${analysis.name}`);
+  if (analysis.year) parts.push(`YEAR: ${analysis.year}`);
+  if (analysis.country) parts.push(`COUNTRY: ${analysis.country}`);
+  if (analysis.denomination) parts.push(`DENOMINATION: ${analysis.denomination}`);
+  if (analysis.grade) parts.push(`GRADE: ${analysis.grade}`);
+  if (analysis.composition) parts.push(`COMPOSITION: ${analysis.composition}`);
+  if (analysis.mint) parts.push(`MINT: ${analysis.mint}`);
+  if (analysis.diameter) parts.push(`DIAMETER: ${analysis.diameter}mm`);
+  if (analysis.weight) parts.push(`WEIGHT: ${analysis.weight}g`);
+  if (analysis.rarity) parts.push(`RARITY: ${analysis.rarity}`);
   
-  return `PROFESSIONAL ANALYSIS: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}. RARITY: ${rarity}. VALUATION: $${estimatedValue}. AUTHENTICATION: AI-verified with ${Math.round(confidence * 100)}% confidence.`;
+  parts.push('AUTHENTICATION: Dual AI-Verified Analysis');
+  
+  return parts.join(' | ');
 };
 
 const determineCategory = (country?: string, denomination?: string): string => {

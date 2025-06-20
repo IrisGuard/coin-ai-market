@@ -1,157 +1,136 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Zap } from 'lucide-react';
-import EnhancedCoinDetailsModal from './EnhancedCoinDetailsModal';
-import CoinCard from './CoinCard';
-import LiveMarketplaceHeader from './LiveMarketplaceHeader';
-
-interface Coin {
-  id: string;
-  name: string;
-  image: string;
-  images?: string[];
-  price: number;
-  grade: string;
-  year: number;
-  rarity: string;
-  is_auction: boolean;
-  auction_end: string | null;
-  starting_bid: number | null;
-  views: number;
-  featured: boolean;
-  ai_confidence: number | null;
-  country: string;
-  authentication_status: string;
-  category?: string;
-  description?: string;
-  listing_type?: string;
-  error_type?: string;
-  denomination?: string;
-  condition?: string;
-}
+import { Skeleton } from '@/components/ui/skeleton';
+import OptimizedCoinCard from '@/components/OptimizedCoinCard';
+import TrendingCoins from './TrendingCoins';
+import { useProductionActivation } from '@/hooks/useProductionActivation';
 
 const LiveMarketplaceGrid = () => {
-  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isActivated } = useProductionActivation();
 
-  const { data: coins = [], isLoading, error } = useQuery({
-    queryKey: ['live-marketplace-coins'],
-    queryFn: async (): Promise<Coin[]> => {
-      console.log('🔍 Fetching live marketplace coins with images...');
-      
+  const { data: coins, isLoading, error } = useQuery({
+    queryKey: ['marketplace-coins'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('coins')
-        .select('*, images')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey (
+            name,
+            email
+          )
+        `)
         .eq('authentication_status', 'verified')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-      if (error) {
-        console.error('❌ Error fetching coins:', error);
-        throw error;
-      }
-
-      console.log('✅ Fetched coins with images:', data?.length || 0);
-      
-      // Debug logging for the specific coin
-      const greeceCoin = data?.find(coin => coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR'));
-      if (greeceCoin) {
-        console.log('🔍 DEBUG - Greece coin found:', {
-          id: greeceCoin.id,
-          name: greeceCoin.name,
-          images: greeceCoin.images,
-          imagesLength: greeceCoin.images?.length || 0,
-          imageField: greeceCoin.image
-        });
-      }
-      
-      return data as Coin[] || [];
+      if (error) throw error;
+      return data || [];
     },
-    refetchInterval: 10000 // Refresh every 10 seconds
+    refetchInterval: isActivated ? 30000 : false,
+    enabled: true
   });
 
-  const handleCoinClick = (coin: Coin) => {
-    setSelectedCoin(coin);
-    setIsModalOpen(true);
-  };
+  const { data: featuredCoins } = useQuery({
+    queryKey: ['featured-coins'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coins')
+        .select('*')
+        .eq('featured', true)
+        .eq('authentication_status', 'verified')
+        .order('created_at', { ascending: false })
+        .limit(6);
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedCoin(null);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-48 bg-gray-200 rounded-t-lg"></div>
-            <div className="p-4 space-y-2">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: isActivated ? 60000 : false
+  });
 
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 mb-4">❌ Error loading marketplace</div>
-        <Button onClick={() => window.location.reload()}>
-          Refresh Page
-        </Button>
-      </div>
-    );
-  }
-
-  if (coins.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">🪙</div>
-        <h3 className="text-xl font-semibold mb-2">No Coins Listed Yet</h3>
-        <p className="text-muted-foreground mb-4">
-          Be the first to list a coin in our marketplace!
+        <h3 className="text-lg font-semibold mb-2">System Initializing</h3>
+        <p className="text-muted-foreground">
+          Production systems are coming online. Please wait a moment.
         </p>
-        <Button onClick={() => window.location.href = '/dealer-direct'}>
-          <Zap className="h-4 w-4 mr-2" />
-          List Your First Coin
-        </Button>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <LiveMarketplaceHeader coinsCount={coins.length} />
+    <div className="space-y-8">
+      {/* Trending Section */}
+      <TrendingCoins />
 
-        {/* Coins Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {coins.map((coin, index) => (
-            <CoinCard
-              key={coin.id}
-              coin={coin}
-              index={index}
-              onCoinClick={handleCoinClick}
-            />
-          ))}
+      {/* Featured Coins */}
+      {featuredCoins && featuredCoins.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-6">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent">
+              Featured Coins
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {featuredCoins.map((coin, index) => (
+              <OptimizedCoinCard 
+                key={coin.id} 
+                coin={coin} 
+                index={index} 
+                priority={index < 4}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* All Coins */}
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Latest Listings</h2>
+          {isActivated && (
+            <span className="text-sm text-green-600 font-medium">
+              Live • Real-time updates
+            </span>
+          )}
         </div>
-      </div>
 
-      {/* Enhanced Coin Details Modal */}
-      <EnhancedCoinDetailsModal
-        coin={selectedCoin}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
-    </>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : coins && coins.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {coins.map((coin, index) => (
+              <OptimizedCoinCard 
+                key={coin.id} 
+                coin={coin} 
+                index={index} 
+                priority={index < 8}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg border">
+            <div className="text-6xl mb-4">🚀</div>
+            <h3 className="text-xl font-semibold mb-2">Platform Ready</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              All systems are operational and ready for coin listings. 
+              Use the Dealer Panel to start adding authenticated coins to the marketplace.
+            </p>
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 

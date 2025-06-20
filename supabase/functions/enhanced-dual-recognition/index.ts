@@ -1,19 +1,14 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')!;
 const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,7 +46,7 @@ serve(async (req) => {
             imageType: i === 1 ? 'reverse' : `detail_${i-1}`
           });
         } catch (error) {
-          console.error(`Failed to analyze image ${i}:`, error);
+          // Continue with other images
         }
       }
     }
@@ -76,7 +71,6 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Enhanced dual recognition error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
@@ -110,7 +104,7 @@ async function analyzeWithClaude(imageData: string, analysisType: string) {
             source: {
               type: 'base64',
               media_type: 'image/jpeg',
-              data: imageData.replace(/^data:image\/[a-z]+;base64,/, '')
+              data: imageData
             }
           },
           {
@@ -152,7 +146,7 @@ async function analyzeWithGPT(imageData: string, analysisType: string) {
           {
             type: 'image_url',
             image_url: {
-              url: imageData
+              url: `data:image/jpeg;base64,${imageData}`
             }
           },
           {
