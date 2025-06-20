@@ -7,6 +7,7 @@ import { navItems } from "./nav-items";
 import Navbar from "./components/Navbar";
 import { LiveMarketplaceProvider } from "./components/marketplace/LiveMarketplaceDataProvider";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AdminProvider } from "./contexts/AdminContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,19 +24,21 @@ const App = () => {
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
-            <LiveMarketplaceProvider>
-              <Toaster />
-              <div className="min-h-screen bg-background">
-                <Navbar />
-                <main>
-                  <Routes>
-                    {navItems.map(({ to, page }) => (
-                      <Route key={to} path={to} element={page} />
-                    ))}
-                  </Routes>
-                </main>
-              </div>
-            </LiveMarketplaceProvider>
+            <AdminProvider>
+              <LiveMarketplaceProvider>
+                <Toaster />
+                <div className="min-h-screen bg-background">
+                  <Navbar />
+                  <main>
+                    <Routes>
+                      {navItems.map(({ to, page }) => (
+                        <Route key={to} path={to} element={page} />
+                      ))}
+                    </Routes>
+                  </main>
+                </div>
+              </LiveMarketplaceProvider>
+            </AdminProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
