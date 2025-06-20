@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Eye, Star, Store, ArrowRight } from 'lucide-react';
+import { Heart, Store, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
@@ -156,39 +155,13 @@ const FeaturedCoinsGrid = () => {
               className="group"
             >
               <Card className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] border-0 rounded-xl">
-                {/* Enhanced Image Gallery */}
+                {/* Clean Image Gallery - NO OVERLAYS */}
                 <div className="relative">
                   <ImageGallery 
                     images={allImages}
                     coinName={coin.name}
                     className="aspect-square"
                   />
-                  
-                  {/* Premium Overlay Badges */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    {coin.featured && (
-                      <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white border-0 shadow-lg">
-                        <Star className="h-3 w-3 mr-1 fill-current" />
-                        Featured
-                      </Badge>
-                    )}
-                    {coin.rarity && (
-                      <Badge variant="outline" className={`text-xs ${getRarityColor(coin.rarity)} backdrop-blur-sm`}>
-                        {coin.rarity}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Views Counter */}
-                  <div className="absolute top-4 right-4">
-                    <Badge variant="secondary" className="bg-black/70 text-white border-0 backdrop-blur-sm">
-                      <Eye className="h-3 w-3 mr-1" />
-                      {coin.views}
-                    </Badge>
-                  </div>
-
-                  {/* Gradient Overlay for better text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
                 {/* Enhanced Card Content */}
@@ -206,6 +179,13 @@ const FeaturedCoinsGrid = () => {
                       <span>{coin.country}</span>
                     </div>
                   </div>
+
+                  {/* Rarity Badge - Below image, not on it */}
+                  {coin.rarity && (
+                    <Badge variant="outline" className={`text-xs ${getRarityColor(coin.rarity)}`}>
+                      {coin.rarity}
+                    </Badge>
+                  )}
 
                   {/* Price Display */}
                   <div className="flex items-center justify-between">

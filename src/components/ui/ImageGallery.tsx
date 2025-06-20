@@ -48,7 +48,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
 
   return (
     <div className={`relative ${className}`}>
-      {/* Main Image Display - Clean and minimal */}
+      {/* Main Image Display - COMPLETELY CLEAN, NO OVERLAYS */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
         <img
           src={currentImageUrl}
@@ -66,7 +66,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           loading="eager"
         />
         
-        {/* Loading indicator only */}
+        {/* Loading indicator only - No other overlays */}
         {!loadedImages.has(currentIndex) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
             <div className="flex flex-col items-center gap-3">
