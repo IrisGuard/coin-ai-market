@@ -53,8 +53,6 @@ export const useEnhancedAIAnalysis = () => {
     setAnalysisProgress(0);
 
     try {
-      console.log('🧠 Starting AI analysis:', input.type);
-
       let analysisResult: CoinAnalysisResult;
 
       if (input.type === 'image' && input.imageUrl) {
@@ -71,7 +69,6 @@ export const useEnhancedAIAnalysis = () => {
       return analysisResult;
 
     } catch (error: any) {
-      console.error('❌ AI analysis failed:', error);
       toast.error(`AI Analysis failed: ${error.message}`);
       throw error;
     } finally {
@@ -175,7 +172,6 @@ export const useEnhancedAIAnalysis = () => {
         results.push(result);
         toast.success(`Analysis ${i + 1}/${inputs.length} completed`);
       } catch (error) {
-        console.error(`Failed to analyze input ${i + 1}:`, error);
         toast.error(`Failed to analyze input ${i + 1}`);
       }
     }

@@ -26,7 +26,6 @@ export class ConsoleMonitor {
   init() {
     if (this.isInitialized) return;
 
-    // Only monitor in production for critical errors
     if (import.meta.env.PROD) {
       console.error = (...args: any[]) => {
         this.logToSupabase('error', args);
@@ -48,9 +47,8 @@ export class ConsoleMonitor {
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
 
-      // Production-safe logging - only critical errors
       if (level === 'error') {
-        // Log to external monitoring service in production
+        // Production logging only for critical errors
       }
     } catch (error) {
       // Silent fail in production

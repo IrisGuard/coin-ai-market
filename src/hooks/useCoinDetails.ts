@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,11 +32,9 @@ export const useCoinDetails = (id: string) => {
         .single();
       
       if (error) {
-        console.error('Error fetching coin:', error);
         throw error;
       }
       
-      console.log('Fetched coin with profile:', data);
       return data;
     },
     enabled: !!id
@@ -173,7 +172,6 @@ export const useCoinDetails = (id: string) => {
     }
   });
 
-  // Simplified purchase handler - just creates a basic transaction record
   const purchaseMutation = useMutation({
     mutationFn: async () => {
       const { data: user } = await supabase.auth.getUser();

@@ -81,7 +81,6 @@ const FeaturedCoinsGrid = () => {
     }
   });
 
-  // Helper function to get all available images for a coin - CLEANED VERSION
   const getAllImages = (coin: Coin): string[] => {
     const allImages: string[] = [];
     
@@ -113,7 +112,6 @@ const FeaturedCoinsGrid = () => {
     return allImages;
   };
 
-  // Helper function to get store for a coin
   const getStoreForCoin = (coin: Coin) => {
     return stores?.find(store => store.user_id === coin.user_id);
   };
@@ -158,7 +156,6 @@ const FeaturedCoinsGrid = () => {
 
   return (
     <div className="space-y-8">
-      {/* Modern Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {featuredCoins.map((coin, index) => {
           const allImages = getAllImages(coin);
@@ -173,7 +170,6 @@ const FeaturedCoinsGrid = () => {
               className="group"
             >
               <Card className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] border-0 rounded-xl">
-                {/* Clean Image Gallery - NO OVERLAYS */}
                 <div className="relative">
                   <ImageGallery 
                     images={allImages}
@@ -182,9 +178,7 @@ const FeaturedCoinsGrid = () => {
                   />
                 </div>
 
-                {/* Enhanced Card Content */}
                 <CardContent className="p-6 space-y-4">
-                  {/* Coin Title & Year */}
                   <div className="space-y-2">
                     <h3 className="font-bold text-lg text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                       {coin.name}
@@ -198,14 +192,12 @@ const FeaturedCoinsGrid = () => {
                     </div>
                   </div>
 
-                  {/* Rarity Badge - Below image, not on it */}
                   {coin.rarity && (
                     <Badge variant="outline" className={`text-xs ${getRarityColor(coin.rarity)}`}>
                       {coin.rarity}
                     </Badge>
                   )}
 
-                  {/* Price Display */}
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Price</div>
@@ -218,7 +210,6 @@ const FeaturedCoinsGrid = () => {
                     </Button>
                   </div>
 
-                  {/* Store Information */}
                   {store && (
                     <div className="pt-4 border-t border-gray-100">
                       <div className="text-sm text-gray-600">
@@ -227,7 +218,6 @@ const FeaturedCoinsGrid = () => {
                     </div>
                   )}
 
-                  {/* Action Button - Single unified design */}
                   <div className="pt-2">
                     <Link 
                       to={`/coin/${coin.id}`}
@@ -246,7 +236,6 @@ const FeaturedCoinsGrid = () => {
         })}
       </div>
 
-      {/* Single unified call to action */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -96,16 +96,9 @@ const CoinDetailsContent = ({
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
-  // Enhanced function to get all available images - CLEAN VERSION
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
-    console.log('🏪 CoinDetailsContent - coin.images:', coin.images);
-    console.log('🏪 CoinDetailsContent - coin.image:', coin.image);
-    console.log('🏪 CoinDetailsContent - coin.obverse_image:', coin.obverse_image);
-    console.log('🏪 CoinDetailsContent - coin.reverse_image:', coin.reverse_image);
-    
-    // Priority 1: Check images array
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
       const validImagesFromArray = coin.images.filter(img => 
         img && 
@@ -117,10 +110,8 @@ const CoinDetailsContent = ({
         (img.startsWith('http') || img.startsWith('/'))
       );
       allImages.push(...validImagesFromArray);
-      console.log('🏪 CoinDetailsContent - Valid images from array:', validImagesFromArray);
     }
     
-    // Priority 2: Add individual image fields if not already included
     const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
       .filter(img => 
         img && 
@@ -134,40 +125,32 @@ const CoinDetailsContent = ({
       );
     
     allImages.push(...individualImages);
-    console.log('🏪 CoinDetailsContent - Final all images:', allImages);
     
     return allImages;
   };
 
   const allImages = getAllImages();
 
-  // Function to render rich text HTML safely
   const renderRichText = (htmlContent: string) => {
     return { __html: htmlContent };
   };
 
-  // Get proper seller name with fallback logic - FIXED
   const getSellerName = () => {
     if (!coin.profiles) {
-      console.log('🏪 CoinDetailsContent - No profiles data');
       return 'Unknown Seller';
     }
-    
-    console.log('🏪 CoinDetailsContent - Full profiles object:', coin.profiles);
     
     const sellerName = coin.profiles.full_name || 
                       coin.profiles.name || 
                       coin.profiles.username || 
                       'Unknown Seller';
     
-    console.log('🏪 CoinDetailsContent - Resolved seller name:', sellerName);
     return sellerName;
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Multi-Image Gallery */}
         <div className="space-y-4">
           <Card className="overflow-hidden">
             <CardContent className="p-0">
@@ -179,7 +162,6 @@ const CoinDetailsContent = ({
             </CardContent>
           </Card>
           
-          {/* Edit Images Button - ONLY for owners */}
           {isOwner && (
             <div className="flex justify-center">
               <Button
@@ -194,9 +176,7 @@ const CoinDetailsContent = ({
           )}
         </div>
 
-        {/* Right Column - Details & Purchase */}
         <div className="space-y-6">
-          {/* Header */}
           <div>
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -229,7 +209,6 @@ const CoinDetailsContent = ({
             )}
           </div>
 
-          {/* Seller Info - FIXED DISPLAY */}
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -250,7 +229,6 @@ const CoinDetailsContent = ({
             </CardContent>
           </Card>
 
-          {/* Price Section */}
           <CoinPriceSection
             coin={coin}
             dealerStore={dealerStore}
@@ -265,7 +243,6 @@ const CoinDetailsContent = ({
             bidsCount={bidsData?.length || 0}
           />
 
-          {/* Description */}
           {coin.description && (
             <Card>
               <CardContent className="p-6">
@@ -280,21 +257,18 @@ const CoinDetailsContent = ({
         </div>
       </div>
 
-      {/* Bid History */}
       {coin.is_auction && bidsData && bidsData.length > 0 && (
         <div className="mt-12">
           <CoinBidHistory bids={bidsData} />
         </div>
       )}
 
-      {/* Related Coins */}
       {relatedCoins && relatedCoins.length > 0 && (
         <div className="mt-12">
           <RelatedCoins relatedCoins={relatedCoins} />
         </div>
       )}
 
-      {/* Edit Images Modal */}
       {isOwner && (
         <EditCoinImagesModal
           isOpen={isEditImagesModalOpen}

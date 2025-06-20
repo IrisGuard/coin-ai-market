@@ -32,9 +32,6 @@ class AIService {
     const startTime = Date.now();
     
     try {
-      console.log('🧠 Starting AI coin analysis...');
-      
-      // Call existing AI recognition endpoint
       const { data, error } = await supabase.functions.invoke('ai-coin-recognition', {
         body: {
           image: request.imageData || request.imageUrl,
@@ -69,11 +66,9 @@ class AIService {
         processingTime
       };
 
-      console.log('✅ AI analysis completed:', result);
       return result;
       
     } catch (error: any) {
-      console.error('❌ AI analysis failed:', error);
       return {
         success: false,
         confidence: 0,
@@ -99,9 +94,6 @@ class AIService {
 
   async getMetadataFromExternalSource(coinName: string): Promise<any> {
     try {
-      console.log('🔍 Fetching external metadata for:', coinName);
-      
-      // Use existing web discovery functionality
       const { data, error } = await supabase.functions.invoke('ai-source-discovery', {
         body: {
           coinName,
@@ -110,13 +102,11 @@ class AIService {
       });
 
       if (error) {
-        console.warn('External metadata fetch failed:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.warn('External metadata error:', error);
       return null;
     }
   }

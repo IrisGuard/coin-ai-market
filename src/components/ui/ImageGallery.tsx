@@ -13,13 +13,8 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [isZoomed, setIsZoomed] = useState(false);
   
-  // ENHANCED: Ultra-strict filtering with comprehensive logging
   const validImages = useMemo(() => {
-    console.log('🖼️ ImageGallery - Raw images array:', images);
-    console.log('🖼️ ImageGallery - Raw images length:', images?.length || 0);
-    
     if (!Array.isArray(images)) {
-      console.log('🖼️ ImageGallery - Images is not an array:', typeof images);
       return [];
     }
     
@@ -35,43 +30,31 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           !img.startsWith('blob:') &&
           (img.startsWith('http') || img.startsWith('/'));
         
-        if (!isValid) {
-          console.log(`🖼️ ImageGallery - Filtering out invalid image at index ${index}:`, img);
-        }
         return isValid;
       })
-      .slice(0, 10); // Limit to 10 images max
-    
-    console.log('🖼️ ImageGallery - Valid images after filtering:', filtered);
-    console.log('🖼️ ImageGallery - Final valid count:', filtered.length);
+      .slice(0, 10);
     
     return filtered;
   }, [images]);
   
-  // Reset current index if it's out of bounds
   useEffect(() => {
     if (currentIndex >= validImages.length && validImages.length > 0) {
-      console.log('🖼️ ImageGallery - Resetting index from', currentIndex, 'to 0');
       setCurrentIndex(0);
     }
   }, [validImages.length, currentIndex]);
 
   const handleImageLoad = (index: number) => {
     setLoadedImages(prev => new Set([...prev, index]));
-    console.log('🖼️ ImageGallery - Image loaded at index:', index);
   };
 
-  // Preload all images
   useEffect(() => {
-    console.log('🖼️ ImageGallery - Preloading images, count:', validImages.length);
     validImages.forEach((src, index) => {
       const img = new Image();
       img.onload = () => {
-        console.log(`🖼️ ImageGallery - Successfully loaded image ${index + 1}/${validImages.length}:`, src);
         handleImageLoad(index);
       };
       img.onerror = () => {
-        console.error(`🖼️ ImageGallery - Failed to load image ${index + 1}/${validImages.length}:`, src);
+        // Silent fail for production
       };
       img.src = src;
     });
@@ -90,7 +73,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
 
   const goToImage = (index: number) => {
     if (index >= 0 && index < validImages.length) {
-      console.log('🖼️ ImageGallery - Navigating to image:', index + 1, '/', validImages.length);
       setCurrentIndex(index);
       setIsZoomed(false);
     }
@@ -110,7 +92,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
 
   return (
     <div className={`relative group ${className}`}>
-      {/* Main Image Display */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
         <img
           src={currentImageUrl}
@@ -128,7 +109,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           loading="eager"
         />
         
-        {/* Loading indicator */}
         {!loadedImages.has(currentIndex) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
             <div className="flex flex-col items-center gap-3">
@@ -138,7 +118,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           </div>
         )}
 
-        {/* Navigation Arrows */}
         {validImages.length > 1 && (
           <>
             <button
@@ -165,7 +144,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         )}
       </div>
       
-      {/* Thumbnail Navigation */}
       {validImages.length > 1 && (
         <div className="mt-6">
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -186,19 +164,16 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                   loading="lazy"
                 />
                 
-                {/* Loading indicator for thumbnails */}
                 {!loadedImages.has(index) && (
                   <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                     <div className="w-4 h-4 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 )}
 
-                {/* Active indicator overlay */}
                 {index === currentIndex && (
                   <div className="absolute inset-0 bg-blue-500/15 border border-blue-500/30 rounded-lg"></div>
                 )}
 
-                {/* Correct thumbnail number badge */}
                 <div className="absolute top-1 left-1 bg-black/70 text-white text-xs rounded px-1.5 py-0.5 leading-none font-medium">
                   {index + 1}
                 </div>
@@ -206,7 +181,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             ))}
           </div>
           
-          {/* Accurate image counter */}
           <div className="mt-3 text-center">
             <span className="text-sm text-gray-500 font-medium">
               {currentIndex + 1} of {validImages.length} images
