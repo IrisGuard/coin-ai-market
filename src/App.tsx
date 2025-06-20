@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -47,7 +46,7 @@ function App() {
                   <Route path="/admin" element={<AdminPanelPage />} />
                   <Route path="/coin/:id" element={<CoinDetails />} />
                   <Route path="/dealer-direct" element={<DealerDirect />} />
-                  <Route path="/dealer" element={<DealerDirect />} />
+                  <Route path="/dealer" element={<DealerPanel />} />
                   <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
                   <Route path="/store/:dealerId" element={<DealerStorePage />} />
                   <Route path="/dealer/upgrade" element={<DealerUpgradePage />} />

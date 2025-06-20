@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import ProductionDealerPanel from '@/components/dealer/ProductionDealerPanel';
+import OriginalDealerPanel from '@/components/dealer/OriginalDealerPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Upload, Zap, Activity } from 'lucide-react';
@@ -106,7 +106,7 @@ const DealerPanel = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <ProductionDealerPanel />
+            <OriginalDealerPanel />
           </motion.div>
         </div>
       </div>
