@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,18 @@ interface SearchAnalyticsData {
   searchTrends: Array<{ date: string; searches: number }>;
 }
 
-const SearchAnalytics = () => {
+// Fix: Add interface for component props
+interface SearchAnalyticsProps {
+  searchQuery?: string;
+  searchResults?: any[];
+  searchTime?: number;
+}
+
+const SearchAnalytics: React.FC<SearchAnalyticsProps> = ({ 
+  searchQuery = '', 
+  searchResults = [], 
+  searchTime = 0 
+}) => {
   const [analyticsData, setAnalyticsData] = useState<SearchAnalyticsData>({
     totalSearches: 0,
     uniqueUsers: 0,

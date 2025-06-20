@@ -30,6 +30,7 @@ export const extractCoinData = async (imageUrl: string): Promise<CoinData | null
 
 export const saveCoinData = async (coinData: CoinData, userId: string): Promise<string | null> => {
   try {
+    // Fix: Add required fields for coins table
     const { data, error } = await supabase
       .from('coins')
       .insert({
@@ -40,7 +41,11 @@ export const saveCoinData = async (coinData: CoinData, userId: string): Promise<
         composition: coinData.material,
         mintage: coinData.mintage,
         price: coinData.estimated_value || 0,
-        user_id: userId
+        user_id: userId,
+        // Required fields
+        grade: 'Ungraded',
+        image: '/placeholder-coin.png',
+        rarity: 'Common'
       })
       .select('id')
       .single();

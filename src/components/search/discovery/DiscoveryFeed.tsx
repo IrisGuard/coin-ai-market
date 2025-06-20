@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ const DiscoveryFeed = () => {
         condition: coin.grade || 'Ungraded',
         year: coin.year || new Date().getFullYear(),
         country: coin.country || 'Unknown',
-        image: coin.image_url,
+        image: coin.image, // Fix: use 'image' instead of 'image_url'
         featured: true
       }));
       setRecommendations(featured);

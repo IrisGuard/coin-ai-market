@@ -87,6 +87,7 @@ const EnhancedSearch = () => {
                       clearFilters={clearSearch}
                     />
                     
+                    {/* Fix: Pass props that SearchAnalytics component expects */}
                     <SearchAnalytics
                       searchQuery={searchParams.query}
                       searchResults={searchResults}
@@ -121,7 +122,8 @@ const EnhancedSearch = () => {
           </TabsContent>
 
           <TabsContent value="discover">
-            <DiscoveryFeed onCoinClick={handleCoinClick} />
+            {/* Fix: Remove onCoinClick prop that doesn't exist */}
+            <DiscoveryFeed />
           </TabsContent>
         </Tabs>
       </div>
