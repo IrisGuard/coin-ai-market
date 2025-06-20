@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import OptimizedCoinCard from '@/components/OptimizedCoinCard';
 import TrendingCoins from './TrendingCoins';
 import { useProductionActivation } from '@/hooks/useProductionActivation';
+import { mapSupabaseCoinToCoin } from '@/types/coin';
 
 const LiveMarketplaceGrid = () => {
   const { isActivated } = useProductionActivation();
@@ -27,7 +28,7 @@ const LiveMarketplaceGrid = () => {
         .limit(50);
 
       if (error) throw error;
-      return data || [];
+      return data ? data.map(mapSupabaseCoinToCoin) : [];
     },
     refetchInterval: isActivated ? 30000 : false,
     enabled: true
@@ -45,7 +46,7 @@ const LiveMarketplaceGrid = () => {
         .limit(6);
 
       if (error) throw error;
-      return data || [];
+      return data ? data.map(mapSupabaseCoinToCoin) : [];
     },
     refetchInterval: isActivated ? 60000 : false
   });
