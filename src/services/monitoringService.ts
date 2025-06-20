@@ -21,17 +21,24 @@ export class MonitoringService {
     }
   }
 
-  static async getMetrics(metricName: string, hours = 24): Promise<MonitoringMetric[]> {
+  static async getMetrics(metricName: string, hours = 24): Promise<MonitoringMetric[]> => {
     try {
       const { data, error } = await supabase
         .from('system_metrics')
-        .select('*')
+        .select('id, metric_name, metric_value, recorded_at')
         .eq('metric_name', metricName)
         .gte('created_at', new Date(Date.now() - hours * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform to match interface
+      return (data || []).map(item => ({
+        id: item.id,
+        metric_name: item.metric_name,
+        metric_value: item.metric_value,
+        timestamp: item.recorded_at
+      }));
     } catch (error) {
       console.error('Error fetching metrics:', error);
       return [];
