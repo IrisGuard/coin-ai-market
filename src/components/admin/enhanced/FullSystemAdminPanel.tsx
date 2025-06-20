@@ -7,6 +7,8 @@ import { CheckCircle, Activity, Brain, Database, Users, TrendingUp, Zap, Setting
 import { useProductionActivation } from '@/hooks/useProductionActivation';
 import AdminAIBrainTab from '../tabs/AdminAIBrainTab';
 import RealTimeSystemMonitor from './realtime/RealTimeSystemMonitor';
+import ConnectedSystemActivator from './ConnectedSystemActivator';
+import ConnectedAIAnalysis from './ai/ConnectedAIAnalysis';
 
 const FullSystemAdminPanel = () => {
   const { isActivated, activationProgress } = useProductionActivation();
@@ -27,6 +29,9 @@ const FullSystemAdminPanel = () => {
             </Badge>
           </div>
         </div>
+
+        {/* System Activator */}
+        <ConnectedSystemActivator />
 
         {/* Live System Status Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -121,7 +126,7 @@ const FullSystemAdminPanel = () => {
           </TabsList>
 
           <TabsContent value="ai-brain">
-            <AdminAIBrainTab />
+            <ConnectedAIAnalysis />
           </TabsContent>
 
           <TabsContent value="monitoring">
