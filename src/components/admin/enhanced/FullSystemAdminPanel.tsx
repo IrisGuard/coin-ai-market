@@ -8,7 +8,6 @@ import AdminOverviewTab from '@/components/admin/tabs/AdminOverviewTab';
 import AdminUsersTab from '@/components/admin/tabs/AdminUsersTab';
 import AdminCoinsTab from '@/components/admin/tabs/AdminCoinsTab';
 import AdminAIBrainTab from '@/components/admin/tabs/AdminAIBrainTab';
-import AdminMockDataTab from '@/components/admin/tabs/AdminMockDataTab';
 import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSystemPhasesTab from '@/components/admin/tabs/AdminSystemPhasesTab';
@@ -24,22 +23,21 @@ const FullSystemAdminPanel = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Full System Admin Panel</h1>
             <p className="text-muted-foreground">
-              Complete administration interface with Production Cleanup - Ready for Live Launch
+              Complete administration interface with Production Optimization - Ready for Live Launch
             </p>
           </div>
           <Badge variant="outline" className="text-lg px-4 py-2">
-            System Status: READY FOR CLEANUP
+            System Status: READY FOR OPTIMIZATION
           </Badge>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="cleanup">🚀 Cleanup</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="coins">Coins</TabsTrigger>
             <TabsTrigger value="ai-brain">AI Brain</TabsTrigger>
-            <TabsTrigger value="mock-data">Mock Data</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="system-phases">System Phases</TabsTrigger>
@@ -63,10 +61,6 @@ const FullSystemAdminPanel = () => {
 
           <TabsContent value="ai-brain" className="space-y-6">
             <AdminAIBrainTab />
-          </TabsContent>
-
-          <TabsContent value="mock-data" className="space-y-6">
-            <AdminMockDataTab />
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">

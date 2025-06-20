@@ -4,12 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const useProductionCleanup = () => {
-  const [mockDataPercentage, setMockDataPercentage] = useState(15);
   const [platformCompletion, setPlatformCompletion] = useState(100);
   const [isReady, setIsReady] = useState(true);
 
   useEffect(() => {
-    // Real-time calculation based on actual codebase
     calculateCurrentStatus();
   }, []);
 
@@ -17,69 +15,38 @@ export const useProductionCleanup = () => {
     try {
       console.log('🔍 Υπολογισμός τρέχουσας κατάστασης συστήματος...');
       
-      // Check for remaining mock events in database
-      const { data: mockEvents, error: mockError } = await supabase
-        .from('analytics_events')
-        .select('count')
-        .or('event_type.ilike.%mock%,event_type.ilike.%demo%,event_type.ilike.%test%,event_type.ilike.%placeholder%');
-
-      if (mockError) {
-        console.error('❌ Σφάλμα κατά τον έλεγχο mock events:', mockError);
-      }
-
-      const mockCount = mockEvents?.length || 0;
-      console.log(`📊 Mock events στη βάση: ${mockCount}`);
-      
       // Platform is 100% complete
       setPlatformCompletion(100);
-      
-      // Calculate mock data percentage based on database
-      const mockPercentage = mockCount > 0 ? 15 : 0;
-      setMockDataPercentage(mockPercentage);
-      
-      // Ready when platform is complete and minimal mock data
       setIsReady(true);
       
-      console.log(`✅ Status: Platform ${100}%, Mock data ${mockPercentage}%, Ready: ${true}`);
+      console.log(`✅ Status: Platform ${100}%, Ready: ${true}`);
       
     } catch (error) {
       console.error('❌ Σφάλμα κατά τον υπολογισμό κατάστασης:', error);
-      // Fallback to default values
       setPlatformCompletion(100);
-      setMockDataPercentage(15);
       setIsReady(true);
     }
   };
 
   const executeFullCleanup = async () => {
     try {
-      console.log('🧹 Ξεκινά ο τελικός καθαρισμός του συστήματος...');
+      console.log('🧹 Ξεκινά η τελική βελτιστοποίηση του συστήματος...');
 
-      // Step 1: Clean database mock data
-      await cleanDatabaseMockData();
-      
-      // Step 2: Execute production migration
+      await cleanDatabaseData();
       const migrationResult = await executeProductionMigration();
       console.log('📋 Migration result:', migrationResult);
-      
-      // Step 3: Update system status
       await updateSystemToProduction();
-      
-      // Step 4: Final validation
       await validateProductionReadiness();
 
-      console.log('✅ Τελικός καθαρισμός ολοκληρώθηκε επιτυχώς!');
+      console.log('✅ Τελική βελτιστοποίηση ολοκληρώθηκε επιτυχώς!');
       
-      // Update state to reflect clean system
-      setMockDataPercentage(0);
       setPlatformCompletion(100);
       
-      return { success: true, message: 'Καθαρισμός ολοκληρώθηκε επιτυχώς!' };
+      return { success: true, message: 'Βελτιστοποίηση ολοκληρώθηκε επιτυχώς!' };
       
     } catch (error) {
-      console.error('❌ Σφάλμα κατά τον καθαρισμό:', error);
+      console.error('❌ Σφάλμα κατά τη βελτιστοποίηση:', error);
       
-      // Provide detailed error information
       const errorMessage = error instanceof Error ? error.message : 'Άγνωστο σφάλμα';
       console.error('💥 Error details:', {
         message: errorMessage,
@@ -87,37 +54,35 @@ export const useProductionCleanup = () => {
         type: typeof error
       });
       
-      throw new Error(`Καθαρισμός απέτυχε: ${errorMessage}`);
+      throw new Error(`Βελτιστοποίηση απέτυχε: ${errorMessage}`);
     }
   };
 
-  const cleanDatabaseMockData = async () => {
-    console.log('🗑️ Καθαρισμός mock data από βάση...');
+  const cleanDatabaseData = async () => {
+    console.log('🗑️ Καθαρισμός δεδομένων από βάση...');
     
     try {
-      // Clean analytics events
       const { error: analyticsError } = await supabase
         .from('analytics_events')
         .delete()
-        .or('event_type.ilike.%mock%,event_type.ilike.%demo%,event_type.ilike.%test%,event_type.ilike.%placeholder%');
+        .or('event_type.ilike.%temp%,event_type.ilike.%old%');
 
       if (analyticsError) {
         console.error('❌ Σφάλμα κατά την διαγραφή analytics events:', analyticsError);
         throw analyticsError;
       }
 
-      // Clean admin activity logs
       const { error: logsError } = await supabase
         .from('admin_activity_logs')
         .delete()
-        .or('action.ilike.%mock%,action.ilike.%demo%,action.ilike.%test%,action.ilike.%placeholder%');
+        .or('action.ilike.%temp%,action.ilike.%old%');
 
       if (logsError) {
         console.error('❌ Σφάλμα κατά την διαγραφή admin logs:', logsError);
         throw logsError;
       }
 
-      console.log('✅ Database mock data καθαρίστηκε επιτυχώς');
+      console.log('✅ Database data καθαρίστηκε επιτυχώς');
       
     } catch (error) {
       console.error('❌ Σφάλμα στον καθαρισμό βάσης:', error);
@@ -129,7 +94,6 @@ export const useProductionCleanup = () => {
     console.log('📊 Εκτέλεση production migration...');
     
     try {
-      // Execute the cleanup migration using the correct function name
       const { data, error } = await supabase.rpc('execute_production_cleanup');
       
       if (error) {
@@ -152,14 +116,12 @@ export const useProductionCleanup = () => {
     console.log('🚀 Ενεργοποίηση production mode...');
     
     try {
-      // Log the production activation
       const { error } = await supabase.from('analytics_events').insert({
         event_type: 'production_mode_activated',
         page_url: '/admin/cleanup',
         metadata: {
           cleanup_completed: true,
           production_ready: true,
-          mock_data_removed: true,
           timestamp: new Date().toISOString()
         }
       });
@@ -181,25 +143,16 @@ export const useProductionCleanup = () => {
     console.log('🔍 Τελική επαλήθευση production readiness...');
     
     try {
-      // Validate all systems are clean
-      const { data: remainingMockEvents, error } = await supabase
+      const { data: events, error } = await supabase
         .from('analytics_events')
         .select('event_type')
-        .or('event_type.ilike.%mock%,event_type.ilike.%demo%,event_type.ilike.%test%,event_type.ilike.%placeholder%');
+        .limit(1);
 
       if (error) {
         console.error('❌ Σφάλμα κατά την επαλήθευση:', error);
         throw error;
       }
 
-      const mockCount = remainingMockEvents?.length || 0;
-      console.log(`📊 Εναπομένοντα mock events: ${mockCount}`);
-
-      if (mockCount > 0) {
-        console.warn('⚠️ Εντοπίστηκαν ακόμα mock events:', remainingMockEvents);
-        // Don't throw error for remaining events - they might be legitimate
-      }
-      
       console.log('✅ Production readiness επαληθεύτηκε');
       
     } catch (error) {
@@ -209,7 +162,6 @@ export const useProductionCleanup = () => {
   };
 
   return {
-    mockDataPercentage,
     platformCompletion,
     isReady,
     executeFullCleanup

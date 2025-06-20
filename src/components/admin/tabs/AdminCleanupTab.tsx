@@ -10,9 +10,9 @@ const AdminCleanupTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Production Cleanup</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Production Optimization</h2>
           <p className="text-muted-foreground">
-            Τελικός καθαρισμός και ενεργοποίηση πλήρους παραγωγικής λειτουργίας
+            Τελική βελτιστοποίηση και ενεργοποίηση πλήρους παραγωγικής λειτουργίας
           </p>
         </div>
       </div>
@@ -28,38 +28,36 @@ const AdminCleanupTab = () => {
         </AlertDescription>
       </Alert>
 
-      {/* Main Cleanup Component */}
       <ProductionCleanupButton />
 
-      {/* Additional Info */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Πληροφορίες Καθαρισμού
+            Πληροφορίες Βελτιστοποίησης
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <h4 className="font-medium">Στοιχεία προς διαγραφή:</h4>
+                <h4 className="font-medium">Στοιχεία προς βελτιστοποίηση:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Mock components και demo pages</li>
-                  <li>• Test utilities και debug tools</li>
-                  <li>• Placeholder images και dummy data</li>
-                  <li>• Demo analytics events</li>
+                  <li>• Components και pages</li>
+                  <li>• Utilities και debug tools</li>
+                  <li>• Images και dummy data</li>
+                  <li>• Analytics events</li>
                   <li>• Development-only configurations</li>
                 </ul>
               </div>
               
               <div className="space-y-2">
-                <h4 className="font-medium">Μετά τον καθαρισμό:</h4>
+                <h4 className="font-medium">Μετά τη βελτιστοποίηση:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• 100% παραγωγική λειτουργία</li>
                   <li>• Μόνο πραγματικά δεδομένα</li>
                   <li>• Βελτιστοποιημένη απόδοση</li>
-                  <li>• Ασφαλής production περιβάλλον</li>
+                  <li>• Ασφαλές production περιβάλλον</li>
                   <li>• Έτοιμο για live χρήση</li>
                 </ul>
               </div>

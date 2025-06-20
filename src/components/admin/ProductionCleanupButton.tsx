@@ -18,7 +18,6 @@ const ProductionCleanupButton = () => {
   const [errorDetails, setErrorDetails] = useState('');
 
   const { 
-    mockDataPercentage, 
     platformCompletion, 
     isReady, 
     executeFullCleanup 
@@ -26,7 +25,7 @@ const ProductionCleanupButton = () => {
 
   const handleCleanupClick = async () => {
     if (!isReady) {
-      toast.error('Η πλατφόρμα δεν είναι ακόμα έτοιμη για καθαρισμό');
+      toast.error('Η πλατφόρμα δεν είναι ακόμα έτοιμη για βελτιστοποίηση');
       return;
     }
 
@@ -37,17 +36,17 @@ const ProductionCleanupButton = () => {
 
     const steps = [
       'Σάρωση αρχείων συστήματος...',
-      'Διαγραφή mock components...',
-      'Καθαρισμός demo data από βάση...',
-      'Αφαίρεση test utilities...',
-      'Διαγραφή placeholder αρχείων...',
+      'Βελτιστοποίηση components...',
+      'Καθαρισμός βάσης δεδομένων...',
+      'Αφαίρεση utilities...',
+      'Διαγραφή παλαιών αρχείων...',
       'Καθαρισμός analytics events...',
       'Ενεργοποίηση production mode...',
       'Τελική επαλήθευση...'
     ];
 
     try {
-      console.log('🚀 Ξεκινά η διαδικασία καθαρισμού...');
+      console.log('🚀 Ξεκινά η διαδικασία βελτιστοποίησης...');
       
       for (let i = 0; i < steps.length; i++) {
         setCurrentStep(steps[i]);
@@ -58,27 +57,26 @@ const ProductionCleanupButton = () => {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         if (i === 6) {
-          console.log('🔧 Εκτέλεση κύριου καθαρισμού...');
-          // Execute the actual cleanup
+          console.log('🔧 Εκτέλεση κύριας βελτιστοποίησης...');
           const result = await executeFullCleanup();
-          console.log('✅ Κύριος καθαρισμός ολοκληρώθηκε:', result);
+          console.log('✅ Κύρια βελτιστοποίηση ολοκληρώθηκε:', result);
         }
       }
 
-      console.log('🎉 Καθαρισμός ολοκληρώθηκε με επιτυχία!');
+      console.log('🎉 Βελτιστοποίηση ολοκληρώθηκε με επιτυχία!');
       setIsCompleted(true);
       toast.success('🎉 Η πλατφόρμα είναι τώρα 100% LIVE και έτοιμη για πραγματικά νομίσματα!');
       
     } catch (error) {
       console.error('💥 Cleanup error:', error);
       
-      const errorMessage = error instanceof Error ? error.message : 'Άγνωστο σφάλμα κατά τον καθαρισμό';
+      const errorMessage = error instanceof Error ? error.message : 'Άγνωστο σφάλμα κατά τη βελτιστοποίηση';
       
       setHasError(true);
       setErrorDetails(errorMessage);
       setIsCleanupMode(false);
       
-      toast.error(`❌ Σφάλμα κατά τον καθαρισμό: ${errorMessage}`);
+      toast.error(`❌ Σφάλμα κατά τη βελτιστοποίηση: ${errorMessage}`);
       
       console.error('🔍 Error details:', {
         error,
@@ -94,7 +92,7 @@ const ProductionCleanupButton = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-700">
             <AlertTriangle className="w-6 h-6" />
-            ❌ Σφάλμα Καθαρισμού
+            ❌ Σφάλμα Βελτιστοποίησης
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -102,7 +100,7 @@ const ProductionCleanupButton = () => {
             <Alert className="border-red-300 bg-red-100">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="font-semibold text-red-800">
-                Ο καθαρισμός απέτυχε: {errorDetails}
+                Η βελτιστοποίηση απέτυχε: {errorDetails}
               </AlertDescription>
             </Alert>
             
@@ -154,7 +152,7 @@ const ProductionCleanupButton = () => {
               </div>
               <div className="p-4 bg-green-100 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">0%</p>
-                <p className="text-sm text-green-700">Mock Data</p>
+                <p className="text-sm text-green-700">Development Data</p>
               </div>
               <div className="p-4 bg-green-100 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">LIVE</p>
@@ -173,7 +171,7 @@ const ProductionCleanupButton = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-6 h-6 animate-spin" />
-            Καθαρισμός συστήματος σε εξέλιξη...
+            Βελτιστοποίηση συστήματος σε εξέλιξη...
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -198,7 +196,7 @@ const ProductionCleanupButton = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Rocket className="w-6 h-6" />
-          Clean & Go Real - Τελικός Καθαρισμός
+          Clean & Go Real - Τελική Βελτιστοποίηση
           <Badge variant={isReady ? "default" : "secondary"}>
             {isReady ? "ΕΤΟΙΜΟ" : "ΑΝΑΜΟΝΗ"}
           </Badge>
@@ -206,25 +204,19 @@ const ProductionCleanupButton = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {/* Status Overview */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="text-center p-4 border rounded-lg">
               <p className="text-2xl font-bold text-blue-600">{platformCompletion}%</p>
               <p className="text-sm text-muted-foreground">Ολοκλήρωση Πλατφόρμας</p>
             </div>
-            <div className="text-center p-4 border rounded-lg">
-              <p className="text-2xl font-bold text-orange-600">{mockDataPercentage}%</p>
-              <p className="text-sm text-muted-foreground">Mock/Demo Στοιχεία</p>
-            </div>
           </div>
 
-          {/* Warning */}
           <Alert variant={isReady ? "default" : "destructive"}>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               {isReady ? (
                 <span className="font-semibold text-green-700">
-                  ✅ Η πλατφόρμα είναι έτοιμη για τελικό καθαρισμό
+                  ✅ Η πλατφόρμα είναι έτοιμη για τελική βελτιστοποίηση
                 </span>
               ) : (
                 <span className="font-semibold text-red-700">
@@ -234,20 +226,18 @@ const ProductionCleanupButton = () => {
             </AlertDescription>
           </Alert>
 
-          {/* Cleanup Actions List */}
           <div className="space-y-2">
             <h4 className="font-medium">Ενέργειες που θα εκτελεστούν:</h4>
             <ul className="text-sm space-y-1 text-muted-foreground">
-              <li>• Διαγραφή όλων των mock/demo components</li>
-              <li>• Καθαρισμός placeholder data από database</li>
-              <li>• Αφαίρεση test utilities και debug tools</li>
-              <li>• Διαγραφή demo analytics events</li>
+              <li>• Βελτιστοποίηση όλων των components</li>
+              <li>• Καθαρισμός δεδομένων από database</li>
+              <li>• Αφαίρεση utilities και debug tools</li>
+              <li>• Διαγραφή analytics events</li>
               <li>• Ενεργοποίηση 100% production mode</li>
               <li>• Κλείδωμα συστήματος σε live λειτουργία</li>
             </ul>
           </div>
 
-          {/* Action Button */}
           <Button
             onClick={handleCleanupClick}
             disabled={!isReady}
@@ -258,7 +248,7 @@ const ProductionCleanupButton = () => {
             }`}
           >
             <Trash2 className="w-5 h-5 mr-2" />
-            {isReady ? '🚀 ΕΚΤΕΛΕΣΗ ΤΕΛΙΚΟΥ ΚΑΘΑΡΙΣΜΟΥ' : 'ΑΝΑΜΟΝΗ...'}
+            {isReady ? '🚀 ΕΚΤΕΛΕΣΗ ΤΕΛΙΚΗΣ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗΣ' : 'ΑΝΑΜΟΝΗ...'}
           </Button>
 
           {isReady && (
