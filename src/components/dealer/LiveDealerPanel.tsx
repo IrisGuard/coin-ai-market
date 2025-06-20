@@ -60,7 +60,7 @@ const LiveDealerPanel = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Processing Speed</span>
-                <Badge className="bg-blue-600">< 3 seconds</Badge>
+                <Badge className="bg-blue-600">&lt; 3 seconds</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Error Detection</span>
