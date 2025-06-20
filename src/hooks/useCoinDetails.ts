@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,9 +19,12 @@ export const useCoinDetails = (id: string) => {
           obverse_image,
           reverse_image,
           profiles!coins_user_id_fkey (
+            id,
             name,
+            full_name,
             username,
-            verified_dealer
+            verified_dealer,
+            email
           )
         `)
         .eq('id', id)
@@ -33,6 +35,7 @@ export const useCoinDetails = (id: string) => {
         throw error;
       }
       
+      console.log('Fetched coin with profile:', data);
       return data;
     },
     enabled: !!id

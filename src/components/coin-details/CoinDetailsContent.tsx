@@ -97,6 +97,11 @@ const CoinDetailsContent = ({
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
+    console.log('🏪 CoinDetailsContent - coin.images:', coin.images);
+    console.log('🏪 CoinDetailsContent - coin.image:', coin.image);
+    console.log('🏪 CoinDetailsContent - coin.obverse_image:', coin.obverse_image);
+    console.log('🏪 CoinDetailsContent - coin.reverse_image:', coin.reverse_image);
+    
     // Priority 1: Check images array
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
       const validImagesFromArray = coin.images.filter(img => 
@@ -109,6 +114,7 @@ const CoinDetailsContent = ({
         (img.startsWith('http') || img.startsWith('/'))
       );
       allImages.push(...validImagesFromArray);
+      console.log('🏪 CoinDetailsContent - Valid images from array:', validImagesFromArray);
     }
     
     // Priority 2: Add individual image fields if not already included
@@ -125,6 +131,7 @@ const CoinDetailsContent = ({
       );
     
     allImages.push(...individualImages);
+    console.log('🏪 CoinDetailsContent - Final all images:', allImages);
     
     return allImages;
   };
@@ -136,10 +143,28 @@ const CoinDetailsContent = ({
     return { __html: htmlContent };
   };
 
+  // Get proper seller name with fallback logic
+  const getSellerName = () => {
+    if (!coin.profiles) {
+      console.log('🏪 CoinDetailsContent - No profiles data');
+      return 'Unknown Seller';
+    }
+    
+    console.log('🏪 CoinDetailsContent - Full profiles object:', coin.profiles);
+    
+    const sellerName = coin.profiles.full_name || 
+                      coin.profiles.name || 
+                      coin.profiles.username || 
+                      'Unknown Seller';
+    
+    console.log('🏪 CoinDetailsContent - Resolved seller name:', sellerName);
+    return sellerName;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Multi-Image Gallery with automatic height */}
+        {/* Left Column - Multi-Image Gallery */}
         <div className="space-y-4">
           <Card className="overflow-hidden">
             <CardContent className="p-0">
@@ -201,25 +226,26 @@ const CoinDetailsContent = ({
             )}
           </div>
 
-          {/* Seller Info */}
-          {coin.profiles && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Sold by</p>
-                    <p className="font-medium">{coin.profiles.name || coin.profiles.username}</p>
-                  </div>
-                  {coin.profiles.verified_dealer && (
-                    <Badge className="bg-blue-100 text-blue-800">
-                      <Star className="w-3 h-3 mr-1" />
-                      Verified Dealer
-                    </Badge>
+          {/* Seller Info - FIXED DISPLAY */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Sold by</p>
+                  <p className="font-medium text-lg">{getSellerName()}</p>
+                  {coin.profiles?.email && (
+                    <p className="text-xs text-gray-500">{coin.profiles.email}</p>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                {coin.profiles?.verified_dealer && (
+                  <Badge className="bg-blue-100 text-blue-800">
+                    <Star className="w-3 h-3 mr-1" />
+                    Verified Dealer
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Price Section */}
           <CoinPriceSection
