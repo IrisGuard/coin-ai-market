@@ -81,16 +81,33 @@ const FeaturedCoinsGrid = () => {
     }
   });
 
-  // Helper function to get all available images for a coin
+  // Helper function to get all available images for a coin - CLEANED VERSION
   const getAllImages = (coin: Coin): string[] => {
     const allImages: string[] = [];
     
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
+      const validImages = coin.images.filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        img !== 'null' && 
+        img !== 'undefined' &&
+        !img.startsWith('blob:') &&
+        (img.startsWith('http') || img.startsWith('/'))
+      );
+      allImages.push(...validImages);
     } else {
-      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
-      if (coin.obverse_image && !coin.obverse_image.startsWith('blob:')) allImages.push(coin.obverse_image);
-      if (coin.reverse_image && !coin.reverse_image.startsWith('blob:')) allImages.push(coin.reverse_image);
+      const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
+        .filter(img => 
+          img && 
+          typeof img === 'string' && 
+          img.trim() !== '' && 
+          img !== 'null' && 
+          img !== 'undefined' &&
+          !img.startsWith('blob:') &&
+          (img.startsWith('http') || img.startsWith('/'))
+        );
+      allImages.push(...individualImages);
     }
     
     return allImages;

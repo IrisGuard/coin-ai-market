@@ -13,13 +13,21 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [isZoomed, setIsZoomed] = useState(false);
   
-  // Filter and validate images - support up to 10 images
+  // FIXED: Filter out empty, null, undefined, blob URLs and invalid images
   const validImages = useMemo(() => {
     console.log('Raw images array:', images);
     const filtered = images
-      .filter(img => img && img.length > 0 && !img.startsWith('blob:'))
-      .slice(0, 10); // Limit to 10 images as requested
-    console.log('Valid images after filtering:', filtered);
+      .filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        img !== 'null' && 
+        img !== 'undefined' &&
+        !img.startsWith('blob:') &&
+        (img.startsWith('http') || img.startsWith('/'))
+      )
+      .slice(0, 10); // Limit to 10 images
+    console.log('Valid images after comprehensive filtering:', filtered);
     return filtered;
   }, [images]);
   

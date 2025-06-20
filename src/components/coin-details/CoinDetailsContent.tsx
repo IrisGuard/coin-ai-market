@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Heart, Share2 } from 'lucide-react';
+import { Star, Heart, Share2, Edit, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
 import RelatedCoins from './RelatedCoins';
 import ImageGallery from '@/components/ui/ImageGallery';
+import EditCoinImagesModal from '@/components/dealer/EditCoinImagesModal';
 
 interface CoinDetailsContentProps {
   coin: {
@@ -86,11 +87,13 @@ const CoinDetailsContent = ({
   onBid,
   isOwner
 }: CoinDetailsContentProps) => {
+  const [isEditImagesModalOpen, setIsEditImagesModalOpen] = useState(false);
+  
   const highestBid = bidsData && bidsData.length > 0 
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
-  // Enhanced function to get all available images
+  // Enhanced function to get all available images - CLEAN VERSION
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
@@ -100,7 +103,10 @@ const CoinDetailsContent = ({
         img && 
         typeof img === 'string' && 
         img.trim() !== '' && 
-        !img.startsWith('blob:')
+        img !== 'null' && 
+        img !== 'undefined' &&
+        !img.startsWith('blob:') &&
+        (img.startsWith('http') || img.startsWith('/'))
       );
       allImages.push(...validImagesFromArray);
     }
@@ -111,7 +117,10 @@ const CoinDetailsContent = ({
         img && 
         typeof img === 'string' && 
         img.trim() !== '' && 
+        img !== 'null' && 
+        img !== 'undefined' &&
         !img.startsWith('blob:') &&
+        (img.startsWith('http') || img.startsWith('/')) &&
         !allImages.includes(img)
       );
     
@@ -141,6 +150,20 @@ const CoinDetailsContent = ({
               />
             </CardContent>
           </Card>
+          
+          {/* Edit Images Button - ONLY for owners */}
+          {isOwner && (
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setIsEditImagesModalOpen(true)}
+                variant="outline"
+                className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200 hover:border-blue-300"
+              >
+                <Camera className="w-4 h-4" />
+                Edit Images
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Right Column - Details & Purchase */}
@@ -240,6 +263,17 @@ const CoinDetailsContent = ({
         <div className="mt-12">
           <RelatedCoins relatedCoins={relatedCoins} />
         </div>
+      )}
+
+      {/* Edit Images Modal */}
+      {isOwner && (
+        <EditCoinImagesModal
+          isOpen={isEditImagesModalOpen}
+          onClose={() => setIsEditImagesModalOpen(false)}
+          coinId={coin.id}
+          coinName={coin.name}
+          currentImages={allImages}
+        />
       )}
     </div>
   );

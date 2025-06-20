@@ -41,7 +41,7 @@ interface CoinCardProps {
 }
 
 const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
-  // Enhanced function to get all available images
+  // Enhanced function to get all available images - CLEANED VERSION
   const getAllImages = (coin: Coin): string[] => {
     const allImages: string[] = [];
     
@@ -51,6 +51,8 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         img && 
         typeof img === 'string' && 
         img.trim() !== '' && 
+        img !== 'null' && 
+        img !== 'undefined' &&
         !img.startsWith('blob:') &&
         (img.startsWith('http') || img.startsWith('/'))
       );
@@ -63,7 +65,10 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         img && 
         typeof img === 'string' && 
         img.trim() !== '' && 
+        img !== 'null' && 
+        img !== 'undefined' &&
         !img.startsWith('blob:') &&
+        (img.startsWith('http') || img.startsWith('/')) &&
         !allImages.includes(img)
       );
     

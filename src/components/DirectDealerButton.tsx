@@ -10,8 +10,11 @@ const DirectDealerButton = () => {
   const { user, loading: authLoading } = useAuth();
   const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
 
-  // Only show for authenticated users with dealer or admin role
-  const shouldShowButton = user && !authLoading && !roleLoading && (userRole === 'dealer' || userRole === 'admin');
+  // SECURITY FIX: Only show for authenticated users with dealer or admin role
+  const shouldShowButton = user && 
+    !authLoading && 
+    !roleLoading && 
+    (userRole === 'dealer' || userRole === 'admin');
 
   // Hide the button if user is not authenticated or doesn't have proper role
   if (authLoading || roleLoading || !shouldShowButton) {
@@ -19,7 +22,7 @@ const DirectDealerButton = () => {
   }
 
   const handleClick = () => {
-    // Navigate to dealer panel, not admin panel
+    // Navigate to dealer panel
     navigate('/dealer');
   };
 
