@@ -14,19 +14,32 @@ interface CoinImageProps {
 }
 
 const CoinImage = ({ coin }: CoinImageProps) => {
-  // Prepare all available images
+  // Enhanced function to prepare all available images
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
-    // Add from images array if available
+    // Priority 1: Check images array first
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
-    } else {
-      // Fallback to individual image fields
-      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
-      if (coin.obverse_image && !coin.obverse_image.startsWith('blob:')) allImages.push(coin.obverse_image);
-      if (coin.reverse_image && !coin.reverse_image.startsWith('blob:')) allImages.push(coin.reverse_image);
+      const validImagesFromArray = coin.images.filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        !img.startsWith('blob:')
+      );
+      allImages.push(...validImagesFromArray);
     }
+    
+    // Priority 2: Add individual image fields if not already included
+    const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
+      .filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        !img.startsWith('blob:') &&
+        !allImages.includes(img)
+      );
+    
+    allImages.push(...individualImages);
     
     return allImages;
   };
@@ -34,7 +47,7 @@ const CoinImage = ({ coin }: CoinImageProps) => {
   const allImages = getAllImages();
 
   return (
-    <Card className="glass-card border-2 border-purple-200 overflow-hidden">
+    <Card className="overflow-hidden bg-white shadow-lg border-0 rounded-2xl">
       <CardContent className="p-0">
         <ImageGallery 
           images={allImages}
