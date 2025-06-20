@@ -22,6 +22,7 @@ interface Store {
   website?: string;
   user_id: string;
   created_at: string;
+  verified: boolean;
 }
 
 interface Coin {
@@ -175,7 +176,12 @@ const DealerStorePage = () => {
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">{store.name}</h1>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    {store.name}
+                    {store.verified && (
+                      <Badge className="bg-green-500 text-white text-base px-3 py-1 rounded-full">Verified</Badge>
+                    )}
+                  </h1>
                   {store.description && (
                     <p className="text-lg text-gray-600 mb-4">{store.description}</p>
                   )}
