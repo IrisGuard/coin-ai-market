@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Brain, Zap, CheckCircle, Camera, Sparkles, Activity } from 'lucide-react';
+import { Upload, Brain, Zap, CheckCircle, Camera, Sparkles, Activity, Database } from 'lucide-react';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { useCoinSubmission } from '@/hooks/upload/useCoinSubmission';
-import { useProductionActivation } from '@/hooks/useProductionActivation';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import type { UploadedImage, CoinData } from '@/types/upload';
 
 const LiveDealerPanel = () => {
@@ -33,7 +34,25 @@ const LiveDealerPanel = () => {
 
   const { analyzeImage, isAnalyzing, result } = useRealAICoinRecognition();
   const { submitListing, isSubmitting } = useCoinSubmission();
-  const { isActivated } = useProductionActivation();
+
+  // Live system status
+  const { data: systemStatus } = useQuery({
+    queryKey: ['dealer-system-status'],
+    queryFn: async () => {
+      const [aiCommands, dataSources, externalSources] = await Promise.all([
+        supabase.from('ai_commands').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('data_sources').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('external_price_sources').select('*', { count: 'exact', head: true }).eq('is_active', true)
+      ]);
+
+      return {
+        aiCommands: aiCommands.count || 0,
+        dataSources: dataSources.count || 0,
+        externalSources: externalSources.count || 0
+      };
+    },
+    refetchInterval: 10000
+  });
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -78,7 +97,7 @@ const LiveDealerPanel = () => {
           condition: analysisResult.condition,
           category: analysisResult.category as any
         });
-        break; // Use first successful analysis
+        break;
       }
     }
   };
@@ -114,17 +133,42 @@ const LiveDealerPanel = () => {
       <Card className="border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-green-600 animate-pulse" />
-              <span className="font-medium">🚀 LIVE PRODUCTION DEALER PANEL</span>
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="h-5 w-5 text-green-600 animate-pulse" />
+                <span className="font-bold text-green-800">🚀 LIVE PRODUCTION DEALER PANEL</span>
+                <Badge variant="default" className="bg-green-600">🔴 LIVE OPERATIONAL</Badge>
+              </div>
+              <p className="text-sm text-green-600">
+                AI Brain connected • Real-time analysis • Live marketplace integration • Production data processing
+              </p>
             </div>
-            <Badge variant="default" className="bg-green-600">
-              🔴 LIVE OPERATIONAL
-            </Badge>
+            {systemStatus && (
+              <div className="flex gap-3 text-sm">
+                <div className="text-center">
+                  <div className="font-bold text-blue-600 flex items-center gap-1">
+                    <Brain className="h-4 w-4" />
+                    {systemStatus.aiCommands}
+                  </div>
+                  <div className="text-blue-500">AI Commands</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-bold text-green-600 flex items-center gap-1">
+                    <Database className="h-4 w-4" />
+                    {systemStatus.dataSources}
+                  </div>
+                  <div className="text-green-500">Data Sources</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-bold text-purple-600 flex items-center gap-1">
+                    <Zap className="h-4 w-4" />
+                    {systemStatus.externalSources}
+                  </div>
+                  <div className="text-purple-500">Price Feeds</div>
+                </div>
+              </div>
+            )}
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            AI Brain connected • Real-time analysis • Live marketplace integration • Production data processing
-          </p>
         </CardContent>
       </Card>
 
@@ -134,10 +178,11 @@ const LiveDealerPanel = () => {
           <CardTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
             Coin Images - LIVE Production AI Analysis
+            <Badge className="bg-green-600">LIVE AI PROCESSING</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-400 transition-colors">
             <input
               type="file"
               multiple
@@ -150,6 +195,11 @@ const LiveDealerPanel = () => {
               <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <p className="text-lg font-medium">Upload Coin Images for LIVE Analysis</p>
               <p className="text-gray-500">Production AI will auto-analyze and fill details instantly</p>
+              <div className="flex justify-center gap-2 mt-2">
+                <Badge variant="outline">Real-time Processing</Badge>
+                <Badge variant="outline">Auto-fill Enabled</Badge>
+                <Badge variant="outline">Production AI</Badge>
+              </div>
             </label>
           </div>
 
@@ -192,6 +242,9 @@ const LiveDealerPanel = () => {
                   className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300 w-full animate-pulse"
                 />
               </div>
+              <p className="text-center text-sm text-muted-foreground">
+                Connecting to live marketplace data sources for comprehensive analysis
+              </p>
             </div>
           )}
         </CardContent>
@@ -200,7 +253,10 @@ const LiveDealerPanel = () => {
       {/* Live Coin Information Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Coin Information - LIVE Production Data</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Coin Information - LIVE Production Data
+            <Badge className="bg-blue-600">AUTO-FILL READY</Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
