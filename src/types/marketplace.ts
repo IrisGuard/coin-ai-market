@@ -6,6 +6,7 @@ export interface StoreProfile {
   avatar_url?: string;
   verified_dealer?: boolean;
   rating?: number;
+  bio?: string;
 }
 
 export interface MarketplaceStore {
@@ -23,7 +24,7 @@ export interface MarketplaceStore {
   phone?: string;
   website?: string;
   shipping_options?: any;
-  profiles?: StoreProfile; // Changed from StoreProfile[] to StoreProfile
+  profiles?: StoreProfile | StoreProfile[]; // Handle both single object and array
 }
 
 export interface MarketplaceStats {

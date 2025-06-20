@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-// Enhanced Dealer Stores Hook for Admin
+// Enhanced Dealer Stores Hook for Admin - with proper type handling
 export const useAdminDealerStores = () => {
   return useQuery({
     queryKey: ['admin-dealer-stores'],
@@ -12,20 +12,24 @@ export const useAdminDealerStores = () => {
         .from('stores')
         .select(`
           *,
-          profiles!user_id (
+          profiles!stores_user_id_fkey (
             id,
             full_name,
             email,
             avatar_url,
-            verified_dealer
+            verified_dealer,
+            bio
           )
         `)
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
       
       if (error) {
         console.error('❌ Error fetching admin dealer stores:', error);
         throw error;
       }
+      
+      console.log('✅ Admin stores loaded:', data?.length);
       return data || [];
     },
   });
