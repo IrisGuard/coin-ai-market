@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,9 +11,10 @@ import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSystemPhasesTab from '@/components/admin/tabs/AdminSystemPhasesTab';
 import AdminCleanupTab from '@/components/admin/tabs/AdminCleanupTab';
+import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
 
 const FullSystemAdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('cleanup');
+  const [activeTab, setActiveTab] = useState('open-store');
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,13 +26,14 @@ const FullSystemAdminPanel = () => {
               Complete administration interface with Production Optimization - Ready for Live Launch
             </p>
           </div>
-          <Badge variant="outline" className="text-lg px-4 py-2">
+          <Badge className="text-foreground border text-lg px-4 py-2">
             System Status: READY FOR OPTIMIZATION
           </Badge>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
+            <TabsTrigger value="open-store">🏪 Open Store</TabsTrigger>
             <TabsTrigger value="cleanup">🚀 Cleanup</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
@@ -42,6 +43,10 @@ const FullSystemAdminPanel = () => {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="system-phases">System Phases</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="open-store" className="space-y-6">
+            <AdminStoreManagerTab />
+          </TabsContent>
 
           <TabsContent value="cleanup" className="space-y-6">
             <AdminCleanupTab />
