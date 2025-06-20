@@ -1,7 +1,8 @@
+# Coin AI Market
 
-# CoinAI Platform
+A modern marketplace for coin collectors and dealers.
 
-A modern cryptocurrency and collectible coin marketplace powered by AI analysis and blockchain technology.
+<!-- Last updated: 2024-12-21 - Store Not Found fix applied -->
 
 ## Features
 
