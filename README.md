@@ -2,7 +2,7 @@
 
 A modern marketplace for coin collectors and dealers.
 
-<!-- Last updated: 2024-12-21 - Store Not Found fix applied -->
+<!-- Last updated: 2024-12-21 - Re-triggering Vercel deployment -->
 
 ## Features
 
