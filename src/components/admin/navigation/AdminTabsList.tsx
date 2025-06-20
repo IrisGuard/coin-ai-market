@@ -61,22 +61,17 @@ import {
   Smartphone,
   Tablet,
   Laptop,
-  Desktop,
   Headphones,
   Camera,
   Video,
   Mic,
   Speaker,
   Printer,
-  Scanner,
   Keyboard,
   Mouse,
-  Monitor as MonitorIcon,
   Wifi,
   Bluetooth,
   Usb,
-  HardDrive as Storage,
-  SdCard,
   Archive,
   Folder,
   FolderOpen,
@@ -84,7 +79,8 @@ import {
   FileImage,
   FileVideo,
   FileAudio,
-  FileClock
+  FileClock,
+  Building
 } from 'lucide-react';
 
 const AdminTabsList = () => {

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -22,6 +23,7 @@ import DealerUpgradePage from "./pages/DealerUpgradePage";
 import CategoryPage from "./pages/CategoryPage";
 import TokenPage from "./pages/TokenPage";
 import DealerStorePage from "./pages/DealerStorePage";
+import DealerPanel from "./pages/DealerPanel";
 
 const queryClient = new QueryClient();
 
