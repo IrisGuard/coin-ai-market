@@ -13,9 +13,14 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [isZoomed, setIsZoomed] = useState(false);
   
-  // Memoize valid images to prevent unnecessary recalculation
+  // Filter and validate images - support up to 10 images
   const validImages = useMemo(() => {
-    return images.filter(img => img && img.length > 0 && !img.startsWith('blob:'));
+    console.log('Raw images array:', images);
+    const filtered = images
+      .filter(img => img && img.length > 0 && !img.startsWith('blob:'))
+      .slice(0, 10); // Limit to 10 images as requested
+    console.log('Valid images after filtering:', filtered);
+    return filtered;
   }, [images]);
   
   // Reset current index if it's out of bounds
@@ -34,6 +39,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
     validImages.forEach((src, index) => {
       const img = new Image();
       img.onload = () => handleImageLoad(index);
+      img.onerror = () => console.error(`Failed to load image ${index}:`, src);
       img.src = src;
     });
   }, [validImages]);
@@ -50,8 +56,10 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   }
 
   const goToImage = (index: number) => {
-    setCurrentIndex(index);
-    setIsZoomed(false); // Reset zoom when changing images
+    if (index >= 0 && index < validImages.length) {
+      setCurrentIndex(index);
+      setIsZoomed(false);
+    }
   };
 
   const goToPrevious = () => {
@@ -67,13 +75,13 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   const currentImageUrl = validImages[currentIndex];
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Main Image Display - CLEAN, NO OVERLAYS */}
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className={`relative group ${className}`}>
+      {/* Main Image Display - COMPLETELY CLEAN */}
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
         <img
           src={currentImageUrl}
           alt={`${coinName} - Image ${currentIndex + 1}`}
-          className={`w-full h-full object-cover transition-all duration-500 ${
+          className={`w-full h-full object-cover transition-all duration-300 ${
             isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
           }`}
           style={{ 
@@ -96,7 +104,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           </div>
         )}
 
-        {/* Navigation Arrows - Only show if multiple images */}
+        {/* Navigation Arrows - Only show on hover and if multiple images */}
         {validImages.length > 1 && (
           <>
             <button
@@ -104,7 +112,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 e.stopPropagation();
                 goToPrevious();
               }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200 opacity-0 group-hover:opacity-100"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-3 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
               aria-label="Previous image"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -114,34 +122,27 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 e.stopPropagation();
                 goToNext();
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200 opacity-0 group-hover:opacity-100"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-3 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
               aria-label="Next image"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </>
         )}
-
-        {/* Image Counter - Small, unobtrusive */}
-        {validImages.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-            {currentIndex + 1} / {validImages.length}
-          </div>
-        )}
       </div>
       
-      {/* Thumbnail Navigation - Show ALL thumbnails when there are multiple images */}
+      {/* Thumbnail Navigation - Show ALWAYS when there are multiple images */}
       {validImages.length > 1 && (
-        <div className="mt-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="mt-6">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {validImages.map((image, index) => (
               <button
                 key={index}
                 onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 shadow-md ${
                   index === currentIndex 
-                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg scale-105' 
-                    : 'border-gray-200 hover:border-gray-400 hover:shadow-md hover:scale-102'
+                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-blue-200 scale-105' 
+                    : 'border-gray-300 hover:border-blue-300 hover:shadow-lg hover:scale-102'
                 }`}
               >
                 <img
@@ -154,21 +155,28 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 {/* Thumbnail loading indicator */}
                 {!loadedImages.has(index) && (
                   <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                    <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 )}
 
-                {/* Active indicator */}
+                {/* Active indicator overlay */}
                 {index === currentIndex && (
-                  <div className="absolute inset-0 bg-blue-500/10 border border-blue-500/20 rounded-lg"></div>
+                  <div className="absolute inset-0 bg-blue-500/15 border border-blue-500/30 rounded-lg"></div>
                 )}
 
-                {/* Thumbnail number */}
-                <div className="absolute top-1 left-1 bg-black/60 text-white text-xs rounded px-1 leading-none">
+                {/* Thumbnail number badge */}
+                <div className="absolute top-1 left-1 bg-black/70 text-white text-xs rounded px-1.5 py-0.5 leading-none font-medium">
                   {index + 1}
                 </div>
               </button>
             ))}
+          </div>
+          
+          {/* Image counter below thumbnails */}
+          <div className="mt-3 text-center">
+            <span className="text-sm text-gray-500 font-medium">
+              {currentIndex + 1} of {validImages.length} images
+            </span>
           </div>
         </div>
       )}
