@@ -4,11 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Brain, Database, Zap, Activity, Settings, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
+import { Brain, Database, Zap, Activity, Settings, TrendingUp, AlertTriangle, DollarSign, Store } from 'lucide-react';
 import AdminAISection from './sections/AdminAISection';
 import AdminErrorCoinsTab from './tabs/AdminErrorCoinsTab';
+import AdminStoreManagerTab from './AdminStoreManagerTab';
 import { emergencyActivation } from '@/services/emergencyActivationService';
 import { toast } from 'sonner';
+import { useDealerStores } from '@/hooks/useDealerStores';
 
 const LiveProductionAdminPanel = () => {
   const [systemStatus, setSystemStatus] = useState({
@@ -17,6 +19,8 @@ const LiveProductionAdminPanel = () => {
     marketplaceActive: true,
     errorDetection: true
   });
+
+  const { data: stores = [] } = useDealerStores();
 
   const executeSystemTest = async () => {
     toast.info('🚀 Executing complete system verification...');
@@ -53,7 +57,7 @@ const LiveProductionAdminPanel = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="text-center">
               <Badge className={systemStatus.aiProcessing ? "bg-green-600" : "bg-red-600"}>
                 AI PROCESSING {systemStatus.aiProcessing ? "ACTIVE" : "OFFLINE"}
@@ -74,6 +78,11 @@ const LiveProductionAdminPanel = () => {
                 ERROR DETECTION {systemStatus.errorDetection ? "ENABLED" : "DISABLED"}
               </Badge>
             </div>
+            <div className="text-center">
+              <Badge className={stores.length > 0 ? "bg-green-600" : "bg-orange-600"}>
+                STORES {stores.length > 0 ? `${stores.length} ACTIVE` : "NONE"}
+              </Badge>
+            </div>
           </div>
           <div className="mt-4 text-center">
             <Button onClick={executeSystemTest} className="bg-blue-600 hover:bg-blue-700">
@@ -84,8 +93,12 @@ const LiveProductionAdminPanel = () => {
       </Card>
 
       {/* Main Admin Tabs */}
-      <Tabs defaultValue="ai-brain" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="stores" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="stores" className="flex items-center gap-2">
+            <Store className="h-4 w-4" />
+            Stores
+          </TabsTrigger>
           <TabsTrigger value="ai-brain" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             AI Brain
@@ -107,6 +120,10 @@ const LiveProductionAdminPanel = () => {
             System
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="stores">
+          <AdminStoreManagerTab />
+        </TabsContent>
 
         <TabsContent value="ai-brain" className="space-y-6">
           <AdminAISection />
