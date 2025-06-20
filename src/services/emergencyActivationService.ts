@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { mapUIToDatabaseCategory } from '@/utils/categoryMapping';
 
 export class EmergencyActivationService {
   
@@ -104,10 +105,13 @@ export class EmergencyActivationService {
     // Create sample verified coins for immediate marketplace display
     const liveCoins = this.generateLiveMarketplaceCoins();
     
-    for (const coin of liveCoins) {
+    // Insert coins in batches to avoid overwhelming the database
+    for (let i = 0; i < liveCoins.length; i += 50) {
+      const batch = liveCoins.slice(i, i + 50);
+      
       const { error } = await supabase
         .from('coins')
-        .insert(coin);
+        .insert(batch);
       
       if (error && !error.message.includes('duplicate')) {
         console.error('Coin insertion error:', error);
@@ -143,7 +147,7 @@ export class EmergencyActivationService {
       name: `Live Market Coin ${i + 1}`,
       year: years[Math.floor(Math.random() * years.length)],
       price: Math.floor(Math.random() * 2000) + 50,
-      category: categories[Math.floor(Math.random() * categories.length)],
+      category: mapUIToDatabaseCategory(categories[Math.floor(Math.random() * categories.length)]) as "error_coin" | "greek" | "american" | "british" | "asian" | "european" | "ancient" | "modern" | "silver" | "gold" | "commemorative" | "unclassified",
       rarity: rarities[Math.floor(Math.random() * rarities.length)],
       grade: grades[Math.floor(Math.random() * grades.length)],
       condition: 'excellent',
