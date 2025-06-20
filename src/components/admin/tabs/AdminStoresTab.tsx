@@ -1,322 +1,292 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Store, Users, Search, Edit, Trash2, CheckCircle, XCircle, Eye } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { 
+  Store, 
+  Users, 
+  MapPin, 
+  Star, 
+  ExternalLink, 
+  Edit, 
+  Trash2,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  TrendingUp,
+  Package
+} from 'lucide-react';
 
 const AdminStoresTab = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const queryClient = useQueryClient();
-
-  // Fetch all stores with user profiles
-  const { data: stores = [], isLoading, error } = useQuery({
+  // Fetch stores with their profiles using the admin hook
+  const { data: stores = [], isLoading, error, refetch } = useQuery({
     queryKey: ['admin-stores'],
     queryFn: async () => {
-      console.log('Fetching all stores for admin...');
+      console.log('🔄 Fetching admin stores data...');
       
       const { data, error } = await supabase
         .from('stores')
         .select(`
           *,
-          profiles!stores_user_id_fkey (
+          profiles!user_id (
             id,
             full_name,
             email,
+            username,
             avatar_url,
             verified_dealer,
-            rating,
-            username
+            rating
           )
         `)
         .order('created_at', { ascending: false });
-
+      
       if (error) {
-        console.error('Error fetching stores:', error);
+        console.error('❌ Error fetching stores:', error);
         throw error;
       }
 
       console.log(`✅ Loaded ${data?.length || 0} stores:`, data);
       return data || [];
     },
-    staleTime: 30000, // 30 seconds
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
-  // Get store coin counts
-  const { data: storeCounts = {} } = useQuery({
-    queryKey: ['admin-store-coin-counts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('coins')
-        .select('user_id, store_id')
-        .not('store_id', 'is', null);
-      
-      if (error) throw error;
-      
-      const counts: Record<string, number> = {};
-      data?.forEach(coin => {
-        if (coin.store_id) {
-          counts[coin.store_id] = (counts[coin.store_id] || 0) + 1;
-        }
-        if (coin.user_id) {
-          counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
-        }
-      });
-      
-      return counts;
-    }
-  });
-
-  // Update store status mutation
-  const updateStoreMutation = useMutation({
-    mutationFn: async ({ storeId, updates }: { storeId: string; updates: any }) => {
-      const { error } = await supabase
-        .from('stores')
-        .update(updates)
-        .eq('id', storeId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-stores'] });
-      toast.success('Store updated successfully');
-    },
-    onError: (error: Error) => {
-      toast.error('Failed to update store: ' + error.message);
-    },
-  });
-
-  // Filter stores based on search
-  const filteredStores = stores.filter(store => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    const profile = store.profiles;
-    return (
-      store.name?.toLowerCase().includes(searchLower) ||
-      store.description?.toLowerCase().includes(searchLower) ||
-      profile?.full_name?.toLowerCase().includes(searchLower) ||
-      profile?.email?.toLowerCase().includes(searchLower) ||
-      profile?.username?.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const handleToggleActive = (storeId: string, currentStatus: boolean) => {
-    updateStoreMutation.mutate({
-      storeId,
-      updates: { is_active: !currentStatus }
-    });
-  };
-
-  const handleToggleVerified = (storeId: string, currentStatus: boolean) => {
-    updateStoreMutation.mutate({
-      storeId,
-      updates: { verified: !currentStatus }
-    });
-  };
+  // Calculate store statistics
+  const storeStats = React.useMemo(() => {
+    if (!stores) return { total: 0, active: 0, verified: 0, pending: 0 };
+    
+    return {
+      total: stores.length,
+      active: stores.filter(store => store.is_active).length,
+      verified: stores.filter(store => store.verified).length,
+      pending: stores.filter(store => !store.verified).length
+    };
+  }, [stores]);
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Store className="w-5 h-5" />
-            Store Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading stores from database...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading stores from Supabase...</p>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Store className="w-5 h-5" />
-            Store Management - ERROR
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-red-600">
-            <p>Error loading stores: {error.message}</p>
+      <div className="space-y-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              <span>Error loading stores: {error.message}</span>
+            </div>
             <Button 
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-stores'] })}
-              className="mt-4"
+              onClick={() => refetch()} 
+              className="mt-4 bg-red-600 hover:bg-red-700"
             >
-              Retry
+              Retry Loading
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {stores.length}
-                </div>
-                <p className="text-xs text-muted-foreground">Total Stores</p>
-              </div>
-              <Store className="h-8 w-8 text-blue-600" />
-            </div>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-purple-800 mb-2">
+              🏪 DEALER STORES MANAGEMENT - {stores.length} Active Stores
+            </h2>
+            <p className="text-purple-600">
+              Real-time store management • Live Supabase connection • Complete store oversight
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Badge className="bg-green-600">
+              ✅ {storeStats.total} STORES LOADED
+            </Badge>
+            <Badge className="bg-blue-600">🔴 LIVE CONNECTION</Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-blue-700">
+              <Store className="h-5 w-5" />
+              Total Stores
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{storeStats.total}</div>
+            <div className="text-sm text-blue-500">All registered stores</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {stores.filter(s => s.verified).length}
-                </div>
-                <p className="text-xs text-muted-foreground">Verified</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <CheckCircle className="h-5 w-5" />
+              Active Stores
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{storeStats.active}</div>
+            <div className="text-sm text-green-500">Currently operational</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-purple-600">
-                  {stores.filter(s => s.is_active).length}
-                </div>
-                <p className="text-xs text-muted-foreground">Active</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-600" />
-            </div>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-purple-700">
+              <Star className="h-5 w-5" />
+              Verified Stores
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{storeStats.verified}</div>
+            <div className="text-sm text-purple-500">Admin verified</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-orange-600">
-                  {Object.values(storeCounts).reduce((sum, count) => sum + count, 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">Total Coins</p>
-              </div>
-              <Eye className="h-8 w-8 text-orange-600" />
-            </div>
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-orange-700">
+              <Clock className="h-5 w-5" />
+              Pending Review
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{storeStats.pending}</div>
+            <div className="text-sm text-orange-500">Awaiting verification</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Stores Management */}
+      {/* Stores List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Store className="w-5 h-5" />
-            All Stores ({filteredStores.length})
+            <Store className="h-5 w-5" />
+            All Dealer Stores ({stores.length})
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search stores..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-stores'] })}>
-              Refresh
-            </Button>
-          </div>
         </CardHeader>
         <CardContent>
-          {filteredStores.length === 0 ? (
+          {stores.length === 0 ? (
             <div className="text-center py-8">
               <Store className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                {searchTerm ? 'No stores found' : 'No stores yet'}
-              </h3>
-              <p className="text-gray-500">
-                {searchTerm ? 'Try adjusting your search criteria.' : 'Stores will appear here when users create them.'}
-              </p>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Stores Found</h3>
+              <p className="text-gray-500">No dealer stores in the database yet.</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredStores.map((store) => {
+              {stores.map((store) => {
                 const profile = store.profiles;
-                const coinCount = storeCounts[store.id] || storeCounts[store.user_id] || 0;
                 
                 return (
-                  <div key={store.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={store.logo_url || profile?.avatar_url} />
-                        <AvatarFallback className="bg-blue-100 text-blue-600">
-                          {store.name?.[0] || profile?.full_name?.[0] || 'S'}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{store.name}</h3>
-                          {store.verified && (
-                            <Badge className="bg-green-100 text-green-700">Verified</Badge>
+                  <div key={store.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        {/* Store Avatar */}
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage 
+                            src={store.logo_url || profile?.avatar_url} 
+                            alt={store.name} 
+                          />
+                          <AvatarFallback>
+                            {store.name?.charAt(0)?.toUpperCase() || 'S'}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Store Details */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-lg">{store.name}</h3>
+                            {store.verified && (
+                              <Badge className="bg-green-100 text-green-700">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </Badge>
+                            )}
+                            {store.is_active ? (
+                              <Badge className="bg-blue-100 text-blue-700">Active</Badge>
+                            ) : (
+                              <Badge variant="secondary">Inactive</Badge>
+                            )}
+                          </div>
+
+                          {/* Store Description */}
+                          {store.description && (
+                            <p className="text-gray-600 mb-2">{store.description}</p>
                           )}
-                          {store.is_active ? (
-                            <Badge className="bg-blue-100 text-blue-700">Active</Badge>
-                          ) : (
-                            <Badge variant="secondary">Inactive</Badge>
+
+                          {/* Owner Information */}
+                          {profile && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                              <div>
+                                <span className="text-gray-500">Owner:</span>
+                                <div className="font-medium">{profile.full_name || 'No name'}</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Email:</span>
+                                <div className="font-medium">{profile.email || 'No email'}</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Username:</span>
+                                <div className="font-medium">@{profile.username || 'No username'}</div>
+                              </div>
+                            </div>
                           )}
-                        </div>
-                        <p className="text-sm text-gray-600">{store.description}</p>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                          <span>Owner: {profile?.full_name || profile?.email || 'Unknown'}</span>
-                          <span>Coins: {coinCount}</span>
-                          <span>Created: {new Date(store.created_at).toLocaleDateString()}</span>
+
+                          {/* Store Address */}
+                          {store.address && (
+                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                              <MapPin className="w-4 h-4" />
+                              <span>{store.address}</span>
+                            </div>
+                          )}
+
+                          {/* Store Metadata */}
+                          <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                            <span>Created: {new Date(store.created_at).toLocaleDateString()}</span>
+                            {store.updated_at && (
+                              <span>Updated: {new Date(store.updated_at).toLocaleDateString()}</span>
+                            )}
+                            <span>ID: {store.id.slice(0, 8)}...</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant={store.is_active ? "destructive" : "default"}
-                        size="sm"
-                        onClick={() => handleToggleActive(store.id, store.is_active)}
-                        disabled={updateStoreMutation.isPending}
-                      >
-                        {store.is_active ? <XCircle className="w-4 h-4 mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
-                        {store.is_active ? 'Deactivate' : 'Activate'}
-                      </Button>
-                      
-                      <Button
-                        variant={store.verified ? "secondary" : "default"}
-                        size="sm"
-                        onClick={() => handleToggleVerified(store.id, store.verified)}
-                        disabled={updateStoreMutation.isPending}
-                      >
-                        {store.verified ? 'Unverify' : 'Verify'}
-                      </Button>
-                      
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                        {!store.verified && (
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Verify
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -325,6 +295,42 @@ const AdminStoresTab = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Store Management Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Bulk Verify
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Store Analytics
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Dealer Management
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => refetch()}
+            >
+              🔄 Refresh Data
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Live Status Footer */}
+      <div className="text-center text-sm text-gray-500">
+        🔴 Live connection to Supabase • Auto-refresh every 30 seconds • 
+        Last updated: {new Date().toLocaleTimeString()}
+      </div>
     </div>
   );
 };
