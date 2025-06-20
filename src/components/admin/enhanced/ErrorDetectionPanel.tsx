@@ -14,7 +14,7 @@ import {
   Copy,
   Clock
 } from 'lucide-react';
-import { useCodeErrorDetection } from '@/hooks/useCodeErrorDetection';
+import { useProductionErrorDetection } from '@/hooks/useProductionErrorDetection';
 import { formatDistanceToNow } from 'date-fns';
 
 const ErrorDetectionPanel = () => {
@@ -24,7 +24,7 @@ const ErrorDetectionPanel = () => {
     lastScanTime, 
     scanForErrors, 
     exportErrors 
-  } = useCodeErrorDetection();
+  } = useProductionErrorDetection();
 
   const getSeverityColor = (severity: string) => {
     const colors = {
@@ -73,8 +73,8 @@ const ErrorDetectionPanel = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Search className="h-5 w-5 text-purple-600" />
-          Error Detection System
-          <Badge variant="outline" className="text-xs">CODE ANALYSIS</Badge>
+          Production Error Detection System
+          <Badge variant="outline" className="text-xs">LIVE MONITORING</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -145,7 +145,7 @@ const ErrorDetectionPanel = () => {
               ) : (
                 <>
                   <Search className="h-4 w-4 mr-2" />
-                  🔍 Code Scan
+                  🔍 Production Scan
                 </>
               )}
             </Button>
@@ -181,7 +181,7 @@ const ErrorDetectionPanel = () => {
         {/* Error List */}
         {scanResults && scanResults.errors.length > 0 ? (
           <div className="space-y-2">
-            <h4 className="font-semibold text-red-600">Detected Errors:</h4>
+            <h4 className="font-semibold text-red-600">Detected Issues:</h4>
             {scanResults.errors.map((error, index) => (
               <div key={index} className="border rounded-lg p-3 bg-red-50">
                 <div className="flex items-start justify-between">
@@ -208,17 +208,17 @@ const ErrorDetectionPanel = () => {
           <div className="text-center py-8 space-y-4">
             <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
             <div>
-              <h3 className="text-xl font-semibold text-green-600">No Errors Detected</h3>
-              <p className="text-muted-foreground">All code files are clean and production ready</p>
+              <h3 className="text-xl font-semibold text-green-600">No Issues Detected</h3>
+              <p className="text-muted-foreground">System is clean and production ready</p>
             </div>
           </div>
         ) : (
           <div className="text-center py-8 space-y-4">
             <Search className="h-16 w-16 text-gray-400 mx-auto" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-600">Ready for Error Detection</h3>
+              <h3 className="text-lg font-semibold text-gray-600">Ready for Production Scan</h3>
               <p className="text-sm text-muted-foreground">
-                Click "🔍 Code Scan" to analyze your codebase for errors
+                Click "🔍 Production Scan" to analyze system status
               </p>
             </div>
           </div>
@@ -228,10 +228,10 @@ const ErrorDetectionPanel = () => {
         <Alert variant={scanResults?.errors.length === 0 ? "default" : "destructive"}>
           <Clock className="h-4 w-4" />
           <AlertDescription>
-            <strong>CODE ANALYSIS STATUS:</strong> {
+            <strong>PRODUCTION STATUS:</strong> {
               scanResults?.errors.length === 0 
-                ? 'Code is clean and ready for production deployment.'
-                : `${scanResults?.errors.length || 0} errors detected - requires attention before production.`
+                ? 'System is clean and ready for production deployment.'
+                : `${scanResults?.errors.length || 0} issues detected - requires attention before production.`
             }
             {lastScanTime && (
               <span className="block text-xs mt-1 text-muted-foreground">

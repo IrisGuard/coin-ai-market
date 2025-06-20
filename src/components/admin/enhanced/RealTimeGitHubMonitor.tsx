@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Github, Scan, AlertTriangle, CheckCircle, RefreshCw, Shield } from 'lucide-react';
-import { useRealTimeGithubScanner } from '@/hooks/useRealTimeGithubScanner';
-import { toast } from '@/hooks/use-toast';
+import { useProductionGitHubMonitor } from '@/hooks/useProductionGitHubMonitor';
+import { toast } from 'sonner';
 
 const RealTimeGitHubMonitor = () => {
   const [repoOwner, setRepoOwner] = useState('');
@@ -29,30 +29,19 @@ const RealTimeGitHubMonitor = () => {
     refetchViolations,
     totalViolations,
     isScanning
-  } = useRealTimeGithubScanner();
+  } = useProductionGitHubMonitor();
 
   const handleScan = async () => {
     if (!repoOwner || !repoName || !githubToken) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide repository owner, name, and GitHub token",
-        variant: "destructive"
-      });
+      toast.error("Please provide repository owner, name, and GitHub token");
       return;
     }
 
     try {
       await scanGitHubRepository.mutateAsync({ repoOwner, repoName, githubToken });
-      toast({
-        title: "Live Scan Completed",
-        description: `Found ${totalViolations} real violations in repository`,
-      });
+      toast.success(`Production scan completed - ${totalViolations} issues found`);
     } catch (error) {
-      toast({
-        title: "Scan Failed",
-        description: "Failed to scan repository. Check your credentials.",
-        variant: "destructive"
-      });
+      toast.error("Scan failed. Check your credentials.");
     }
   };
 
@@ -73,7 +62,7 @@ const RealTimeGitHubMonitor = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Github className="w-5 h-5" />
-            Live GitHub Repository Scanner - Real Violation Detection
+            Production GitHub Repository Monitor
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -100,12 +89,12 @@ const RealTimeGitHubMonitor = () => {
               {isScanning ? (
                 <>
                   <Scan className="w-4 h-4 mr-2 animate-spin" />
-                  Scanning Live Repository...
+                  Scanning Production Repository...
                 </>
               ) : (
                 <>
                   <Scan className="w-4 h-4 mr-2" />
-                  Start Live Scan
+                  Start Production Scan
                 </>
               )}
             </Button>
@@ -117,13 +106,13 @@ const RealTimeGitHubMonitor = () => {
         </CardContent>
       </Card>
 
-      {/* Live Statistics Overview */}
+      {/* Production Statistics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Violations</p>
+                <p className="text-sm text-muted-foreground">Total Issues</p>
                 <p className="text-2xl font-bold text-red-600">{totalViolations}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-600" />
@@ -177,21 +166,21 @@ const RealTimeGitHubMonitor = () => {
         <AlertDescription>
           {totalViolations > 0 ? (
             <span className="font-semibold text-red-700">
-              🚫 SYSTEM NOT PRODUCTION READY: {totalViolations} live violations detected in repository
+              🚫 SYSTEM REQUIRES ATTENTION: {totalViolations} issues detected in production scan
             </span>
           ) : (
             <span className="font-semibold text-green-700">
-              ✅ PRODUCTION READY: No violations detected in live repository scan
+              ✅ PRODUCTION READY: No issues detected in production scan
             </span>
           )}
         </AlertDescription>
       </Alert>
 
-      {/* Live Violations Table */}
+      {/* Active Issues Table */}
       {activeViolations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Live Active Violations ({activeViolations.length})</CardTitle>
+            <CardTitle>Active Issues ({activeViolations.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -239,18 +228,18 @@ const RealTimeGitHubMonitor = () => {
             </Table>
             {activeViolations.length > 50 && (
               <p className="text-sm text-muted-foreground mt-4">
-                Showing 50 of {activeViolations.length} violations. Use filters to view more.
+                Showing 50 of {activeViolations.length} issues. Use filters to view more.
               </p>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Violations by Type */}
+      {/* Issues by Type */}
       {Object.keys(violationsByType).length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Live Violations by Type</CardTitle>
+            <CardTitle>Issues by Type</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
