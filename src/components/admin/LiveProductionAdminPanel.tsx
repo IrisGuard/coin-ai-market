@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { emergencyActivation } from '@/services/emergencyActivationService';
 import { Activity, Database, Brain, Zap, TrendingUp, Users, DollarSign, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,6 +17,7 @@ interface AdminMetrics {
   systemHealth: string;
   errors24h: number;
   liveAuctions: number;
+  systemStatus: string;
 }
 
 const LiveProductionAdminPanel: React.FC = () => {
@@ -27,7 +29,8 @@ const LiveProductionAdminPanel: React.FC = () => {
     totalRevenue: 0,
     systemHealth: 'unknown',
     errors24h: 0,
-    liveAuctions: 0
+    liveAuctions: 0,
+    systemStatus: 'INITIALIZING'
   });
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -36,6 +39,9 @@ const LiveProductionAdminPanel: React.FC = () => {
     try {
       setIsLoading(true);
       console.log('📊 FETCHING LIVE ADMIN METRICS');
+
+      // Get activation status from emergency service
+      const activationStatus = await emergencyActivation.getActivationStatus();
 
       // Get comprehensive admin dashboard data
       const { data: dashboardData, error: dashboardError } = await supabase.rpc('get_ultra_optimized_admin_dashboard');
@@ -53,18 +59,6 @@ const LiveProductionAdminPanel: React.FC = () => {
       const { count: usersCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
-
-      // Get active data sources
-      const { count: sourcesCount } = await supabase
-        .from('external_price_sources')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      // Get active AI commands
-      const { count: aiCount } = await supabase
-        .from('ai_commands')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
 
       // Get recent errors
       const { count: errorsCount } = await supabase
@@ -90,16 +84,17 @@ const LiveProductionAdminPanel: React.FC = () => {
       setMetrics({
         totalCoins: coinsCount || 0,
         totalUsers: usersCount || 0,
-        activeSources: sourcesCount || 0,
-        aiCommands: aiCount || 0,
+        activeSources: activationStatus.activeSources,
+        aiCommands: activationStatus.activeAICommands,
         totalRevenue,
         systemHealth: errorsCount && errorsCount > 10 ? 'warning' : 'healthy',
         errors24h: errorsCount || 0,
-        liveAuctions: auctionsCount || 0
+        liveAuctions: auctionsCount || 0,
+        systemStatus: activationStatus.systemStatus
       });
 
       setLastUpdated(new Date());
-      console.log(`✅ ADMIN METRICS UPDATED: ${coinsCount} coins, ${sourcesCount} sources, ${aiCount} AI commands`);
+      console.log(`✅ ADMIN METRICS UPDATED: ${coinsCount} coins, ${activationStatus.activeSources} sources, ${activationStatus.activeAICommands} AI commands, Status: ${activationStatus.systemStatus}`);
 
     } catch (error) {
       console.error('Error fetching admin metrics:', error);
@@ -109,11 +104,23 @@ const LiveProductionAdminPanel: React.FC = () => {
     }
   };
 
+  const executeEmergencyActivation = async () => {
+    try {
+      console.log('🚨 ADMIN EXECUTING EMERGENCY ACTIVATION');
+      
+      await emergencyActivation.executeFullPlatformActivation();
+      toast.success('🚀 Emergency activation completed from Admin Panel!');
+      fetchLiveMetrics();
+    } catch (error) {
+      console.error('Emergency activation error:', error);
+      toast.error('Emergency activation failed - retrying...');
+    }
+  };
+
   const executeSystemOptimization = async () => {
     try {
       console.log('🔧 EXECUTING SYSTEM OPTIMIZATION');
       
-      // Trigger system performance optimization
       const { data, error } = await supabase.rpc('monitor_query_performance');
       
       if (!error) {
@@ -122,22 +129,6 @@ const LiveProductionAdminPanel: React.FC = () => {
       }
     } catch (error) {
       console.error('System optimization error:', error);
-    }
-  };
-
-  const activateEmergencyMode = async () => {
-    try {
-      console.log('🚨 ACTIVATING EMERGENCY PRODUCTION MODE');
-      
-      // Execute emergency activation
-      const { data, error } = await supabase.rpc('final_system_validation');
-      
-      if (!error) {
-        toast.success('🚀 Emergency production mode activated!');
-        fetchLiveMetrics();
-      }
-    } catch (error) {
-      console.error('Emergency activation error:', error);
     }
   };
 
@@ -159,13 +150,22 @@ const LiveProductionAdminPanel: React.FC = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'FULLY_OPERATIONAL': return 'text-green-600 bg-green-100';
+      case 'ACTIVATING': return 'text-yellow-600 bg-yellow-100';
+      case 'ERROR': return 'text-red-600 bg-red-100';
+      default: return 'text-blue-600 bg-blue-100';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Live Production Admin Control Center</h1>
-          <p className="text-muted-foreground">Real-time platform monitoring and AI Brain management</p>
+          <p className="text-muted-foreground">Real-time platform monitoring and emergency activation controls</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={fetchLiveMetrics} variant="outline" size="sm">
@@ -174,18 +174,38 @@ const LiveProductionAdminPanel: React.FC = () => {
           <Button onClick={executeSystemOptimization} variant="outline" size="sm">
             Optimize System
           </Button>
-          <Button onClick={activateEmergencyMode} className="bg-red-600 hover:bg-red-700" size="sm">
-            🚨 Emergency Mode
+          <Button onClick={executeEmergencyActivation} className="bg-red-600 hover:bg-red-700" size="sm">
+            🚨 Emergency Activate
           </Button>
         </div>
       </div>
+
+      {/* Emergency Status Alert */}
+      {metrics.totalCoins < 100 && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-red-800">🚨 CRITICAL: Platform Underperforming</h4>
+                <p className="text-sm text-red-600">
+                  Only {metrics.totalCoins} coins detected. Platform should show thousands from 16 sources.
+                </p>
+              </div>
+              <Button onClick={executeEmergencyActivation} className="bg-red-600 hover:bg-red-700" size="sm">
+                🚨 EMERGENCY ACTIVATE
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* System Status */}
       <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-green-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-6 w-6 text-blue-600 animate-pulse" />
-            🔴 LIVE PRODUCTION STATUS
+            🔴 LIVE PRODUCTION STATUS - {metrics.systemStatus}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -194,13 +214,16 @@ const LiveProductionAdminPanel: React.FC = () => {
               <Badge className={`${getHealthColor(metrics.systemHealth)} px-3 py-1`}>
                 SYSTEM: {metrics.systemHealth.toUpperCase()}
               </Badge>
+              <Badge className={`${getStatusColor(metrics.systemStatus)} px-3 py-1`}>
+                STATUS: {metrics.systemStatus}
+              </Badge>
               <span className="text-sm text-muted-foreground">
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-600" />
-              <span className="font-medium">AI Brain: ACTIVE</span>
+              <span className="font-medium">AI Brain: {metrics.aiCommands > 0 ? 'ACTIVE' : 'INACTIVE'}</span>
             </div>
           </div>
         </CardContent>
@@ -208,13 +231,17 @@ const LiveProductionAdminPanel: React.FC = () => {
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <Card>
+        <Card className={metrics.totalCoins < 100 ? 'border-red-200 bg-red-50' : ''}>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <Database className="h-8 w-8 text-blue-600" />
               <div>
-                <div className="text-2xl font-bold text-blue-600">{metrics.totalCoins.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Total Coins</div>
+                <div className={`text-2xl font-bold ${metrics.totalCoins < 100 ? 'text-red-600' : 'text-blue-600'}`}>
+                  {metrics.totalCoins.toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Total Coins {metrics.totalCoins < 100 ? '(CRITICAL LOW)' : ''}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -232,13 +259,17 @@ const LiveProductionAdminPanel: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={metrics.activeSources < 10 ? 'border-yellow-200 bg-yellow-50' : ''}>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <TrendingUp className="h-8 w-8 text-orange-600" />
               <div>
-                <div className="text-2xl font-bold text-orange-600">{metrics.activeSources}</div>
-                <div className="text-sm text-muted-foreground">Active Sources</div>
+                <div className={`text-2xl font-bold ${metrics.activeSources < 10 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                  {metrics.activeSources}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Active Sources {metrics.activeSources < 10 ? '(LOW)' : ''}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -307,19 +338,27 @@ const LiveProductionAdminPanel: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Recognition System</span>
-                <Badge className="bg-green-600">ACTIVE</Badge>
+                <Badge className={metrics.aiCommands > 0 ? "bg-green-600" : "bg-red-600"}>
+                  {metrics.aiCommands > 0 ? "ACTIVE" : "INACTIVE"}
+                </Badge>
               </div>
               <div className="flex justify-between">
                 <span>Market Analysis</span>
-                <Badge className="bg-green-600">ACTIVE</Badge>
+                <Badge className={metrics.activeSources > 0 ? "bg-green-600" : "bg-red-600"}>
+                  {metrics.activeSources > 0 ? "ACTIVE" : "INACTIVE"}
+                </Badge>
               </div>
               <div className="flex justify-between">
-                <span>Auto-Fill Engine</span>
-                <Badge className="bg-green-600">ACTIVE</Badge>
+                <span>Data Pipeline</span>
+                <Badge className={metrics.systemStatus === 'FULLY_OPERATIONAL' ? "bg-green-600" : "bg-yellow-600"}>
+                  {metrics.systemStatus === 'FULLY_OPERATIONAL' ? "OPERATIONAL" : "ACTIVATING"}
+                </Badge>
               </div>
               <div className="flex justify-between">
-                <span>Price Discovery</span>
-                <Badge className="bg-green-600">ACTIVE</Badge>
+                <span>System Status</span>
+                <Badge className={`${getStatusColor(metrics.systemStatus)}`}>
+                  {metrics.systemStatus}
+                </Badge>
               </div>
             </div>
           </CardContent>

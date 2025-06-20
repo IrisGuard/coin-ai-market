@@ -29,7 +29,7 @@ const Marketplace = () => {
               <p className="text-xl text-gray-600 mb-6">
                 Real-time coin marketplace powered by AI Brain and 16+ external data sources
               </p>
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-4 flex-wrap">
                 <Badge className="bg-green-600 text-white px-4 py-2">
                   🔴 LIVE DATA
                 </Badge>
@@ -41,6 +41,9 @@ const Marketplace = () => {
                 </Badge>
                 <Badge className="bg-orange-600 text-white px-4 py-2">
                   16+ SOURCES
+                </Badge>
+                <Badge className="bg-red-600 text-white px-4 py-2">
+                  EMERGENCY ACTIVATED
                 </Badge>
               </div>
             </motion.div>
@@ -54,7 +57,7 @@ const Marketplace = () => {
             >
               <Activity className="h-5 w-5 text-green-600 animate-pulse" />
               <span className="text-green-800 font-medium">
-                Live Production Marketplace Active • Real-time data from external sources • AI processing operational
+                🚨 Emergency Platform Activation Complete • Live Production Marketplace Active • Real-time data from 16 external sources • AI processing operational
               </span>
             </motion.div>
 

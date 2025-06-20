@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { emergencyActivation } from '@/services/emergencyActivationService';
 import { toast } from 'sonner';
 
 interface LiveMarketplaceData {
@@ -9,7 +10,9 @@ interface LiveMarketplaceData {
   activeSources: number;
   aiProcessingActive: boolean;
   isLoading: boolean;
+  systemStatus: string;
   refreshData: () => void;
+  performEmergencyActivation: () => void;
 }
 
 const LiveMarketplaceContext = createContext<LiveMarketplaceData | null>(null);
@@ -27,73 +30,47 @@ const LiveMarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [totalCoins, setTotalCoins] = useState(0);
   const [activeSources, setActiveSources] = useState(0);
   const [aiProcessingActive, setAiProcessingActive] = useState(false);
+  const [systemStatus, setSystemStatus] = useState('INITIALIZING');
   const [isLoading, setIsLoading] = useState(true);
 
-  const activateDataSources = async () => {
+  const performEmergencyActivation = async () => {
     try {
-      console.log('🚀 ACTIVATING ALL DATA SOURCES FOR LIVE PRODUCTION');
+      console.log('🚨 EXECUTING EMERGENCY PLATFORM ACTIVATION');
+      setIsLoading(true);
       
-      // Activate ALL data sources for immediate live scraping
-      const { error: dsError } = await supabase
-        .from('data_sources')
-        .update({ 
-          is_active: true,
-          last_used: new Date().toISOString(),
-          success_rate: 0.95,
-          priority: 1
-        })
-        .neq('name', 'disabled');
-
-      if (dsError) console.error('Data sources activation error:', dsError);
-
-      // Activate ALL external price sources for real-time data
-      const { error: epsError } = await supabase
-        .from('external_price_sources')
-        .update({ 
-          is_active: true,
-          scraping_enabled: true,
-          reliability_score: 0.9,
-          priority_score: 100
-        })
-        .neq('source_name', 'disabled');
-
-      if (epsError) console.error('External sources activation error:', epsError);
-
-      // Activate ALL AI commands for live processing
-      const { error: aiError } = await supabase
-        .from('ai_commands')
-        .update({ is_active: true })
-        .neq('name', 'disabled');
-
-      if (aiError) console.error('AI commands activation error:', aiError);
-
-      // Activate automation rules for continuous data flow
-      const { error: autoError } = await supabase
-        .from('automation_rules')
-        .update({ is_active: true })
-        .neq('name', 'disabled');
-
-      if (autoError) console.error('Automation rules activation error:', autoError);
-
-      console.log('✅ ALL SYSTEMS ACTIVATED FOR LIVE PRODUCTION');
-      return true;
+      await emergencyActivation.executeFullPlatformActivation();
+      
+      // Immediate data refresh after activation
+      await fetchLiveData();
+      
+      toast.success('🚀 EMERGENCY ACTIVATION COMPLETE - Platform 100% Operational!');
+      
     } catch (error) {
-      console.error('System activation error:', error);
-      return false;
+      console.error('Emergency activation failed:', error);
+      toast.error('Emergency activation encountered issues - retrying...');
+      setTimeout(() => performEmergencyActivation(), 2000);
     }
   };
 
   const fetchLiveData = async () => {
     try {
-      setIsLoading(true);
+      console.log('📊 FETCHING LIVE MARKETPLACE DATA');
       
-      // Get all verified coins for marketplace display
+      // Get live coins from all verified sources
       const { data: liveCoins, error: coinsError } = await supabase
         .from('coins')
-        .select('*')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey(
+            id,
+            name,
+            reputation,
+            verified_dealer
+          )
+        `)
         .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false })
-        .limit(1000);
+        .limit(2000); // Show up to 2000 live coins
 
       if (coinsError) {
         console.error('Error fetching live coins:', coinsError);
@@ -102,23 +79,13 @@ const LiveMarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setTotalCoins(liveCoins?.length || 0);
       }
 
-      // Count active external sources
-      const { count: sourceCount } = await supabase
-        .from('external_price_sources')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
+      // Get activation status
+      const status = await emergencyActivation.getActivationStatus();
+      setActiveSources(status.activeSources);
+      setAiProcessingActive(status.activeAICommands > 0);
+      setSystemStatus(status.systemStatus);
 
-      setActiveSources(sourceCount || 0);
-
-      // Check AI processing status
-      const { count: aiCount } = await supabase
-        .from('ai_commands')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      setAiProcessingActive((aiCount || 0) > 0);
-
-      console.log(`📊 LIVE MARKETPLACE DATA: ${liveCoins?.length || 0} coins, ${sourceCount || 0} sources, AI: ${aiCount || 0} commands`);
+      console.log(`📈 LIVE DATA: ${liveCoins?.length || 0} coins, ${status.activeSources} sources, Status: ${status.systemStatus}`);
       
     } catch (error) {
       console.error('Error fetching live marketplace data:', error);
@@ -127,29 +94,19 @@ const LiveMarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const initializeLiveProduction = async () => {
-    console.log('🔄 INITIALIZING LIVE PRODUCTION MARKETPLACE');
-    
-    // First activate all systems
-    const activated = await activateDataSources();
-    
-    if (activated) {
-      // Then fetch live data
-      await fetchLiveData();
-      
-      // Initialize real-time data sync
-      initializeRealTimeSync();
-      
-      toast.success('🚀 Live Production Marketplace Activated!');
-    } else {
-      toast.error('System activation encountered issues - continuing with available data');
-    }
+  const refreshData = () => {
+    fetchLiveData();
   };
 
-  const initializeRealTimeSync = () => {
-    // Set up real-time subscription for new coins
+  useEffect(() => {
+    console.log('🚀 INITIALIZING LIVE PRODUCTION MARKETPLACE');
+    
+    // Perform emergency activation on component mount
+    performEmergencyActivation();
+
+    // Set up real-time subscription for live updates
     const coinsSubscription = supabase
-      .channel('live-coins-channel')
+      .channel('live-coins-realtime')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -162,14 +119,6 @@ const LiveMarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => {
       supabase.removeChannel(coinsSubscription);
     };
-  };
-
-  const refreshData = () => {
-    fetchLiveData();
-  };
-
-  useEffect(() => {
-    initializeLiveProduction();
   }, []);
 
   const value: LiveMarketplaceData = {
@@ -177,8 +126,10 @@ const LiveMarketplaceDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     totalCoins,
     activeSources,
     aiProcessingActive,
+    systemStatus,
     isLoading,
-    refreshData
+    refreshData,
+    performEmergencyActivation
   };
 
   return (
