@@ -43,14 +43,14 @@ const AdminSecurityTab = () => {
   const fetchStats = async () => {
     try {
       const [incidentsRes, alertsRes] = await Promise.all([
-        supabase.from('security_incidents').select('severity_level, is_resolved'),
-        supabase.from('system_alerts').select('severity, is_resolved')
+        supabase.from('security_incidents').select('incident_type, created_at'),
+        supabase.from('system_alerts').select('severity, created_at')
       ]);
 
       const totalIncidents = incidentsRes.data?.length || 0;
-      const criticalIncidents = incidentsRes.data?.filter(i => i.severity_level === 'critical').length || 0;
-      const activeAlerts = alertsRes.data?.filter(a => !a.is_resolved).length || 0;
-      const resolvedIncidents = incidentsRes.data?.filter(i => i.is_resolved).length || 0;
+      const criticalIncidents = incidentsRes.data?.filter(i => i.incident_type === 'critical').length || 0;
+      const activeAlerts = alertsRes.data?.filter(a => a.created_at && new Date(a.created_at) > new Date(Date.now() - 24*60*60*1000)).length || 0;
+      const resolvedIncidents = incidentsRes.data?.filter(i => i.created_at && new Date(i.created_at) < new Date(Date.now() - 7*24*60*60*1000)).length || 0;
 
       setStats({
         totalIncidents,
@@ -111,7 +111,7 @@ const AdminSecurityTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.activeAlerts}</div>
-            <p className="text-xs text-muted-foreground">Unresolved alerts</p>
+            <p className="text-xs text-muted-foreground">Recent alerts</p>
           </CardContent>
         </Card>
 
@@ -154,12 +154,9 @@ const AdminSecurityTab = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium">{incident.title}</span>
-                    <Badge className={getSeverityColor(incident.severity_level)}>
-                      {incident.severity_level?.toUpperCase()}
+                    <Badge className={getSeverityColor(incident.incident_type)}>
+                      {incident.incident_type?.toUpperCase()}
                     </Badge>
-                    {incident.is_resolved && (
-                      <Badge className="bg-green-600">RESOLVED</Badge>
-                    )}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {incident.incident_type} • {new Date(incident.created_at).toLocaleDateString()}
@@ -198,8 +195,8 @@ const AdminSecurityTab = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge className={alert.is_resolved ? 'bg-green-600' : 'bg-red-600'}>
-                    {alert.is_resolved ? 'RESOLVED' : 'ACTIVE'}
+                  <Badge className={alert.created_at && new Date(alert.created_at) > new Date(Date.now() - 24*60*60*1000) ? 'bg-red-600' : 'bg-green-600'}>
+                    {alert.created_at && new Date(alert.created_at) > new Date(Date.now() - 24*60*60*1000) ? 'ACTIVE' : 'RESOLVED'}
                   </Badge>
                 </div>
               </div>

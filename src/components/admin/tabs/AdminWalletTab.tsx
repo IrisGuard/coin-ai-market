@@ -62,13 +62,13 @@ const AdminWalletTab = () => {
   const fetchStats = async () => {
     try {
       const [walletsRes, tokensRes] = await Promise.all([
-        supabase.from('wallet_balances').select('balance'),
+        supabase.from('wallet_balances').select('gcai_balance'),
         supabase.from('token_activity').select('id')
       ]);
 
       const totalWallets = walletsRes.data?.length || 0;
-      const totalBalance = walletsRes.data?.reduce((sum, w) => sum + (w.balance || 0), 0) || 0;
-      const activeWallets = walletsRes.data?.filter(w => w.balance > 0).length || 0;
+      const totalBalance = walletsRes.data?.reduce((sum, w) => sum + (w.gcai_balance || 0), 0) || 0;
+      const activeWallets = walletsRes.data?.filter(w => w.gcai_balance > 0).length || 0;
       const tokenTransactions = tokensRes.data?.length || 0;
 
       setStats({
@@ -84,7 +84,7 @@ const AdminWalletTab = () => {
 
   const filteredWallets = wallets.filter(wallet => 
     wallet.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    wallet.wallet_type?.toLowerCase().includes(searchTerm.toLowerCase())
+    wallet.wallet_address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -104,11 +104,11 @@ const AdminWalletTab = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+            <CardTitle className="text-sm font-medium">Total GCAI Balance</CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalBalance.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{stats.totalBalance.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Combined wallet value</p>
           </CardContent>
         </Card>
@@ -163,15 +163,20 @@ const AdminWalletTab = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium">{wallet.profiles?.email || 'Unknown User'}</span>
-                    <Badge>{wallet.wallet_type || 'Standard'}</Badge>
+                    <Badge>Wallet</Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Last updated: {new Date(wallet.updated_at).toLocaleDateString()}
+                    Address: {wallet.wallet_address?.slice(0, 20)}...
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Last updated: {new Date(wallet.last_updated).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">${wallet.balance}</div>
-                  <div className="text-sm text-muted-foreground">{wallet.currency || 'USD'}</div>
+                  <div className="font-bold">{wallet.gcai_balance} GCAI</div>
+                  <div className="text-sm text-muted-foreground">
+                    Locked: {wallet.locked_balance || 0} GCAI
+                  </div>
                 </div>
               </div>
             ))}
@@ -196,6 +201,9 @@ const AdminWalletTab = () => {
                   <div className="text-sm text-muted-foreground">
                     {activity.activity_type} • {new Date(activity.created_at).toLocaleDateString()}
                   </div>
+                  {activity.description && (
+                    <div className="text-sm text-gray-600">{activity.description}</div>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="font-bold">{activity.amount} Tokens</div>
