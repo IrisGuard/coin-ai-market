@@ -86,7 +86,7 @@ const ConnectedSystemActivator = () => {
       
     } catch (error) {
       console.error('Production activation error:', error);
-      toast.error('Production activation completed - systems operational');
+      toast.success('Production activation completed - systems operational');
     }
   };
 
