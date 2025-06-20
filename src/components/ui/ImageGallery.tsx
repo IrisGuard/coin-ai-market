@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
 
 interface ImageGalleryProps {
   images: string[];
@@ -49,7 +48,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   return (
     <div className={`relative ${className}`}>
       {/* Main Image Display - COMPLETELY CLEAN, NO OVERLAYS */}
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         <img
           src={currentImageUrl}
           alt={`${coinName} - Image ${currentIndex + 1}`}
@@ -77,7 +76,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         )}
       </div>
       
-      {/* Thumbnail Navigation - Only show when there are multiple images */}
+      {/* Thumbnail Navigation - Always show when there are multiple images */}
       {validImages.length > 1 && (
         <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
           {validImages.map((image, index) => (
@@ -95,6 +94,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 alt={`${coinName} thumbnail ${index + 1}`}
                 className="w-full h-full object-cover transition-opacity duration-200"
                 loading="lazy"
+                onLoad={() => handleImageLoad(index)}
               />
               
               {/* Thumbnail loading indicator */}

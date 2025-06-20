@@ -19,6 +19,7 @@ const DirectDealerButton = () => {
   }
 
   const handleClick = () => {
+    // Navigate to dealer panel, not admin panel
     navigate('/dealer');
   };
 

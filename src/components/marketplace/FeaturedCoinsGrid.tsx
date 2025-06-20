@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -225,7 +226,7 @@ const FeaturedCoinsGrid = () => {
                     </Link>
                     
                     {store && (
-                      <Link to={`/dealer-direct?dealer=${store.user_id}`}>
+                      <Link to={`/store/${store.user_id}`}>
                         <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700">
                           <Store className="h-4 w-4" />
                         </Button>
