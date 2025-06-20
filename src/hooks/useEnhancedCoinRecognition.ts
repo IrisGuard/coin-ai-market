@@ -7,10 +7,25 @@ import { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
 import { triggerWebDiscovery } from './enhanced-coin-recognition/webDiscovery';
 import { mergeAnalysisData } from './enhanced-coin-recognition/dataMerger';
 import { saveEnhancedResults } from './enhanced-coin-recognition/storageHelpers';
-import { extractDataSources, calculateEnrichmentScore } from './enhanced-coin-recognition/dataExtraction';
 import { generateAutoFillData } from './enhanced-coin-recognition/autoDescriptionGenerator';
 
 export type { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
+
+// Simple data extraction functions
+const extractDataSources = (webResults: any[]) => {
+  return webResults.map(result => ({
+    source: result.source || 'unknown',
+    type: result.source_type || 'web',
+    confidence: result.confidence || 0.5
+  }));
+};
+
+const calculateEnrichmentScore = (claudeResult: any, webResults: any[]) => {
+  let score = claudeResult.confidence || 0.5;
+  if (webResults.length > 0) score += 0.2;
+  if (webResults.length > 3) score += 0.1;
+  return Math.min(score, 1.0);
+};
 
 export const useEnhancedCoinRecognition = () => {
   const { analyzeImage, isAnalyzing, result, error, clearResults } = useRealAICoinRecognition();
@@ -21,7 +36,7 @@ export const useEnhancedCoinRecognition = () => {
 
   const performEnhancedAnalysis = async (imageFile: File): Promise<EnhancedAnalysisResult | null> => {
     try {
-      console.log('🚀 Starting Enhanced Coin Analysis Pipeline with Auto-Fill...');
+      console.log('🚀 Starting Enhanced Coin Analysis Pipeline...');
       
       // Step 1: Claude AI Recognition
       setEnrichmentProgress(20);
@@ -33,7 +48,7 @@ export const useEnhancedCoinRecognition = () => {
 
       console.log('✅ Claude analysis completed:', claudeResult.name);
       
-      // Step 2: Auto-trigger Web Discovery
+      // Step 2: Web Discovery
       setIsEnriching(true);
       setEnrichmentProgress(40);
       
@@ -41,12 +56,12 @@ export const useEnhancedCoinRecognition = () => {
       
       setEnrichmentProgress(70);
       
-      // Step 3: Merge and Enrich Data with Auto-Fill Preparation
+      // Step 3: Merge and Enrich Data
       const mergedData = await mergeAnalysisData(claudeResult, webDiscoveryResults);
       
       setEnrichmentProgress(85);
       
-      // Step 4: Generate Auto-Fill Data for Dealer Panel
+      // Step 4: Generate Enhanced Result
       const enhancedResult: EnhancedAnalysisResult = {
         claude_analysis: claudeResult,
         web_discovery_results: webDiscoveryResults,
@@ -55,7 +70,7 @@ export const useEnhancedCoinRecognition = () => {
         enrichment_score: calculateEnrichmentScore(claudeResult, webDiscoveryResults)
       };
       
-      // Step 5: Generate complete auto-fill data
+      // Step 5: Generate auto-fill data
       const autoFill = generateAutoFillData(enhancedResult);
       setAutoFillData(autoFill);
       
@@ -68,10 +83,8 @@ export const useEnhancedCoinRecognition = () => {
       setEnrichmentProgress(100);
       
       toast.success(
-        `🎯 Complete Auto-Fill Ready: ${mergedData.name} - ${Math.round(mergedData.confidence * 100)}% confidence with ${webDiscoveryResults.length} external sources`
+        `🎯 Analysis Complete: ${mergedData.name} - ${Math.round(mergedData.confidence * 100)}% confidence`
       );
-      
-      console.log('🔥 Auto-fill data generated:', autoFill);
       
       return enhancedResult;
       
@@ -97,7 +110,7 @@ export const useEnhancedCoinRecognition = () => {
       setIsEnriching(true);
       setEnrichmentProgress(10);
 
-      // Analyze primary image (usually the first one)
+      // Analyze primary image
       const primaryResult = await performEnhancedAnalysis(imageFiles[0]);
       
       if (!primaryResult) {
@@ -106,7 +119,7 @@ export const useEnhancedCoinRecognition = () => {
 
       setEnrichmentProgress(80);
 
-      // For additional images, we can enhance the analysis with more detail
+      // Analyze additional images
       const additionalAnalyses = [];
       for (let i = 1; i < Math.min(imageFiles.length, 10); i++) {
         try {
@@ -125,7 +138,6 @@ export const useEnhancedCoinRecognition = () => {
 
       setEnrichmentProgress(100);
 
-      // Combine all analyses for comprehensive auto-fill
       const combinedAutoFill = {
         ...autoFillData,
         additional_images_analyzed: additionalAnalyses.length,
@@ -136,7 +148,7 @@ export const useEnhancedCoinRecognition = () => {
       setAutoFillData(combinedAutoFill);
 
       toast.success(
-        `🎯 Bulk Analysis Complete: ${imageFiles.length} images analyzed, auto-fill data ready!`
+        `🎯 Bulk Analysis Complete: ${imageFiles.length} images analyzed!`
       );
 
       return [primaryResult, ...additionalAnalyses];
@@ -158,7 +170,7 @@ export const useEnhancedCoinRecognition = () => {
     isEnriching,
     enrichmentProgress,
     enhancedResult,
-    autoFillData, // ← New: Ready-to-use auto-fill data
+    autoFillData,
     claudeResult: result,
     error,
     clearResults: () => {

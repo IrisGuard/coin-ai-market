@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AICapabilitiesShowcase from '@/components/showcase/AICapabilitiesShowcase';
-import InteractiveAIDemo from '@/components/showcase/InteractiveAIDemo';
 import { Brain, Sparkles } from 'lucide-react';
 
 const AIFeatures = () => {
@@ -39,7 +38,6 @@ const AIFeatures = () => {
 
       {/* AI Components */}
       <AICapabilitiesShowcase />
-      <InteractiveAIDemo />
       
       <Footer />
     </div>
