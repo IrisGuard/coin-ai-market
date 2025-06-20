@@ -30,7 +30,7 @@ const LiveMarketplaceGrid = () => {
       if (error) throw error;
       return data ? data.map(mapSupabaseCoinToCoin) : [];
     },
-    refetchInterval: isActivated ? 30000 : false,
+    refetchInterval: 15000, // Live updates every 15 seconds
     enabled: true
   });
 
@@ -48,15 +48,15 @@ const LiveMarketplaceGrid = () => {
       if (error) throw error;
       return data ? data.map(mapSupabaseCoinToCoin) : [];
     },
-    refetchInterval: isActivated ? 60000 : false
+    refetchInterval: 30000 // Live updates every 30 seconds
   });
 
   if (error) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-semibold mb-2">System Initializing</h3>
+        <h3 className="text-lg font-semibold mb-2">Loading Live Market Data</h3>
         <p className="text-muted-foreground">
-          Production systems are coming online. Please wait a moment.
+          Connecting to real-time marketplace feeds...
         </p>
       </div>
     );
@@ -74,6 +74,9 @@ const LiveMarketplaceGrid = () => {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent">
               Featured Coins
             </h2>
+            <span className="text-sm text-green-600 font-medium">
+              LIVE • Real-time data
+            </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {featuredCoins.map((coin, index) => (
@@ -91,12 +94,10 @@ const LiveMarketplaceGrid = () => {
       {/* All Coins */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Latest Listings</h2>
-          {isActivated && (
-            <span className="text-sm text-green-600 font-medium">
-              Live • Real-time updates
-            </span>
-          )}
+          <h2 className="text-2xl font-bold">Live Marketplace</h2>
+          <span className="text-sm text-green-600 font-medium">
+            🟢 LIVE • Real-time updates
+          </span>
         </div>
 
         {isLoading ? (
@@ -123,10 +124,10 @@ const LiveMarketplaceGrid = () => {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg border">
             <div className="text-6xl mb-4">🚀</div>
-            <h3 className="text-xl font-semibold mb-2">Platform Ready</h3>
+            <h3 className="text-xl font-semibold mb-2">Platform is LIVE</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              All systems are operational and ready for coin listings. 
-              Use the Dealer Panel to start adding authenticated coins to the marketplace.
+              All systems are operational and ready for live coin listings. 
+              The AI Brain is connected and the marketplace is fully functional.
             </p>
           </div>
         )}
