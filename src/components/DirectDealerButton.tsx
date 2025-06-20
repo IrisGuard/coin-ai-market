@@ -3,22 +3,26 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, Upload } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 
 const DirectDealerButton = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  
-  // Only call useAdminStore if user is loaded to prevent undefined errors
-  const { isAdminUser } = authLoading || !user ? { isAdminUser: false } : useAdminStore();
+  const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
 
-  // Hide the button for admin users - they should use the Admin Panel instead
-  // Also hide during auth loading to prevent flicker
-  if (authLoading || isAdminUser) {
+  // SECURITY FIX: Only show for authenticated users with dealer or admin role
+  const shouldShowButton = user && 
+    !authLoading && 
+    !roleLoading && 
+    (userRole === 'dealer' || userRole === 'admin');
+
+  // Hide the button if user is not authenticated or doesn't have proper role
+  if (authLoading || roleLoading || !shouldShowButton) {
     return null;
   }
 
   const handleClick = () => {
+    // Navigate to dealer panel
     navigate('/dealer');
   };
 

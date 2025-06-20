@@ -8,7 +8,6 @@ export const useEnhancedAICommands = (category?: string) => {
   const queryClient = useQueryClient();
   const channelRef = useRef<any>(null);
 
-  // Real-time AI commands with full data
   const { data: commands = [], isLoading } = useQuery({
     queryKey: ['ai-commands', category],
     queryFn: async () => {
@@ -37,12 +36,8 @@ export const useEnhancedAICommands = (category?: string) => {
     }
   });
 
-  // Real-time execution tracking
   const executeCommandMutation = useMutation({
     mutationFn: async ({ commandId, inputData }: { commandId: string; inputData: any }) => {
-      console.log('🚀 Executing AI command with real-time tracking:', commandId);
-      
-      // Create execution record first
       const { data: executionData, error: executionError } = await supabase
         .from('ai_command_executions')
         .insert({
@@ -55,14 +50,12 @@ export const useEnhancedAICommands = (category?: string) => {
 
       if (executionError) throw executionError;
 
-      // Execute the command
       const { data: result, error: commandError } = await supabase.rpc('execute_ai_command', {
         p_command_id: commandId,
         p_input_data: inputData
       });
 
       if (commandError) {
-        // Update execution status to failed
         await supabase
           .from('ai_command_executions')
           .update({
@@ -74,7 +67,6 @@ export const useEnhancedAICommands = (category?: string) => {
         throw commandError;
       }
 
-      // Log performance metrics
       await supabase
         .from('ai_performance_metrics')
         .insert({
@@ -91,22 +83,18 @@ export const useEnhancedAICommands = (category?: string) => {
     },
     onSuccess: (data, variables) => {
       toast.success('AI Command executed successfully');
-      // Invalidate all related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['ai-commands'] });
       queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
       queryClient.invalidateQueries({ queryKey: ['ai-brain-stats'] });
       queryClient.invalidateQueries({ queryKey: ['ai-performance-metrics'] });
     },
     onError: (error: any) => {
-      console.error('❌ AI Command execution failed:', error);
       toast.error(`Command execution failed: ${error.message}`);
-      // Still invalidate to update UI with failure status
       queryClient.invalidateQueries({ queryKey: ['ai-commands'] });
       queryClient.invalidateQueries({ queryKey: ['ai-brain-stats'] });
     }
   });
 
-  // Real-time execution history with performance data
   const { data: executionHistory = [] } = useQuery({
     queryKey: ['ai-command-executions'],
     queryFn: async () => {
@@ -126,18 +114,14 @@ export const useEnhancedAICommands = (category?: string) => {
       if (error) throw error;
       return data || [];
     },
-    refetchInterval: 15000 // Refresh every 15 seconds
+    refetchInterval: 15000
   });
 
-  // Set up real-time subscriptions for live updates
   useEffect(() => {
-    // Cleanup existing subscription
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
-
-    console.log('🔄 Setting up real-time AI commands subscription...');
     
     const channel = supabase
       .channel(`ai-commands-realtime-${Date.now()}`)
@@ -146,7 +130,6 @@ export const useEnhancedAICommands = (category?: string) => {
         schema: 'public',
         table: 'ai_commands'
       }, (payload) => {
-        console.log('🔄 Real-time AI command change:', payload);
         queryClient.invalidateQueries({ queryKey: ['ai-commands'] });
       })
       .on('postgres_changes', {
@@ -154,22 +137,20 @@ export const useEnhancedAICommands = (category?: string) => {
         schema: 'public',
         table: 'ai_command_executions'
       }, (payload) => {
-        console.log('🔄 Real-time execution change:', payload);
         queryClient.invalidateQueries({ queryKey: ['ai-command-executions'] });
         queryClient.invalidateQueries({ queryKey: ['ai-brain-stats'] });
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ AI commands real-time subscription established');
+          // Real-time subscription established
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ AI commands subscription error');
+          // Subscription error
         }
       });
 
     channelRef.current = channel;
 
     return () => {
-      console.log('🛑 Cleaning up AI commands real-time subscription');
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -177,7 +158,6 @@ export const useEnhancedAICommands = (category?: string) => {
     };
   }, [queryClient]);
 
-  // Performance analytics
   const { data: performanceMetrics } = useQuery({
     queryKey: ['ai-performance-metrics'],
     queryFn: async () => {
@@ -202,16 +182,11 @@ export const useEnhancedAICommands = (category?: string) => {
     isExecuting: executeCommandMutation.isPending,
     executionHistory,
     performanceMetrics,
-    // Enhanced stats from real data
     stats: {
       totalCommands: commands.length,
       activeExecutions: executionHistory.filter(e => e.execution_status === 'running').length,
-      successRate: executionHistory.length > 0 
-        ? (executionHistory.filter(e => e.execution_status === 'completed').length / executionHistory.length) * 100
-        : 100,
-      averageExecutionTime: executionHistory.length > 0
-        ? executionHistory.reduce((sum, e) => sum + (e.execution_time_ms || 0), 0) / executionHistory.length
-        : 0
+      successfulExecutions: executionHistory.filter(e => e.execution_status === 'completed').length,
+      failedExecutions: executionHistory.filter(e => e.execution_status === 'failed').length
     }
   };
 };

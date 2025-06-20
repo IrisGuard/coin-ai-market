@@ -10,17 +10,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminSystemPhasesTab = () => {
-  // Check Phase 17 status
+  // Check Phase 17 status using existing tables
   const { data: phase17Data } = useQuery({
     queryKey: ['phase-17-status'],
     queryFn: async () => {
-      const [aiPredictions, marketAnalytics] = await Promise.all([
-        supabase.from('ai_predictions').select('id').limit(1),
+      const [aiPerformance, marketAnalytics] = await Promise.all([
+        supabase.from('ai_performance_metrics').select('id').limit(1),
         supabase.from('market_analytics').select('id').limit(1)
       ]);
       
       return {
-        aiPredictions: aiPredictions.data?.length || 0,
+        aiPerformance: aiPerformance.data?.length || 0,
         marketAnalytics: marketAnalytics.data?.length || 0
       };
     }
@@ -42,7 +42,7 @@ const AdminSystemPhasesTab = () => {
     }
   });
 
-  const phase17Complete = (phase17Data?.aiPredictions || 0) > 0 && (phase17Data?.marketAnalytics || 0) > 0;
+  const phase17Complete = (phase17Data?.aiPerformance || 0) > 0 && (phase17Data?.marketAnalytics || 0) > 0;
   const phase18Complete = (phase18Data?.systemMetrics || 0) > 0;
 
   return (
@@ -78,7 +78,7 @@ const AdminSystemPhasesTab = () => {
                 <span className="text-sm">Market Intelligence System</span>
               </div>
               <div className="flex items-center gap-2">
-                {(phase17Data?.aiPredictions || 0) > 0 ? 
+                {(phase17Data?.aiPerformance || 0) > 0 ? 
                   <CheckCircle className="w-4 h-4 text-green-600" /> :
                   <Activity className="w-4 h-4 text-blue-600" />
                 }

@@ -12,28 +12,29 @@ export const useCoinDetails = (id: string) => {
   const { data: coin, isLoading, error } = useQuery({
     queryKey: ['coin', id],
     queryFn: async () => {
-      console.log('🔍 Fetching coin details with images for ID:', id);
-      
       const { data, error } = await supabase
         .from('coins')
         .select(`
           *,
           images,
+          obverse_image,
+          reverse_image,
           profiles!coins_user_id_fkey (
+            id,
             name,
+            full_name,
             username,
-            verified_dealer
+            verified_dealer,
+            email
           )
         `)
         .eq('id', id)
         .single();
       
       if (error) {
-        console.error('❌ Error fetching coin:', error);
         throw error;
       }
       
-      console.log('✅ Fetched coin with images:', data?.name, 'Images count:', data?.images?.length || 0);
       return data;
     },
     enabled: !!id
@@ -171,7 +172,6 @@ export const useCoinDetails = (id: string) => {
     }
   });
 
-  // Simplified purchase handler - just creates a basic transaction record
   const purchaseMutation = useMutation({
     mutationFn: async () => {
       const { data: user } = await supabase.auth.getUser();

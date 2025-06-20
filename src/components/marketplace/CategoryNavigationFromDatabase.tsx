@@ -1,51 +1,98 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Coins, Clock, Star, Globe, TrendingUp, Shield, Crown, DollarSign, MapPin, AlertCircle, Gavel, FileText, Medal, Banknote, Target, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useCategoryStats } from '@/hooks/useCategoryStats';
+import { 
+  Coins, Star, Clock, Globe, Crown, Zap, 
+  Trophy, Shield, Diamond, Heart, Target,
+  Gem, Sparkles, Award, Medal, Gift,
+  Bookmark, Flag, Map, Compass, Mountain
+} from 'lucide-react';
 
-interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  image_url?: string;
-  display_order: number;
-  is_active: boolean;
-  color?: string;
-  created_at: string;
-  updated_at: string;
-}
+// Icon mapping for categories
+const iconMap: Record<string, any> = {
+  'Ancient Coins': Clock,
+  'Gold Coins': Crown,
+  'Silver Coins': Star,
+  'Bronze Coins': Medal,
+  'Rare Coins': Diamond,
+  'Error Coins': Zap,
+  'Commemorative': Trophy,
+  'World Coins': Globe,
+  'US Coins': Flag,
+  'European Coins': Map,
+  'Asian Coins': Compass,
+  'Modern Coins': Sparkles,
+  'Medieval Coins': Shield,
+  'Roman Coins': Mountain,
+  'Greek Coins': Award,
+  'Investment Grade': Target,
+  'Bullion Coins': Gem,
+  'Proof Coins': Heart,
+  'Mint Sets': Gift,
+  'Graded Coins': Bookmark,
+  'Morgan Dollars': Coins,
+  'Peace Dollars': Star,
+  'Walking Liberty': Trophy,
+  'Mercury Dimes': Zap,
+  'Buffalo Nickels': Shield,
+  'Wheat Pennies': Medal,
+  'Liberty Dollars': Crown,
+  'Seated Liberty': Diamond,
+  'Barber Coins': Gem,
+  'Franklin Half': Sparkles,
+  default: Coins
+};
 
 const CategoryNavigationFromDatabase = () => {
-  const { stats, loading, error } = useCategoryStats();
-
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
-    queryKey: ['homepage-categories'],
+  // Fetch categories from Supabase
+  const { data: categories = [], isLoading, error } = useQuery({
+    queryKey: ['categories-navigation'],
     queryFn: async () => {
+      console.log('Fetching categories from Supabase...');
+      
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        throw error;
+      }
+
+      console.log(`✅ Loaded ${data?.length || 0} categories from database:`, data);
       
-      if (error) throw error;
-      return data as Category[] || [];
-    }
+      // Add icons to database categories
+      const categoriesWithIcons = (data || []).map((cat, index) => ({
+        ...cat,
+        icon: iconMap[cat.name] || iconMap.default
+      }));
+
+      return categoriesWithIcons;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
-  // Real-time category coin counts
+  // Get coin counts per category
   const { data: categoryCounts = {} } = useQuery({
     queryKey: ['category-coin-counts'],
     queryFn: async () => {
-      const { data: coins } = await supabase
+      const { data, error } = await supabase
         .from('coins')
-        .select('category');
+        .select('category')
+        .not('category', 'is', null);
+      
+      if (error) throw error;
       
       const counts: Record<string, number> = {};
-      coins?.forEach(coin => {
+      data?.forEach(coin => {
         if (coin.category) {
           counts[coin.category] = (counts[coin.category] || 0) + 1;
         }
@@ -55,151 +102,130 @@ const CategoryNavigationFromDatabase = () => {
     }
   });
 
-  const getIconComponent = (iconName: string) => {
-    const icons: { [key: string]: React.ReactNode } = {
-      'MapPin': <MapPin className="w-6 h-6" />,
-      'Globe': <Globe className="w-6 h-6" />,
-      'Crown': <Crown className="w-6 h-6" />,
-      'Coins': <Coins className="w-6 h-6" />,
-      'DollarSign': <DollarSign className="w-6 h-6" />,
-      'Medal': <Medal className="w-6 h-6" />,
-      'Banknote': <Banknote className="w-6 h-6" />,
-      'Shield': <Shield className="w-6 h-6" />,
-      'Star': <Star className="w-6 h-6" />,
-      'Target': <Target className="w-6 h-6" />,
-      'AlertCircle': <AlertCircle className="w-6 h-6" />,
-      'Clock': <Clock className="w-6 h-6" />,
-      'Zap': <Zap className="w-6 h-6" />
-    };
-    return icons[iconName] || <Coins className="w-6 h-6" />;
-  };
-
-  const formatCount = (count: number) => {
-    if (count === 0) return '0';
-    if (count < 1000) return count.toString();
-    if (count < 1000000) return `${(count / 1000).toFixed(1)}k`;
-    return `${(count / 1000000).toFixed(1)}M`;
-  };
-
-  const getCategoryStats = (categoryName: string) => {
-    // Use real data from categoryCounts, with stats mapping as fallback
-    const realCount = categoryCounts[categoryName];
-    if (realCount !== undefined) return realCount;
-
-    // Enhanced mapping for all 30+ categories
-    const statsMap: { [key: string]: string } = {
-      'US Coins': 'american',
-      'World Coins': 'world',
-      'Ancient Coins': 'ancient',
-      'Modern Coins': 'modern',
-      'Gold Coins': 'gold',
-      'Silver Coins': 'silver',
-      'Platinum Coins': 'platinum',
-      'Paper Money': 'paper',
-      'Graded Coins': 'graded',
-      'Error Coins': 'error',
-      'Commemorative Coins': 'commemorative',
-      'Proof Coins': 'proof',
-      'Mint Sets': 'mint_sets',
-      'Type Coins': 'type',
-      'Key Date Coins': 'key_date',
-      'Bullion Coins': 'bullion',
-      'Colonial Coins': 'colonial',
-      'Civil War Tokens': 'civil_war',
-      'Trade Dollars': 'trade',
-      'Half Cents': 'half_cent',
-      'Large Cents': 'large_cent',
-      'Flying Eagle Cents': 'flying_eagle',
-      'Indian Head Cents': 'indian_head',
-      'Lincoln Cents': 'lincoln',
-      'Two Cent Pieces': 'two_cent',
-      'Three Cent Pieces': 'three_cent',
-      'Half Dimes': 'half_dime',
-      'Twenty Cent Pieces': 'twenty_cent',
-      'Gold Dollars': 'gold_dollar',
-      'Double Eagles': 'double_eagle'
-    };
-    
-    const statKey = statsMap[categoryName];
-    return statKey ? stats[statKey] || 0 : 0; // Remove Math.random fallback
-  };
-
-  if (categoriesLoading || loading) {
+  if (isLoading) {
     return (
-      <div className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Shop by Category</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {Array.from({ length: 30 }).map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded"></div>
-            </div>
-          ))}
-        </div>
+      <div className="text-center py-8">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading categories from Supabase database...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Shop by Category</h2>
-        <div className="text-center py-8">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-2">Failed to load categories</p>
-          <p className="text-sm text-gray-500">{error}</p>
+      <div className="text-center py-8">
+        <div className="text-red-600 mb-4">
+          <p>Error loading categories: {error.message}</p>
         </div>
+        <Button 
+          onClick={() => window.location.reload()}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Retry Loading
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="mb-12">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Shop by Category</h2>
-      <p className="text-gray-600 mb-8 text-center">Explore our comprehensive collection of {categories.length} specialized coin categories</p>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {categories.map((category) => (
-          <Link
-            key={category.id}
-            to={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-            className="group text-center p-4 bg-white rounded-xl border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all duration-200"
-          >
-            <div className={`w-16 h-16 mx-auto mb-3 bg-gradient-to-br ${category.color || 'from-blue-400 to-indigo-500'} rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-200`}>
-              {category.image_url ? (
-                <img 
-                  src={category.image_url} 
-                  alt={category.name}
-                  className="w-10 h-10 object-cover rounded-full"
-                />
-              ) : (
-                getIconComponent(category.icon || 'Coins')
-              )}
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2">
-              {category.name}
-            </h3>
-            <p className="text-xs text-gray-600 mb-1">
-              {loading ? '...' : formatCount(getCategoryStats(category.name))} items
-            </p>
-            {category.description && (
-              <p className="text-xs text-gray-400 line-clamp-2">
-                {category.description}
-              </p>
-            )}
-          </Link>
-        ))}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          {categories.length} Live Categories from Supabase Database
+        </h2>
+        <div className="flex items-center justify-center gap-4">
+          <Badge className="bg-green-600 text-white">
+            ✅ {categories.length} Categories Loaded
+          </Badge>
+          <Badge className="bg-blue-600 text-white">
+            🔴 LIVE DATABASE CONNECTION
+          </Badge>
+          <Badge className="bg-purple-600 text-white">
+            🪙 {Object.values(categoryCounts).reduce((sum, count) => sum + count, 0)} Total Coins
+          </Badge>
+        </div>
       </div>
-      
-      <div className="text-center mt-8">
-        <Link 
-          to="/marketplace" 
-          className="inline-flex items-center px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200"
-        >
-          <Coins className="w-5 h-5 mr-2" />
-          Browse All Categories
-        </Link>
+
+      {/* Categories Grid */}
+      {categories.length === 0 ? (
+        <div className="text-center py-8">
+          <Coins className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Categories Found</h3>
+          <p className="text-gray-500">No active categories in the database yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+          {categories.map((category, index) => {
+            const IconComponent = category.icon || Coins;
+            const coinCount = categoryCounts[category.name] || 0;
+            
+            return (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-white to-gray-50 border-2 hover:border-blue-300">
+                  <CardContent className="p-4 text-center">
+                    <div className="mb-3">
+                      <IconComponent className="h-8 w-8 mx-auto text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-sm text-gray-800 mb-1">
+                      {category.name}
+                    </h3>
+                    {category.description && (
+                      <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                        {category.description}
+                      </p>
+                    )}
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="text-xs">
+                        #{category.display_order || index + 1}
+                      </Badge>
+                      {coinCount > 0 && (
+                        <Badge className="bg-green-100 text-green-700 text-xs">
+                          {coinCount} coins
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Footer Actions */}
+      <div className="text-center space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button 
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            🔄 Refresh Categories
+          </Button>
+          <Button 
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            📊 Category Statistics
+          </Button>
+          <Button 
+            variant="outline"
+            className="border-purple-600 text-purple-600 hover:bg-purple-50"
+          >
+            ⚡ Browse All Coins
+          </Button>
+        </div>
+        
+        <div className="text-sm text-gray-500">
+          Live connection to Supabase • Real-time updates • Admin controls active
+        </div>
       </div>
     </div>
   );

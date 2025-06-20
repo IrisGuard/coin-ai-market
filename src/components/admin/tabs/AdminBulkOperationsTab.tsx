@@ -1,128 +1,92 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { Layers, Activity, CheckCircle, XCircle, Clock, Play, Pause, RefreshCw } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Wrench, Upload, Download, Settings, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 const AdminBulkOperationsTab = () => {
+  const [operations, setOperations] = useState([]);
+  const [stats, setStats] = useState({
+    totalOperations: 0,
+    runningOperations: 0,
+    completedOperations: 0,
+    failedOperations: 0
+  });
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
 
-  const queryClient = useQueryClient();
+  useEffect(() => {
+    fetchOperations();
+    fetchStats();
+  }, []);
 
-  // Bulk Operations Query
-  const { data: operations = [], isLoading } = useQuery({
-    queryKey: ['admin-bulk-operations'],
-    queryFn: async () => {
+  const fetchOperations = async () => {
+    try {
       const { data, error } = await supabase
         .from('bulk_operations')
         .select('*')
         .order('started_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
 
-  // Bulk Operations Statistics
-  const { data: bulkStats } = useQuery({
-    queryKey: ['admin-bulk-stats'],
-    queryFn: async () => {
-      const totalOperations = operations.length;
-      const runningOperations = operations.filter(op => op.status === 'running').length;
-      const completedOperations = operations.filter(op => op.status === 'completed').length;
-      const failedOperations = operations.filter(op => op.status === 'failed').length;
-      
-      return {
+      if (error) throw error;
+      setOperations(data || []);
+    } catch (error) {
+      console.error('Error fetching bulk operations:', error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bulk_operations')
+        .select('status');
+
+      if (error) throw error;
+
+      const totalOperations = data?.length || 0;
+      const runningOperations = data?.filter(op => op.status === 'running').length || 0;
+      const completedOperations = data?.filter(op => op.status === 'completed').length || 0;
+      const failedOperations = data?.filter(op => op.status === 'failed').length || 0;
+
+      setStats({
         totalOperations,
         runningOperations,
         completedOperations,
         failedOperations
-      };
-    },
-    enabled: operations.length > 0
-  });
-
-  // Execute Bulk Operation Mutation
-  const executeBulkOperationMutation = useMutation({
-    mutationFn: async (params: { operationType: string; operationName: string; targetTable: string; parameters: any }) => {
-      const { data, error } = await supabase.rpc('execute_bulk_operation', {
-        operation_type: params.operationType,
-        operation_name: params.operationName,
-        target_table: params.targetTable,
-        operation_parameters: params.parameters
       });
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-bulk-operations'] });
-      toast({
-        title: "Success",
-        description: "Bulk operation started successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error('Error fetching bulk operation stats:', error);
     }
-  });
+  };
+
+  const filteredOperations = operations.filter(operation => 
+    operation.operation_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    operation.operation_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    operation.target_table?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'running': return 'bg-blue-100 text-blue-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed': return 'bg-green-600';
+      case 'running': return 'bg-blue-600';
+      case 'pending': return 'bg-yellow-600';
+      case 'failed': return 'bg-red-600';
+      default: return 'bg-gray-600';
     }
   };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4" />;
-      case 'running': return <Activity className="h-4 w-4" />;
-      case 'failed': return <XCircle className="h-4 w-4" />;
-      case 'pending': return <Clock className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const calculateProgress = (operation) => {
-    if (operation.total_records === 0) return 0;
-    return Math.round((operation.processed_records / operation.total_records) * 100);
-  };
-
-  const filteredOperations = operations.filter(operation => {
-    const matchesSearch = operation.operation_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         operation.operation_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         operation.target_table?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || operation.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <div className="space-y-6">
-      {/* Bulk Operations Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Bulk Operations Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Operations</CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
+            <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bulkStats?.totalOperations || 0}</div>
+            <div className="text-2xl font-bold">{stats.totalOperations}</div>
             <p className="text-xs text-muted-foreground">All bulk operations</p>
           </CardContent>
         </Card>
@@ -130,21 +94,21 @@ const AdminBulkOperationsTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Running</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bulkStats?.runningOperations || 0}</div>
-            <p className="text-xs text-muted-foreground">Currently executing</p>
+            <div className="text-2xl font-bold text-blue-600">{stats.runningOperations}</div>
+            <p className="text-xs text-muted-foreground">Currently processing</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <Download className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bulkStats?.completedOperations || 0}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.completedOperations}</div>
             <p className="text-xs text-muted-foreground">Successfully finished</p>
           </CardContent>
         </Card>
@@ -152,11 +116,11 @@ const AdminBulkOperationsTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Failed</CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
+            <Upload className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bulkStats?.failedOperations || 0}</div>
-            <p className="text-xs text-muted-foreground">Failed operations</p>
+            <div className="text-2xl font-bold text-red-600">{stats.failedOperations}</div>
+            <p className="text-xs text-muted-foreground">Operations with errors</p>
           </CardContent>
         </Card>
       </div>
@@ -164,113 +128,87 @@ const AdminBulkOperationsTab = () => {
       {/* Bulk Operations Management */}
       <Card>
         <CardHeader>
-          <CardTitle>Bulk Operations</CardTitle>
-          <CardDescription>Monitor and manage bulk database operations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5" />
+            Bulk Operations Management
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search operations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
+                className="pl-8"
               />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="running">Running</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-              </select>
             </div>
-            <Button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-bulk-operations'] })}
-              variant="outline"
-              size="sm"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+            <Button onClick={fetchOperations}>Refresh</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredOperations.map((operation) => (
+              <div key={operation.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">{operation.operation_name}</span>
+                    <Badge className={getStatusColor(operation.status)}>
+                      {operation.status?.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Type: {operation.operation_type} • Table: {operation.target_table}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Started: {new Date(operation.started_at).toLocaleDateString()}
+                    {operation.completed_at && ` • Completed: ${new Date(operation.completed_at).toLocaleDateString()}`}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium">
+                    {operation.processed_records}/{operation.total_records || 0} records
+                  </div>
+                  {operation.failed_records > 0 && (
+                    <div className="text-sm text-red-600">
+                      {operation.failed_records} failed
+                    </div>
+                  )}
+                  <div className="text-sm text-muted-foreground">
+                    {operation.total_records > 0 ? 
+                      `${((operation.processed_records / operation.total_records) * 100).toFixed(1)}%` : 
+                      '0%'
+                    }
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Quick Bulk Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button className="h-20 flex flex-col items-center justify-center">
+              <Upload className="h-6 w-6 mb-2" />
+              Bulk Import Coins
+            </Button>
+            <Button className="h-20 flex flex-col items-center justify-center" variant="outline">
+              <Download className="h-6 w-6 mb-2" />
+              Export Data
+            </Button>
+            <Button className="h-20 flex flex-col items-center justify-center" variant="outline">
+              <Settings className="h-6 w-6 mb-2" />
+              Batch Update
             </Button>
           </div>
-          
-          {isLoading ? (
-            <div className="text-center py-8">Loading bulk operations...</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Operation</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Target Table</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Records</TableHead>
-                  <TableHead>Started</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOperations.map((operation) => (
-                  <TableRow key={operation.id}>
-                    <TableCell className="font-medium">
-                      {operation.operation_name}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{operation.operation_type}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{operation.target_table}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(operation.status)}
-                        <Badge className={getStatusColor(operation.status)}>
-                          {operation.status}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Progress value={calculateProgress(operation)} className="w-16" />
-                        <span className="text-sm">{calculateProgress(operation)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{operation.processed_records}/{operation.total_records}</div>
-                        {operation.failed_records > 0 && (
-                          <div className="text-red-600">
-                            {operation.failed_records} failed
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(operation.started_at).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {operation.status === 'running' ? (
-                          <Button variant="outline" size="sm" disabled>
-                            <Pause className="h-4 w-4" />
-                          </Button>
-                        ) : operation.status === 'pending' ? (
-                          <Button variant="outline" size="sm" disabled>
-                            <Play className="h-4 w-4" />
-                          </Button>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
         </CardContent>
       </Card>
     </div>

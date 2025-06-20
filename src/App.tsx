@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -22,6 +23,8 @@ import DealerUpgradePage from "./pages/DealerUpgradePage";
 import CategoryPage from "./pages/CategoryPage";
 import TokenPage from "./pages/TokenPage";
 import DealerStorePage from "./pages/DealerStorePage";
+import DealerPanel from "./pages/DealerPanel";
+import MarketplacePanelPage from "./pages/MarketplacePanelPage";
 
 const queryClient = new QueryClient();
 
@@ -40,13 +43,14 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/marketplace" element={<ActiveMarketplace />} />
+                  <Route path="/marketplace/open-store" element={<MarketplacePanelPage />} />
                   <Route path="/auctions" element={<Auctions />} />
                   <Route path="/upload" element={<CoinUpload />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/admin" element={<AdminPanelPage />} />
                   <Route path="/coin/:id" element={<CoinDetails />} />
                   <Route path="/dealer-direct" element={<DealerDirect />} />
-                  <Route path="/dealer" element={<DealerDirect />} />
+                  <Route path="/dealer" element={<DealerPanel />} />
                   <Route path="/dealer/:dealerId" element={<DealerStorePage />} />
                   <Route path="/store/:dealerId" element={<DealerStorePage />} />
                   <Route path="/dealer/upgrade" element={<DealerUpgradePage />} />

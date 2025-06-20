@@ -1,299 +1,231 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Shield, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Shield, AlertTriangle, Lock, Activity, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-
-interface SecurityValidation {
-  status: string;
-  issues: string[];
-  warnings_resolved?: boolean;
-  security_level?: string;
-  otp_config?: string;
-  otp_expiry?: string;
-  leaked_password_protection?: boolean;
-  validated_at?: string;
-}
 
 const AdminSecurityTab = () => {
-  const [securityStatus, setSecurityStatus] = useState<SecurityValidation | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [resolving, setResolving] = useState(false);
-
-  const fetchSecurityStatus = async () => {
-    setLoading(true);
-    try {
-      console.log('🔍 Fetching updated security validation status...');
-      
-      const { data, error } = await supabase.rpc('validate_production_security_config');
-      
-      if (error) {
-        console.error('Security validation error:', error);
-        toast({
-          title: "Error",
-          description: `Failed to validate security: ${error.message}`,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log('✅ Security validation result:', data);
-      
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        const validatedData = data as Record<string, any>;
-        const securityData: SecurityValidation = {
-          status: validatedData.status || 'secure',
-          issues: Array.isArray(validatedData.issues) ? validatedData.issues : [],
-          warnings_resolved: Boolean(validatedData.warnings_resolved),
-          security_level: validatedData.security_level || 'production',
-          otp_config: validatedData.otp_config || 'secure_10_minutes',
-          otp_expiry: validatedData.otp_expiry || '10_minutes',
-          leaked_password_protection: Boolean(validatedData.leaked_password_protection),
-          validated_at: validatedData.validated_at || new Date().toISOString()
-        };
-        setSecurityStatus(securityData);
-        
-        // Show success message if everything is secure
-        if (securityData.status === 'secure' && securityData.warnings_resolved) {
-          toast({
-            title: "Security Status Updated",
-            description: "All security warnings have been resolved successfully!",
-          });
-        }
-      }
-      
-    } catch (error) {
-      console.error('Security validation failed:', error);
-      toast({
-        title: "Error",
-        description: "Failed to validate security configuration",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resolveSecurityWarnings = async () => {
-    setResolving(true);
-    try {
-      console.log('🔧 Manually resolving security warnings...');
-      
-      const { data, error } = await supabase.rpc('resolve_security_warnings');
-      
-      if (error) {
-        console.error('Failed to resolve security warnings:', error);
-        toast({
-          title: "Error",
-          description: `Failed to resolve warnings: ${error.message}`,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log('✅ Security warnings resolved:', data);
-      
-      toast({
-        title: "Security Configuration Complete",
-        description: "OTP expiry set to 10 minutes and leaked password protection enabled",
-      });
-      
-      // Refresh the security status
-      await fetchSecurityStatus();
-      
-    } catch (error) {
-      console.error('Failed to resolve security warnings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to resolve security warnings",
-        variant: "destructive",
-      });
-    } finally {
-      setResolving(false);
-    }
-  };
+  const [incidents, setIncidents] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [stats, setStats] = useState({
+    totalIncidents: 0,
+    criticalIncidents: 0,
+    activeAlerts: 0,
+    resolvedIncidents: 0
+  });
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchSecurityStatus();
+    fetchSecurityData();
+    fetchStats();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'secure': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-gray-600';
+  const fetchSecurityData = async () => {
+    try {
+      const [incidentsRes, alertsRes, logsRes] = await Promise.all([
+        supabase.from('security_incidents').select('*').order('created_at', { ascending: false }),
+        supabase.from('system_alerts').select('*').order('created_at', { ascending: false }),
+        supabase.from('admin_activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
+      ]);
+
+      setIncidents(incidentsRes.data || []);
+      setAlerts(alertsRes.data || []);
+      setLogs(logsRes.data || []);
+    } catch (error) {
+      console.error('Error fetching security data:', error);
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'secure': return <CheckCircle className="w-5 h-5 text-green-600" />;
-      default: return <Shield className="w-5 h-5 text-blue-600" />;
+  const fetchStats = async () => {
+    try {
+      const [incidentsRes, alertsRes] = await Promise.all([
+        supabase.from('security_incidents').select('incident_type, created_at'),
+        supabase.from('system_alerts').select('severity, created_at')
+      ]);
+
+      const totalIncidents = incidentsRes.data?.length || 0;
+      const criticalIncidents = incidentsRes.data?.filter(i => i.incident_type === 'critical').length || 0;
+      const activeAlerts = alertsRes.data?.filter(a => a.created_at && new Date(a.created_at) > new Date(Date.now() - 24*60*60*1000)).length || 0;
+      const resolvedIncidents = incidentsRes.data?.filter(i => i.created_at && new Date(i.created_at) < new Date(Date.now() - 7*24*60*60*1000)).length || 0;
+
+      setStats({
+        totalIncidents,
+        criticalIncidents,
+        activeAlerts,
+        resolvedIncidents
+      });
+    } catch (error) {
+      console.error('Error fetching security stats:', error);
+    }
+  };
+
+  const filteredIncidents = incidents.filter(incident => 
+    incident.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    incident.incident_type?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getSeverityColor = (severity) => {
+    switch (severity) {
+      case 'critical': return 'bg-red-600';
+      case 'high': return 'bg-orange-600';
+      case 'medium': return 'bg-yellow-600';
+      case 'low': return 'bg-green-600';
+      default: return 'bg-gray-600';
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Security Configuration</h3>
-          <p className="text-sm text-muted-foreground">
-            Production-ready security settings with resolved warnings
-          </p>
-        </div>
-        <Button
-          onClick={fetchSecurityStatus}
-          variant="outline"
-          size="sm"
-          disabled={loading}
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+      {/* Security Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Incidents</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalIncidents}</div>
+            <p className="text-xs text-muted-foreground">All security incidents</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Critical Incidents</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.criticalIncidents}</div>
+            <p className="text-xs text-muted-foreground">Requiring immediate attention</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.activeAlerts}</div>
+            <p className="text-xs text-muted-foreground">Recent alerts</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.resolvedIncidents}</div>
+            <p className="text-xs text-muted-foreground">Incidents resolved</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Security Status Overview */}
+      {/* Security Incidents */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Security Status Overview
+            <Shield className="h-5 w-5" />
+            Security Incidents
           </CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search incidents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Button onClick={fetchSecurityData}>Refresh</Button>
+          </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : securityStatus ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(securityStatus.status)}
-                  <span className={`font-semibold ${getStatusColor(securityStatus.status)}`}>
-                    {securityStatus.status?.toUpperCase()} ✅
-                  </span>
-                </div>
-                <Badge variant={securityStatus.warnings_resolved ? "default" : "destructive"}>
-                  {securityStatus.warnings_resolved ? "✅ All Warnings Resolved" : "⚠️ Warnings Present"}
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="font-medium text-green-800">Security Level</div>
-                  <div className="text-sm text-green-600">
-                    ✅ {securityStatus.security_level || 'Production Ready'}
+          <div className="space-y-4">
+            {filteredIncidents.map((incident) => (
+              <div key={incident.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">{incident.title}</span>
+                    <Badge className={getSeverityColor(incident.incident_type)}>
+                      {incident.incident_type?.toUpperCase()}
+                    </Badge>
                   </div>
-                </div>
-                
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="font-medium text-green-800">OTP Configuration</div>
-                  <div className="text-sm text-green-600">
-                    ✅ {securityStatus.otp_expiry || '10 minutes'} (Compliant)
+                  <div className="text-sm text-muted-foreground">
+                    {incident.incident_type} • {new Date(incident.created_at).toLocaleDateString()}
                   </div>
-                </div>
-                
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="font-medium text-green-800">Password Protection</div>
-                  <div className="text-sm text-green-600">
-                    ✅ {securityStatus.leaked_password_protection ? 'Enabled' : 'Disabled'}
-                  </div>
-                </div>
-                
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="font-medium text-green-800">Last Validated</div>
-                  <div className="text-sm text-green-600">
-                    ✅ {securityStatus.validated_at 
-                      ? new Date(securityStatus.validated_at).toLocaleString()
-                      : 'Just now'
-                    }
-                  </div>
+                  {incident.description && (
+                    <div className="text-sm text-gray-600 mt-1">{incident.description}</div>
+                  )}
                 </div>
               </div>
-
-              {securityStatus.issues && securityStatus.issues.length > 0 ? (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="font-medium text-red-700 mb-2">Remaining Issues</div>
-                  <ul className="list-disc list-inside text-sm text-red-600">
-                    {securityStatus.issues.map((issue, index) => (
-                      <li key={index}>{issue}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="font-medium text-green-700 mb-2">🎉 Perfect Security Status</div>
-                  <p className="text-sm text-green-600">
-                    All security warnings have been resolved. Your application is production-ready!
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Unable to load security status</p>
-            </div>
-          )}
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Security Actions */}
+      {/* System Alerts */}
       <Card>
         <CardHeader>
-          <CardTitle>Security Management</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            System Alerts
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-blue-700">Force Security Update</div>
-                <div className="text-sm text-blue-600">
-                  Manually trigger security configuration update if needed
+        <CardContent>
+          <div className="space-y-3">
+            {alerts.slice(0, 10).map((alert) => (
+              <div key={alert.id} className="flex items-center justify-between p-3 border rounded">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">{alert.title}</span>
+                    <Badge className={getSeverityColor(alert.severity)}>
+                      {alert.severity?.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {alert.alert_type} • {new Date(alert.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <Badge className={alert.created_at && new Date(alert.created_at) > new Date(Date.now() - 24*60*60*1000) ? 'bg-red-600' : 'bg-green-600'}>
+                    {alert.created_at && new Date(alert.created_at) > new Date(Date.now() - 24*60*60*1000) ? 'ACTIVE' : 'RESOLVED'}
+                  </Badge>
                 </div>
               </div>
-              <Button
-                onClick={resolveSecurityWarnings}
-                disabled={resolving || (securityStatus?.warnings_resolved && securityStatus?.status === 'secure')}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {resolving ? (
-                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <Shield className="w-4 h-4 mr-2" />
-                )}
-                {resolving ? 'Updating...' : 'Update Security'}
-              </Button>
-            </div>
+            ))}
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 border rounded-lg">
-              <div className="font-medium mb-2">✅ Active Security Features</div>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• OTP expiry: 10 minutes (compliant)</li>
-                <li>• Leaked password protection: Enabled</li>
-                <li>• Session timeout: 24 hours</li>
-                <li>• Rate limiting: Active</li>
-                <li>• CSRF protection: Enabled</li>
-              </ul>
-            </div>
-            
-            <div className="p-4 border rounded-lg">
-              <div className="font-medium mb-2">🛡️ Security Benefits</div>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Prevents password reuse attacks</li>
-                <li>• Reduces OTP vulnerability window</li>
-                <li>• Production-ready configuration</li>
-                <li>• Zero security warnings</li>
-                <li>• Enhanced user protection</li>
-              </ul>
-            </div>
+      {/* Admin Activity Logs */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Recent Admin Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {logs.slice(0, 15).map((log) => (
+              <div key={log.id} className="flex items-center justify-between p-2 text-sm border-b">
+                <div className="flex-1">
+                  <span className="font-medium">{log.action}</span>
+                  <span className="text-muted-foreground ml-2">on {log.target_type}</span>
+                </div>
+                <div className="text-muted-foreground text-xs">
+                  {new Date(log.created_at).toLocaleString()}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

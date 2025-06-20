@@ -1,309 +1,308 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Search, Store, CheckCircle, XCircle, Eye, Edit, Star, MapPin, Clock, DollarSign } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-
-interface UpdateStoreParams {
-  storeId: string;
-  updates: Record<string, any>;
-}
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Store, 
+  Plus, 
+  ExternalLink, 
+  Upload, 
+  Verified, 
+  AlertTriangle,
+  User,
+  Mail,
+  Phone,
+  Globe,
+  Edit
+} from 'lucide-react';
+import { useRealAdminStores, useCreateStore, useUpdateStoreVerification } from '@/hooks/admin/useRealAdminStores';
 
 const AdminStoresTab = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStore, setSelectedStore] = useState<any>(null);
-  const queryClient = useQueryClient();
-
-  const { data: stores = [], isLoading } = useQuery({
-    queryKey: ['admin-stores'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('stores')
-        .select(`
-          *,
-          profiles!stores_user_id_fkey (
-            id,
-            full_name,
-            email,
-            avatar_url,
-            verified_dealer,
-            rating
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
+  const { data: stores = [], isLoading } = useRealAdminStores();
+  const createStore = useCreateStore();
+  const updateVerification = useUpdateStoreVerification();
+  
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newStore, setNewStore] = useState({
+    name: '',
+    description: '',
+    email: '',
+    phone: '',
+    website: ''
   });
 
-  const { data: storeStats } = useQuery({
-    queryKey: ['admin-store-stats'],
-    queryFn: async () => {
-      const [totalStores, verifiedStores, activeStores] = await Promise.all([
-        supabase.from('stores').select('id', { count: 'exact', head: true }),
-        supabase.from('stores').select('id', { count: 'exact', head: true }).eq('verified', true),
-        supabase.from('stores').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      ]);
-
-      return {
-        total: totalStores.count || 0,
-        verified: verifiedStores.count || 0,
-        active: activeStores.count || 0,
-      };
-    },
-  });
-
-  const updateStoreMutation = useMutation({
-    mutationFn: async ({ storeId, updates }: UpdateStoreParams) => {
-      const { error } = await supabase
-        .from('stores')
-        .update(updates)
-        .eq('id', storeId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-stores'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-store-stats'] });
-      toast({
-        title: "Success",
-        description: "Store updated successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const filteredStores = stores.filter(store => {
-    const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
-    return store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           profile?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  const handleVerifyStore = async (storeId: string, verified: boolean) => {
-    updateStoreMutation.mutate({ storeId, updates: { verified } });
+  const handleCreateStore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStore.name.trim()) return;
+    
+    await createStore.mutateAsync(newStore);
+    setNewStore({ name: '', description: '', email: '', phone: '', website: '' });
+    setShowCreateForm(false);
   };
 
-  const handleToggleActive = async (storeId: string, isActive: boolean) => {
-    updateStoreMutation.mutate({ storeId, updates: { is_active: isActive } });
+  const openDealerPanel = (storeId?: string) => {
+    const url = storeId ? `/dealer?store=${storeId}` : '/dealer';
+    window.open(url, '_blank');
   };
+
+  const openCoinUpload = (storeId: string) => {
+    window.open(`/upload?store=${storeId}`, '_blank');
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p>Loading REAL store data from Supabase...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stores</CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{storeStats?.total || 0}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verified Stores</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{storeStats?.verified || 0}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Stores</CardTitle>
-            <CheckCircle className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{storeStats?.active || 0}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verification Rate</CardTitle>
-            <Star className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {storeStats?.total ? ((storeStats.verified / storeStats.total) * 100).toFixed(1) : 0}%
-            </div>
-          </CardContent>
-        </Card>
+      {/* Header with Real Data Status */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-green-800 mb-2">
+              🔴 REAL STORES MANAGEMENT - LIVE DATA
+            </h2>
+            <p className="text-green-600">
+              {stores.length} Active Stores • Direct Dealer Access • Unlimited Creation
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Button 
+              onClick={() => openDealerPanel()}
+              className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+            >
+              <Store className="h-4 w-4" />
+              Open Dealer Panel
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+            <Button 
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Store
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Store Management</CardTitle>
-          <CardDescription>Manage dealer stores, verification status, and settings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <Search className="h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search stores by name, owner, or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-
-          {isLoading ? (
-            <div className="text-center py-8">Loading stores...</div>
+      <Tabs defaultValue="stores" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="stores">My Stores ({stores.length})</TabsTrigger>
+          <TabsTrigger value="create">Quick Create</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="stores" className="space-y-4">
+          {stores.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Store className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">No Stores Yet</h3>
+                <p className="text-gray-500 mb-4">Create your first store to start uploading coins</p>
+                <Button onClick={() => setShowCreateForm(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Store
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Store Info</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStores.map((store) => {
-                  const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
-                  
-                  return (
-                    <TableRow key={store.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{store.name}</div>
-                          <div className="text-sm text-gray-500">{store.description}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{profile?.full_name || 'Unknown'}</div>
-                          <div className="text-sm text-gray-500">{profile?.email}</div>
-                          {profile?.verified_dealer && (
-                            <Badge variant="secondary" className="text-xs mt-1">Verified Dealer</Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {stores.map((store) => {
+                const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+                
+                return (
+                  <Card key={store.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          {profile?.avatar_url ? (
+                            <img 
+                              src={profile.avatar_url} 
+                              alt={store.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                              <Store className="w-6 h-6 text-white" />
+                            </div>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            {store.verified ? (
-                              <Badge variant="default" className="bg-green-100 text-green-800">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Verified
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                <Clock className="w-3 h-3 mr-1" />
-                                Pending
-                              </Badge>
-                            )}
-                          </div>
                           <div>
-                            {store.is_active ? (
-                              <Badge variant="outline" className="text-green-600">Active</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-red-600">Inactive</Badge>
-                            )}
+                            <CardTitle className="text-lg">{store.name}</CardTitle>
+                            <div className="flex items-center gap-2">
+                              {store.verified ? (
+                                <Badge className="bg-green-600 text-white">
+                                  <Verified className="w-3 h-3 mr-1" />
+                                  Verified
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                  <AlertTriangle className="w-3 h-3 mr-1" />
+                                  Pending
+                                </Badge>
+                              )}
+                              {store.is_active && (
+                                <Badge className="bg-blue-600 text-white">Active</Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {new Date(store.created_at).toLocaleDateString()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedStore(store)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader>
-                                <DialogTitle>Store Details: {store.name}</DialogTitle>
-                                <DialogDescription>
-                                  Manage store verification and settings
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label>Verification Status</Label>
-                                    <div className="flex items-center space-x-2 mt-2">
-                                      <Switch
-                                        checked={store.verified}
-                                        onCheckedChange={(checked) => handleVerifyStore(store.id, checked)}
-                                      />
-                                      <span>{store.verified ? 'Verified' : 'Unverified'}</span>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <Label>Active Status</Label>
-                                    <div className="flex items-center space-x-2 mt-2">
-                                      <Switch
-                                        checked={store.is_active}
-                                        onCheckedChange={(checked) => handleToggleActive(store.id, checked)}
-                                      />
-                                      <span>{store.is_active ? 'Active' : 'Inactive'}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <Label>Store Description</Label>
-                                  <Textarea
-                                    value={store.description || ''}
-                                    className="mt-2"
-                                    rows={3}
-                                    readOnly
-                                  />
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                          
-                          <Button
-                            variant={store.verified ? "destructive" : "default"}
-                            size="sm"
-                            onClick={() => handleVerifyStore(store.id, !store.verified)}
-                            disabled={updateStoreMutation.isPending}
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      {store.description && (
+                        <p className="text-gray-600 text-sm line-clamp-2">{store.description}</p>
+                      )}
+                      
+                      <div className="space-y-2 text-sm">
+                        {profile?.full_name && (
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-400" />
+                            <span>{profile.full_name}</span>
+                          </div>
+                        )}
+                        {profile?.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs">{profile.email}</span>
+                          </div>
+                        )}
+                        {store.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            <span>{store.phone}</span>
+                          </div>
+                        )}
+                        {store.website && (
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs">{store.website}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => openCoinUpload(store.id)}
+                          className="flex-1"
+                        >
+                          <Upload className="w-4 h-4 mr-1" />
+                          Upload Coins
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => openDealerPanel(store.id)}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                        {!store.verified && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => updateVerification.mutate({ storeId: store.id, verified: true })}
                           >
-                            {store.verified ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                            <Verified className="w-4 h-4" />
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+        
+        <TabsContent value="create">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Store</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateStore} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Store Name *</Label>
+                  <Input
+                    id="name"
+                    value={newStore.name}
+                    onChange={(e) => setNewStore({ ...newStore, name: e.target.value })}
+                    placeholder="Enter store name"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newStore.description}
+                    onChange={(e) => setNewStore({ ...newStore, description: e.target.value })}
+                    placeholder="Describe your store"
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newStore.email}
+                      onChange={(e) => setNewStore({ ...newStore, email: e.target.value })}
+                      placeholder="store@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={newStore.phone}
+                      onChange={(e) => setNewStore({ ...newStore, phone: e.target.value })}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={newStore.website}
+                    onChange={(e) => setNewStore({ ...newStore, website: e.target.value })}
+                    placeholder="https://yourstore.com"
+                  />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={createStore.isPending || !newStore.name.trim()}
+                >
+                  {createStore.isPending ? 'Creating...' : 'Create Store'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -6,269 +7,226 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')!;
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { 
-      frontImage, 
-      backImage, 
-      analysisType = 'comprehensive',
-      includeErrorDetection = true,
-      includeVisualComparison = true 
-    } = await req.json();
+    const { images, analysisType = 'comprehensive' } = await req.json();
 
-    if (!frontImage || !backImage) {
+    if (!images || !Array.isArray(images) || images.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Both front and back images are required' 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, error: 'No images provided' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
-    const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!anthropicApiKey) {
-      console.error('Anthropic API key not found');
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'AI service not configured' 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    // Analyze primary image with Claude
+    const claudeAnalysis = await analyzeWithClaude(images[0], analysisType);
+    
+    // Analyze with GPT for comparison
+    const gptAnalysis = await analyzeWithGPT(images[0], analysisType);
+    
+    // Merge and validate results
+    const mergedAnalysis = mergeAnalysisResults(claudeAnalysis, gptAnalysis);
+    
+    // Analyze additional images if provided
+    const additionalAnalyses = [];
+    if (images.length > 1) {
+      for (let i = 1; i < Math.min(images.length, 5); i++) {
+        try {
+          const additionalAnalysis = await analyzeWithClaude(images[i], 'detail');
+          additionalAnalyses.push({
+            imageIndex: i,
+            analysis: additionalAnalysis,
+            imageType: i === 1 ? 'reverse' : `detail_${i-1}`
+          });
+        } catch (error) {
+          // Continue with other images
         }
-      );
-    }
-
-    const startTime = Date.now();
-
-    // Enhanced dual-side analysis prompt
-    const dualAnalysisPrompt = `
-You are a world-renowned numismatist and coin authentication expert with over 40 years of experience. You have access to both the obverse (front) and reverse (back) of this coin for complete analysis.
-
-Analyze both sides comprehensively and provide your expert assessment in this exact JSON format:
-{
-  "success": true,
-  "analysis": {
-    "name": "Complete coin name with series, variety, and all details",
-    "year": 1921,
-    "country": "Country of origin",
-    "denomination": "Face value and unit",
-    "composition": "Exact metal composition (e.g., 90% Silver, 10% Copper)",
-    "grade": "Professional grade assessment (MS-65, AU-50, etc.)",
-    "estimated_value": 125.50,
-    "rarity": "Common|Uncommon|Rare|Very Rare|Extremely Rare",
-    "mint": "Mint facility and mint mark if visible",
-    "diameter": 38.1,
-    "weight": 26.73,
-    "obverse_details": "Detailed description of front side design elements",
-    "reverse_details": "Detailed description of back side design elements",
-    "mint_marks": "Any visible mint marks and their locations",
-    "wear_patterns": "Detailed wear analysis from both sides",
-    "strike_quality": "Quality of the striking process",
-    "edge_details": "Edge type and condition if visible"
-  },
-  "confidence": 0.95,
-  "errors": ["Any mint errors detected from both sides"],
-  "varieties": ["Special varieties or die states"],
-  "authentication_analysis": {
-    "authenticity_confidence": 0.95,
-    "potential_issues": ["Any concerns about authenticity"],
-    "key_authentication_points": ["Critical features that confirm authenticity"],
-    "comparison_notes": "How this compares to known examples"
-  },
-  "condition_assessment": {
-    "obverse_grade": "Grade specific to front side",
-    "reverse_grade": "Grade specific to back side",
-    "overall_condition": "Combined condition assessment",
-    "problem_areas": ["Any condition issues"],
-    "preservation_quality": "How well preserved the coin is"
-  },
-  "market_analysis": {
-    "current_market_range": {"min": 100, "max": 150},
-    "recent_auction_results": "Recent comparable sales",
-    "market_trend": "Current market direction",
-    "collector_demand": "Level of collector interest"
-  },
-  "dual_side_observations": {
-    "design_consistency": "How well both sides match in terms of wear and quality",
-    "strike_alignment": "Alignment between obverse and reverse",
-    "overall_assessment": "Combined analysis using both sides"
-  }
-}
-
-Critical Analysis Points:
-1. Use BOTH images to cross-reference and verify identification
-2. Look for mint errors that may only be visible on one side
-3. Assess wear patterns that appear on both sides
-4. Check for any inconsistencies between front and back
-5. Provide the most accurate identification possible using both views
-6. Pay special attention to any errors, varieties, or unusual features
-7. Consider the rarity and value implications of what you observe
-
-Be extremely thorough and precise. This dual-side analysis should be significantly more accurate than single-side identification.`;
-
-    // Call Anthropic Claude API with both images
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 3000,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: dualAnalysisPrompt
-              },
-              {
-                type: 'text',
-                text: 'FRONT SIDE (OBVERSE):'
-              },
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: 'image/jpeg',
-                  data: frontImage.includes('base64,') ? frontImage.split('base64,')[1] : frontImage
-                }
-              },
-              {
-                type: 'text',
-                text: 'BACK SIDE (REVERSE):'
-              },
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: 'image/jpeg',
-                  data: backImage.includes('base64,') ? backImage.split('base64,')[1] : backImage
-                }
-              }
-            ]
-          }
-        ]
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Anthropic API Error:', errorText);
-      throw new Error(`AI service error: ${response.status}`);
-    }
-
-    const aiResponse = await response.json();
-    const content = aiResponse.content[0]?.text;
-
-    console.log('Dual-side AI analysis response:', content);
-
-    // Parse the AI response
-    let analysisResult;
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysisResult = JSON.parse(jsonMatch[0]);
-      } else {
-        analysisResult = JSON.parse(content);
       }
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      analysisResult = {
-        success: false,
-        analysis: {
-          name: 'Analysis Failed',
-          year: new Date().getFullYear(),
-          country: 'Unknown',
-          denomination: 'Unknown',
-          composition: 'Unknown',
-          grade: 'Ungraded',
-          estimated_value: 0,
-          rarity: 'Unknown',
-          obverse_details: 'Unable to analyze front side',
-          reverse_details: 'Unable to analyze back side'
-        },
-        confidence: 0.1,
-        errors: [],
-        varieties: []
-      };
     }
 
-    const processingTime = Date.now() - startTime;
-
-    // Ensure comprehensive results structure
     const finalResult = {
       success: true,
-      analysis: {
-        name: analysisResult.analysis?.name || 'Unknown Coin',
-        year: analysisResult.analysis?.year || new Date().getFullYear(),
-        country: analysisResult.analysis?.country || 'Unknown',
-        denomination: analysisResult.analysis?.denomination || 'Unknown',
-        composition: analysisResult.analysis?.composition || 'Unknown',
-        grade: analysisResult.analysis?.grade || 'Ungraded',
-        estimated_value: Math.max(0, analysisResult.analysis?.estimated_value || 0),
-        rarity: analysisResult.analysis?.rarity || 'Common',
-        mint: analysisResult.analysis?.mint,
-        diameter: analysisResult.analysis?.diameter,
-        weight: analysisResult.analysis?.weight,
-        obverse_details: analysisResult.analysis?.obverse_details || '',
-        reverse_details: analysisResult.analysis?.reverse_details || '',
-        mint_marks: analysisResult.analysis?.mint_marks || '',
-        wear_patterns: analysisResult.analysis?.wear_patterns || '',
-        strike_quality: analysisResult.analysis?.strike_quality || '',
-        edge_details: analysisResult.analysis?.edge_details || ''
-      },
-      confidence: Math.min(1, Math.max(0, analysisResult.confidence || 0.5)),
-      errors: Array.isArray(analysisResult.errors) ? analysisResult.errors : [],
-      varieties: Array.isArray(analysisResult.varieties) ? analysisResult.varieties : [],
-      authentication_analysis: analysisResult.authentication_analysis || {},
-      condition_assessment: analysisResult.condition_assessment || {},
-      market_analysis: analysisResult.market_analysis || {},
-      dual_side_observations: analysisResult.dual_side_observations || {},
-      processing_time: processingTime,
-      ai_provider: 'anthropic',
-      model: 'claude-3-5-sonnet',
-      analysis_type: 'dual_side_comprehensive',
-      timestamp: new Date().toISOString()
+      primary_analysis: mergedAnalysis,
+      additional_analyses: additionalAnalyses,
+      total_images_analyzed: 1 + additionalAnalyses.length,
+      processing_metadata: {
+        claude_confidence: claudeAnalysis.confidence,
+        gpt_confidence: gptAnalysis.confidence,
+        merged_confidence: mergedAnalysis.confidence,
+        analysis_type: analysisType,
+        timestamp: new Date().toISOString()
+      }
     };
-
-    console.log('Enhanced dual-side AI analysis completed:', finalResult);
 
     return new Response(
       JSON.stringify(finalResult),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in enhanced-dual-recognition function:', error);
-    
     return new Response(
       JSON.stringify({ 
-        success: false,
-        error: 'Dual-side AI analysis failed',
-        message: error.message,
-        processing_time: 0,
-        ai_provider: 'anthropic'
+        success: false, 
+        error: error.message || 'Analysis failed',
+        timestamp: new Date().toISOString()
       }),
       { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 500 
       }
     );
   }
 });
+
+async function analyzeWithClaude(imageData: string, analysisType: string) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': anthropicApiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: 2000,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: 'image/jpeg',
+              data: imageData
+            }
+          },
+          {
+            type: 'text',
+            text: getCoinAnalysisPrompt(analysisType)
+          }
+        ]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Claude API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const analysis = JSON.parse(data.content[0].text);
+  
+  return {
+    ...analysis,
+    ai_provider: 'claude-3-sonnet',
+    confidence: analysis.confidence || 0.75
+  };
+}
+
+async function analyzeWithGPT(imageData: string, analysisType: string) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${openaiApiKey}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      max_tokens: 2000,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:image/jpeg;base64,${imageData}`
+            }
+          },
+          {
+            type: 'text',
+            text: getCoinAnalysisPrompt(analysisType)
+          }
+        ]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const analysis = JSON.parse(data.choices[0].message.content);
+  
+  return {
+    ...analysis,
+    ai_provider: 'gpt-4o',
+    confidence: analysis.confidence || 0.70
+  };
+}
+
+function mergeAnalysisResults(claudeResult: any, gptResult: any) {
+  const confidence = (claudeResult.confidence + gptResult.confidence) / 2;
+  
+  return {
+    name: claudeResult.name || gptResult.name || 'Unknown Coin',
+    year: claudeResult.year || gptResult.year || new Date().getFullYear(),
+    country: claudeResult.country || gptResult.country || 'Unknown',
+    denomination: claudeResult.denomination || gptResult.denomination || 'Unknown',
+    composition: claudeResult.composition || gptResult.composition || 'Unknown',
+    grade: claudeResult.grade || gptResult.grade || 'Ungraded',
+    estimated_value: Math.max(claudeResult.estimated_value || 0, gptResult.estimated_value || 0),
+    rarity: claudeResult.rarity || gptResult.rarity || 'Common',
+    mint: claudeResult.mint || gptResult.mint,
+    diameter: claudeResult.diameter || gptResult.diameter,
+    weight: claudeResult.weight || gptResult.weight,
+    errors: [...(claudeResult.errors || []), ...(gptResult.errors || [])],
+    confidence: confidence,
+    ai_providers: ['claude-3-sonnet', 'gpt-4o'],
+    description: claudeResult.description || gptResult.description,
+    category: claudeResult.category || gptResult.category || 'WORLD COINS'
+  };
+}
+
+function getCoinAnalysisPrompt(analysisType: string): string {
+  const basePrompt = `Analyze this coin image and provide a comprehensive JSON response with the following structure:
+{
+  "name": "Full coin name/title",
+  "year": integer_year,
+  "country": "Country of origin",
+  "denomination": "Face value",
+  "composition": "Metal composition",
+  "grade": "Condition grade",
+  "estimated_value": number_in_usd,
+  "rarity": "Common|Scarce|Rare|Ultra Rare|Key Date",
+  "mint": "Mint mark if visible",
+  "diameter": number_in_mm,
+  "weight": number_in_grams,
+  "errors": ["List any visible errors or variations"],
+  "confidence": decimal_0_to_1,
+  "description": "Detailed description",
+  "category": "Coin category"
+}`;
+
+  if (analysisType === 'comprehensive') {
+    return basePrompt + `
+
+Focus on:
+- Accurate identification of the coin
+- Historical context and significance
+- Market value assessment
+- Condition and grading details
+- Any notable features or errors`;
+  }
+
+  return basePrompt + `
+
+Provide basic identification focusing on key visible features.`;
+}

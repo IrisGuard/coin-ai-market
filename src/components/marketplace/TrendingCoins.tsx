@@ -8,22 +8,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 const TrendingCoins = () => {
   const { coins, isLoading, error } = useCachedMarketplaceData();
 
-  // Always calculate trending coins, even if empty
   const trendingCoins = React.useMemo(() => {
     if (!coins || coins.length === 0) return [];
     
     return coins
       .filter(coin => coin.authentication_status === 'verified')
       .sort((a, b) => (b.views || 0) - (a.views || 0))
-      .slice(0, 6); // Fewer coins for trending section
+      .slice(0, 6);
   }, [coins]);
 
-  // Don't render anything while loading
   if (isLoading) {
     return null;
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="mb-8">
@@ -43,7 +40,6 @@ const TrendingCoins = () => {
     );
   }
 
-  // Don't render if no trending coins
   if (!trendingCoins.length) {
     return null;
   }
