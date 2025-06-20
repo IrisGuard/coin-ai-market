@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageGalleryProps {
   images: string[];
@@ -50,13 +51,24 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
 
   const goToImage = (index: number) => {
     setCurrentIndex(index);
+    setIsZoomed(false); // Reset zoom when changing images
+  };
+
+  const goToPrevious = () => {
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : validImages.length - 1;
+    goToImage(newIndex);
+  };
+
+  const goToNext = () => {
+    const newIndex = currentIndex < validImages.length - 1 ? currentIndex + 1 : 0;
+    goToImage(newIndex);
   };
 
   const currentImageUrl = validImages[currentIndex];
 
   return (
     <div className={`relative ${className}`}>
-      {/* Main Image Display - COMPLETELY CLEAN, NO OVERLAYS */}
+      {/* Main Image Display - CLEAN, NO OVERLAYS */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         <img
           src={currentImageUrl}
@@ -74,7 +86,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           loading="eager"
         />
         
-        {/* Loading indicator only - No other overlays */}
+        {/* Loading indicator only when image is not loaded */}
         {!loadedImages.has(currentIndex) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
             <div className="flex flex-col items-center gap-3">
@@ -83,45 +95,81 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
             </div>
           </div>
         )}
+
+        {/* Navigation Arrows - Only show if multiple images */}
+        {validImages.length > 1 && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200 opacity-0 group-hover:opacity-100"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200 opacity-0 group-hover:opacity-100"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
+
+        {/* Image Counter - Small, unobtrusive */}
+        {validImages.length > 1 && (
+          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+            {currentIndex + 1} / {validImages.length}
+          </div>
+        )}
       </div>
       
       {/* Thumbnail Navigation - Show ALL thumbnails when there are multiple images */}
       {validImages.length > 1 && (
-        <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
-          {validImages.map((image, index) => (
-            <button
-              key={index}
-              onClick={() => goToImage(index)}
-              className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                index === currentIndex 
-                  ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg scale-105' 
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md hover:scale-102'
-              }`}
-            >
-              <img
-                src={image}
-                alt={`${coinName} thumbnail ${index + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-200"
-                loading="lazy"
-              />
-              
-              {/* Thumbnail loading indicator */}
-              {!loadedImages.has(index) && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
-
-              {/* Active indicator */}
-              {index === currentIndex && (
-                <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
+        <div className="mt-4">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {validImages.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => goToImage(index)}
+                className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                  index === currentIndex 
+                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg scale-105' 
+                    : 'border-gray-200 hover:border-gray-400 hover:shadow-md hover:scale-102'
+                }`}
+              >
+                <img
+                  src={image}
+                  alt={`${coinName} thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover transition-opacity duration-200"
+                  loading="lazy"
+                />
+                
+                {/* Thumbnail loading indicator */}
+                {!loadedImages.has(index) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                   </div>
+                )}
+
+                {/* Active indicator */}
+                {index === currentIndex && (
+                  <div className="absolute inset-0 bg-blue-500/10 border border-blue-500/20 rounded-lg"></div>
+                )}
+
+                {/* Thumbnail number */}
+                <div className="absolute top-1 left-1 bg-black/60 text-white text-xs rounded px-1 leading-none">
+                  {index + 1}
                 </div>
-              )}
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
