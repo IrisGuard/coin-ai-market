@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, StarOff, Heart, Share2 } from 'lucide-react';
+import { Star, Heart, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
@@ -21,6 +21,8 @@ interface CoinDetailsContentProps {
     condition?: string;
     image?: string;
     images?: string[];
+    obverse_image?: string;
+    reverse_image?: string;
     is_auction?: boolean;
     sold?: boolean;
     starting_bid?: number;
@@ -88,17 +90,32 @@ const CoinDetailsContent = ({
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
-  // Prepare all available images for the gallery
+  // Enhanced function to get all available images
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
-    // Add from images array if available
+    // Priority 1: Check images array
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
-    } else {
-      // Fallback to individual image fields
-      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
+      const validImagesFromArray = coin.images.filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        !img.startsWith('blob:')
+      );
+      allImages.push(...validImagesFromArray);
     }
+    
+    // Priority 2: Add individual image fields if not already included
+    const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
+      .filter(img => 
+        img && 
+        typeof img === 'string' && 
+        img.trim() !== '' && 
+        !img.startsWith('blob:') &&
+        !allImages.includes(img)
+      );
+    
+    allImages.push(...individualImages);
     
     return allImages;
   };

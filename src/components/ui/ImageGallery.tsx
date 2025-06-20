@@ -16,30 +16,9 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   
   // Memoize valid images to prevent unnecessary recalculation
   const validImages = useMemo(() => {
-    const filtered = images.filter(img => img && img.length > 0 && !img.startsWith('blob:'));
-    console.log(`🔍 ImageGallery for ${coinName}: ${images.length} raw -> ${filtered.length} valid images`);
-    return filtered;
-  }, [images, coinName]);
+    return images.filter(img => img && img.length > 0 && !img.startsWith('blob:'));
+  }, [images]);
   
-  // DEBUG: Log the images being processed
-  useEffect(() => {
-    console.log('🔍 ImageGallery DEBUG for coin:', coinName);
-    console.log('🔍 Raw images received:', images);
-    console.log('🔍 Valid images filtered:', validImages);
-    console.log('🔍 Current index:', currentIndex);
-    
-    // Special debug for the Greece coin
-    if (coinName.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR')) {
-      console.log('🏛️ GREECE COIN GALLERY DEBUG:');
-      console.log('🏛️ Raw images array:', images);
-      console.log('🏛️ Valid images array:', validImages);
-      console.log('🏛️ Images count:', validImages.length);
-      validImages.forEach((img, idx) => {
-        console.log(`🏛️ Image ${idx + 1}:`, img);
-      });
-    }
-  }, [images, coinName, validImages, currentIndex]);
-
   // Reset current index if it's out of bounds
   useEffect(() => {
     if (currentIndex >= validImages.length && validImages.length > 0) {
@@ -49,15 +28,13 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
 
   const handleImageLoad = (index: number) => {
     setLoadedImages(prev => new Set([...prev, index]));
-    console.log(`✅ Image ${index + 1} loaded successfully for ${coinName}`);
   };
 
   const handleImageError = (index: number, imageUrl: string) => {
-    console.error(`❌ Image ${index + 1} failed to load for ${coinName}:`, imageUrl);
+    console.error(`Image failed to load: ${imageUrl}`);
   };
 
   if (validImages.length === 0) {
-    console.log('❌ No valid images found for:', coinName);
     return (
       <div className={`aspect-square bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center">
@@ -81,13 +58,11 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
   };
 
   const currentImageUrl = validImages[currentIndex];
-  console.log('🖼️ Displaying image:', currentImageUrl);
 
   return (
     <div className={`relative ${className}`}>
       {/* Main Image Display */}
       <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-        {/* Enhanced image with better loading */}
         <img
           src={currentImageUrl}
           alt={`${coinName} - Image ${currentIndex + 1}`}
@@ -99,7 +74,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
           }}
           onLoad={() => handleImageLoad(currentIndex)}
           onError={() => handleImageError(currentIndex, currentImageUrl)}
-          loading="eager" // Prioritize loading for main image
+          loading="eager"
         />
         
         {/* Loading indicator */}
@@ -154,7 +129,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 src={image}
                 alt={`${coinName} thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
-                loading="lazy" // Lazy load thumbnails for performance
+                loading="lazy"
                 onError={() => handleImageError(index, image)}
               />
               
@@ -164,13 +139,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
               )}
             </button>
           ))}
-        </div>
-      )}
-      
-      {/* Debug info for development */}
-      {process.env.NODE_ENV === 'development' && coinName.includes('GREECE') && (
-        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-          <strong>DEBUG:</strong> {validImages.length} images loaded for {coinName}
         </div>
       )}
     </div>
