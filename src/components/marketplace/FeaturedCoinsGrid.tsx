@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Store, ArrowRight } from 'lucide-react';
+import { Heart, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
@@ -201,37 +201,26 @@ const FeaturedCoinsGrid = () => {
                     </Button>
                   </div>
 
-                  {/* Store Information & Navigation */}
+                  {/* Store Information */}
                   {store && (
                     <div className="pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Store className="h-4 w-4" />
-                          <span>Sold by {store.name}</span>
-                        </div>
+                      <div className="text-sm text-gray-600">
+                        Sold by {store.name}
                       </div>
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-2">
+                  {/* Action Button - Single unified design */}
+                  <div className="pt-2">
                     <Link 
                       to={`/coin/${coin.id}`}
-                      className="flex-1"
+                      className="w-full"
                     >
                       <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200">
                         View Details
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
                     </Link>
-                    
-                    {store && (
-                      <Link to={`/store/${store.user_id}`}>
-                        <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700">
-                          <Store className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -240,7 +229,7 @@ const FeaturedCoinsGrid = () => {
         })}
       </div>
 
-      {/* Enhanced Call to Action */}
+      {/* Single unified call to action */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -249,7 +238,7 @@ const FeaturedCoinsGrid = () => {
       >
         <Link to="/marketplace">
           <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            Explore All Coins
+            View All Coins
             <ArrowRight className="ml-3 w-5 h-5" />
           </Button>
         </Link>

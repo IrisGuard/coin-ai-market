@@ -103,7 +103,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Multi-Image Gallery */}
+        {/* Clean Image Gallery - NO OVERLAYS */}
         <div className="relative">
           <ImageGallery 
             images={allImages}
@@ -111,7 +111,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             className="aspect-square"
           />
           
-          {/* Overlay Badges */}
+          {/* Minimal overlay badges - only essential info */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -125,15 +125,9 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 Auction
               </Badge>
             )}
-            {coin.ai_confidence && coin.ai_confidence > 0.9 && (
-              <Badge className="bg-blue-100 text-blue-800 text-xs">
-                <Zap className="h-3 w-3 mr-1" />
-                AI Verified
-              </Badge>
-            )}
           </div>
 
-          {/* Views */}
+          {/* Views counter - minimal */}
           <div className="absolute top-2 right-2">
             <Badge variant="secondary" className="bg-black/50 text-white text-xs">
               <Eye className="h-3 w-3 mr-1" />
@@ -199,14 +193,13 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             )}
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Simplified */}
           <div className="flex gap-2">
             {coin.is_auction && isAuctionActive(coin) ? (
               <Button 
                 className="flex-1 bg-red-600 hover:bg-red-700"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle bid action
                 }}
               >
                 <Clock className="h-4 w-4 mr-2" />
@@ -217,7 +210,6 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 className="flex-1 bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle buy action
                 }}
               >
                 <DollarSign className="h-4 w-4 mr-2" />
@@ -229,7 +221,6 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
               size="icon"
               onClick={(e) => {
                 e.stopPropagation();
-                // Handle favorite action
               }}
             >
               <Heart className="h-4 w-4" />

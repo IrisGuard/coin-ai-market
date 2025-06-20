@@ -28,6 +28,15 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
     setLoadedImages(prev => new Set([...prev, index]));
   };
 
+  // Preload all images
+  useEffect(() => {
+    validImages.forEach((src, index) => {
+      const img = new Image();
+      img.onload = () => handleImageLoad(index);
+      img.src = src;
+    });
+  }, [validImages]);
+
   if (validImages.length === 0) {
     return (
       <div className={`aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center ${className}`}>
@@ -76,7 +85,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         )}
       </div>
       
-      {/* Thumbnail Navigation - Always show when there are multiple images */}
+      {/* Thumbnail Navigation - Show ALL thumbnails when there are multiple images */}
       {validImages.length > 1 && (
         <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
           {validImages.map((image, index) => (
@@ -94,7 +103,6 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
                 alt={`${coinName} thumbnail ${index + 1}`}
                 className="w-full h-full object-cover transition-opacity duration-200"
                 loading="lazy"
-                onLoad={() => handleImageLoad(index)}
               />
               
               {/* Thumbnail loading indicator */}
