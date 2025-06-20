@@ -53,8 +53,6 @@ const DealerStorePage = () => {
         .from('stores')
         .select('*')
         .eq('id', storeId)
-        .eq('verified', true)
-        .eq('is_active', true)
         .single();
 
       if (error) {
@@ -67,14 +65,14 @@ const DealerStorePage = () => {
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ['store-coins', storeId],
+    queryKey: ['store-coins', store?.user_id],
     queryFn: async (): Promise<Coin[]> => {
-      if (!storeId) return [];
+      if (!store?.user_id) return [];
       
       const { data, error } = await supabase
         .from('coins')
         .select('*')
-        .eq('store_id', storeId)
+        .eq('user_id', store.user_id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -83,7 +81,7 @@ const DealerStorePage = () => {
 
       return data || [];
     },
-    enabled: !!storeId
+    enabled: !!store?.user_id
   });
 
   // Helper function to get all available images for a coin
