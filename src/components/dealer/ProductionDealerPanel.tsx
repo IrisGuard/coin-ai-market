@@ -261,7 +261,7 @@ const ProductionDealerPanel: React.FC = () => {
                     <div><span className="font-medium">Coin:</span> {claudeResult.name || 'Unknown'}</div>
                     <div><span className="font-medium">Year:</span> {claudeResult.year || 'Unknown'}</div>
                     <div><span className="font-medium">Grade:</span> {claudeResult.grade || 'Ungraded'}</div>
-                    <div><span className="font-medium">Estimated Value:</span> ${claudeResult.estimated_value || 0}</div>
+                    <div><span className="font-medium">Estimated Value:</span> ${claudeResult.estimatedValue || 0}</div>
                     {claudeResult.errors && (
                       <div><span className="font-medium">Detected Errors:</span> {claudeResult.errors.join(', ')}</div>
                     )}
