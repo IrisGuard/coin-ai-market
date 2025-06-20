@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -65,14 +64,14 @@ const DealerStorePage = () => {
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ['store-coins', store?.user_id],
+    queryKey: ['store-coins', storeId],
     queryFn: async (): Promise<Coin[]> => {
-      if (!store?.user_id) return [];
+      if (!storeId) return [];
       
       const { data, error } = await supabase
         .from('coins')
         .select('*')
-        .eq('user_id', store.user_id)
+        .eq('store_id', storeId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -81,7 +80,7 @@ const DealerStorePage = () => {
 
       return data || [];
     },
-    enabled: !!store?.user_id
+    enabled: !!storeId
   });
 
   // Helper function to get all available images for a coin
