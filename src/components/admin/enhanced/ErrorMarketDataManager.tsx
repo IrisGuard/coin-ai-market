@@ -1,313 +1,300 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus,
-  Upload,
-  Download,
-  RefreshCw,
-  Globe,
-  BarChart3,
-  Percent,
-  Target
-} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DollarSign, TrendingUp, TrendingDown, BarChart3, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ErrorMarketDataManager = () => {
   const [selectedGrade, setSelectedGrade] = useState('all');
-  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
 
-  // Fetch real error market data from Supabase
-  const { data: marketData, isLoading } = useQuery({
-    queryKey: ['error-market-data'],
+  const { data: marketData = [], isLoading, refetch } = useQuery({
+    queryKey: ['error-market-data', selectedGrade, priceRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('error_coins_market_data')
         .select(`
           *,
-          error_coins_knowledge!knowledge_base_id (
+          error_coins_knowledge (
             error_name,
             error_type,
-            error_category
+            error_category,
+            rarity_score
           )
         `)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching market data:', error);
-        throw error;
+        .order('market_value_avg', { ascending: false });
+
+      if (selectedGrade !== 'all') {
+        query = query.eq('grade', selectedGrade);
       }
+
+      if (priceRange.min) {
+        query = query.gte('market_value_avg', parseFloat(priceRange.min));
+      }
+
+      if (priceRange.max) {
+        query = query.lte('market_value_avg', parseFloat(priceRange.max));
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
       return data || [];
     }
   });
 
-  const grades = ['all', 'MS-70', 'MS-69', 'MS-68', 'MS-67', 'MS-66', 'MS-65', 'MS-64', 'MS-63', 'AU-58', 'AU-55', 'AU-50'];
-  const regions = ['all', 'north_america', 'europe', 'asia', 'australia'];
+  const { data: priceStats } = useQuery({
+    queryKey: ['market-price-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('error_coins_market_data')
+        .select('market_value_avg, market_value_high, market_value_low, premium_percentage, market_trend');
 
-  const filteredData = marketData?.filter(entry => {
-    const matchesGrade = selectedGrade === 'all' || entry.grade === selectedGrade;
-    const matchesRegion = selectedRegion === 'all' || 
-      (entry.regional_pricing && Object.keys(entry.regional_pricing).includes(selectedRegion));
-    return matchesGrade && matchesRegion;
-  }) || [];
+      if (error) throw error;
 
-  const getTrendIcon = (trend?: string) => {
-    switch (trend) {
-      case 'up':
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'down':
-        return <TrendingDown className="h-4 w-4 text-red-600" />;
-      default:
-        return <Minus className="h-4 w-4 text-gray-600" />;
+      const values = data?.map(d => d.market_value_avg).filter(v => v) || [];
+      const premiums = data?.map(d => d.premium_percentage).filter(v => v) || [];
+      const trends = data?.map(d => d.market_trend) || [];
+
+      return {
+        avgPrice: values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0,
+        maxPrice: Math.max(...values.filter(v => v)),
+        minPrice: Math.min(...values.filter(v => v)),
+        avgPremium: premiums.length > 0 ? premiums.reduce((a, b) => a + b, 0) / premiums.length : 0,
+        totalRecords: data?.length || 0,
+        trendingUp: trends.filter(t => t === 'increasing').length,
+        trendingDown: trends.filter(t => t === 'decreasing').length
+      };
+    }
+  });
+
+  const refreshMarketData = async () => {
+    const { error } = await supabase.rpc('execute_ai_command', {
+      p_command_id: 'market-data-refresh',
+      p_input_data: { source: 'heritage_auctions' }
+    });
+
+    if (error) {
+      toast.error('Failed to refresh market data');
+    } else {
+      toast.success('Market data refresh initiated');
+      refetch();
     }
   };
 
-  const getTrendColor = (trend?: string) => {
-    switch (trend) {
-      case 'up':
-        return 'text-green-600';
-      case 'down':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
-  const getConfidenceColor = (confidence?: number) => {
-    if (!confidence) return 'bg-gray-100 text-gray-800';
-    if (confidence >= 0.9) return 'bg-green-100 text-green-800';
-    if (confidence >= 0.8) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
-  };
-
-  // Calculate enhanced statistics from real data
-  const avgConfidence = marketData ? 
-    marketData.reduce((sum, entry) => sum + (entry.data_confidence || 0), 0) / marketData.length : 0;
-  
-  const avgPremium = marketData ? 
-    marketData.reduce((sum, entry) => sum + (entry.premium_percentage || 0), 0) / marketData.length : 0;
-
-  const regionsCount = marketData ? 
-    new Set(marketData.flatMap(entry => 
-      entry.regional_pricing ? Object.keys(entry.regional_pricing) : []
-    )).size : 0;
+  const grades = ['all', 'G-4', 'VG-8', 'F-12', 'VF-20', 'XF-40', 'AU-50', 'MS-60', 'MS-63', 'MS-65', 'MS-67'];
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-b-2 border-coin-purple"></div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Market Data Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {/* Market Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Entries</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Market Value</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{marketData?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Market data points</p>
+            <div className="text-2xl font-bold text-green-600">
+              ${priceStats?.avgPrice?.toFixed(2) || '0'}
+            </div>
+            <p className="text-xs text-muted-foreground">Across all error types</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Premium</CardTitle>
-            <Percent className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Highest Value</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Math.round(avgPremium)}%</div>
-            <p className="text-xs text-muted-foreground">Over face value</p>
+            <div className="text-2xl font-bold text-blue-600">
+              ${priceStats?.maxPrice?.toLocaleString() || '0'}
+            </div>
+            <p className="text-xs text-muted-foreground">Peak error coin value</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Data Confidence</CardTitle>
-            <Target className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium">Avg Premium</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Math.round(avgConfidence * 100)}%</div>
-            <p className="text-xs text-muted-foreground">Average accuracy</p>
+            <div className="text-2xl font-bold text-purple-600">
+              {priceStats?.avgPremium?.toFixed(1) || '0'}%
+            </div>
+            <p className="text-xs text-muted-foreground">Over normal value</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Regions</CardTitle>
-            <Globe className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{regionsCount}</div>
-            <p className="text-xs text-muted-foreground">Geographic markets</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Updated</CardTitle>
+            <CardTitle className="text-sm font-medium">Market Records</CardTitle>
             <RefreshCw className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2h</div>
-            <p className="text-xs text-muted-foreground">ago</p>
+            <div className="text-2xl font-bold text-orange-600">
+              {priceStats?.totalRecords || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Active data points</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Enhanced Controls */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Enhanced Market Data Management
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Import Data
-              </Button>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export Data
-              </Button>
-              <Button>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh All
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Grade:</label>
-              <select
-                value={selectedGrade}
-                onChange={(e) => setSelectedGrade(e.target.value)}
-                className="px-3 py-2 border rounded-md"
-              >
-                {grades.map(grade => (
-                  <option key={grade} value={grade}>
-                    {grade === 'all' ? 'All Grades' : grade}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Region:</label>
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className="px-3 py-2 border rounded-md"
-              >
-                {regions.map(region => (
-                  <option key={region} value={region}>
-                    {region === 'all' ? 'All Regions' : region.replace('_', ' ').toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Filters and Actions */}
+      <div className="flex gap-4 items-end">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Grade Filter</label>
+          <select 
+            value={selectedGrade} 
+            onChange={(e) => setSelectedGrade(e.target.value)}
+            className="border rounded px-3 py-2"
+          >
+            {grades.map(grade => (
+              <option key={grade} value={grade}>
+                {grade === 'all' ? 'All Grades' : grade}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Enhanced Market Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Enhanced Market Data Entries ({filteredData.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Error Name</TableHead>
-                <TableHead>Grade</TableHead>
-                <TableHead>Value Range</TableHead>
-                <TableHead>Premium</TableHead>
-                <TableHead>Trend</TableHead>
-                <TableHead>Confidence</TableHead>
-                <TableHead>Impact Factor</TableHead>
-                <TableHead>A/R Ratio</TableHead>
-                <TableHead>Updated</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell className="font-medium">
-                    {entry.error_coins_knowledge?.error_name || 'Unknown Error'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{entry.grade}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div className="font-medium">${entry.market_value_avg || 0}</div>
-                      <div className="text-muted-foreground">
-                        ${entry.market_value_low || 0} - ${entry.market_value_high || 0}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium text-green-600">
-                      +{entry.premium_percentage || 0}%
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {getTrendIcon(entry.market_trend)}
-                      <span className={`text-sm capitalize ${getTrendColor(entry.market_trend)}`}>
-                        {entry.market_trend || 'stable'}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getConfidenceColor(entry.data_confidence)}>
-                      {Math.round((entry.data_confidence || 0) * 100)}%
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {entry.grade_impact_factor || 1.0}x
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-blue-600">
-                      {entry.auction_vs_retail_ratio || 1.0}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(entry.updated_at).toLocaleDateString()}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Price Range</label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Min $"
+              value={priceRange.min}
+              onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+              className="w-24"
+            />
+            <Input
+              placeholder="Max $"
+              value={priceRange.max}
+              onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+              className="w-24"
+            />
+          </div>
+        </div>
+
+        <Button onClick={refreshMarketData} className="flex items-center gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Refresh Data
+        </Button>
+      </div>
+
+      {/* Market Data Grid */}
+      <div className="space-y-4">
+        {marketData.map((item) => (
+          <Card key={item.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">
+                    {item.error_coins_knowledge?.error_name || 'Unknown Error'}
+                  </CardTitle>
+                  <div className="flex gap-2 mt-1">
+                    <Badge variant="outline">{item.grade}</Badge>
+                    <Badge variant="outline">{item.error_coins_knowledge?.error_type}</Badge>
+                    {item.market_trend && (
+                      <Badge variant={item.market_trend === 'increasing' ? 'default' : 
+                                    item.market_trend === 'decreasing' ? 'destructive' : 'secondary'}>
+                        {item.market_trend === 'increasing' && <TrendingUp className="h-3 w-3 mr-1" />}
+                        {item.market_trend === 'decreasing' && <TrendingDown className="h-3 w-3 mr-1" />}
+                        {item.market_trend}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-600">
+                    ${item.market_value_avg?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Average Value</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-sm font-medium">Low Value</div>
+                  <div className="text-lg text-blue-600">
+                    ${item.market_value_low?.toLocaleString() || '0'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">High Value</div>
+                  <div className="text-lg text-red-600">
+                    ${item.market_value_high?.toLocaleString() || '0'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Premium</div>
+                  <div className="text-lg text-purple-600">
+                    {item.premium_percentage?.toFixed(1) || '0'}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Data Confidence</div>
+                  <div className="text-lg text-orange-600">
+                    {((item.data_confidence || 0.5) * 100).toFixed(0)}%
+                  </div>
+                </div>
+              </div>
+
+              {item.regional_pricing && Object.keys(item.regional_pricing).length > 0 && (
+                <div className="mt-4">
+                  <div className="text-sm font-medium mb-2">Regional Pricing</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {Object.entries(item.regional_pricing).map(([region, price]) => (
+                      <Badge key={region} variant="outline">
+                        {region}: ${price as number}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {item.source_references?.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-sm font-medium mb-2">Data Sources</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {item.source_references.map((source, idx) => (
+                      <Badge key={idx} variant="secondary">{source}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {marketData.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-16">
+            <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Market Data Found</h3>
+            <p className="text-muted-foreground mb-4">
+              No market data matches your current filters. Try adjusting the grade or price range.
+            </p>
+            <Button onClick={refreshMarketData}>
+              Refresh Market Data
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
