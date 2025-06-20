@@ -1,398 +1,299 @@
-import React, { useState } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Brain, Zap, CheckCircle, Image as ImageIcon, Activity, Database } from 'lucide-react';
-import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import { Brain, Upload, Zap, Activity, Camera, FileImage, Loader2 } from 'lucide-react';
+import { useEnhancedCoinRecognition } from '@/hooks/useEnhancedCoinRecognition';
+import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
-const ProductionDealerPanel = () => {
-  const { analyzeImage, isAnalyzing, result, clearResults } = useRealAICoinRecognition();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [coinData, setCoinData] = useState({
-    name: '',
-    year: '',
-    country: '',
-    denomination: '',
-    grade: '',
-    composition: '',
-    mint: '',
-    price: '',
-    description: '',
-    rarity: '',
-    weight: '',
-    diameter: ''
+const ProductionDealerPanel: React.FC = () => {
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [autoFillData, setAutoFillData] = useState<any>(null);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
+
+  const {
+    performEnhancedAnalysis,
+    performBulkAnalysis,
+    isAnalyzing,
+    enhancedResult,
+    claudeResult,
+    autoFillData: hookAutoFillData,
+    clearResults
+  } = useEnhancedCoinRecognition();
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log('📁 FILES UPLOADED TO LIVE DEALER SYSTEM:', acceptedFiles.length);
+    setUploadedFiles(acceptedFiles);
+    
+    if (acceptedFiles.length === 1) {
+      toast.success(`Single image uploaded: ${acceptedFiles[0].name}`);
+    } else {
+      toast.success(`${acceptedFiles.length} images uploaded for bulk analysis`);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.bmp']
+    },
+    multiple: true,
+    maxFiles: 10
   });
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-    }
-  };
-
-  const handleAIAnalysis = async () => {
-    if (!selectedFile) {
-      toast.error('Please select an image first');
-      return;
-    }
-
-    const analysisResult = await analyzeImage(selectedFile);
-    
-    if (analysisResult) {
-      // Auto-fill form with live AI results
-      setCoinData({
-        name: analysisResult.name || '',
-        year: analysisResult.year?.toString() || '',
-        country: analysisResult.country || '',
-        denomination: analysisResult.denomination || '',
-        grade: analysisResult.grade || '',
-        composition: analysisResult.composition || '',
-        mint: analysisResult.mint || '',
-        price: analysisResult.estimatedValue?.toString() || '',
-        description: analysisResult.description || '',
-        rarity: analysisResult.rarity || '',
-        weight: analysisResult.weight?.toString() || '',
-        diameter: analysisResult.diameter?.toString() || ''
-      });
-      
-      toast.success('🚀 Live AI Analysis Complete - Form auto-filled with production data!');
-    }
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setCoinData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async () => {
-    if (!coinData.name || !coinData.price) {
-      toast.error('Please fill in at least the coin name and price');
+  const executeAIAnalysis = async () => {
+    if (uploadedFiles.length === 0) {
+      toast.error('Please upload at least one image first');
       return;
     }
 
     try {
-      // Submit to live production database
-      const { data, error } = await supabase
-        .from('coins')
-        .insert({
-          name: coinData.name,
-          year: parseInt(coinData.year) || new Date().getFullYear(),
-          country: coinData.country || 'Unknown',
-          denomination: coinData.denomination || '',
-          grade: coinData.grade || 'Ungraded',
-          composition: coinData.composition || '',
-          mint: coinData.mint || '',
-          price: parseFloat(coinData.price) || 0,
-          description: coinData.description || '',
-          rarity: coinData.rarity || 'Common',
-          weight: parseFloat(coinData.weight) || null,
-          diameter: parseFloat(coinData.diameter) || null,
-          image: previewUrl || '/placeholder-coin.jpg',
-          user_id: (await supabase.auth.getUser()).data.user?.id || ''
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success('🎯 Coin listing created successfully in live production database!');
+      console.log('🧠 EXECUTING LIVE AI ANALYSIS WITH PRODUCTION BRAIN');
       
-      // Reset form
-      setCoinData({
-        name: '',
-        year: '',
-        country: '',
-        denomination: '',
-        grade: '',
-        composition: '',
-        mint: '',
-        price: '',
-        description: '',
-        rarity: '',
-        weight: '',
-        diameter: ''
-      });
-      setSelectedFile(null);
-      setPreviewUrl(null);
-      clearResults();
+      let results;
+      if (uploadedFiles.length === 1) {
+        // Single image analysis
+        results = await performEnhancedAnalysis(uploadedFiles[0]);
+        console.log('✅ Single image analysis completed:', results);
+      } else {
+        // Bulk analysis for multiple images
+        results = await performBulkAnalysis(uploadedFiles);
+        console.log('✅ Bulk analysis completed:', results);
+      }
+
+      setAnalysisResults(results);
+      
+      if (hookAutoFillData) {
+        setAutoFillData(hookAutoFillData);
+        console.log('📝 AUTO-FILL DATA GENERATED:', hookAutoFillData);
+      }
+
     } catch (error) {
-      toast.error('Failed to create coin listing');
-      console.error('Error creating coin:', error);
+      console.error('AI Analysis error:', error);
+      toast.error('AI analysis failed - please try again');
     }
+  };
+
+  const clearAllData = () => {
+    setUploadedFiles([]);
+    setAutoFillData(null);
+    setAnalysisResults(null);
+    clearResults();
+    toast.success('All data cleared');
+  };
+
+  const exportAnalysisData = () => {
+    if (!analysisResults) {
+      toast.error('No analysis data to export');
+      return;
+    }
+
+    const exportData = {
+      analysis_results: analysisResults,
+      auto_fill_data: autoFillData,
+      uploaded_files: uploadedFiles.map(f => f.name),
+      timestamp: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `coin-analysis-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success('Analysis data exported successfully');
   };
 
   return (
     <div className="space-y-6">
-      {/* Live Production Status */}
-      <Card className="border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
+      {/* Header */}
+      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-green-600 animate-pulse" />
-            🚀 LIVE PRODUCTION DEALER PANEL
+            <Brain className="h-6 w-6 text-purple-600 animate-pulse" />
+            🔴 LIVE PRODUCTION DEALER PANEL - AI BRAIN ACTIVE
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-600 font-medium">
-                AI Brain: LIVE • Image Recognition: ACTIVE • Auto-Fill: OPERATIONAL • Database: PRODUCTION
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-3">
+              <Activity className="h-8 w-8 text-green-600" />
+              <div>
+                <div className="font-semibold text-green-800">AI Brain Status</div>
+                <Badge className="bg-green-600">LIVE & PROCESSING</Badge>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Badge className="bg-green-600">🔴 LIVE PRODUCTION</Badge>
-              <Badge className="bg-blue-600">AI BRAIN ACTIVE</Badge>
-              <Badge className="bg-purple-600">AUTO-FILL ENABLED</Badge>
+            <div className="flex items-center gap-3">
+              <Zap className="h-8 w-8 text-orange-600" />
+              <div>
+                <div className="font-semibold text-orange-800">Auto-Fill Engine</div>
+                <Badge className="bg-orange-600">READY</Badge>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Camera className="h-8 w-8 text-blue-600" />
+              <div>
+                <div className="font-semibold text-blue-800">Image Recognition</div>
+                <Badge className="bg-blue-600">ACTIVE</Badge>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Live AI Image Analysis */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-600" />
-              Live AI Image Analysis & Auto-Fill
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="image-upload">Upload Coin Image for Live AI Analysis</Label>
-              <div className="mt-2 flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                <div className="text-center">
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                    <span className="mt-2 block text-sm text-gray-600">
-                      Click to upload coin image for live AI recognition
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {previewUrl && (
-              <div className="mt-4">
-                <img
-                  src={previewUrl}
-                  alt="Coin preview"
-                  className="w-full h-48 object-cover rounded-lg border"
-                />
-              </div>
-            )}
-
-            <Button
-              onClick={handleAIAnalysis}
-              disabled={!selectedFile || isAnalyzing}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Brain className="mr-2 h-4 w-4 animate-spin" />
-                  Live AI Analyzing...
-                </>
-              ) : (
-                <>
-                  <Brain className="mr-2 h-4 w-4" />
-                  Analyze with Live AI & Auto-Fill
-                </>
-              )}
-            </Button>
-
-            {result && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="font-semibold text-green-800">Live AI Analysis Complete</span>
-                </div>
-                <p className="text-sm text-green-700">
-                  Confidence: {Math.round(result.confidence * 100)}% • 
-                  Provider: {result.aiProvider} • 
-                  Processing Time: {result.processingTime}ms • 
-                  Status: LIVE PRODUCTION
+      {/* Image Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Coin Image Upload & Analysis
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isDragActive 
+                ? 'border-primary bg-primary/5' 
+                : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+            }`}
+          >
+            <input {...getInputProps()} />
+            <FileImage className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            {isDragActive ? (
+              <p className="text-lg font-medium">Drop the images here...</p>
+            ) : (
+              <div>
+                <p className="text-lg font-medium mb-2">
+                  Drag & drop coin images here, or click to select
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Supports: JPG, PNG, WebP • Multiple images for bulk analysis
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Live Coin Information Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5 text-blue-600" />
-              Live Coin Information (Auto-Filled by AI)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Coin Name</Label>
-                <Input
-                  id="name"
-                  value={coinData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="e.g., Morgan Silver Dollar"
-                />
-              </div>
-              <div>
-                <Label htmlFor="year">Year</Label>
-                <Input
-                  id="year"
-                  type="number"
-                  value={coinData.year}
-                  onChange={(e) => handleInputChange('year', e.target.value)}
-                  placeholder="e.g., 1921"
-                />
-              </div>
-              <div>
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  value={coinData.country}
-                  onChange={(e) => handleInputChange('country', e.target.value)}
-                  placeholder="e.g., United States"
-                />
-              </div>
-              <div>
-                <Label htmlFor="denomination">Denomination</Label>
-                <Input
-                  id="denomination"
-                  value={coinData.denomination}
-                  onChange={(e) => handleInputChange('denomination', e.target.value)}
-                  placeholder="e.g., $1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="grade">Grade</Label>
-                <Input
-                  id="grade"
-                  value={coinData.grade}
-                  onChange={(e) => handleInputChange('grade', e.target.value)}
-                  placeholder="e.g., MS-65"
-                />
-              </div>
-              <div>
-                <Label htmlFor="price">Price ($)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={coinData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="e.g., 125.00"
-                />
-              </div>
-              <div>
-                <Label htmlFor="composition">Composition</Label>
-                <Input
-                  id="composition"
-                  value={coinData.composition}
-                  onChange={(e) => handleInputChange('composition', e.target.value)}
-                  placeholder="e.g., Silver"
-                />
-              </div>
-              <div>
-                <Label htmlFor="mint">Mint</Label>
-                <Input
-                  id="mint"
-                  value={coinData.mint}
-                  onChange={(e) => handleInputChange('mint', e.target.value)}
-                  placeholder="e.g., Philadelphia"
-                />
-              </div>
-              <div>
-                <Label htmlFor="weight">Weight (g)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.1"
-                  value={coinData.weight}
-                  onChange={(e) => handleInputChange('weight', e.target.value)}
-                  placeholder="e.g., 26.7"
-                />
-              </div>
-              <div>
-                <Label htmlFor="diameter">Diameter (mm)</Label>
-                <Input
-                  id="diameter"
-                  type="number"
-                  step="0.1"
-                  value={coinData.diameter}
-                  onChange={(e) => handleInputChange('diameter', e.target.value)}
-                  placeholder="e.g., 38.1"
-                />
+          {uploadedFiles.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-medium mb-2">Uploaded Files ({uploadedFiles.length})</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {uploadedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                    <FileImage className="h-4 w-4" />
+                    <span className="text-sm truncate">{file.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {(file.size / 1024 / 1024).toFixed(1)}MB
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            <div>
-              <Label htmlFor="rarity">Rarity</Label>
-              <Input
-                id="rarity"
-                value={coinData.rarity}
-                onChange={(e) => handleInputChange('rarity', e.target.value)}
-                placeholder="e.g., Common"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={coinData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Detailed description of the coin..."
-                rows={4}
-              />
-            </div>
-
-            <Button
-              onClick={handleSubmit}
-              className="w-full bg-green-600 hover:bg-green-700"
+          <div className="flex gap-3 mt-6">
+            <Button 
+              onClick={executeAIAnalysis} 
+              disabled={uploadedFiles.length === 0 || isAnalyzing}
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Create Live Coin Listing
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  AI Analyzing...
+                </>
+              ) : (
+                <>
+                  <Brain className="h-4 w-4 mr-2" />
+                  Run AI Analysis
+                </>
+              )}
             </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Live Production Status Footer */}
-      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-green-500 animate-pulse" />
-              <span className="text-sm font-medium text-green-700">Live AI Processing</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-medium text-blue-700">Production Database</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-purple-500" />
-              <span className="text-sm font-medium text-purple-700">Real-time Auto-fill</span>
-            </div>
-            <span className="text-sm text-gray-600">
-              System Status: 100% Operational • All dealer functions live and processing
-            </span>
+            <Button onClick={clearAllData} variant="outline">
+              Clear All
+            </Button>
+            {analysisResults && (
+              <Button onClick={exportAnalysisData} variant="outline">
+                Export Results
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Analysis Results */}
+      {analysisResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              AI Analysis Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {enhancedResult && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-semibold text-green-800 mb-2">Enhanced Analysis Complete</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Confidence Score:</span>
+                      <span className="ml-2">{Math.round((enhancedResult.enrichment_score || 0) * 100)}%</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Data Sources:</span>
+                      <span className="ml-2">{enhancedResult.data_sources?.length || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {claudeResult && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Claude AI Recognition</h4>
+                  <div className="space-y-2 text-sm">
+                    <div><span className="font-medium">Coin:</span> {claudeResult.name || 'Unknown'}</div>
+                    <div><span className="font-medium">Year:</span> {claudeResult.year || 'Unknown'}</div>
+                    <div><span className="font-medium">Grade:</span> {claudeResult.grade || 'Ungraded'}</div>
+                    <div><span className="font-medium">Estimated Value:</span> ${claudeResult.estimated_value || 0}</div>
+                    {claudeResult.errors && (
+                      <div><span className="font-medium">Detected Errors:</span> {claudeResult.errors.join(', ')}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Auto-Fill Data */}
+      {autoFillData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Auto-Fill Form Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(autoFillData).map(([key, value]) => (
+                <div key={key} className="p-3 bg-gray-50 rounded">
+                  <div className="font-medium text-sm text-gray-700">{key.replace(/_/g, ' ').toUpperCase()}</div>
+                  <div className="text-sm mt-1">{String(value)}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
