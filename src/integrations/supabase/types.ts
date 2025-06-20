@@ -4302,6 +4302,10 @@ export type Database = {
         }
         Returns: string
       }
+      execute_production_cleanup: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       final_system_validation: {
         Args: Record<PropertyKey, never>
         Returns: Json

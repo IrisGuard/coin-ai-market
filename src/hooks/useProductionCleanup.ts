@@ -75,8 +75,8 @@ export const useProductionCleanup = () => {
   const executeProductionMigration = async () => {
     console.log('📊 Εκτέλεση production migration...');
     
-    // Execute the cleanup migration
-    const { error } = await supabase.rpc('execute_production_cleanup');
+    // Execute the cleanup migration using the correct function name
+    const { data, error } = await supabase.rpc('execute_production_cleanup');
     
     if (error) {
       console.error('Migration error:', error);
@@ -84,6 +84,7 @@ export const useProductionCleanup = () => {
     }
     
     console.log('✅ Production migration ολοκληρώθηκε');
+    return data;
   };
 
   const updateSystemToProduction = async () => {
