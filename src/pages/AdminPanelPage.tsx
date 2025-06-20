@@ -1,84 +1,37 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import Navbar from '@/components/Navbar';
-import CompleteProductionActivator from '@/components/production/CompleteProductionActivator';
-import LiveProductionAdminPanel from '@/components/admin/LiveProductionAdminPanel';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Activity, Database, Brain, Shield } from 'lucide-react';
+import { usePageView } from '@/hooks/usePageView';
+import FullSystemAdminPanel from "@/components/admin/enhanced/FullSystemAdminPanel";
 
 const AdminPanelPage = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Navbar />
-      
-      <div className="pt-20">
-        <div className="container mx-auto px-4">
-          {/* Live Production Admin Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-8"
+  console.log('📄 AdminPanelPage - FULL SYSTEM ADMIN with 32 Complete Interfaces');
+  
+  try {
+    usePageView();
+    console.log('✅ AdminPanelPage: usePageView hook completed');
+    
+    return <FullSystemAdminPanel />;
+  } catch (error) {
+    console.error('💥 Error in AdminPanelPage:', error);
+    
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="text-6xl mb-4">💥</div>
+          <h2 className="text-2xl font-bold text-foreground">Page Error</h2>
+          <p className="text-muted-foreground">
+            Error loading full system admin panel. Check console for details.
+          </p>
+          <button 
+            onClick={() => window.location.href = '/'} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent mb-4">
-              Live Production Admin Panel
-            </h1>
-            <p className="text-xl text-gray-600 mb-6">
-              Complete control center for AI Brain and marketplace operations
-            </p>
-            <div className="flex items-center justify-center gap-4">
-              <Badge className="bg-green-600 text-white px-4 py-2">
-                🔴 LIVE PRODUCTION
-              </Badge>
-              <Badge className="bg-blue-600 text-white px-4 py-2">
-                AI BRAIN CONTROL
-              </Badge>
-              <Badge className="bg-purple-600 text-white px-4 py-2">
-                REAL-TIME ADMIN
-              </Badge>
-              <Badge className="bg-orange-600 text-white px-4 py-2">
-                FULL ACCESS
-              </Badge>
-            </div>
-          </motion.div>
-
-          {/* Complete Production Activator */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-8"
-          >
-            <CompleteProductionActivator />
-          </motion.div>
-
-          {/* Live Production Activity Indicator */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex items-center justify-center gap-2 p-4 bg-blue-100 rounded-lg mb-8"
-          >
-            <Activity className="h-5 w-5 text-blue-600 animate-pulse" />
-            <span className="text-blue-800 font-medium">
-              Live Production Admin Active • Full system control • AI Brain management operational
-            </span>
-          </motion.div>
-
-          {/* Main Admin Panel Component */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <LiveProductionAdminPanel />
-          </motion.div>
+            Go Home
+          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 };
 
 export default AdminPanelPage;

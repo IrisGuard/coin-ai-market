@@ -2,77 +2,133 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import LiveMarketplaceDataProvider from '@/components/marketplace/LiveMarketplaceDataProvider';
-import LiveProductionMarketplace from '@/components/marketplace/LiveProductionMarketplace';
+import LiveMarketplaceGrid from '@/components/marketplace/LiveMarketplaceGrid';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Activity, TrendingUp, Zap } from 'lucide-react';
+import { TrendingUp, Users, Clock, DollarSign } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Marketplace = () => {
+  const { data: stats } = useQuery({
+    queryKey: ['marketplace-stats'],
+    queryFn: async () => {
+      const [coins, auctions, users] = await Promise.all([
+        supabase.from('coins').select('*').eq('authentication_status', 'verified'),
+        supabase.from('coins').select('*').eq('is_auction', true).gt('auction_end', new Date().toISOString()),
+        supabase.from('profiles').select('id')
+      ]);
+
+      const totalValue = coins.data?.reduce((sum, coin) => sum + coin.price, 0) || 0;
+
+      return {
+        totalCoins: coins.data?.length || 0,
+        activeAuctions: auctions.data?.length || 0,
+        totalUsers: users.data?.length || 0,
+        totalValue
+      };
+    },
+    refetchInterval: 30000
+  });
+
   return (
-    <LiveMarketplaceDataProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Navbar />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <Navbar />
+      
+      <div className="relative overflow-hidden pt-20">
+        <div className="mesh-bg"></div>
         
-        <div className="pt-20">
-          <div className="container mx-auto px-4">
-            {/* Live Production Marketplace Header */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-8"
-            >
-              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent mb-4">
-                Live Production Marketplace
-              </h1>
-              <p className="text-xl text-gray-600 mb-6">
-                Real-time coin marketplace powered by AI Brain and 16+ external data sources
-              </p>
-              <div className="flex items-center justify-center gap-4 flex-wrap">
-                <Badge className="bg-green-600 text-white px-4 py-2">
-                  🔴 LIVE DATA
-                </Badge>
-                <Badge className="bg-blue-600 text-white px-4 py-2">
-                  AI POWERED
-                </Badge>
-                <Badge className="bg-purple-600 text-white px-4 py-2">
-                  REAL-TIME
-                </Badge>
-                <Badge className="bg-orange-600 text-white px-4 py-2">
-                  16+ SOURCES
-                </Badge>
-                <Badge className="bg-red-600 text-white px-4 py-2">
-                  EMERGENCY ACTIVATED
-                </Badge>
-              </div>
-            </motion.div>
+        <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-blue bg-clip-text text-transparent mb-4">
+              Live Coin Marketplace
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover authenticated coins with AI-powered verification and real-time market data
+            </p>
+          </motion.div>
 
-            {/* Live Production Activity Indicator */}
-            <motion.div 
+          {/* Stats Cards */}
+          {stats && (
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex items-center justify-center gap-2 p-4 bg-green-100 rounded-lg mb-8"
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
             >
-              <Activity className="h-5 w-5 text-green-600 animate-pulse" />
-              <span className="text-green-800 font-medium">
-                🚨 Emergency Platform Activation Complete • Live Production Marketplace Active • Real-time data from 16 external sources • AI processing operational
-              </span>
-            </motion.div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Listed Coins
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">{stats.totalCoins}</div>
+                  <Badge className="bg-green-100 text-green-800 mt-1">Live</Badge>
+                </CardContent>
+              </Card>
 
-            {/* Main Marketplace Component */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <LiveProductionMarketplace />
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Active Auctions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">{stats.activeAuctions}</div>
+                  <Badge className="bg-red-100 text-red-800 mt-1">Ending Soon</Badge>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Registered Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-600">{stats.totalUsers}</div>
+                  <Badge className="bg-purple-100 text-purple-800 mt-1">Growing</Badge>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Total Value
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    ${stats.totalValue.toLocaleString()}
+                  </div>
+                  <Badge className="bg-green-100 text-green-800 mt-1">USD</Badge>
+                </CardContent>
+              </Card>
             </motion.div>
-          </div>
+          )}
+
+          {/* Live Marketplace Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <LiveMarketplaceGrid />
+          </motion.div>
         </div>
       </div>
-    </LiveMarketplaceDataProvider>
+    </div>
   );
 };
 

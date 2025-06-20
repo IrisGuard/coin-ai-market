@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,8 +11,6 @@ interface Coin {
   name: string;
   image: string;
   images?: string[];
-  obverse_image?: string;
-  reverse_image?: string;
   price: number;
   grade: string;
   year: number;
@@ -41,35 +38,44 @@ interface CoinCardProps {
 }
 
 const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
+  // Prepare all available images for the gallery
   const getAllImages = (coin: Coin): string[] => {
+    console.log('🔍 CoinCard.getAllImages called for:', coin.name);
+    console.log('🔍 coin.images array:', coin.images);
+    console.log('🔍 coin.image field:', coin.image);
+    
     const allImages: string[] = [];
     
+    // PRIORITY: Check if coin.images exists and is a valid array with items
     if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
+      console.log('✅ Using coin.images array with length:', coin.images.length);
+      // Filter out invalid URLs and blob URLs
       const validImages = coin.images.filter(img => 
         img && 
         typeof img === 'string' && 
         img.trim() !== '' && 
-        img !== 'null' && 
-        img !== 'undefined' &&
         !img.startsWith('blob:') &&
         (img.startsWith('http') || img.startsWith('/'))
       );
       allImages.push(...validImages);
+      console.log('✅ Valid images from array:', validImages);
     }
     
-    const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
-      .filter(img => 
-        img && 
-        typeof img === 'string' && 
-        img.trim() !== '' && 
-        img !== 'null' && 
-        img !== 'undefined' &&
-        !img.startsWith('blob:') &&
-        (img.startsWith('http') || img.startsWith('/')) &&
-        !allImages.includes(img)
-      );
+    // Fallback to single image field if no valid images from array
+    if (allImages.length === 0 && coin.image && !coin.image.startsWith('blob:')) {
+      console.log('⚠️ Fallback to single image field:', coin.image);
+      allImages.push(coin.image);
+    }
     
-    allImages.push(...individualImages);
+    console.log('🔍 Final allImages for', coin.name, ':', allImages);
+    
+    // Special debug for the Greece coin
+    if (coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR')) {
+      console.log('🏛️ GREECE COIN DEBUG:');
+      console.log('🏛️ Raw coin.images:', coin.images);
+      console.log('🏛️ Final allImages:', allImages);
+      console.log('🏛️ Length:', allImages.length);
+    }
     
     return allImages;
   };
@@ -105,6 +111,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
         onClick={() => onCoinClick(coin)}
       >
+        {/* Multi-Image Gallery */}
         <div className="relative">
           <ImageGallery 
             images={allImages}
@@ -112,6 +119,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             className="aspect-square"
           />
           
+          {/* Overlay Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {coin.featured && (
               <Badge className="bg-yellow-100 text-yellow-800 text-xs">
@@ -125,8 +133,15 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 Auction
               </Badge>
             )}
+            {coin.ai_confidence && coin.ai_confidence > 0.9 && (
+              <Badge className="bg-blue-100 text-blue-800 text-xs">
+                <Zap className="h-3 w-3 mr-1" />
+                AI Verified
+              </Badge>
+            )}
           </div>
 
+          {/* Views */}
           <div className="absolute top-2 right-2">
             <Badge variant="secondary" className="bg-black/50 text-white text-xs">
               <Eye className="h-3 w-3 mr-1" />
@@ -136,6 +151,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
         </div>
 
         <CardContent className="p-4">
+          {/* Title and Grade */}
           <div className="mb-2">
             <h3 className="font-semibold text-lg truncate" title={coin.name}>
               {coin.name}
@@ -149,6 +165,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             </div>
           </div>
 
+          {/* Rarity */}
           <div className="mb-3">
             <Badge 
               variant="outline" 
@@ -164,6 +181,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             </Badge>
           </div>
 
+          {/* Price/Bid Info */}
           <div className="mb-4">
             {coin.is_auction && isAuctionActive(coin) ? (
               <div>
@@ -189,12 +207,14 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
             )}
           </div>
 
+          {/* Action Buttons */}
           <div className="flex gap-2">
             {coin.is_auction && isAuctionActive(coin) ? (
               <Button 
                 className="flex-1 bg-red-600 hover:bg-red-700"
                 onClick={(e) => {
                   e.stopPropagation();
+                  // Handle bid action
                 }}
               >
                 <Clock className="h-4 w-4 mr-2" />
@@ -205,6 +225,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
                 className="flex-1 bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
+                  // Handle buy action
                 }}
               >
                 <DollarSign className="h-4 w-4 mr-2" />
@@ -216,12 +237,14 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
               size="icon"
               onClick={(e) => {
                 e.stopPropagation();
+                // Handle favorite action
               }}
             >
               <Heart className="h-4 w-4" />
             </Button>
           </div>
 
+          {/* AI Confidence & Image Count */}
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
             {coin.ai_confidence && (
               <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>

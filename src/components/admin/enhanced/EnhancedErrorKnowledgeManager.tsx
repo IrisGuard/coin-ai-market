@@ -1,275 +1,312 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, Brain, Search, Plus, TrendingUp, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useEnhancedErrorKnowledge, useCalculateErrorCoinValue } from '@/hooks/useEnhancedErrorKnowledge';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { 
+  BookOpen, 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2,
+  Eye,
+  Filter,
+  Brain,
+  TrendingUp,
+  Shield,
+  AlertTriangle,
+  Microscope,
+  Calculator
+} from 'lucide-react';
+import { useEnhancedErrorKnowledge, useDetectCoinErrors, useCalculateErrorCoinValue } from '@/hooks/useEnhancedErrorKnowledge';
+import { toast } from '@/hooks/use-toast';
 
 const EnhancedErrorKnowledgeManager = () => {
+  const [activeTab, setActiveTab] = useState('knowledge');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedError, setSelectedError] = useState<any>(null);
-
-  const { data: errorKnowledge = [], isLoading } = useEnhancedErrorKnowledge();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  const { data: knowledgeEntries, isLoading } = useEnhancedErrorKnowledge();
+  const detectErrors = useDetectCoinErrors();
   const calculateValue = useCalculateErrorCoinValue();
 
-  const filteredErrors = errorKnowledge.filter(error => 
-    error.error_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    error.error_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    error.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categories = ['all', 'die_error', 'strike_error', 'planchet_error', 'design_error'];
 
-  const handleCalculateValue = async (error: any) => {
+  const filteredEntries = knowledgeEntries?.filter(entry => {
+    const matchesSearch = entry.error_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         entry.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || entry.error_category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  }) || [];
+
+  const getRarityColor = (score?: number) => {
+    if (!score) return 'bg-gray-100 text-gray-800';
+    if (score >= 8) return 'bg-red-100 text-red-800';
+    if (score >= 6) return 'bg-orange-100 text-orange-800';
+    if (score >= 4) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getDifficultyColor = (difficulty?: number) => {
+    if (!difficulty) return 'bg-gray-100 text-gray-800';
+    if (difficulty >= 8) return 'bg-red-100 text-red-800';
+    if (difficulty >= 6) return 'bg-orange-100 text-orange-800';
+    if (difficulty >= 4) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const handleTestDetection = async () => {
     try {
-      const result = await calculateValue.mutateAsync({
-        errorType: error.error_type,
-        severity: error.severity_level >= 8 ? 'major' : error.severity_level >= 5 ? 'moderate' : 'minor',
-        rarity: error.rarity_score || 1,
-        baseValue: 100 // Base coin value for calculation
+      const result = await detectErrors.mutateAsync({
+        imageHash: 'test-hash-' + Date.now(),
+        coinInfo: {
+          keywords: ['doubled', 'die', 'lincoln'],
+          category: 'die_error',
+          type: 'doubled_die'
+        },
+        detectionConfig: { min_confidence: 0.5 }
       });
       
-      toast.success(`Estimated value: $${result.estimated_value.toFixed(2)}`);
+      // Properly handle Json type from Supabase RPC
+      let errorsDetected: any[] = [];
+      if (result && typeof result === 'object' && 'errors_detected' in result) {
+        const detectedErrors = (result as any).errors_detected;
+        errorsDetected = Array.isArray(detectedErrors) ? detectedErrors : [];
+      }
+      
+      toast({
+        title: "AI Detection Test Complete",
+        description: `Detected ${errorsDetected.length} potential errors`,
+      });
     } catch (error) {
-      toast.error('Failed to calculate error coin value');
+      console.error('Detection test failed:', error);
     }
   };
 
-  const addNewErrorType = async () => {
-    const newError = {
-      error_name: 'New Error Pattern',
-      error_type: 'striking_error',
-      error_category: 'production',
-      description: 'AI-detected error pattern requiring classification',
-      rarity_score: 1,
-      severity_level: 1,
-      detection_difficulty: 1,
-      market_premium_multiplier: 1.0,
-      ai_detection_markers: {
-        confidence_threshold: 0.8,
-        visual_indicators: ['irregular_surface', 'displaced_elements'],
-        comparison_needed: true
-      },
-      identification_techniques: ['visual_inspection', 'magnification_required'],
-      technical_specifications: {
-        frequency: 'rare',
-        mint_years_affected: [],
-        denominations_affected: []
-      }
-    };
-
-    const { error } = await supabase
-      .from('error_coins_knowledge')
-      .insert(newError);
-
-    if (error) {
-      toast.error('Failed to add new error type');
-    } else {
-      toast.success('New error type added to knowledge base');
+  const handleTestValuation = async () => {
+    if (filteredEntries.length === 0) return;
+    
+    try {
+      const firstEntry = filteredEntries[0];
+      const result = await calculateValue.mutateAsync({
+        errorId: firstEntry.id,
+        grade: 'MS-65',
+        baseCoinValue: 100
+      });
+      
+      toast({
+        title: "AI Valuation Test Complete",
+        description: `Estimated value calculated for ${firstEntry.error_name}`,
+      });
+    } catch (error) {
+      console.error('Valuation test failed:', error);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Knowledge Base Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Error Types</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{errorKnowledge.length}</div>
-            <p className="text-xs text-muted-foreground">AI-verified patterns</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">High Rarity</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {errorKnowledge.filter(e => e.rarity_score >= 8).length}
+      {/* Header with Enhanced Stats */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-6 w-6 text-purple-600" />
+              Enhanced Error Coins Knowledge Base
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleTestDetection}
+                disabled={detectErrors.isPending}
+                variant="outline"
+                size="sm"
+              >
+                <Microscope className="h-4 w-4 mr-2" />
+                Test AI Detection
+              </Button>
+              <Button
+                onClick={handleTestValuation}
+                disabled={calculateValue.isPending || filteredEntries.length === 0}
+                variant="outline"
+                size="sm"
+              >
+                <Calculator className="h-4 w-4 mr-2" />
+                Test AI Valuation
+              </Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Entry
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Premium errors</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Detection Ready</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {errorKnowledge.filter(e => e.ai_detection_markers).length}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {knowledgeEntries?.length || 0}
+              </div>
+              <div className="text-sm text-muted-foreground">Total Entries</div>
             </div>
-            <p className="text-xs text-muted-foreground">Machine-readable</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Detection Accuracy</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">94.7%</div>
-            <p className="text-xs text-muted-foreground">AI confidence</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Add */}
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search error patterns, types, or descriptions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button onClick={addNewErrorType} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Error Type
-        </Button>
-      </div>
-
-      {/* Error Knowledge Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredErrors.map((error) => (
-          <Card key={error.id} className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelectedError(error)}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{error.error_name}</CardTitle>
-                <Badge variant={error.rarity_score >= 8 ? "destructive" : 
-                              error.rarity_score >= 5 ? "default" : "secondary"}>
-                  Rarity: {error.rarity_score}
-                </Badge>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {knowledgeEntries?.filter(e => (e.rarity_score || 0) >= 8).length || 0}
               </div>
-              <div className="flex gap-2">
-                <Badge variant="outline">{error.error_type}</Badge>
-                <Badge variant="outline">{error.error_category}</Badge>
+              <div className="text-sm text-muted-foreground">Ultra Rare</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {knowledgeEntries?.filter(e => (e.detection_difficulty || 0) >= 8).length || 0}
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                {error.description}
-              </p>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span>Detection Difficulty:</span>
-                  <span className="font-medium">{error.detection_difficulty}/10</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span>Market Premium:</span>
-                  <span className="font-medium">{((error.market_premium_multiplier - 1) * 100).toFixed(0)}%</span>
-                </div>
-                {error.ai_detection_markers && (
-                  <div className="flex items-center gap-1 text-xs text-purple-600">
-                    <Brain className="h-3 w-3" />
-                    <span>AI Detection Ready</span>
-                  </div>
-                )}
+              <div className="text-sm text-muted-foreground">Hard to Detect</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {knowledgeEntries?.filter(e => (e.market_premium_multiplier || 0) > 5).length || 0}
               </div>
+              <div className="text-sm text-muted-foreground">High Premium</div>
+            </div>
+          </div>
 
-              <div className="mt-3 flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCalculateValue(error);
-                  }}
-                  disabled={calculateValue.isPending}
-                  className="flex-1"
-                >
-                  Calculate Value
-                </Button>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search knowledge entries..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 border rounded-md"
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category.replace('_', ' ').toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Error Detail Modal */}
-      {selectedError && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{selectedError.error_name}</CardTitle>
-                <Button variant="ghost" onClick={() => setSelectedError(null)}>×</Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Description</h4>
-                <p className="text-sm text-muted-foreground">{selectedError.description}</p>
-              </div>
-
-              {selectedError.identification_techniques?.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Identification Techniques</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedError.identification_techniques.map((technique: string, idx: number) => (
-                      <Badge key={idx} variant="outline">{technique}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedError.ai_detection_markers && (
-                <div>
-                  <h4 className="font-semibold mb-2">AI Detection Markers</h4>
-                  <div className="bg-purple-50 p-3 rounded-lg">
-                    <pre className="text-xs text-purple-800 whitespace-pre-wrap">
-                      {JSON.stringify(selectedError.ai_detection_markers, null, 2)}
-                    </pre>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Specifications</h4>
-                  <div className="space-y-1 text-sm">
-                    <div>Rarity Score: {selectedError.rarity_score}/10</div>
-                    <div>Severity: {selectedError.severity_level}/10</div>
-                    <div>Detection Difficulty: {selectedError.detection_difficulty}/10</div>
-                    <div>Market Premium: {((selectedError.market_premium_multiplier - 1) * 100).toFixed(0)}%</div>
-                  </div>
-                </div>
-
-                {selectedError.historical_significance && (
-                  <div>
-                    <h4 className="font-semibold mb-2">Historical Significance</h4>
-                    <p className="text-sm text-muted-foreground">{selectedError.historical_significance}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Enhanced Knowledge Entries Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Enhanced Knowledge Entries ({filteredEntries.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Error Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Rarity</TableHead>
+                <TableHead>Difficulty</TableHead>
+                <TableHead>Premium</TableHead>
+                <TableHead>AI Markers</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEntries.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div>{entry.error_name}</div>
+                      {entry.detection_keywords && entry.detection_keywords.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {entry.detection_keywords.slice(0, 3).map((keyword, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">
+                              {keyword}
+                            </Badge>
+                          ))}
+                          {entry.detection_keywords.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{entry.detection_keywords.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{entry.error_type}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{entry.error_category}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getRarityColor(entry.rarity_score)}>
+                      {entry.rarity_score || 0}/10
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getDifficultyColor(entry.detection_difficulty)}>
+                      {entry.detection_difficulty || 0}/10
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-green-600">
+                      {entry.market_premium_multiplier ? `${entry.market_premium_multiplier}x` : 'N/A'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {entry.ai_detection_markers && Object.keys(entry.ai_detection_markers).length > 0 ? (
+                        <Brain className="h-4 w-4 text-purple-600" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-gray-400" />
+                      )}
+                      {entry.visual_markers && Object.keys(entry.visual_markers).length > 0 && (
+                        <Eye className="h-4 w-4 text-blue-500" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

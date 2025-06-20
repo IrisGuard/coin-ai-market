@@ -35,14 +35,14 @@ export const useEnhancedDashboardStats = () => {
       
       if (portfolioError) throw portfolioError;
 
-      // Calculate AI accuracy from AI performance metrics instead of ai_predictions
-      const { data: aiMetrics } = await supabase
-        .from('ai_performance_metrics')
-        .select('metric_value')
-        .gte('recorded_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+      // Calculate AI accuracy from recent predictions
+      const { data: predictions } = await supabase
+        .from('ai_predictions')
+        .select('confidence_score')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
-      const avgConfidence = aiMetrics?.length 
-        ? aiMetrics.reduce((sum, p) => sum + p.metric_value, 0) / aiMetrics.length 
+      const avgConfidence = predictions?.length 
+        ? predictions.reduce((sum, p) => sum + p.confidence_score, 0) / predictions.length 
         : 0.85;
 
       // Calculate portfolio performance

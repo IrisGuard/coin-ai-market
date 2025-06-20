@@ -8,14 +8,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const AIPredictionsManager = () => {
-  // Use existing AI performance metrics table instead of non-existent ai_predictions
   const { data: predictions, isLoading } = useQuery({
-    queryKey: ['ai-performance-metrics'],
+    queryKey: ['ai-predictions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ai_performance_metrics')
+        .from('ai_predictions')
         .select('*')
-        .order('recorded_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(50);
       
       if (error) throw error;
@@ -23,23 +22,23 @@ const AIPredictionsManager = () => {
     }
   });
 
-  const getConfidenceColor = (value: number) => {
-    if (value >= 0.8) return 'bg-green-100 text-green-800';
-    if (value >= 0.6) return 'bg-yellow-100 text-yellow-800';
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'bg-green-100 text-green-800';
+    if (confidence >= 0.6) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
   };
 
   const stats = {
     total: predictions?.length || 0,
-    highConfidence: predictions?.filter(p => p.metric_value >= 0.8).length || 0,
-    avgConfidence: predictions?.reduce((sum, p) => sum + p.metric_value, 0) / (predictions?.length || 1) || 0,
-    types: new Set(predictions?.map(p => p.metric_type)).size || 0
+    highConfidence: predictions?.filter(p => p.confidence_score >= 0.8).length || 0,
+    avgConfidence: predictions?.reduce((sum, p) => sum + p.confidence_score, 0) / (predictions?.length || 1) || 0,
+    types: new Set(predictions?.map(p => p.prediction_type)).size || 0
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -50,26 +49,26 @@ const AIPredictionsManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-purple-600" />
-            AI Performance Metrics Management
+            AI Predictions Management
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">{stats.total}</div>
-              <div className="text-sm text-muted-foreground">Total Metrics</div>
+              <div className="text-sm text-muted-foreground">Total Predictions</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{stats.highConfidence}</div>
-              <div className="text-sm text-muted-foreground">High Performance</div>
+              <div className="text-sm text-muted-foreground">High Confidence</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{(stats.avgConfidence * 100).toFixed(1)}%</div>
-              <div className="text-sm text-muted-foreground">Avg Performance</div>
+              <div className="text-sm text-muted-foreground">Avg Confidence</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">{stats.types}</div>
-              <div className="text-sm text-muted-foreground">Metric Types</div>
+              <div className="text-sm text-muted-foreground">Prediction Types</div>
             </div>
           </div>
         </CardContent>
@@ -77,41 +76,53 @@ const AIPredictionsManager = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Performance Metrics</CardTitle>
+          <CardTitle>Recent Predictions</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Type</TableHead>
-                <TableHead>Metric Name</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Recorded</TableHead>
-                <TableHead>Related ID</TableHead>
+                <TableHead>Predicted Value</TableHead>
+                <TableHead>Confidence</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Actual Value</TableHead>
+                <TableHead>Accuracy</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {predictions?.map((metric) => (
-                <TableRow key={metric.id}>
+              {predictions?.map((prediction) => (
+                <TableRow key={prediction.id}>
                   <TableCell>
-                    <Badge variant="outline">{metric.metric_type}</Badge>
+                    <Badge variant="outline">{prediction.prediction_type}</Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{metric.metric_name}</div>
+                    <div className="font-mono text-sm">
+                      {JSON.stringify(prediction.predicted_value)}
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getConfidenceColor(metric.metric_value)}>
-                      {(metric.metric_value * 100).toFixed(1)}%
+                    <Badge className={getConfidenceColor(prediction.confidence_score)}>
+                      {(prediction.confidence_score * 100).toFixed(1)}%
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(metric.recorded_at).toLocaleDateString()}
+                    {new Date(prediction.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    {metric.related_id ? (
-                      <span className="text-xs text-muted-foreground">{metric.related_id}</span>
+                    {prediction.actual_value ? (
+                      <div className="font-mono text-sm">
+                        {JSON.stringify(prediction.actual_value)}
+                      </div>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span className="text-muted-foreground">Pending</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {prediction.accuracy_check ? (
+                      <Badge variant="default">Verified</Badge>
+                    ) : (
+                      <Badge variant="secondary">Unverified</Badge>
                     )}
                   </TableCell>
                 </TableRow>

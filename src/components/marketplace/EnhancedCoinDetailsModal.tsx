@@ -4,15 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Clock, DollarSign, Star, AlertTriangle, Eye, Zap, Package, Globe } from 'lucide-react';
-import ImageGallery from '@/components/ui/ImageGallery';
 
 interface Coin {
   id: string;
   name: string;
   image: string;
-  images?: string[];
-  obverse_image?: string;
-  reverse_image?: string;
   price: number;
   grade: string;
   year: number;
@@ -45,23 +41,6 @@ const EnhancedCoinDetailsModal: React.FC<EnhancedCoinDetailsModalProps> = ({
   onClose
 }) => {
   if (!coin) return null;
-
-  // Helper function to get all available images for a coin
-  const getAllImages = (coin: Coin): string[] => {
-    const allImages: string[] = [];
-    
-    // Add from images array if available
-    if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
-    } else {
-      // Fallback to individual image fields
-      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
-      if (coin.obverse_image && !coin.obverse_image.startsWith('blob:')) allImages.push(coin.obverse_image);
-      if (coin.reverse_image && !coin.reverse_image.startsWith('blob:')) allImages.push(coin.reverse_image);
-    }
-    
-    return allImages;
-  };
 
   const isAuctionActive = coin.is_auction && coin.auction_end && new Date(coin.auction_end) > new Date();
 
@@ -101,7 +80,6 @@ const EnhancedCoinDetailsModal: React.FC<EnhancedCoinDetailsModalProps> = ({
 
   const listingInfo = getListingTypeDisplay();
   const ListingIcon = listingInfo.icon;
-  const allImages = getAllImages(coin);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -119,14 +97,26 @@ const EnhancedCoinDetailsModal: React.FC<EnhancedCoinDetailsModalProps> = ({
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Image Section with Gallery - NO OVERLAYS */}
+          {/* Image Section */}
           <div className="space-y-4">
             <div className="relative">
-              <ImageGallery 
-                images={allImages}
-                coinName={coin.name}
-                className="w-full h-80"
+              <img
+                src={coin.image}
+                alt={coin.name}
+                className="w-full h-80 object-cover rounded-lg border"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=300&fit=crop';
+                }}
               />
+              
+              {/* Views counter */}
+              <div className="absolute top-2 right-2">
+                <Badge variant="secondary" className="bg-black/50 text-white">
+                  <Eye className="h-3 w-3 mr-1" />
+                  {coin.views}
+                </Badge>
+              </div>
             </div>
           </div>
 
