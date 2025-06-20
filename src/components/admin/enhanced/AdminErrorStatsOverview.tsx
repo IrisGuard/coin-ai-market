@@ -6,10 +6,24 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, TrendingUp, Brain, DollarSign, BarChart3, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define the interface for our stats
+interface ErrorStats {
+  totalErrorTypes: number;
+  highRarityErrors: number;
+  aiDetectionReady: number;
+  marketDataPoints: number;
+  avgMarketValue: number;
+  premiumErrors: number;
+  weeklyDetections: number;
+  avgConfidence: number;
+  errorCategories: string[];
+  topValueErrors: any[];
+}
+
 const AdminErrorStatsOverview = () => {
   const { data: errorStats, isLoading } = useQuery({
     queryKey: ['admin-error-stats'],
-    queryFn: async () => {
+    queryFn: async (): Promise<ErrorStats> => {
       const [knowledgeResult, marketResult, detectionResult] = await Promise.all([
         supabase.from('error_coins_knowledge').select('*'),
         supabase.from('error_coins_market_data').select('*'),
@@ -46,7 +60,19 @@ const AdminErrorStatsOverview = () => {
     );
   }
 
-  const stats = errorStats || {};
+  // Provide default values if errorStats is undefined
+  const stats: ErrorStats = errorStats || {
+    totalErrorTypes: 0,
+    highRarityErrors: 0,
+    aiDetectionReady: 0,
+    marketDataPoints: 0,
+    avgMarketValue: 0,
+    premiumErrors: 0,
+    weeklyDetections: 0,
+    avgConfidence: 0,
+    errorCategories: [],
+    topValueErrors: []
+  };
 
   return (
     <div className="space-y-6">

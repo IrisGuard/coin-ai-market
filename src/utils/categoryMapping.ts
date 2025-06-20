@@ -1,4 +1,5 @@
 
+
 export const mapUIToDatabaseCategory = (uiCategory: string): string => {
   const mapping: { [key: string]: string } = {
     'morgan_dollar': 'american',
@@ -37,3 +38,21 @@ export const mapDatabaseToUICategory = (dbCategory: string): string => {
 
   return mapping[dbCategory] || 'World Coins';
 };
+
+export const getValidDatabaseCategories = (): string[] => {
+  return [
+    'american',
+    'british',
+    'european',
+    'asian',
+    'greek',
+    'error_coin',
+    'ancient',
+    'modern',
+    'silver',
+    'gold',
+    'commemorative',
+    'unclassified'
+  ];
+};
+
