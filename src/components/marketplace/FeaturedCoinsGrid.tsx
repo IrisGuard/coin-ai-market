@@ -40,7 +40,7 @@ const FeaturedCoinsGrid = () => {
         .from('coins')
         .select('*')
         .eq('featured', true)
-        .limit(8);
+        .limit(1000);
 
       if (error) {
         return [];
