@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
+import CompleteProductionActivator from '@/components/production/CompleteProductionActivator';
 import LiveProductionAdminPanel from '@/components/admin/LiveProductionAdminPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,64 +44,14 @@ const AdminPanelPage = () => {
             </div>
           </motion.div>
 
-          {/* Live Admin Features */}
+          {/* Complete Production Activator */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+            className="mb-8"
           >
-            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-green-700">
-                  <Activity className="h-5 w-5" />
-                  System Status
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold text-green-600">100%</div>
-                <p className="text-sm text-green-500">Live operational</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-blue-700">
-                  <Database className="h-5 w-5" />
-                  Data Sources
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold text-blue-600">16+</div>
-                <p className="text-sm text-blue-500">Active feeds</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-purple-700">
-                  <Brain className="h-5 w-5" />
-                  AI Commands
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold text-purple-600">125+</div>
-                <p className="text-sm text-purple-500">Live processing</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-orange-700">
-                  <Shield className="h-5 w-5" />
-                  Security
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold text-orange-600">SECURE</div>
-                <p className="text-sm text-orange-500">All systems protected</p>
-              </CardContent>
-            </Card>
+            <CompleteProductionActivator />
           </motion.div>
 
           {/* Live Production Activity Indicator */}
