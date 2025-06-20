@@ -14,6 +14,8 @@ const ProductionCleanupButton = () => {
   const [cleanupProgress, setCleanupProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [errorDetails, setErrorDetails] = useState('');
 
   const { 
     mockDataPercentage, 
@@ -30,6 +32,8 @@ const ProductionCleanupButton = () => {
 
     setIsCleanupMode(true);
     setCleanupProgress(0);
+    setHasError(false);
+    setErrorDetails('');
 
     const steps = [
       'Σάρωση αρχείων συστήματος...',
@@ -43,27 +47,87 @@ const ProductionCleanupButton = () => {
     ];
 
     try {
+      console.log('🚀 Ξεκινά η διαδικασία καθαρισμού...');
+      
       for (let i = 0; i < steps.length; i++) {
         setCurrentStep(steps[i]);
         setCleanupProgress((i + 1) * 12.5);
         
+        console.log(`📋 Βήμα ${i + 1}/8: ${steps[i]}`);
+        
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         if (i === 6) {
+          console.log('🔧 Εκτέλεση κύριου καθαρισμού...');
           // Execute the actual cleanup
-          await executeFullCleanup();
+          const result = await executeFullCleanup();
+          console.log('✅ Κύριος καθαρισμός ολοκληρώθηκε:', result);
         }
       }
 
+      console.log('🎉 Καθαρισμός ολοκληρώθηκε με επιτυχία!');
       setIsCompleted(true);
       toast.success('🎉 Η πλατφόρμα είναι τώρα 100% LIVE και έτοιμη για πραγματικά νομίσματα!');
       
     } catch (error) {
-      console.error('Cleanup error:', error);
-      toast.error('Σφάλμα κατά τον καθαρισμό');
+      console.error('💥 Cleanup error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Άγνωστο σφάλμα κατά τον καθαρισμό';
+      
+      setHasError(true);
+      setErrorDetails(errorMessage);
       setIsCleanupMode(false);
+      
+      toast.error(`❌ Σφάλμα κατά τον καθαρισμό: ${errorMessage}`);
+      
+      console.error('🔍 Error details:', {
+        error,
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   };
+
+  if (hasError) {
+    return (
+      <Card className="border-red-500 bg-red-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-700">
+            <AlertTriangle className="w-6 h-6" />
+            ❌ Σφάλμα Καθαρισμού
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Alert className="border-red-300 bg-red-100">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="font-semibold text-red-800">
+                Ο καθαρισμός απέτυχε: {errorDetails}
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-2">
+              <h4 className="font-medium text-red-700">Τι πήγε στραβά:</h4>
+              <p className="text-sm text-red-600 bg-red-50 p-3 rounded">
+                {errorDetails}
+              </p>
+            </div>
+
+            <Button 
+              onClick={() => {
+                setHasError(false);
+                setErrorDetails('');
+              }}
+              className="w-full"
+              variant="outline"
+            >
+              🔄 Προσπάθεια Ξανά
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isCompleted) {
     return (
@@ -119,6 +183,10 @@ const ProductionCleanupButton = () => {
             <p className="text-center text-sm text-muted-foreground">
               {cleanupProgress.toFixed(0)}% ολοκληρωμένο
             </p>
+            
+            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+              💡 Tip: Μπορείτε να δείτε λεπτομερή logs στο console του browser (F12)
+            </div>
           </div>
         </CardContent>
       </Card>
