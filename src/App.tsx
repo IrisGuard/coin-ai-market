@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { navItems } from "./nav-items";
 import Navbar from "./components/Navbar";
 import { LiveMarketplaceProvider } from "./components/marketplace/LiveMarketplaceDataProvider";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,21 +21,23 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <LiveMarketplaceProvider>
-          <Toaster />
-          <BrowserRouter>
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <main>
-                <Routes>
-                  {navItems.map(({ to, page }) => (
-                    <Route key={to} path={to} element={page} />
-                  ))}
-                </Routes>
-              </main>
-            </div>
-          </BrowserRouter>
-        </LiveMarketplaceProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <LiveMarketplaceProvider>
+              <Toaster />
+              <div className="min-h-screen bg-background">
+                <Navbar />
+                <main>
+                  <Routes>
+                    {navItems.map(({ to, page }) => (
+                      <Route key={to} path={to} element={page} />
+                    ))}
+                  </Routes>
+                </main>
+              </div>
+            </LiveMarketplaceProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
