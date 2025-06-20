@@ -1,289 +1,315 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Store, Coins, Wallet, CreditCard, TrendingUp, Upload, Activity } from 'lucide-react';
-import { motion } from 'framer-motion';
-import CategoryNavigationFromDatabase from '@/components/marketplace/CategoryNavigationFromDatabase';
+import { Store, Upload, TrendingUp, Eye, Activity, Coins } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import StoreManagerRefactored from './store/StoreManagerRefactored';
+import CategoryNavigationFromDatabase from '@/components/marketplace/CategoryNavigationFromDatabase';
 
 const OriginalDealerPanel = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('categories');
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [stats, setStats] = useState({
-    totalCoins: 0,
-    totalSales: 0,
-    pendingOrders: 0,
-    monthlyRevenue: 0
+  const [selectedStoreId, setSelectedStoreId] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Fetch user's stores
+  const { data: userStores = [], isLoading: storesLoading } = useQuery({
+    queryKey: ['user-stores', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      console.log(`✅ User has ${data?.length || 0} stores:`, data);
+      return data || [];
+    },
+    enabled: !!user?.id,
   });
 
-  useEffect(() => {
-    fetchDealerStats();
-    fetchWalletBalance();
-  }, [user]);
-
-  const fetchDealerStats = async () => {
-    if (!user?.id) return;
-    
-    try {
-      const [coinsRes, salesRes] = await Promise.all([
-        supabase.from('coins').select('*').eq('user_id', user.id),
-        supabase.from('payment_transactions').select('*').eq('user_id', user.id).eq('status', 'completed')
-      ]);
-
-      const totalCoins = coinsRes.data?.length || 0;
-      const totalSales = salesRes.data?.length || 0;
-      const monthlyRevenue = salesRes.data?.reduce((sum, sale) => sum + (sale.amount || 0), 0) || 0;
-
-      setStats({
-        totalCoins,
-        totalSales,
-        pendingOrders: 0,
-        monthlyRevenue
-      });
-    } catch (error) {
-      console.error('Error fetching dealer stats:', error);
-    }
-  };
-
-  const fetchWalletBalance = async () => {
-    if (!user?.id) return;
-    
-    try {
+  // Fetch user's coins
+  const { data: userCoins = [], isLoading: coinsLoading } = useQuery({
+    queryKey: ['user-coins', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      console.log('Fetching coins for user:', user.id);
+      
       const { data, error } = await supabase
-        .from('wallet_balances')
-        .select('gcai_balance')
+        .from('coins')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey(
+            id,
+            name,
+            full_name,
+            username
+          )
+        `)
         .eq('user_id', user.id)
-        .single();
+        .order('created_at', { ascending: false });
 
-      if (data) {
-        setWalletBalance(data.gcai_balance || 0);
+      if (error) {
+        console.error('Error fetching user coins:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error fetching wallet balance:', error);
-    }
+
+      console.log(`✅ User has ${data?.length || 0} coins:`, data);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Get coin statistics
+  const coinStats = React.useMemo(() => {
+    const total = userCoins.length;
+    const featured = userCoins.filter(coin => coin.featured).length;
+    const sold = userCoins.filter(coin => coin.sold).length;
+    const auctions = userCoins.filter(coin => coin.is_auction).length;
+    const totalValue = userCoins.reduce((sum, coin) => sum + (coin.price || 0), 0);
+    
+    return { total, featured, sold, auctions, totalValue };
+  }, [userCoins]);
+
+  const handleStoreSelect = (storeId: string) => {
+    setSelectedStoreId(storeId);
+    console.log('Selected store:', storeId);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+    <div className="space-y-6">
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-electric-red to-electric-orange bg-clip-text text-transparent mb-4">
-            🔴 LIVE DEALER PANEL - ΠΛΗΡΗΣ ΛΕΙΤΟΥΡΓΙΚΟΤΗΤΑ
-          </h1>
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <Badge className="bg-green-600 text-white px-4 py-2">
-              LIVE PRODUCTION
-            </Badge>
-            <Badge className="bg-blue-600 text-white px-4 py-2">
-              30 ΚΑΤΗΓΟΡΙΕΣ ΕΝΕΡΓΕΣ
-            </Badge>
-            <Badge className="bg-purple-600 text-white px-4 py-2">
-              WALLET ΔΙΑΘΕΣΙΜΟ
-            </Badge>
-            <Badge className="bg-orange-600 text-white px-4 py-2">
-              ADMIN ACCESS
-            </Badge>
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-blue-800 mb-2">
+              🏪 DEALER PANEL - LIVE PRODUCTION
+            </h2>
+            <p className="text-blue-600">
+              Complete store and coin management • Real-time Supabase data • 30 Categories Available
+            </p>
+          </div>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Badge className="bg-green-600 text-white">
+                {userStores.length} Stores
+              </Badge>
+              <Badge className="bg-blue-600 text-white">
+                {userCoins.length} Coins
+              </Badge>
+              <Badge className="bg-purple-600 text-white">
+                LIVE DATA
+              </Badge>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-green-700">
-                <Coins className="h-5 w-5" />
-                Συνολικά Νομίσματα
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.totalCoins}</div>
-              <p className="text-sm text-green-500">Στο κατάστημά σας</p>
-            </CardContent>
-          </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="stores" className="flex items-center gap-2">
+            <Store className="w-4 h-4" />
+            My Stores
+          </TabsTrigger>
+          <TabsTrigger value="coins" className="flex items-center gap-2">
+            <Coins className="w-4 h-4" />
+            My Coins
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            30 Categories
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Upload Coin
+          </TabsTrigger>
+        </TabsList>
 
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-blue-700">
-                <TrendingUp className="h-5 w-5" />
-                Πωλήσεις
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.totalSales}</div>
-              <p className="text-sm text-blue-500">Επιτυχημένες</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-purple-700">
-                <CreditCard className="h-5 w-5" />
-                Έσοδα Μήνα
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">€{stats.monthlyRevenue.toFixed(2)}</div>
-              <p className="text-sm text-purple-500">Τρέχων μήνας</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-orange-700">
-                <Wallet className="h-5 w-5" />
-                Wallet Balance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{walletBalance} GCAI</div>
-              <p className="text-sm text-orange-500">Διαθέσιμο υπόλοιπο</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="categories" className="flex items-center gap-2">
-              <Store className="h-4 w-4" />
-              30 Κατηγορίες Νομισμάτων
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className="flex items-center gap-2">
-              <Wallet className="h-4 w-4" />
-              Crypto & Banking
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Upload Νομισμάτων
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="categories" className="mt-6">
+        <TabsContent value="overview" className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Store className="h-5 w-5" />
-                  30 Κατηγορίες Νομισμάτων - Άμεση Πρόσβαση
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 p-4 bg-green-100 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Activity className="h-5 w-5 text-green-600 animate-pulse" />
-                    <span className="font-medium text-green-800">
-                      Κατηγορίες φορτώνουν από βάση δεδομένων - LIVE CONNECTION
-                    </span>
-                  </div>
-                  <p className="text-sm text-green-600">
-                    Όλες οι 30 κατηγορίες συνδέονται απευθείας με το Supabase για real-time δεδομένα
-                  </p>
-                </div>
-                <CategoryNavigationFromDatabase />
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">{userStores.length}</div>
+                <p className="text-sm text-gray-600">My Stores</p>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="wallet" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5" />
-                    Crypto Wallet Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="font-semibold text-blue-800">GCAI Balance</div>
-                      <div className="text-2xl font-bold text-blue-600">{walletBalance} GCAI</div>
-                      <div className="text-sm text-blue-500">Available for trading</div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button className="bg-green-600 hover:bg-green-700">
-                        Deposit GCAI
-                      </Button>
-                      <Button variant="outline" className="border-blue-600 text-blue-600">
-                        Withdraw
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Banking & Payments
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="font-semibold text-purple-800">Monthly Revenue</div>
-                      <div className="text-2xl font-bold text-purple-600">€{stats.monthlyRevenue.toFixed(2)}</div>
-                      <div className="text-sm text-purple-500">Current month earnings</div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        Setup Banking
-                      </Button>
-                      <Button variant="outline" className="border-purple-600 text-purple-600">
-                        Payment History
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="upload" className="mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Άμεσο Upload Νομισμάτων
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">{coinStats.total}</div>
+                <p className="text-sm text-gray-600">Total Coins</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-purple-600">{coinStats.featured}</div>
+                <p className="text-sm text-gray-600">Featured</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600">{coinStats.sold}</div>
+                <p className="text-sm text-gray-600">Sold</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-red-600">€{coinStats.totalValue.toFixed(2)}</div>
+                <p className="text-sm text-gray-600">Total Value</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {userCoins.length === 0 ? (
                 <div className="text-center py-8">
-                  <Upload className="h-16 w-16 mx-auto mb-4 text-blue-500" />
-                  <h3 className="text-xl font-semibold mb-2">Upload Νέα Νομίσματα</h3>
-                  <p className="text-gray-600 mb-6">
-                    Προσθέστε νέα νομίσματα στο κατάστημά σας με AI αναγνώριση
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button className="h-20 bg-blue-600 hover:bg-blue-700">
-                      <div className="text-center">
-                        <Upload className="h-6 w-6 mx-auto mb-1" />
-                        <div>Single Upload</div>
-                      </div>
-                    </Button>
-                    <Button className="h-20 bg-green-600 hover:bg-green-700">
-                      <div className="text-center">
-                        <Brain className="h-6 w-6 mx-auto mb-1" />
-                        <div>Bulk Upload with AI</div>
-                      </div>
-                    </Button>
-                  </div>
+                  <Coins className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">No coins uploaded yet</p>
+                  <Button className="mt-4" onClick={() => setActiveTab('upload')}>
+                    Upload Your First Coin
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </motion.div>
+              ) : (
+                <div className="space-y-3">
+                  {userCoins.slice(0, 5).map((coin) => (
+                    <div key={coin.id} className="flex items-center gap-3 p-3 border rounded">
+                      <img 
+                        src={coin.image} 
+                        alt={coin.name}
+                        className="w-12 h-12 rounded object-cover"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-medium">{coin.name}</h4>
+                        <p className="text-sm text-gray-600">{coin.year} • {coin.grade}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">€{coin.price}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(coin.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="stores">
+          <StoreManagerRefactored
+            onStoreSelect={handleStoreSelect}
+            selectedStoreId={selectedStoreId}
+          />
+        </TabsContent>
+
+        <TabsContent value="coins">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Coins className="w-5 h-5" />
+                My Coins ({userCoins.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {coinsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p>Loading your coins...</p>
+                </div>
+              ) : userCoins.length === 0 ? (
+                <div className="text-center py-8">
+                  <Coins className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No coins yet</h3>
+                  <p className="text-gray-500 mb-4">Start building your collection!</p>
+                  <Button onClick={() => setActiveTab('upload')}>
+                    Upload Your First Coin
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {userCoins.map((coin) => (
+                    <Card key={coin.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-4">
+                        <img 
+                          src={coin.image} 
+                          alt={coin.name}
+                          className="w-full h-32 object-cover rounded mb-3"
+                        />
+                        <h3 className="font-semibold mb-1">{coin.name}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{coin.year} • {coin.grade}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-lg">€{coin.price}</span>
+                          <div className="flex gap-1">
+                            {coin.featured && (
+                              <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>
+                            )}
+                            {coin.sold && (
+                              <Badge className="bg-green-100 text-green-800">Sold</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories">
+          <Card>
+            <CardHeader>
+              <CardTitle>30 Coin Categories - Live from Supabase</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CategoryNavigationFromDatabase />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="upload">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="w-5 h-5" />
+                Upload New Coin
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Upload className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Coin Upload Coming Soon</h3>
+                <p className="text-gray-500 mb-4">Advanced AI-powered coin analysis and automatic form filling</p>
+                <Button disabled>
+                  Upload Coin (Coming Soon)
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

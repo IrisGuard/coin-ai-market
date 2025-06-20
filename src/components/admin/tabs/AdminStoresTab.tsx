@@ -1,32 +1,25 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Search, Store, CheckCircle, XCircle, Eye, Edit, Star, MapPin, Clock, DollarSign } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Store, Users, Search, Edit, Trash2, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-
-interface UpdateStoreParams {
-  storeId: string;
-  updates: Record<string, any>;
-}
+import { toast } from 'sonner';
 
 const AdminStoresTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStore, setSelectedStore] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  const { data: stores = [], isLoading } = useQuery({
+  // Fetch all stores with user profiles
+  const { data: stores = [], isLoading, error } = useQuery({
     queryKey: ['admin-stores'],
     queryFn: async () => {
+      console.log('Fetching all stores for admin...');
+      
       const { data, error } = await supabase
         .from('stores')
         .select(`
@@ -37,35 +30,51 @@ const AdminStoresTab = () => {
             email,
             avatar_url,
             verified_dealer,
-            rating
+            rating,
+            username
           )
         `)
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+
+      if (error) {
+        console.error('Error fetching stores:', error);
+        throw error;
+      }
+
+      console.log(`✅ Loaded ${data?.length || 0} stores:`, data);
       return data || [];
     },
+    staleTime: 30000, // 30 seconds
   });
 
-  const { data: storeStats } = useQuery({
-    queryKey: ['admin-store-stats'],
+  // Get store coin counts
+  const { data: storeCounts = {} } = useQuery({
+    queryKey: ['admin-store-coin-counts'],
     queryFn: async () => {
-      const [totalStores, verifiedStores, activeStores] = await Promise.all([
-        supabase.from('stores').select('id', { count: 'exact', head: true }),
-        supabase.from('stores').select('id', { count: 'exact', head: true }).eq('verified', true),
-        supabase.from('stores').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      ]);
-
-      return {
-        total: totalStores.count || 0,
-        verified: verifiedStores.count || 0,
-        active: activeStores.count || 0,
-      };
-    },
+      const { data, error } = await supabase
+        .from('coins')
+        .select('user_id, store_id')
+        .not('store_id', 'is', null);
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data?.forEach(coin => {
+        if (coin.store_id) {
+          counts[coin.store_id] = (counts[coin.store_id] || 0) + 1;
+        }
+        if (coin.user_id) {
+          counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
+        }
+      });
+      
+      return counts;
+    }
   });
 
+  // Update store status mutation
   const updateStoreMutation = useMutation({
-    mutationFn: async ({ storeId, updates }: UpdateStoreParams) => {
+    mutationFn: async ({ storeId, updates }: { storeId: string; updates: any }) => {
       const { error } = await supabase
         .from('stores')
         .update(updates)
@@ -75,232 +84,244 @@ const AdminStoresTab = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-stores'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-store-stats'] });
-      toast({
-        title: "Success",
-        description: "Store updated successfully.",
-      });
+      toast.success('Store updated successfully');
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: Error) => {
+      toast.error('Failed to update store: ' + error.message);
     },
   });
 
+  // Filter stores based on search
   const filteredStores = stores.filter(store => {
-    const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
-    return store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           profile?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    const profile = store.profiles;
+    return (
+      store.name?.toLowerCase().includes(searchLower) ||
+      store.description?.toLowerCase().includes(searchLower) ||
+      profile?.full_name?.toLowerCase().includes(searchLower) ||
+      profile?.email?.toLowerCase().includes(searchLower) ||
+      profile?.username?.toLowerCase().includes(searchLower)
+    );
   });
 
-  const handleVerifyStore = async (storeId: string, verified: boolean) => {
-    updateStoreMutation.mutate({ storeId, updates: { verified } });
+  const handleToggleActive = (storeId: string, currentStatus: boolean) => {
+    updateStoreMutation.mutate({
+      storeId,
+      updates: { is_active: !currentStatus }
+    });
   };
 
-  const handleToggleActive = async (storeId: string, isActive: boolean) => {
-    updateStoreMutation.mutate({ storeId, updates: { is_active: isActive } });
+  const handleToggleVerified = (storeId: string, currentStatus: boolean) => {
+    updateStoreMutation.mutate({
+      storeId,
+      updates: { verified: !currentStatus }
+    });
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Store className="w-5 h-5" />
+            Store Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading stores from database...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Store className="w-5 h-5" />
+            Store Management - ERROR
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-red-600">
+            <p>Error loading stores: {error.message}</p>
+            <Button 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-stores'] })}
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stores</CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{storeStats?.total || 0}</div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stores.length}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Stores</p>
+              </div>
+              <Store className="h-8 w-8 text-blue-600" />
+            </div>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verified Stores</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{storeStats?.verified || 0}</div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  {stores.filter(s => s.verified).length}
+                </div>
+                <p className="text-xs text-muted-foreground">Verified</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Stores</CardTitle>
-            <CheckCircle className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{storeStats?.active || 0}</div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {stores.filter(s => s.is_active).length}
+                </div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+              <Users className="h-8 w-8 text-purple-600" />
+            </div>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verification Rate</CardTitle>
-            <Star className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {storeStats?.total ? ((storeStats.verified / storeStats.total) * 100).toFixed(1) : 0}%
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {Object.values(storeCounts).reduce((sum, count) => sum + count, 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Coins</p>
+              </div>
+              <Eye className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Stores Management */}
       <Card>
         <CardHeader>
-          <CardTitle>Store Management</CardTitle>
-          <CardDescription>Manage dealer stores, verification status, and settings</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Store className="w-5 h-5" />
+            All Stores ({filteredStores.length})
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search stores..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-stores'] })}>
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <Search className="h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search stores by name, owner, or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-
-          {isLoading ? (
-            <div className="text-center py-8">Loading stores...</div>
+          {filteredStores.length === 0 ? (
+            <div className="text-center py-8">
+              <Store className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                {searchTerm ? 'No stores found' : 'No stores yet'}
+              </h3>
+              <p className="text-gray-500">
+                {searchTerm ? 'Try adjusting your search criteria.' : 'Stores will appear here when users create them.'}
+              </p>
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Store Info</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStores.map((store) => {
-                  const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
-                  
-                  return (
-                    <TableRow key={store.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{store.name}</div>
-                          <div className="text-sm text-gray-500">{store.description}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{profile?.full_name || 'Unknown'}</div>
-                          <div className="text-sm text-gray-500">{profile?.email}</div>
-                          {profile?.verified_dealer && (
-                            <Badge variant="secondary" className="text-xs mt-1">Verified Dealer</Badge>
+            <div className="space-y-4">
+              {filteredStores.map((store) => {
+                const profile = store.profiles;
+                const coinCount = storeCounts[store.id] || storeCounts[store.user_id] || 0;
+                
+                return (
+                  <div key={store.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={store.logo_url || profile?.avatar_url} />
+                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                          {store.name?.[0] || profile?.full_name?.[0] || 'S'}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{store.name}</h3>
+                          {store.verified && (
+                            <Badge className="bg-green-100 text-green-700">Verified</Badge>
+                          )}
+                          {store.is_active ? (
+                            <Badge className="bg-blue-100 text-blue-700">Active</Badge>
+                          ) : (
+                            <Badge variant="secondary">Inactive</Badge>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            {store.verified ? (
-                              <Badge variant="default" className="bg-green-100 text-green-800">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Verified
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                <Clock className="w-3 h-3 mr-1" />
-                                Pending
-                              </Badge>
-                            )}
-                          </div>
-                          <div>
-                            {store.is_active ? (
-                              <Badge variant="outline" className="text-green-600">Active</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-red-600">Inactive</Badge>
-                            )}
-                          </div>
+                        <p className="text-sm text-gray-600">{store.description}</p>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                          <span>Owner: {profile?.full_name || profile?.email || 'Unknown'}</span>
+                          <span>Coins: {coinCount}</span>
+                          <span>Created: {new Date(store.created_at).toLocaleDateString()}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {new Date(store.created_at).toLocaleDateString()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedStore(store)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader>
-                                <DialogTitle>Store Details: {store.name}</DialogTitle>
-                                <DialogDescription>
-                                  Manage store verification and settings
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label>Verification Status</Label>
-                                    <div className="flex items-center space-x-2 mt-2">
-                                      <Switch
-                                        checked={store.verified}
-                                        onCheckedChange={(checked) => handleVerifyStore(store.id, checked)}
-                                      />
-                                      <span>{store.verified ? 'Verified' : 'Unverified'}</span>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <Label>Active Status</Label>
-                                    <div className="flex items-center space-x-2 mt-2">
-                                      <Switch
-                                        checked={store.is_active}
-                                        onCheckedChange={(checked) => handleToggleActive(store.id, checked)}
-                                      />
-                                      <span>{store.is_active ? 'Active' : 'Inactive'}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <Label>Store Description</Label>
-                                  <Textarea
-                                    value={store.description || ''}
-                                    className="mt-2"
-                                    rows={3}
-                                    readOnly
-                                  />
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                          
-                          <Button
-                            variant={store.verified ? "destructive" : "default"}
-                            size="sm"
-                            onClick={() => handleVerifyStore(store.id, !store.verified)}
-                            disabled={updateStoreMutation.isPending}
-                          >
-                            {store.verified ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={store.is_active ? "destructive" : "default"}
+                        size="sm"
+                        onClick={() => handleToggleActive(store.id, store.is_active)}
+                        disabled={updateStoreMutation.isPending}
+                      >
+                        {store.is_active ? <XCircle className="w-4 h-4 mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                        {store.is_active ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      
+                      <Button
+                        variant={store.verified ? "secondary" : "default"}
+                        size="sm"
+                        onClick={() => handleToggleVerified(store.id, store.verified)}
+                        disabled={updateStoreMutation.isPending}
+                      >
+                        {store.verified ? 'Unverify' : 'Verify'}
+                      </Button>
+                      
+                      <Button variant="outline" size="sm">
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
