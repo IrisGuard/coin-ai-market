@@ -96,3 +96,51 @@ export const useDetectCoinErrors = () => {
     }
   });
 };
+
+export const useCalculateErrorCoinValue = () => {
+  return useMutation({
+    mutationFn: async (params: {
+      errorType: string;
+      severity: string;
+      rarity: number;
+      baseValue: number;
+    }) => {
+      // Simulate value calculation based on error characteristics
+      let multiplier = 1.0;
+      
+      // Adjust multiplier based on rarity
+      if (params.rarity >= 9) multiplier *= 10;
+      else if (params.rarity >= 7) multiplier *= 5;
+      else if (params.rarity >= 5) multiplier *= 2;
+      
+      // Adjust based on severity
+      switch (params.severity) {
+        case 'major':
+          multiplier *= 3;
+          break;
+        case 'moderate':
+          multiplier *= 1.5;
+          break;
+        case 'minor':
+          multiplier *= 1.2;
+          break;
+      }
+      
+      const estimatedValue = params.baseValue * multiplier;
+      
+      return {
+        estimated_value: estimatedValue,
+        value_range: {
+          low: estimatedValue * 0.8,
+          high: estimatedValue * 1.2
+        },
+        confidence: 0.85,
+        factors: {
+          rarity_multiplier: params.rarity >= 5 ? (params.rarity >= 9 ? 10 : (params.rarity >= 7 ? 5 : 2)) : 1,
+          severity_multiplier: params.severity === 'major' ? 3 : (params.severity === 'moderate' ? 1.5 : 1.2),
+          market_demand: 'moderate'
+        }
+      };
+    }
+  });
+};
