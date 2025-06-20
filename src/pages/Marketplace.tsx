@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import LiveMarketplaceDataProvider from '@/components/marketplace/LiveMarketplaceDataProvider';
+import { LiveMarketplaceProvider } from '@/components/marketplace/LiveMarketplaceDataProvider';
 import LiveProductionMarketplace from '@/components/marketplace/LiveProductionMarketplace';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { Activity, TrendingUp, Zap } from 'lucide-react';
 
 const Marketplace = () => {
   return (
-    <LiveMarketplaceDataProvider>
+    <LiveMarketplaceProvider>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Navbar />
         
@@ -72,7 +72,7 @@ const Marketplace = () => {
           </div>
         </div>
       </div>
-    </LiveMarketplaceDataProvider>
+    </LiveMarketplaceProvider>
   );
 };
 

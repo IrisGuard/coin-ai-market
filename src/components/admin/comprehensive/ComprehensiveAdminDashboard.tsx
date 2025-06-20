@@ -44,7 +44,7 @@ const ComprehensiveAdminDashboard = () => {
       } catch (error) {
         // Fallback to basic queries if RPC doesn't exist
         const [usersResult, coinsResult, aiResult] = await Promise.all([
-          supabase.from('users').select('id', { count: 'exact', head: true }),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('coins').select('id', { count: 'exact', head: true }),
           supabase.from('ai_commands').select('id', { count: 'exact', head: true })
         ]);
