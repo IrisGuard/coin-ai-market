@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Brain, Zap, CheckCircle, Camera, Sparkles } from 'lucide-react';
+import { Upload, Brain, Zap, CheckCircle, Camera, Sparkles, Activity } from 'lucide-react';
 import { useAIAnalysis } from '@/hooks/useAIAnalysis';
 import { useCoinSubmission } from '@/hooks/upload/useCoinSubmission';
 import { useProductionActivation } from '@/hooks/useProductionActivation';
@@ -51,18 +51,20 @@ const SimpleDealerPanel = () => {
     setCoinData(prev => ({ ...prev, ...data }));
   };
 
-  const handleAIAnalysis = async () => {
+  const handleLiveAIAnalysis = async () => {
     if (images.length === 0) {
-      toast.error('Please upload at least one image');
+      toast.error('Please upload at least one image for live AI analysis');
       return;
     }
 
+    toast.info('🚀 Starting LIVE Production AI Analysis...');
     await analyzeImages(images, updateCoinData, setImages);
   };
 
-  const handleSubmit = async () => {
+  const handleLiveSubmit = async () => {
     const result = await submitListing(coinData, images);
     if (result?.success) {
+      toast.success('🚀 Coin published to LIVE marketplace successfully!');
       // Reset form
       setImages([]);
       setCoinData({
@@ -86,30 +88,30 @@ const SimpleDealerPanel = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Live System Status */}
-      <Card>
+      {/* Live Production Status */}
+      <Card className="border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="font-medium">🚀 LIVE Production System</span>
+              <Activity className="h-5 w-5 text-green-600 animate-pulse" />
+              <span className="font-medium">🚀 LIVE PRODUCTION DEALER PANEL</span>
             </div>
             <Badge variant="default" className="bg-green-600">
-              🟢 OPERATIONAL
+              🔴 LIVE OPERATIONAL
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            AI Brain connected • Real-time analysis • Live market data
+            AI Brain connected • Real-time analysis • Live marketplace integration • Production data processing
           </p>
         </CardContent>
       </Card>
 
-      {/* Image Upload */}
+      {/* Live Image Upload */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            Coin Images - Live AI Analysis
+            Coin Images - LIVE Production AI Analysis
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -120,12 +122,12 @@ const SimpleDealerPanel = () => {
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
-              id="image-upload"
+              id="live-image-upload"
             />
-            <label htmlFor="image-upload" className="cursor-pointer">
+            <label htmlFor="live-image-upload" className="cursor-pointer">
               <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium">Upload Coin Images</p>
-              <p className="text-gray-500">Live AI will auto-analyze and fill details</p>
+              <p className="text-lg font-medium">Upload Coin Images for LIVE Analysis</p>
+              <p className="text-gray-500">Production AI will auto-analyze and fill details instantly</p>
             </label>
           </div>
 
@@ -148,12 +150,12 @@ const SimpleDealerPanel = () => {
 
           {images.length > 0 && !isAnalyzing && (
             <Button 
-              onClick={handleAIAnalysis}
+              onClick={handleLiveAIAnalysis}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               size="lg"
             >
               <Brain className="h-5 w-5 mr-2" />
-              🚀 LIVE AI Analysis & Auto-Fill
+              🚀 LIVE PRODUCTION AI Analysis & Auto-Fill
             </Button>
           )}
 
@@ -161,7 +163,7 @@ const SimpleDealerPanel = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="h-5 w-5 animate-spin text-blue-600" />
-                <span>🧠 LIVE AI analyzing images...</span>
+                <span>🧠 LIVE Production AI analyzing images...</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
@@ -174,10 +176,10 @@ const SimpleDealerPanel = () => {
         </CardContent>
       </Card>
 
-      {/* Coin Information Form */}
+      {/* Live Coin Information Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Coin Information - Live Market Data</CardTitle>
+          <CardTitle>Coin Information - LIVE Production Data</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -186,7 +188,7 @@ const SimpleDealerPanel = () => {
               <Input
                 value={coinData.title}
                 onChange={(e) => updateCoinData({ title: e.target.value })}
-                placeholder="AI will auto-fill from image analysis"
+                placeholder="Live AI will auto-fill from production analysis"
               />
             </div>
             <div>
@@ -194,7 +196,7 @@ const SimpleDealerPanel = () => {
               <Input
                 value={coinData.year}
                 onChange={(e) => updateCoinData({ year: e.target.value })}
-                placeholder="Auto-detected by AI"
+                placeholder="Auto-detected by production AI"
               />
             </div>
             <div>
@@ -202,7 +204,7 @@ const SimpleDealerPanel = () => {
               <Input
                 value={coinData.country}
                 onChange={(e) => updateCoinData({ country: e.target.value })}
-                placeholder="AI will identify origin"
+                placeholder="Live AI will identify origin"
               />
             </div>
             <div>
@@ -210,7 +212,7 @@ const SimpleDealerPanel = () => {
               <Input
                 value={coinData.denomination}
                 onChange={(e) => updateCoinData({ denomination: e.target.value })}
-                placeholder="Auto-filled by AI"
+                placeholder="Auto-filled by production AI"
               />
             </div>
             <div>
@@ -218,7 +220,7 @@ const SimpleDealerPanel = () => {
               <Input
                 value={coinData.grade}
                 onChange={(e) => updateCoinData({ grade: e.target.value })}
-                placeholder="AI condition assessment"
+                placeholder="Live AI condition assessment"
               />
             </div>
             <div>
@@ -226,7 +228,7 @@ const SimpleDealerPanel = () => {
               <Input
                 value={coinData.price}
                 onChange={(e) => updateCoinData({ price: e.target.value })}
-                placeholder="Live market value suggestion"
+                placeholder="Live production market value"
                 type="number"
               />
             </div>
@@ -237,13 +239,13 @@ const SimpleDealerPanel = () => {
             <Textarea
               value={coinData.description}
               onChange={(e) => updateCoinData({ description: e.target.value })}
-              placeholder="AI will generate detailed description"
+              placeholder="Production AI will generate detailed description"
               rows={4}
             />
           </div>
 
           <Button 
-            onClick={handleSubmit}
+            onClick={handleLiveSubmit}
             disabled={isSubmitting || !coinData.title || images.length === 0}
             className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
             size="lg"
@@ -251,12 +253,12 @@ const SimpleDealerPanel = () => {
             {isSubmitting ? (
               <>
                 <Zap className="h-5 w-5 mr-2 animate-spin" />
-                Publishing to Live Marketplace...
+                Publishing to LIVE Production Marketplace...
               </>
             ) : (
               <>
                 <CheckCircle className="h-5 w-5 mr-2" />
-                🚀 Publish to Live Marketplace
+                🚀 Publish to LIVE Production Marketplace
               </>
             )}
           </Button>

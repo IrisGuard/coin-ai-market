@@ -5,21 +5,22 @@ import Navbar from '@/components/Navbar';
 import LiveMarketplaceGrid from '@/components/marketplace/LiveMarketplaceGrid';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Users, Clock, DollarSign } from 'lucide-react';
+import { TrendingUp, Users, Clock, DollarSign, Activity } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const Marketplace = () => {
-  const { data: stats } = useQuery({
-    queryKey: ['marketplace-stats'],
+  const { data: liveStats } = useQuery({
+    queryKey: ['live-marketplace-stats'],
     queryFn: async () => {
-      const [coins, auctions, users] = await Promise.all([
+      const [coins, auctions, users, transactions] = await Promise.all([
         supabase.from('coins').select('*').eq('authentication_status', 'verified'),
         supabase.from('coins').select('*').eq('is_auction', true).gt('auction_end', new Date().toISOString()),
-        supabase.from('profiles').select('id')
+        supabase.from('profiles').select('id'),
+        supabase.from('payment_transactions').select('amount').eq('status', 'completed')
       ]);
 
-      const totalValue = coins.data?.reduce((sum, coin) => sum + coin.price, 0) || 0;
+      const totalValue = transactions.data?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
       return {
         totalCoins: coins.data?.length || 0,
@@ -28,7 +29,7 @@ const Marketplace = () => {
         totalValue
       };
     },
-    refetchInterval: 30000
+    refetchInterval: 15000 // Live updates every 15 seconds
   });
 
   return (
@@ -39,43 +40,47 @@ const Marketplace = () => {
         <div className="mesh-bg"></div>
         
         <div className="max-w-7xl mx-auto container-padding section-spacing relative z-10">
-          {/* Header */}
+          {/* Live Production Header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Activity className="h-6 w-6 text-green-600 animate-pulse" />
+              <Badge className="bg-green-600 text-white">🔴 LIVE PRODUCTION</Badge>
+            </div>
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-blue bg-clip-text text-transparent mb-4">
-              Live Coin Marketplace
+              Live Production Coin Marketplace
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover authenticated coins with AI-powered verification and real-time market data
+              Discover authenticated coins with AI-powered verification and real-time production data
             </p>
           </motion.div>
 
-          {/* Stats Cards */}
-          {stats && (
+          {/* Live Stats Cards */}
+          {liveStats && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
             >
-              <Card>
+              <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    Listed Coins
+                    Live Listed Coins
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.totalCoins}</div>
-                  <Badge className="bg-green-100 text-green-800 mt-1">Live</Badge>
+                  <div className="text-2xl font-bold text-blue-600">{liveStats.totalCoins}</div>
+                  <Badge className="bg-green-100 text-green-800 mt-1">🔴 Live</Badge>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-red-200 bg-gradient-to-br from-red-50 to-red-100">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Clock className="h-4 w-4" />
@@ -83,25 +88,25 @@ const Marketplace = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats.activeAuctions}</div>
-                  <Badge className="bg-red-100 text-red-800 mt-1">Ending Soon</Badge>
+                  <div className="text-2xl font-bold text-red-600">{liveStats.activeAuctions}</div>
+                  <Badge className="bg-red-100 text-red-800 mt-1">Live Bidding</Badge>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Registered Users
+                    Live Users
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{stats.totalUsers}</div>
-                  <Badge className="bg-purple-100 text-purple-800 mt-1">Growing</Badge>
+                  <div className="text-2xl font-bold text-purple-600">{liveStats.totalUsers}</div>
+                  <Badge className="bg-purple-100 text-purple-800 mt-1">Active</Badge>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
@@ -110,9 +115,9 @@ const Marketplace = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">
-                    ${stats.totalValue.toLocaleString()}
+                    ${liveStats.totalValue.toLocaleString()}
                   </div>
-                  <Badge className="bg-green-100 text-green-800 mt-1">USD</Badge>
+                  <Badge className="bg-green-100 text-green-800 mt-1">Live USD</Badge>
                 </CardContent>
               </Card>
             </motion.div>
