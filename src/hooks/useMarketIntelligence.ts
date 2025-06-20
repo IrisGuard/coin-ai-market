@@ -4,19 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface MarketIntelligenceReport {
   id: string;
-  metric_type: string;
-  metric_name: string;
-  metric_value: number;
-  recorded_at: string;
-  category_breakdown: any;
-  geographic_data: any;
-  trend_analysis: any;
+  report_type: string;
+  report_data: any;
+  confidence_score: number;
+  generated_at: string;
+  market_factors: any;
+  recommendations: any[];
 }
 
 export const useMarketIntelligence = () => {
   const queryClient = useQueryClient();
 
-  // Fetch market intelligence reports from market_analytics
+  // Fetch market intelligence reports
   const { data: reports, isLoading, error } = useQuery({
     queryKey: ['market-intelligence-reports'],
     queryFn: async () => {
@@ -51,7 +50,7 @@ export const useMarketIntelligence = () => {
     }
   });
 
-  // Get market sentiment from market analytics
+  // Get market sentiment
   const { data: sentiment } = useQuery({
     queryKey: ['market-sentiment'],
     queryFn: async () => {
@@ -68,7 +67,7 @@ export const useMarketIntelligence = () => {
     }
   });
 
-  // Get trend analysis from market analytics
+  // Get trend analysis
   const { data: trends } = useQuery({
     queryKey: ['market-trends'],
     queryFn: async () => {
@@ -95,14 +94,14 @@ export const useMarketIntelligence = () => {
 };
 
 export const useAIPredictions = () => {
-  // Fetch AI predictions from AI performance metrics
+  // Fetch AI predictions
   const { data: predictions, isLoading } = useQuery({
     queryKey: ['ai-predictions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ai_performance_metrics')
+        .from('ai_predictions')
         .select('*')
-        .order('recorded_at', { ascending: false })
+        .order('prediction_date', { ascending: false })
         .limit(20);
 
       if (error) throw error;
