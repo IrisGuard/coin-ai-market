@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -128,6 +127,11 @@ const AdminStoreManagerTab = () => {
     navigate('/dealer');
   };
 
+  const handleViewStore = (storeId: string) => {
+    // Navigate to the public store page
+    navigate(`/store/${storeId}`);
+  };
+
   const handleDeleteStore = (storeId: string) => {
     setStoreToDelete(storeId);
   };
@@ -240,11 +244,20 @@ const AdminStoreManagerTab = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleViewStore(store.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Store
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleAccessStore(store.id)}
                         className="flex items-center gap-1"
                       >
                         <ArrowRight className="w-4 h-4" />
-                        Access
+                        Access Panel
                       </Button>
                       <Button
                         variant="outline"
