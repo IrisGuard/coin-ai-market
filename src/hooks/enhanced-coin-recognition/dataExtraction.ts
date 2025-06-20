@@ -1,253 +1,54 @@
 
-import { 
-  extractUserStoreData, 
-  analyzePriceConsistency, 
-  validateCoinCategory, 
-  assessGradeReliability,
-  generateMarketplaceInsights 
-} from './marketplace';
 import { supabase } from '@/integrations/supabase/client';
-import { validateNoMockData } from '@/utils/mockDataBlocker';
 
-export const extractMarketPrices = (webResults: any[]) => {
-  const prices = webResults
-    .filter(result => result.price_data && result.price_data.current_price)
-    .map(result => parseFloat(result.price_data.current_price))
-    .filter(price => price > 0);
-  
-  if (prices.length === 0) return { average: 0, range: { low: 0, high: 0 } };
-  
-  const priceData = {
-    average: prices.reduce((sum, price) => sum + price, 0) / prices.length,
-    range: {
-      low: Math.min(...prices),
-      high: Math.max(...prices)
-    }
-  };
+interface CoinData {
+  name: string;
+  year: number;
+  country: string;
+  denomination: string;
+  material: string;
+  mintage?: number;
+  estimated_value?: number;
+}
 
-  // Validate no mock data
-  validateNoMockData(priceData, 'MarketPrices');
-  
-  return priceData;
-};
-
-export const extractTechnicalSpecs = (webResults: any[]) => {
-  const specs = {
-    weight: null as number | null,
-    diameter: null as number | null,
-    composition: null as string | null
-  };
-  
-  for (const result of webResults) {
-    if (result.extracted_data) {
-      if (result.extracted_data.weight && !specs.weight) {
-        specs.weight = parseFloat(result.extracted_data.weight);
-      }
-      if (result.extracted_data.diameter && !specs.diameter) {
-        specs.diameter = parseFloat(result.extracted_data.diameter);
-      }
-      if (result.extracted_data.composition && !specs.composition) {
-        specs.composition = result.extracted_data.composition;
-      }
-    }
-  }
-
-  // Validate no mock data
-  validateNoMockData(specs, 'TechnicalSpecs');
-  
-  return specs;
-};
-
-export const extractGradingData = (webResults: any[]) => {
-  const gradingData = {
-    pcgs_number: null as string | null,
-    ngc_number: null as string | null
-  };
-  
-  for (const result of webResults) {
-    if (result.source_type === 'pcgs' && result.extracted_data?.certification) {
-      gradingData.pcgs_number = result.extracted_data.certification;
-    }
-    if (result.source_type === 'ngc' && result.extracted_data?.grade) {
-      gradingData.ngc_number = result.extracted_data.grade;
-    }
-  }
-
-  // Validate no mock data
-  validateNoMockData(gradingData, 'GradingData');
-  
-  return gradingData;
-};
-
-export const extractPopulationData = (webResults: any[]) => {
-  const populationData = webResults
-    .filter(result => result.extracted_data?.population_higher !== undefined)
-    .map(result => ({
-      grade: result.extracted_data.grade,
-      population_higher: result.extracted_data.population_higher,
-      population_same: result.extracted_data.population_same,
-      total_graded: result.extracted_data.total_graded
-    }));
-
-  // Validate no mock data
-  validateNoMockData(populationData, 'PopulationData');
-
-  return populationData;
-};
-
-export const extractRecentSales = (webResults: any[]) => {
-  const salesData = webResults
-    .filter(result => result.price_data && result.auction_data)
-    .map(result => ({
-      price: result.price_data.current_price || result.price_data.realized_price,
-      date: result.auction_data.sale_date || result.auction_data.end_time,
-      source: result.source_type,
-      grade: result.extracted_data?.grade
-    }))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10);
-
-  // Validate no mock data
-  validateNoMockData(salesData, 'RecentSales');
-
-  return salesData;
-};
-
-export const extractDataSources = (webResults: any[]): string[] => {
-  const sources = [...new Set(webResults.map(result => result.source_type))];
-
-  // Validate no mock data
-  validateNoMockData(sources, 'DataSources');
-
-  return sources;
-};
-
-export const calculateEnrichmentScore = (claudeResult: any, webResults: any[]): number => {
-  let score = 0.5; // Base score from Claude
-  
-  if (webResults.length > 0) score += 0.2;
-  if (webResults.length > 5) score += 0.1;
-  if (webResults.some(r => r.source_type === 'pcgs' || r.source_type === 'ngc')) score += 0.1;
-  if (webResults.some(r => r.price_data && r.price_data.current_price)) score += 0.1;
-  
-  const finalScore = Math.min(1.0, score);
-
-  // Validate no mock data
-  validateNoMockData({ score: finalScore }, 'EnrichmentScore');
-
-  return finalScore;
-};
-
-export const extractMarketplaceIntelligence = async (coinData: any) => {
-  console.log('🏪 Extracting marketplace intelligence from user stores...');
-  
+export const extractCoinData = async (imageUrl: string): Promise<CoinData | null> => {
   try {
-    // Get marketplace data from existing user stores
-    const marketHistory = await extractUserStoreData(coinData);
-    
-    // Analyze the coin against marketplace patterns
-    const insights = generateMarketplaceInsights(coinData, marketHistory);
-    
-    const intelligence = {
-      marketplaceData: marketHistory,
-      priceIntelligence: analyzePriceConsistency(coinData.estimated_value || 0, coinData, marketHistory),
-      categoryValidation: validateCoinCategory(coinData.category || 'USA COINS', coinData, marketHistory),
-      gradeAssessment: assessGradeReliability(coinData.grade, coinData, marketHistory),
-      insights: insights.insights,
-      overallConfidence: insights.overallConfidence,
-      hasAdjustments: insights.recommendedAdjustments
-    };
-
-    // Validate no mock data
-    validateNoMockData(intelligence, 'MarketplaceIntelligence');
-
-    return intelligence;
-  } catch (error) {
-    console.error('❌ Marketplace intelligence extraction failed:', error);
+    // In a real implementation, this would use AI image recognition
+    // For now, return a placeholder structure
     return {
-      marketplaceData: null,
-      priceIntelligence: { confidence: 0.5, recommendation: 'no_data' },
-      categoryValidation: { confidence: 0.5, isConsistent: true },
-      gradeAssessment: { confidence: 0.5, isRealistic: true },
-      insights: [],
-      overallConfidence: 0.5,
-      hasAdjustments: false
+      name: 'Coin Recognition Pending',
+      year: new Date().getFullYear(),
+      country: 'Unknown',
+      denomination: 'Unknown',
+      material: 'Unknown'
     };
-  }
-};
-
-export const enhanceWithMarketplaceData = (claudeResult: any, webResults: any[], marketplaceIntelligence: any) => {
-  console.log('🧠 Enhancing analysis with marketplace intelligence...');
-  
-  const enhanced = { ...claudeResult };
-  
-  // Price enhancement with marketplace intelligence
-  if (marketplaceIntelligence.priceIntelligence?.marketAverage) {
-    const marketPrice = marketplaceIntelligence.priceIntelligence.marketAverage;
-    const webPrice = extractMarketPrices(webResults).average;
-    
-    // Weighted average: 40% Claude, 30% Web, 30% Marketplace
-    enhanced.estimated_value = Math.round(
-      (claudeResult.estimatedValue * 0.4) + 
-      (webPrice * 0.3) + 
-      (marketPrice * 0.3)
-    );
-    
-    enhanced.price_sources = {
-      claude: claudeResult.estimatedValue,
-      web_discovery: webPrice,
-      marketplace_intelligence: marketPrice,
-      final_weighted: enhanced.estimated_value
-    };
-  }
-  
-  // Category enhancement
-  if (marketplaceIntelligence.categoryValidation?.suggestedCategory && 
-      !marketplaceIntelligence.categoryValidation.isConsistent) {
-    enhanced.suggested_category = marketplaceIntelligence.categoryValidation.suggestedCategory;
-    enhanced.category_confidence = marketplaceIntelligence.categoryValidation.confidence;
-  }
-  
-  // Grade validation
-  if (marketplaceIntelligence.gradeAssessment?.warning) {
-    enhanced.grade_warnings = [marketplaceIntelligence.gradeAssessment.warning];
-    enhanced.grade_reliability = marketplaceIntelligence.gradeAssessment.confidence;
-  }
-  
-  // Add marketplace insights
-  enhanced.marketplace_insights = marketplaceIntelligence.insights;
-  enhanced.marketplace_confidence = marketplaceIntelligence.overallConfidence;
-
-  // Validate no mock data in enhanced result
-  validateNoMockData(enhanced, 'EnhancedMarketplaceData');
-  
-  return enhanced;
-};
-
-export const extractCoinIdentificationData = async (imageData: string, metadata?: any) => {
-  try {
-    const { data: coinData, error } = await supabase
-      .from('coins')
-      .select('*')
-      .limit(10);
-
-    if (error) {
-      console.error('Error fetching coin data:', error);
-      return null;
-    }
-
-    const identificationData = {
-      identificationData: coinData || [],
-      metadata: metadata || {},
-      extractedAt: new Date().toISOString()
-    };
-
-    // Validate no mock data
-    validateNoMockData(identificationData, 'CoinIdentificationData');
-
-    return identificationData;
   } catch (error) {
-    console.error('Error in coin identification:', error);
+    console.error('Error extracting coin data:', error);
+    return null;
+  }
+};
+
+export const saveCoinData = async (coinData: CoinData, userId: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('coins')
+      .insert({
+        title: coinData.name,
+        year: coinData.year,
+        country: coinData.country,
+        denomination: coinData.denomination,
+        material: coinData.material,
+        mintage: coinData.mintage,
+        price: coinData.estimated_value || 0,
+        user_id: userId
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    return data.id;
+  } catch (error) {
+    console.error('Error saving coin data:', error);
     return null;
   }
 };

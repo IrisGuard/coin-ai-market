@@ -1,89 +1,70 @@
 
-import { generateSecureRandomNumber, generateSecureRandomId } from './secureProductionUtils';
+import { supabase } from '@/integrations/supabase/client';
 
-export const generateSearchSessionId = (): string => {
-  return generateSecureRandomId('search');
+interface SearchEvent {
+  query: string;
+  results_count: number;
+  user_id?: string;
+  timestamp: Date;
+  filters?: Record<string, any>;
+}
+
+export const trackSearchEvent = async (event: SearchEvent) => {
+  try {
+    await supabase
+      .from('search_analytics')
+      .insert({
+        search_query: event.query,
+        results_count: event.results_count,
+        user_id: event.user_id,
+        search_filters: event.filters || {},
+        created_at: event.timestamp.toISOString()
+      });
+  } catch (error) {
+    console.error('Error tracking search event:', error);
+  }
 };
 
-export const calculateRelevanceScore = (query: string, result: any): number => {
-  const baseScore = 0.5;
-  let score = baseScore;
-  
-  const queryWords = query.toLowerCase().split(' ');
-  const resultText = `${result.name || ''} ${result.description || ''}`.toLowerCase();
-  
-  queryWords.forEach(word => {
-    if (resultText.includes(word)) {
-      score += 0.1;
-    }
-  });
-  
-  const variance = generateSecureRandomNumber(-5, 5) / 100;
-  return Math.min(1, Math.max(0, score + variance));
+export const getPopularSearches = async (limit = 10, days = 7) => {
+  try {
+    const { data, error } = await supabase
+      .from('search_analytics')
+      .select('search_query, count(*)')
+      .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+      .order('count', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting popular searches:', error);
+    return [];
+  }
 };
 
-export const generateSearchMetrics = (resultsCount: number) => {
-  return {
-    searchTime: generateSecureRandomNumber(50, 300),
-    totalResults: resultsCount,
-    relevanceThreshold: 0.6,
-    searchQuality: calculateSearchQuality(resultsCount)
-  };
-};
+export const getSearchTrends = async (days = 30) => {
+  try {
+    const { data, error } = await supabase
+      .from('search_analytics')
+      .select('created_at, search_query')
+      .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: true });
 
-export const generateSearchAnalytics = (searchResults: any[]) => {
-  const totalResults = searchResults.length;
-  const searchTime = generateSecureRandomNumber(50, 300);
-  const relevanceScore = searchResults.length > 0 ? 
-    searchResults.reduce((acc, result) => acc + calculateRelevanceScore('', result), 0) / totalResults : 0;
-  
-  // Price analysis
-  const prices = searchResults.map(coin => parseFloat(coin.price || '0')).filter(p => p > 0);
-  const priceRange = {
-    min: prices.length > 0 ? Math.min(...prices) : 0,
-    max: prices.length > 0 ? Math.max(...prices) : 0,
-    average: prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0
-  };
+    if (error) throw error;
 
-  // Category distribution
-  const categories = searchResults.reduce((acc, coin) => {
-    const category = coin.category || 'unknown';
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+    // Group by day
+    const trends = data?.reduce((acc, item) => {
+      const date = item.created_at.split('T')[0];
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
 
-  // Rarity distribution
-  const rarityDistribution = searchResults.reduce((acc, coin) => {
-    const rarity = coin.rarity || 'common';
-    acc[rarity] = (acc[rarity] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const popularityIndex = generateSecureRandomNumber(60, 95);
-
-  return {
-    totalResults,
-    searchTime,
-    relevanceScore,
-    popularityIndex,
-    priceRange,
-    categories,
-    rarityDistribution
-  };
-};
-
-const calculateSearchQuality = (resultsCount: number): number => {
-  if (resultsCount === 0) return 0;
-  if (resultsCount < 5) return 0.3;
-  if (resultsCount < 20) return 0.7;
-  return 0.9;
-};
-
-export const trackSearchEvent = (eventType: string, data: any) => {
-  console.log('Search Analytics:', {
-    event: eventType,
-    timestamp: new Date().toISOString(),
-    sessionId: generateSearchSessionId(),
-    data
-  });
+    return Object.entries(trends).map(([date, count]) => ({
+      date,
+      searches: count
+    }));
+  } catch (error) {
+    console.error('Error getting search trends:', error);
+    return [];
+  }
 };

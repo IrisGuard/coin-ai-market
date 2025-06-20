@@ -1,182 +1,70 @@
 
-import { validateNoMockData } from '@/utils/mockDataBlocker';
+import { supabase } from '@/integrations/supabase/client';
 
-export class PerformanceMetrics {
-  private metrics: Map<string, number> = new Map();
-  private observers: PerformanceObserver[] = [];
+interface PerformanceMetric {
+  name: string;
+  value: number;
+  timestamp: Date;
+  tags?: Record<string, any>;
+}
 
-  // Start timing a specific operation
-  startTiming(label: string): void {
-    this.metrics.set(`${label}_start`, performance.now());
-  }
-
-  // End timing and get duration
-  endTiming(label: string): number {
-    const startTime = this.metrics.get(`${label}_start`);
-    if (!startTime) {
-      console.warn(`No start time found for ${label}`);
-      return 0;
-    }
-    
-    const duration = performance.now() - startTime;
-    this.metrics.set(`${label}_duration`, duration);
-    return duration;
-  }
-
-  // Get all metrics
-  getAllMetrics(): Record<string, number> {
-    const result: Record<string, number> = {};
-    this.metrics.forEach((value, key) => {
-      result[key] = value;
+export const recordPerformanceMetric = async (metric: PerformanceMetric) => {
+  try {
+    await supabase.rpc('record_system_metric', {
+      p_metric_name: metric.name,
+      p_metric_value: metric.value,
+      p_tags: metric.tags || {}
     });
+  } catch (error) {
+    console.error('Error recording performance metric:', error);
+  }
+};
 
-    // Validate no mock data in metrics
-    validateNoMockData(result, 'PerformanceMetrics');
+export const measureExecutionTime = async <T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> => {
+  const startTime = performance.now();
+  
+  try {
+    const result = await operation();
+    const executionTime = performance.now() - startTime;
+    
+    await recordPerformanceMetric({
+      name: `execution_time_${operationName}`,
+      value: executionTime,
+      timestamp: new Date()
+    });
     
     return result;
-  }
-
-  // Monitor Core Web Vitals
-  initializeWebVitals(): void {
-    // Largest Contentful Paint
-    const lcpObserver = new PerformanceObserver((list) => {
-      const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1];
-      this.metrics.set('LCP', lastEntry.startTime);
+  } catch (error) {
+    const executionTime = performance.now() - startTime;
+    
+    await recordPerformanceMetric({
+      name: `execution_time_${operationName}_error`,
+      value: executionTime,
+      timestamp: new Date(),
+      tags: { error: true }
     });
-    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-    this.observers.push(lcpObserver);
-
-    // First Input Delay
-    const fidObserver = new PerformanceObserver((list) => {
-      const firstInput = list.getEntries()[0] as PerformanceEventTiming;
-      if (firstInput) {
-        const fid = firstInput.processingStart - firstInput.startTime;
-        this.metrics.set('FID', fid);
-      }
-    });
-    fidObserver.observe({ type: 'first-input', buffered: true });
-    this.observers.push(fidObserver);
-
-    // Cumulative Layout Shift
-    let clsValue = 0;
-    const clsObserver = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
-        }
-      }
-      this.metrics.set('CLS', clsValue);
-    });
-    clsObserver.observe({ type: 'layout-shift', buffered: true });
-    this.observers.push(clsObserver);
+    
+    throw error;
   }
+};
 
-  // Monitor API response times
-  monitorAPICall(url: string, startTime: number, endTime: number): void {
-    const duration = endTime - startTime;
-    const key = `api_${url.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    this.metrics.set(key, duration);
+export const getAverageResponseTime = async (hours = 24): Promise<number> => {
+  try {
+    const { data, error } = await supabase
+      .from('system_metrics')
+      .select('metric_value')
+      .like('metric_name', 'execution_time_%')
+      .gte('created_at', new Date(Date.now() - hours * 60 * 60 * 1000).toISOString());
+
+    if (error || !data?.length) return 0;
+
+    const average = data.reduce((sum, metric) => sum + metric.metric_value, 0) / data.length;
+    return Math.round(average * 100) / 100;
+  } catch (error) {
+    console.error('Error calculating average response time:', error);
+    return 0;
   }
-
-  // Memory usage monitoring
-  getMemoryUsage(): Record<string, number> | null {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      const usage = {
-        usedJSHeapSize: memory.usedJSHeapSize,
-        totalJSHeapSize: memory.totalJSHeapSize,
-        jsHeapSizeLimit: memory.jsHeapSizeLimit
-      };
-
-      // Validate no mock data
-      validateNoMockData(usage, 'MemoryUsage');
-      
-      return usage;
-    }
-    return null;
-  }
-
-  // Generate performance report
-  generateReport(): Record<string, any> {
-    const report = {
-      timestamp: new Date().toISOString(),
-      metrics: this.getAllMetrics(),
-      memory: this.getMemoryUsage(),
-      navigation: this.getNavigationTiming(),
-      resources: this.getResourceTiming()
-    };
-
-    // Validate entire report for mock data
-    validateNoMockData(report, 'PerformanceReport');
-
-    return report;
-  }
-
-  private getNavigationTiming(): Record<string, number> {
-    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    if (!nav) return {};
-
-    return {
-      domContentLoaded: nav.domContentLoadedEventEnd - nav.domContentLoadedEventStart,
-      load: nav.loadEventEnd - nav.loadEventStart,
-      domInteractive: nav.domInteractive - nav.fetchStart,
-      firstPaint: this.getFirstPaint(),
-      firstContentfulPaint: this.getFirstContentfulPaint()
-    };
-  }
-
-  private getFirstPaint(): number {
-    const paintEntries = performance.getEntriesByType('paint');
-    const firstPaint = paintEntries.find(entry => entry.name === 'first-paint');
-    return firstPaint ? firstPaint.startTime : 0;
-  }
-
-  private getFirstContentfulPaint(): number {
-    const paintEntries = performance.getEntriesByType('paint');
-    const fcp = paintEntries.find(entry => entry.name === 'first-contentful-paint');
-    return fcp ? fcp.startTime : 0;
-  }
-
-  private getResourceTiming(): Array<{ name: string; duration: number; size: number }> {
-    return performance.getEntriesByType('resource')
-      .map(entry => ({
-        name: entry.name,
-        duration: entry.duration,
-        size: (entry as PerformanceResourceTiming).transferSize || 0
-      }))
-      .filter(entry => entry.duration > 100) // Only slow resources
-      .sort((a, b) => b.duration - a.duration)
-      .slice(0, 10); // Top 10 slowest
-  }
-
-  // Cleanup observers
-  destroy(): void {
-    this.observers.forEach(observer => observer.disconnect());
-    this.observers = [];
-    this.metrics.clear();
-  }
-}
-
-// Global instance
-export const performanceMetrics = new PerformanceMetrics();
-
-// Auto-initialize in production
-if (typeof window !== 'undefined') {
-  performanceMetrics.initializeWebVitals();
-}
-
-export const measurePageLoadTime = (): number => {
-  if (typeof window !== 'undefined' && performance.timing) {
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    if (navigation) {
-      const loadTime = navigation.loadEventEnd - navigation.fetchStart;
-      
-      // Validate no mock data
-      validateNoMockData({ loadTime }, 'PageLoadTime');
-      
-      return loadTime;
-    }
-  }
-  return 0;
 };
