@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 import { toast } from 'sonner';
@@ -13,11 +12,7 @@ export type { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
 
 // Simple data extraction functions
 const extractDataSources = (webResults: any[]) => {
-  return webResults.map(result => ({
-    source: result.source || 'unknown',
-    type: result.source_type || 'web',
-    confidence: result.confidence || 0.5
-  }));
+  return webResults.map(result => result.source || 'unknown');
 };
 
 const calculateEnrichmentScore = (claudeResult: any, webResults: any[]) => {
