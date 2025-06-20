@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Store, TrendingUp, Users, ShoppingBag, Loader2 } from 'lucide-react';
@@ -37,9 +36,9 @@ const EnhancedMarketplaceHeader = () => {
         return;
       }
       
-      if (userRole === 'dealer') {
-        // Already a dealer, redirect to upload panel
-        console.log('✅ Authenticated dealer, redirecting to /upload');
+      if (userRole === 'dealer' || userRole === 'admin') {
+        // Already a dealer or admin, redirect to upload panel
+        console.log('✅ Authenticated dealer or admin, redirecting to /upload');
         navigate('/upload');
         return;
       } else {
