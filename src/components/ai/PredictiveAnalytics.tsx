@@ -1,223 +1,174 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Brain, LineChart, Activity } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { TrendingUp, Target, Brain, Activity } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const PredictiveAnalytics = () => {
-  const [predictionScope, setPredictionScope] = useState<'short' | 'medium' | 'long'>('medium');
-  const queryClient = useQueryClient();
-
-  // Fetch prediction models
-  const { data: models, isLoading } = useQuery({
-    queryKey: ['prediction-models'],
+  // Use existing AI performance metrics instead of ai_predictions
+  const { data: analyticsData, isLoading } = useQuery({
+    queryKey: ['predictive-analytics'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('prediction_models')
+        .from('ai_performance_metrics')
         .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // Fetch recent predictions
-  const { data: predictions } = useQuery({
-    queryKey: ['recent-predictions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_predictions')
-        .select('*')
-        .order('prediction_date', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // Generate prediction mutation
-  const generatePrediction = useMutation({
-    mutationFn: async (modelId: string) => {
-      const { data, error } = await supabase.functions.invoke('predictive-analytics-processor', {
-        body: { 
-          modelId, 
-          scope: predictionScope,
-          includeMarketFactors: true
-        }
-      });
+        .order('recorded_at', { ascending: false })
+        .limit(50);
       
       if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recent-predictions'] });
+      return data || [];
     }
   });
 
-  const activeModels = models?.filter(m => m.is_active) || [];
-  const avgAccuracy = predictions?.reduce((acc, p) => acc + (p.confidence_score || 0), 0) / (predictions?.length || 1);
+  // Use market analytics for trend data
+  const { data: marketTrends } = useQuery({
+    queryKey: ['market-trends-analytics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('market_analytics')
+        .select('*')
+        .order('recorded_at', { ascending: false })
+        .limit(20);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Calculate predictive insights
+  const insights = {
+    totalAnalyses: analyticsData?.length || 0,
+    avgConfidence: analyticsData?.reduce((sum, a) => sum + a.metric_value, 0) / (analyticsData?.length || 1) || 0,
+    trendAccuracy: marketTrends?.length || 0,
+    activeModels: new Set(analyticsData?.map(a => a.metric_type)).size || 0
+  };
+
+  // Prepare chart data
+  const chartData = analyticsData?.slice(0, 10).map((metric, index) => ({
+    name: `Analysis ${index + 1}`,
+    accuracy: metric.metric_value,
+    type: metric.metric_type
+  })) || [];
 
   return (
     <div className="space-y-6">
-      {/* Predictive Analytics Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="w-6 h-6 text-purple-600" />
-            AI Predictive Analytics Engine
-            <Badge variant="outline">Advanced ML</Badge>
+            <Brain className="h-6 w-6 text-purple-600" />
+            Predictive Analytics Engine
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 border rounded-lg">
-              <Activity className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <p className="text-2xl font-bold text-green-600">{activeModels.length}</p>
-              <p className="text-sm text-muted-foreground">Active Models</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{insights.totalAnalyses}</div>
+              <div className="text-sm text-muted-foreground">Total Analyses</div>
             </div>
-            
-            <div className="text-center p-4 border rounded-lg">
-              <TrendingUp className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <p className="text-2xl font-bold text-blue-600">
-                {Math.round((avgAccuracy || 0) * 100)}%
-              </p>
-              <p className="text-sm text-muted-foreground">Avg Accuracy</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {(insights.avgConfidence * 100).toFixed(1)}%
+              </div>
+              <div className="text-sm text-muted-foreground">Avg Confidence</div>
             </div>
-            
-            <div className="text-center p-4 border rounded-lg">
-              <LineChart className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-              <p className="text-2xl font-bold text-purple-600">{predictions?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Predictions</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{insights.trendAccuracy}</div>
+              <div className="text-sm text-muted-foreground">Market Trends</div>
             </div>
-            
-            <div className="text-center p-4 border rounded-lg">
-              <Brain className="w-8 h-8 mx-auto mb-2 text-orange-600" />
-              <p className="text-2xl font-bold text-orange-600">Live</p>
-              <p className="text-sm text-muted-foreground">Processing</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{insights.activeModels}</div>
+              <div className="text-sm text-muted-foreground">Active Models</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Prediction Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Prediction Generation</CardTitle>
+          <CardTitle>Prediction Accuracy Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="accuracy" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Predictions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Prediction Scope</label>
-              <div className="flex gap-2">
-                <Button
-                  variant={predictionScope === 'short' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPredictionScope('short')}
-                >
-                  Short-term (1-7 days)
-                </Button>
-                <Button
-                  variant={predictionScope === 'medium' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPredictionScope('medium')}
-                >
-                  Medium-term (1-4 weeks)
-                </Button>
-                <Button
-                  variant={predictionScope === 'long' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPredictionScope('long')}
-                >
-                  Long-term (1-6 months)
-                </Button>
+            {analyticsData?.slice(0, 5).map((prediction) => (
+              <div key={prediction.id} className="flex justify-between items-center p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium">{prediction.metric_name}</h4>
+                  <p className="text-sm text-gray-600">
+                    Model: {prediction.metric_type}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(prediction.recorded_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <Badge className="bg-purple-100 text-purple-800 mb-2">
+                    {(prediction.metric_value * 100).toFixed(1)}% Accuracy
+                  </Badge>
+                  <div className="text-sm text-gray-600">
+                    Value: {prediction.metric_value.toFixed(3)}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Active Models */}
-      {!isLoading && activeModels.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Prediction Models</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeModels.map((model) => (
-                <div key={model.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold">{model.name}</h4>
-                    <Badge variant="outline">{model.model_type}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {model.target_metric || 'No description available'}
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={() => generatePrediction.mutate(model.id)}
-                    disabled={generatePrediction.isPending}
-                    className="w-full"
-                  >
-                    {generatePrediction.isPending ? 'Generating...' : 'Generate Prediction'}
-                  </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Market Trend Predictions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {marketTrends?.slice(0, 5).map((trend) => (
+              <div key={trend.id} className="flex justify-between items-center p-3 border rounded">
+                <div>
+                  <h4 className="font-medium">{trend.metric_name}</h4>
+                  <p className="text-sm text-gray-600">Period: {trend.time_period}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recent Predictions */}
-      {predictions && predictions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Predictions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {predictions.map((prediction) => (
-                <div key={prediction.id} className="border rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{prediction.prediction_type}</Badge>
-                      <span className="text-sm font-medium">
-                        {Math.round((prediction.confidence_score || 0) * 100)}% confidence
-                      </span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(prediction.prediction_date).toLocaleString()}
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-lg font-semibold">
+                      {(trend.metric_value * 100).toFixed(1)}%
                     </span>
                   </div>
-                  
-                  <div className="text-sm">
-                    <div className="bg-gray-50 p-2 rounded">
-                      <strong>Prediction:</strong>
-                      <pre className="mt-1 text-xs overflow-auto">
-                        {JSON.stringify(prediction.predicted_value, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {isLoading && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse">Loading predictive models...</div>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
