@@ -93,18 +93,18 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         
         {/* Enhanced Image Counter & Zoom Indicator */}
         <div className="absolute top-4 right-4 flex gap-2">
-          <Badge className="bg-black/80 text-white border-0 backdrop-blur-sm shadow-lg">
-            {currentIndex + 1} / {validImages.length}
-          </Badge>
-          {validImages.length === 1 && (
-            <Badge variant="outline" className="bg-white/90 text-gray-700 border-gray-200 backdrop-blur-sm">
-              <ZoomIn className="h-3 w-3 mr-1" />
-              Click to zoom
+          {validImages.length > 1 && (
+            <Badge className="bg-black/80 text-white border-0 backdrop-blur-sm shadow-lg">
+              {currentIndex + 1} / {validImages.length}
             </Badge>
           )}
+          <Badge variant="outline" className="bg-white/90 text-gray-700 border-gray-200 backdrop-blur-sm">
+            <ZoomIn className="h-3 w-3 mr-1" />
+            Click to zoom
+          </Badge>
         </div>
         
-        {/* Navigation Buttons - Enhanced Design */}
+        {/* Navigation Buttons - Only show when there are multiple images */}
         {validImages.length > 1 && (
           <>
             <Button
@@ -127,7 +127,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         )}
       </div>
       
-      {/* Enhanced Thumbnail Navigation */}
+      {/* Enhanced Thumbnail Navigation - Only show when there are multiple images */}
       {validImages.length > 1 && (
         <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
           {validImages.map((image, index) => (
