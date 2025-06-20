@@ -42,6 +42,7 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/marketplace" element={<ActiveMarketplace />} />
+                  <Route path="/marketplace/open-store" element={<MarketplacePanelPage />} />
                   <Route path="/auctions" element={<Auctions />} />
                   <Route path="/upload" element={<CoinUpload />} />
                   <Route path="/profile" element={<Profile />} />
