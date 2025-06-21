@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const uploadImage = async (file: File, bucket = 'coin-images'): Promise<string | null> => {
@@ -15,7 +14,7 @@ export const uploadImage = async (file: File, bucket = 'coin-images'): Promise<s
 
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const fileName = `${Date.now()}-${Date.now().toString(36)}.${fileExt}`;
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage

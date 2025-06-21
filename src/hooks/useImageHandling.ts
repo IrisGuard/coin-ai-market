@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -52,7 +51,7 @@ export const useImageHandling = () => {
   }, []);
 
   const uploadImage = useCallback(async (file: File): Promise<string> => {
-    const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const fileId = `${Date.now()}-${Date.now().toString(36)}`;
     
     try {
       setUploadProgress(prev => ({ ...prev, [fileId]: 0 }));

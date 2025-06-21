@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
 
@@ -71,7 +70,7 @@ export const useOfflineSync = () => {
 
   const addToOfflineQueue = useCallback((type: OfflineItem['type'], data: any) => {
     const item: OfflineItem = {
-      id: `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `${type}_${Date.now()}_${Date.now().toString(36)}`,
       type,
       data,
       timestamp: Date.now(),
