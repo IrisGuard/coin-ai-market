@@ -1,72 +1,74 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, TrendingUp, Users, Eye, Search, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAnalyticsStats } from '@/hooks/useAnalyticsStats';
 
 const AdminAnalyticsSection = () => {
-  const analyticsTables = [
-    {
-      name: 'analytics_events',
-      description: 'User interaction and system events',
-      records: '125,678',
-      status: 'active',
-      icon: Activity,
-      growth: '+12%'
-    },
-    {
-      name: 'user_analytics',
-      description: 'User behavior and engagement metrics',
-      records: '45,234',
-      status: 'active',
-      icon: Users,
-      growth: '+8%'
-    },
-    {
-      name: 'search_analytics',
-      description: 'Search queries and result analytics',
-      records: '23,456',
-      status: 'active',
-      icon: Search,
-      growth: '+15%'
-    },
-    {
-      name: 'market_analytics',
-      description: 'Market trends and pricing data',
-      records: '12,345',
-      status: 'active',
-      icon: TrendingUp,
-      growth: '+22%'
-    },
-    {
-      name: 'page_views',
-      description: 'Page view tracking and statistics',
-      records: '89,123',
-      status: 'active',
-      icon: Eye,
-      growth: '+5%'
-    },
-    {
-      name: 'performance_metrics',
-      description: 'System performance monitoring',
-      records: '67,890',
-      status: 'active',
-      icon: BarChart3,
-      growth: '+3%'
-    }
-  ];
+  const { data: analyticsData, isLoading } = useAnalyticsStats();
+
+  // Icon mapping for dynamic rendering
+  const iconMap = {
+    'Activity': Activity,
+    'Users': Users,
+    'Search': Search,
+    'TrendingUp': TrendingUp,
+    'Eye': Eye,
+    'BarChart3': BarChart3
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-gray-200 rounded w-20"></div>
+                <div className="h-4 w-4 bg-gray-200 rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-24"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const analyticsStats = [
-    { label: 'Total Events', value: '363,726', icon: Activity, color: 'text-blue-600' },
-    { label: 'Active Users', value: '2,347', icon: Users, color: 'text-green-600' },
-    { label: 'Page Views', value: '89,123', icon: Eye, color: 'text-purple-600' },
-    { label: 'Search Queries', value: '23,456', icon: Search, color: 'text-orange-600' }
+    { 
+      label: 'Total Events', 
+      value: analyticsData?.totalEvents?.toLocaleString() || '0', 
+      icon: Activity, 
+      color: 'text-blue-600' 
+    },
+    { 
+      label: 'Active Users', 
+      value: analyticsData?.activeUsers?.toLocaleString() || '0', 
+      icon: Users, 
+      color: 'text-green-600' 
+    },
+    { 
+      label: 'Page Views', 
+      value: analyticsData?.pageViews?.toLocaleString() || '0', 
+      icon: Eye, 
+      color: 'text-purple-600' 
+    },
+    { 
+      label: 'Search Queries', 
+      value: analyticsData?.searchQueries?.toLocaleString() || '0', 
+      icon: Search, 
+      color: 'text-orange-600' 
+    }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Analytics Statistics */}
+      {/* Analytics Statistics - REAL DATA */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {analyticsStats.map((stat) => {
           const IconComponent = stat.icon;
@@ -78,17 +80,17 @@ const AdminAnalyticsSection = () => {
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                <p className="text-xs text-muted-foreground">Analytics data</p>
+                <p className="text-xs text-muted-foreground">Real analytics data</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Analytics Tables */}
+      {/* Analytics Tables - REAL DATA */}
       <div className="grid gap-4 md:grid-cols-2">
-        {analyticsTables.map((table) => {
-          const IconComponent = table.icon;
+        {analyticsData?.tables?.map((table) => {
+          const IconComponent = iconMap[table.icon as keyof typeof iconMap] || Activity;
           return (
             <Card key={table.name} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
@@ -105,7 +107,9 @@ const AdminAnalyticsSection = () => {
                 
                 <div className="flex justify-between items-center mb-3">
                   <div className="text-sm">
-                    <span className="font-medium">{table.records}</span> records
+                    <span className="font-medium text-lg text-indigo-600">
+                      {table.records.toLocaleString()}
+                    </span> records
                   </div>
                   <div className="text-sm font-medium text-green-600">
                     {table.growth} growth
@@ -123,57 +127,36 @@ const AdminAnalyticsSection = () => {
               </CardContent>
             </Card>
           );
-        })}
+        }) || []}
       </div>
 
-      {/* Top Analytics Insights */}
+      {/* Top Analytics Insights - REAL DATA */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Analytics Insights</CardTitle>
+          <CardTitle>Real-Time Analytics Insights</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[
-              {
-                insight: 'Peak Usage Hours',
-                description: 'Highest activity between 2PM-4PM EST',
-                metric: '45% increase',
-                trend: 'up'
-              },
-              {
-                insight: 'Popular Search Terms',
-                description: 'Morgan Silver Dollar searches up 23%',
-                metric: '23% growth',
-                trend: 'up'
-              },
-              {
-                insight: 'User Engagement',
-                description: 'Average session time increased to 8.5 minutes',
-                metric: '+2.3 min',
-                trend: 'up'
-              },
-              {
-                insight: 'Mobile Traffic',
-                description: 'Mobile users now represent 67% of traffic',
-                metric: '67% mobile',
-                trend: 'stable'
-              }
-            ].map((insight, index) => (
+            {analyticsData?.insights?.map((insight, index) => (
               <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <TrendingUp className={`h-4 w-4 ${
-                    insight.trend === 'up' ? 'text-green-500' : 'text-blue-500'
+                    insight.trend === 'up' ? 'text-green-500' : 
+                    insight.trend === 'down' ? 'text-red-500' : 'text-blue-500'
                   }`} />
                   <div>
                     <p className="font-medium">{insight.insight}</p>
                     <p className="text-sm text-muted-foreground">{insight.description}</p>
                   </div>
                 </div>
-                <div className="text-sm font-medium text-green-600">
+                <div className={`text-sm font-medium ${
+                  insight.trend === 'up' ? 'text-green-600' : 
+                  insight.trend === 'down' ? 'text-red-600' : 'text-blue-600'
+                }`}>
                   {insight.metric}
                 </div>
               </div>
-            ))}
+            )) || []}
           </div>
         </CardContent>
       </Card>
