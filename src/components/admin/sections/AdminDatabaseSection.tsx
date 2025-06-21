@@ -1,129 +1,70 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Table, Users, Coins, ShoppingCart, Brain, BarChart3, Settings, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-
-// Import existing sections
-import AdminUsersSection from '../AdminUsersSection';
-import AdminCoinsSection from '../AdminCoinsSection';
-import AdminAISection from './AdminAISection';
+import DatabaseTablesManagement from '@/components/admin/database/DatabaseTablesManagement';
+import AdminUsersSection from '@/components/admin/AdminUsersSection';
+import AdminCoinsSection from '@/components/admin/AdminCoinsSection';
 import AdminMarketplaceSection from './AdminMarketplaceSection';
+import AdminAISection from './AdminAISection';
 import AdminAnalyticsSection from './AdminAnalyticsSection';
 import AdminDataSourcesSection from './AdminDataSourcesSection';
+import SecurityTablesSection from '@/components/admin/security/SecurityTablesSection';
+import PaymentTablesSection from '@/components/admin/payments/PaymentTablesSection';
+import ErrorManagementSection from '@/components/admin/errors/ErrorManagementSection';
+import GeographicDataSection from '@/components/admin/geographic/GeographicDataSection';
 import AdminSystemSection from './AdminSystemSection';
-
-// New comprehensive table sections
-import DatabaseTablesManagement from '../database/DatabaseTablesManagement';
-import SecurityTablesSection from '../security/SecurityTablesSection';
-import PaymentTablesSection from '../payments/PaymentTablesSection';
-import ErrorManagementSection from '../errors/ErrorManagementSection';
-import GeographicDataSection from '../geographic/GeographicDataSection';
+import { useDatabaseStats } from '@/hooks/useDatabaseStats';
 
 const AdminDatabaseSection = () => {
   const [activeCategory, setActiveCategory] = useState('overview');
+  const { data: dbStats, isLoading } = useDatabaseStats();
   
-  const tableCategories = [
-    {
-      id: 'overview',
-      name: 'Overview',
-      icon: Database,
-      color: 'bg-blue-500',
-      tables: 84,
-      description: 'Database overview and health'
-    },
-    {
-      id: 'users',
-      name: 'Users & Auth',
-      icon: Users,
-      color: 'bg-green-500',
-      tables: 8,
-      description: 'User management and authentication'
-    },
-    {
-      id: 'coins',
-      name: 'Coins & Items',
-      icon: Coins,
-      color: 'bg-yellow-500',
-      tables: 12,
-      description: 'Coin catalog and evaluations'
-    },
-    {
-      id: 'marketplace',
-      name: 'Marketplace',
-      icon: ShoppingCart,
-      color: 'bg-purple-500',
-      tables: 9,
-      description: 'Marketplace and auctions'
-    },
-    {
-      id: 'ai_system',
-      name: 'AI System',
-      icon: Brain,
-      color: 'bg-indigo-500',
-      tables: 14,
-      description: 'AI commands and analytics'
-    },
-    {
-      id: 'analytics',
-      name: 'Analytics',
-      icon: BarChart3,
-      color: 'bg-cyan-500',
-      tables: 7,
-      description: 'Analytics and reporting'
-    },
-    {
-      id: 'data_sources',
-      name: 'Data Sources',
-      icon: Database,
-      color: 'bg-orange-500',
-      tables: 11,
-      description: 'External data and APIs'
-    },
-    {
-      id: 'security',
-      name: 'Security',
-      icon: Shield,
-      color: 'bg-red-500',
-      tables: 6,
-      description: 'Security and admin logs'
-    },
-    {
-      id: 'payments',
-      name: 'Payments',
-      icon: Zap,
-      color: 'bg-emerald-500',
-      tables: 4,
-      description: 'Payment transactions'
-    },
-    {
-      id: 'errors',
-      name: 'Error Management',
-      icon: Settings,
-      color: 'bg-rose-500',
-      tables: 8,
-      description: 'Error tracking and logs'
-    },
-    {
-      id: 'geographic',
-      name: 'Geographic',
-      icon: Table,
-      color: 'bg-teal-500',
-      tables: 5,
-      description: 'Geographic and regional data'
-    }
-  ];
+  // Icon mapping for dynamic rendering
+  const iconMap = {
+    'Database': Database,
+    'Users': Users,
+    'Coins': Coins,
+    'ShoppingCart': ShoppingCart,
+    'Brain': Brain,
+    'BarChart3': BarChart3,
+    'Shield': Shield,
+    'Zap': Zap,
+    'Settings': Settings,
+    'Table': Table
+  };
 
-  const CategoryIcon = ({ category }: { category: typeof tableCategories[0] }) => {
-    const IconComponent = category.icon;
+  const CategoryIcon = ({ iconName }: { iconName: string }) => {
+    const IconComponent = iconMap[iconName as keyof typeof iconMap] || Database;
     return <IconComponent className="h-5 w-5" />;
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-gray-200 rounded w-20"></div>
+                <div className="h-4 w-4 bg-gray-200 rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-24"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Database Overview Cards */}
+      {/* Database Overview Cards - REAL DATA */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -131,7 +72,7 @@ const AdminDatabaseSection = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">84</div>
+            <div className="text-2xl font-bold">{dbStats?.totalTables || 0}</div>
             <p className="text-xs text-muted-foreground">All database tables</p>
           </CardContent>
         </Card>
@@ -142,19 +83,19 @@ const AdminDatabaseSection = () => {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">84</div>
+            <div className="text-2xl font-bold">{dbStats?.rlsPolicies || 0}</div>
             <p className="text-xs text-muted-foreground">Security policies active</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Records</CardTitle>
             <Table className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">11</div>
-            <p className="text-xs text-muted-foreground">Organized categories</p>
+            <div className="text-2xl font-bold">{dbStats?.totalRecords?.toLocaleString() || 0}</div>
+            <p className="text-xs text-muted-foreground">All database records</p>
           </CardContent>
         </Card>
 
@@ -164,15 +105,47 @@ const AdminDatabaseSection = () => {
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">Optimal</div>
+            <div className="text-2xl font-bold text-green-600">{dbStats?.systemHealth || 'Loading...'}</div>
             <p className="text-xs text-muted-foreground">All systems operational</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Category Navigation */}
+      {/* AI Brain Statistics - SPECIAL HIGHLIGHT */}
+      {dbStats?.aiStats && (
+        <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-indigo-700">
+              <Brain className="h-6 w-6" />
+              AI Brain Statistics - THOUSANDS OF FUNCTIONS
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-indigo-600">{dbStats.aiStats.totalCommands.toLocaleString()}</div>
+                <p className="text-sm text-gray-600">Total AI Commands</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">{dbStats.aiStats.activeCommands.toLocaleString()}</div>
+                <p className="text-sm text-gray-600">Active Commands</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">{dbStats.aiStats.totalPredictions.toLocaleString()}</div>
+                <p className="text-sm text-gray-600">Prediction Models</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600">{dbStats.aiStats.totalKnowledgeEntries.toLocaleString()}</div>
+                <p className="text-sm text-gray-600">Knowledge Entries</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Category Navigation - REAL DATA */}
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {tableCategories.map((category) => (
+        {dbStats?.categories?.map((category) => (
           <Card 
             key={category.id}
             className={`cursor-pointer transition-all hover:shadow-md ${
@@ -183,23 +156,31 @@ const AdminDatabaseSection = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className={`p-2 rounded-md ${category.color} text-white`}>
-                  <CategoryIcon category={category} />
+                  <CategoryIcon iconName={category.icon} />
                 </div>
-                <Badge variant="secondary">{category.tables}</Badge>
+                <div className="text-right">
+                  <Badge variant="secondary" className="mb-1">{category.tables} tables</Badge>
+                  <div className="text-xs text-gray-500">{category.records.toLocaleString()} records</div>
+                </div>
               </div>
               <h3 className="font-semibold text-sm">{category.name}</h3>
               <p className="text-xs text-muted-foreground mt-1">{category.description}</p>
             </CardContent>
           </Card>
-        ))}
+        )) || []}
       </div>
 
       {/* Category Content */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CategoryIcon category={tableCategories.find(c => c.id === activeCategory) || tableCategories[0]} />
-            {tableCategories.find(c => c.id === activeCategory)?.name || 'Overview'}
+            {dbStats?.categories?.find(c => c.id === activeCategory) && (
+              <CategoryIcon iconName={dbStats.categories.find(c => c.id === activeCategory)!.icon} />
+            )}
+            {dbStats?.categories?.find(c => c.id === activeCategory)?.name || 'Overview'}
+            <Badge variant="outline" className="ml-2">
+              {dbStats?.categories?.find(c => c.id === activeCategory)?.records.toLocaleString() || 0} records
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
