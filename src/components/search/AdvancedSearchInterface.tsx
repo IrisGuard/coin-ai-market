@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,6 +33,7 @@ const AdvancedSearchInterface: React.FC<AdvancedSearchInterfaceProps> = ({
   isLoading
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchStartTime, setSearchStartTime] = useState(Date.now());
   const [filters, setFilters] = useState({
     priceRange: [0, 10000],
     yearRange: [1800, 2024],
@@ -51,6 +51,9 @@ const AdvancedSearchInterface: React.FC<AdvancedSearchInterfaceProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    
+    setSearchStartTime(Date.now());
     const searchParams = {
       query: searchQuery,
       ...filters
@@ -358,7 +361,7 @@ const AdvancedSearchInterface: React.FC<AdvancedSearchInterfaceProps> = ({
                 {searchResults.length} results found
               </span>
               <Badge variant="outline" className="text-sm">
-                Search completed in {Math.random() * 2 + 0.5}s
+                Search completed in {((Date.now() - searchStartTime) / 1000).toFixed(2)}s
               </Badge>
             </div>
           </CardContent>
