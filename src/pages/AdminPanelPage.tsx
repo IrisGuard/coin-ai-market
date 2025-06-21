@@ -1,15 +1,15 @@
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import ComprehensiveAdminPanel from "@/components/admin/ComprehensiveAdminPanel";
+import FullSystemAdminPanel from "@/components/admin/enhanced/FullSystemAdminPanel";
 
 const AdminPanelPage = () => {
-  console.log('📄 AdminPanelPage - COMPREHENSIVE ADMIN with 95+ Tables & REAL DATA');
+  console.log('📄 AdminPanelPage - FULL SYSTEM ADMIN with 104 FLAT TABS & REAL DATA');
   
   try {
     usePageView();
     console.log('✅ AdminPanelPage: usePageView hook completed');
     
-    return <ComprehensiveAdminPanel />;
+    return <FullSystemAdminPanel />;
   } catch (error) {
     console.error('💥 Error in AdminPanelPage:', error);
     
@@ -19,7 +19,7 @@ const AdminPanelPage = () => {
           <div className="text-6xl mb-4">💥</div>
           <h2 className="text-2xl font-bold text-foreground">Page Error</h2>
           <p className="text-muted-foreground">
-            Error loading comprehensive admin panel with real data. Check console for details.
+            Error loading full system admin panel with 104 tabs. Check console for details.
           </p>
           <button 
             onClick={() => window.location.href = '/'} 
