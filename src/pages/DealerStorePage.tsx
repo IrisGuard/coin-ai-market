@@ -50,46 +50,43 @@ const DealerStorePage = () => {
     queryFn: async (): Promise<Store | null> => {
       if (!storeId) return null;
 
-      // New logic inspired by useDealerStores hook
-      // Attempt 1: Fetch as a standard active & verified store
+      // Step 1: Fetch store data. It must be active.
       const { data: storeData, error: storeError } = await supabase
         .from('stores')
-        .select('*, profiles ( role )') // Include role from profiles
+        .select('*')
         .eq('id', storeId)
         .eq('is_active', true)
-        .eq('verified', true)
         .single();
-      
-      if (storeData) {
-        return storeData as Store;
+
+      // If store doesn't exist or isn't active, stop.
+      if (storeError || !storeData) {
+        if (storeError && storeError.code !== 'PGRST116') {
+          console.error('Error fetching store:', storeError);
+        }
+        return null;
       }
 
-      // Handle expected 'not found' error silently, log others
-      if (storeError && storeError.code !== 'PGRST116') {
-        console.error('Error fetching standard store:', storeError);
-      }
-
-      // Attempt 2: If standard fetch fails, check if it's an admin's store
-      // This allows admins to view their own stores even if not 'verified'
-      const { data: adminStoreData, error: adminStoreError } = await supabase
-        .from('stores')
-        .select('*, profiles!inner(role)')
-        .eq('id', storeId)
-        .eq('is_active', true)
-        .eq('profiles.role', 'admin')
+      // Step 2: Fetch the owner's profile to check for admin role.
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', storeData.user_id)
         .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.warn('Could not fetch profile for role check:', profileError);
+      }
+
+      // Step 3: Authorize. Show if store is verified OR owner is admin.
+      const isVerified = storeData.verified === true;
+      const isAdmin = profileData?.role === 'admin';
+
+      if (isVerified || isAdmin) {
+        return { ...storeData, profiles: profileData } as Store;
+      }
       
-      if (adminStoreData) {
-        return adminStoreData as Store;
-      }
-
-      // Log any unexpected errors from the admin check
-      if (adminStoreError && adminStoreError.code !== 'PGRST116') {
-        console.error('Error fetching admin store:', adminStoreError);
-      }
-
-      // If both attempts fail, the store is not accessible
-      console.log(`Store with ID ${storeId} not found or not accessible.`);
+      // If not authorized, deny access.
+      console.log(`Access denied for store ${storeId}: Not verified and owner is not admin.`);
       return null;
     },
     enabled: !!storeId,
@@ -298,7 +295,7 @@ const DealerStorePage = () => {
                           <ImageGallery 
                             images={allImages}
                             coinName={coin.name}
-                            className="aspect-square"
+                            className="w-full h-auto"
                           />
                           
                           {/* Overlay Badges */}
