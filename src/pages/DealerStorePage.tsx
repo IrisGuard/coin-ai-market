@@ -50,44 +50,22 @@ const DealerStorePage = () => {
     queryFn: async (): Promise<Store | null> => {
       if (!storeId) return null;
 
-      // Step 1: Fetch store data. It must be active.
-      const { data: storeData, error: storeError } = await supabase
+      // Simplified logic: Fetch active store and its owner's role.
+      const { data: storeData, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('*, profiles(role)')
         .eq('id', storeId)
         .eq('is_active', true)
         .single();
 
-      // If store doesn't exist or isn't active, stop.
-      if (storeError || !storeData) {
-        if (storeError && storeError.code !== 'PGRST116') {
-          console.error('Error fetching store:', storeError);
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.error('Error fetching store:', error);
         }
         return null;
       }
-
-      // Step 2: Fetch the owner's profile to check for admin role.
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', storeData.user_id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.warn('Could not fetch profile for role check:', profileError);
-      }
-
-      // Step 3: Authorize. Show if store is verified OR owner is admin.
-      const isVerified = storeData.verified === true;
-      const isAdmin = profileData?.role === 'admin';
-
-      if (isVerified || isAdmin) {
-        return { ...storeData, profiles: profileData } as Store;
-      }
       
-      // If not authorized, deny access.
-      console.log(`Access denied for store ${storeId}: Not verified and owner is not admin.`);
-      return null;
+      return storeData as Store;
     },
     enabled: !!storeId,
   });
@@ -205,7 +183,7 @@ const DealerStorePage = () => {
                 <div className="flex-1">
                   <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center gap-3">
                     {store.name}
-                    {store.verified && (
+                    {store.profiles?.role === 'admin' && (
                       <Badge className="bg-green-500 text-white text-base px-3 py-1 rounded-full">Verified</Badge>
                     )}
                   </h1>

@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,7 +12,6 @@ export const useDealerStores = () => {
         .from('stores')
         .select('*')
         .eq('is_active', true)
-        .eq('verified', true)
         .order('created_at', { ascending: false });
 
       if (storesError) {
@@ -52,7 +50,7 @@ export const useDealerStores = () => {
       // Fetch profiles for these users
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, username, full_name, bio, avatar_url, rating, location, verified_dealer')
+        .select('id, username, full_name, bio, avatar_url, rating, location, verified_dealer, role')
         .in('id', userIds);
 
       if (profilesError) {
@@ -77,7 +75,8 @@ export const useDealerStores = () => {
                 avatar_url: store.logo_url,
                 rating: 5,
                 location: null,
-                verified_dealer: isAdminStore // Admin stores are considered verified
+                verified_dealer: isAdminStore, // Admin stores are considered verified
+                role: 'admin'
               }
             };
           }
