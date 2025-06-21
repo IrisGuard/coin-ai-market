@@ -23,6 +23,7 @@ interface Store {
   user_id: string;
   created_at: string;
   verified: boolean;
+  profiles?: { role?: string };
 }
 
 interface Coin {
@@ -49,17 +50,42 @@ const DealerStorePage = () => {
     queryFn: async (): Promise<Store | null> => {
       if (!storeId) return null;
       
-      const { data, error } = await supabase
+      // Step 1: Fetch store data first.
+      const { data: storeData, error: storeError } = await supabase
         .from('stores')
         .select('*')
         .eq('id', storeId)
+        .eq('is_active', true)
         .single();
 
-      if (error) {
-        throw error;
+      if (storeError) {
+        if (storeError.code !== 'PGRST116') { // PGRST116: "exact one row not found"
+          console.error('Error fetching store data:', storeError);
+        }
+        return null;
+      }
+      
+      if (!storeData) {
+        return null;
       }
 
-      return data;
+      // Step 2: If store is found, try to fetch the associated profile role.
+      // This is a separate query to avoid RLS issues on the joined table.
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', storeData.user_id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.warn('Could not fetch profile for store owner:', profileError);
+      }
+      
+      // Combine the store data with the profile data (which might be null)
+      return {
+        ...storeData,
+        profiles: profileData
+      } as Store;
     },
     enabled: !!storeId
   });
