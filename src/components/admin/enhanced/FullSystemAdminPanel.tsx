@@ -89,82 +89,101 @@ const DatabaseTableTab = ({ tableName, displayName }: { tableName: string; displ
 const FullSystemAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('open-store');
 
-  // All 95 database tables
-  const databaseTables = [
-    { name: 'admin_activity_logs', display: 'Admin Activity Logs' },
-    { name: 'admin_roles', display: 'Admin Roles' },
-    { name: 'aggregated_coin_prices', display: 'Aggregated Coin Prices' },
-    { name: 'ai_command_categories', display: 'AI Command Categories' },
-    { name: 'ai_command_execution_logs', display: 'AI Command Execution Logs' },
-    { name: 'ai_command_executions', display: 'AI Command Executions' },
-    { name: 'ai_command_workflows', display: 'AI Command Workflows' },
-    { name: 'ai_commands', display: 'AI Commands' },
-    { name: 'ai_configuration', display: 'AI Configuration' },
-    { name: 'ai_error_detection_logs', display: 'AI Error Detection Logs' },
-    { name: 'ai_performance_analytics', display: 'AI Performance Analytics' },
-    { name: 'ai_performance_metrics', display: 'AI Performance Metrics' },
-    { name: 'ai_recognition_cache', display: 'AI Recognition Cache' },
-    { name: 'ai_search_filters', display: 'AI Search Filters' },
-    { name: 'ai_training_data', display: 'AI Training Data' },
-    { name: 'analytics_events', display: 'Analytics Events' },
-    { name: 'api_key_categories', display: 'API Key Categories' },
-    { name: 'api_key_rotations', display: 'API Key Rotations' },
-    { name: 'api_keys', display: 'API Keys' },
-    { name: 'auction_bids', display: 'Auction Bids' },
-    { name: 'automation_rules', display: 'Automation Rules' },
-    { name: 'bids', display: 'Bids' },
-    { name: 'bulk_operations', display: 'Bulk Operations' },
-    { name: 'categories', display: 'Categories' },
-    { name: 'coin_analysis_logs', display: 'Coin Analysis Logs' },
-    { name: 'coin_data_cache', display: 'Coin Data Cache' },
-    { name: 'coin_evaluations', display: 'Coin Evaluations' },
-    { name: 'coin_history', display: 'Coin History' },
-    { name: 'coin_images', display: 'Coin Images' },
-    { name: 'coin_price_history', display: 'Coin Price History' },
-    { name: 'coin_store_connections', display: 'Coin Store Connections' },
-    { name: 'coins', display: 'Coins' },
-    { name: 'console_errors', display: 'Console Errors' },
-    { name: 'data_sources', display: 'Data Sources' },
-    { name: 'data_quality_reports', display: 'Data Quality Reports' },
-    { name: 'dual_image_analysis', display: 'Dual Image Analysis' },
-    { name: 'error_logs', display: 'Error Logs' },
-    { name: 'external_price_sources', display: 'External Price Sources' },
-    { name: 'geographic_data', display: 'Geographic Data' },
-    { name: 'github_violations', display: 'GitHub Violations' },
-    { name: 'listing_views', display: 'Listing Views' },
-    { name: 'marketplace_listings', display: 'Marketplace Listings' },
-    { name: 'market_analytics', display: 'Market Analytics' },
-    { name: 'notifications', display: 'Notifications' },
-    { name: 'page_views', display: 'Page Views' },
-    { name: 'payment_transactions', display: 'Payment Transactions' },
-    { name: 'performance_metrics', display: 'Performance Metrics' },
-    { name: 'photo_quality_assessments', display: 'Photo Quality Assessments' },
-    { name: 'prediction_models', display: 'Prediction Models' },
-    { name: 'price_alerts', display: 'Price Alerts' },
-    { name: 'profiles', display: 'Profiles' },
-    { name: 'revenue_forecasts', display: 'Revenue Forecasts' },
-    { name: 'scraping_jobs', display: 'Scraping Jobs' },
-    { name: 'search_analytics', display: 'Search Analytics' },
-    { name: 'security_incidents', display: 'Security Incidents' },
-    { name: 'static_coins_db', display: 'Static Coins DB' },
-    { name: 'store_activity_logs', display: 'Store Activity Logs' },
-    { name: 'store_reviews', display: 'Store Reviews' },
-    { name: 'stores', display: 'Stores' },
-    { name: 'subscription_plans', display: 'Subscription Plans' },
-    { name: 'system_alerts', display: 'System Alerts' },
-    { name: 'system_metrics', display: 'System Metrics' },
-    { name: 'user_favorites', display: 'User Favorites' },
-    { name: 'user_portfolios', display: 'User Portfolios' },
-    { name: 'user_purchases', display: 'User Purchases' },
-    { name: 'user_roles', display: 'User Roles' },
-    { name: 'user_settings', display: 'User Settings' },
-    { name: 'user_subscriptions', display: 'User Subscriptions' },
-    { name: 'visual_coin_matches', display: 'Visual Coin Matches' },
-    { name: 'vpn_proxies', display: 'VPN Proxies' },
-    { name: 'wallet_balances', display: 'Wallet Balances' },
-    { name: 'watchlist', display: 'Watchlist' },
-    { name: 'web_discovery_results', display: 'Web Discovery Results' }
+  // All tabs in correct order: Open Store first, AI Brain second, then all database tables
+  const allTabs = [
+    // 1. Open Store - FIRST
+    { value: 'open-store', label: '🏪 Open Store', type: 'main' },
+    // 2. AI Brain - SECOND  
+    { value: 'ai-brain', label: '🧠 AI Brain', type: 'main' },
+    // 3-9. Other main tabs
+    { value: 'cleanup', label: '🚀 Cleanup', type: 'main' },
+    { value: 'overview', label: '📊 Overview', type: 'main' },
+    { value: 'users', label: '👥 Users', type: 'main' },
+    { value: 'coins', label: '🪙 Coins', type: 'main' },
+    { value: 'security', label: '🔒 Security', type: 'main' },
+    { value: 'analytics', label: '📈 Analytics', type: 'main' },
+    { value: 'system-phases', label: '⚙️ System Phases', type: 'main' },
+    // 10-104. All database tables
+    { value: 'table-admin_activity_logs', label: '📋 Admin Activity Logs', type: 'table', tableName: 'admin_activity_logs' },
+    { value: 'table-admin_roles', label: '📋 Admin Roles', type: 'table', tableName: 'admin_roles' },
+    { value: 'table-aggregated_coin_prices', label: '📋 Aggregated Coin Prices', type: 'table', tableName: 'aggregated_coin_prices' },
+    { value: 'table-ai_command_categories', label: '📋 AI Command Categories', type: 'table', tableName: 'ai_command_categories' },
+    { value: 'table-ai_command_execution_logs', label: '📋 AI Command Execution Logs', type: 'table', tableName: 'ai_command_execution_logs' },
+    { value: 'table-ai_command_executions', label: '📋 AI Command Executions', type: 'table', tableName: 'ai_command_executions' },
+    { value: 'table-ai_command_workflows', label: '📋 AI Command Workflows', type: 'table', tableName: 'ai_command_workflows' },
+    { value: 'table-ai_commands', label: '📋 AI Commands', type: 'table', tableName: 'ai_commands' },
+    { value: 'table-ai_configuration', label: '📋 AI Configuration', type: 'table', tableName: 'ai_configuration' },
+    { value: 'table-ai_error_detection_logs', label: '📋 AI Error Detection Logs', type: 'table', tableName: 'ai_error_detection_logs' },
+    { value: 'table-ai_performance_analytics', label: '📋 AI Performance Analytics', type: 'table', tableName: 'ai_performance_analytics' },
+    { value: 'table-ai_performance_metrics', label: '📋 AI Performance Metrics', type: 'table', tableName: 'ai_performance_metrics' },
+    { value: 'table-ai_recognition_cache', label: '📋 AI Recognition Cache', type: 'table', tableName: 'ai_recognition_cache' },
+    { value: 'table-ai_search_filters', label: '📋 AI Search Filters', type: 'table', tableName: 'ai_search_filters' },
+    { value: 'table-ai_training_data', label: '📋 AI Training Data', type: 'table', tableName: 'ai_training_data' },
+    { value: 'table-analytics_events', label: '📋 Analytics Events', type: 'table', tableName: 'analytics_events' },
+    { value: 'table-api_key_categories', label: '📋 API Key Categories', type: 'table', tableName: 'api_key_categories' },
+    { value: 'table-api_key_rotations', label: '📋 API Key Rotations', type: 'table', tableName: 'api_key_rotations' },
+    { value: 'table-api_keys', label: '📋 API Keys', type: 'table', tableName: 'api_keys' },
+    { value: 'table-auction_bids', label: '📋 Auction Bids', type: 'table', tableName: 'auction_bids' },
+    { value: 'table-automation_rules', label: '📋 Automation Rules', type: 'table', tableName: 'automation_rules' },
+    { value: 'table-bids', label: '📋 Bids', type: 'table', tableName: 'bids' },
+    { value: 'table-bulk_operations', label: '📋 Bulk Operations', type: 'table', tableName: 'bulk_operations' },
+    { value: 'table-categories', label: '📋 Categories', type: 'table', tableName: 'categories' },
+    { value: 'table-coin_analysis_logs', label: '📋 Coin Analysis Logs', type: 'table', tableName: 'coin_analysis_logs' },
+    { value: 'table-coin_data_cache', label: '📋 Coin Data Cache', type: 'table', tableName: 'coin_data_cache' },
+    { value: 'table-coin_evaluations', label: '📋 Coin Evaluations', type: 'table', tableName: 'coin_evaluations' },
+    { value: 'table-coin_history', label: '📋 Coin History', type: 'table', tableName: 'coin_history' },
+    { value: 'table-coin_images', label: '📋 Coin Images', type: 'table', tableName: 'coin_images' },
+    { value: 'table-coin_price_history', label: '📋 Coin Price History', type: 'table', tableName: 'coin_price_history' },
+    { value: 'table-coin_store_connections', label: '📋 Coin Store Connections', type: 'table', tableName: 'coin_store_connections' },
+    { value: 'table-coins', label: '📋 Coins', type: 'table', tableName: 'coins' },
+    { value: 'table-console_errors', label: '📋 Console Errors', type: 'table', tableName: 'console_errors' },
+    { value: 'table-data_sources', label: '📋 Data Sources', type: 'table', tableName: 'data_sources' },
+    { value: 'table-data_quality_reports', label: '📋 Data Quality Reports', type: 'table', tableName: 'data_quality_reports' },
+    { value: 'table-dual_image_analysis', label: '📋 Dual Image Analysis', type: 'table', tableName: 'dual_image_analysis' },
+    { value: 'table-error_logs', label: '📋 Error Logs', type: 'table', tableName: 'error_logs' },
+    { value: 'table-external_price_sources', label: '📋 External Price Sources', type: 'table', tableName: 'external_price_sources' },
+    { value: 'table-geographic_data', label: '📋 Geographic Data', type: 'table', tableName: 'geographic_data' },
+    { value: 'table-github_violations', label: '📋 GitHub Violations', type: 'table', tableName: 'github_violations' },
+    { value: 'table-listing_views', label: '📋 Listing Views', type: 'table', tableName: 'listing_views' },
+    { value: 'table-marketplace_listings', label: '📋 Marketplace Listings', type: 'table', tableName: 'marketplace_listings' },
+    { value: 'table-market_analytics', label: '📋 Market Analytics', type: 'table', tableName: 'market_analytics' },
+    { value: 'table-notifications', label: '📋 Notifications', type: 'table', tableName: 'notifications' },
+    { value: 'table-page_views', label: '📋 Page Views', type: 'table', tableName: 'page_views' },
+    { value: 'table-payment_transactions', label: '📋 Payment Transactions', type: 'table', tableName: 'payment_transactions' },
+    { value: 'table-performance_metrics', label: '📋 Performance Metrics', type: 'table', tableName: 'performance_metrics' },
+    { value: 'table-photo_quality_assessments', label: '📋 Photo Quality Assessments', type: 'table', tableName: 'photo_quality_assessments' },
+    { value: 'table-prediction_models', label: '📋 Prediction Models', type: 'table', tableName: 'prediction_models' },
+    { value: 'table-price_alerts', label: '📋 Price Alerts', type: 'table', tableName: 'price_alerts' },
+    { value: 'table-profiles', label: '📋 Profiles', type: 'table', tableName: 'profiles' },
+    { value: 'table-revenue_forecasts', label: '📋 Revenue Forecasts', type: 'table', tableName: 'revenue_forecasts' },
+    { value: 'table-scraping_jobs', label: '📋 Scraping Jobs', type: 'table', tableName: 'scraping_jobs' },
+    { value: 'table-search_analytics', label: '📋 Search Analytics', type: 'table', tableName: 'search_analytics' },
+    { value: 'table-security_incidents', label: '📋 Security Incidents', type: 'table', tableName: 'security_incidents' },
+    { value: 'table-static_coins_db', label: '📋 Static Coins DB', type: 'table', tableName: 'static_coins_db' },
+    { value: 'table-store_activity_logs', label: '📋 Store Activity Logs', type: 'table', tableName: 'store_activity_logs' },
+    { value: 'table-store_reviews', label: '📋 Store Reviews', type: 'table', tableName: 'store_reviews' },
+    { value: 'table-stores', label: '📋 Stores', type: 'table', tableName: 'stores' },
+    { value: 'table-subscription_plans', label: '📋 Subscription Plans', type: 'table', tableName: 'subscription_plans' },
+    { value: 'table-system_alerts', label: '📋 System Alerts', type: 'table', tableName: 'system_alerts' },
+    { value: 'table-system_metrics', label: '📋 System Metrics', type: 'table', tableName: 'system_metrics' },
+    { value: 'table-user_favorites', label: '📋 User Favorites', type: 'table', tableName: 'user_favorites' },
+    { value: 'table-user_portfolios', label: '📋 User Portfolios', type: 'table', tableName: 'user_portfolios' },
+    { value: 'table-user_purchases', label: '📋 User Purchases', type: 'table', tableName: 'user_purchases' },
+    { value: 'table-user_roles', label: '📋 User Roles', type: 'table', tableName: 'user_roles' },
+    { value: 'table-user_settings', label: '📋 User Settings', type: 'table', tableName: 'user_settings' },
+    { value: 'table-user_subscriptions', label: '📋 User Subscriptions', type: 'table', tableName: 'user_subscriptions' },
+    { value: 'table-visual_coin_matches', label: '📋 Visual Coin Matches', type: 'table', tableName: 'visual_coin_matches' },
+    { value: 'table-vpn_proxies', label: '📋 VPN Proxies', type: 'table', tableName: 'vpn_proxies' },
+    { value: 'table-wallet_balances', label: '📋 Wallet Balances', type: 'table', tableName: 'wallet_balances' },
+    { value: 'table-watchlist', label: '📋 Watchlist', type: 'table', tableName: 'watchlist' },
+    { value: 'table-web_discovery_results', label: '📋 Web Discovery Results', type: 'table', tableName: 'web_discovery_results' }
   ];
+
+  // Split tabs into rows of 9 each
+  const tabRows = [];
+  for (let i = 0; i < allTabs.length; i += 9) {
+    tabRows.push(allTabs.slice(i, i + 9));
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,68 +201,24 @@ const FullSystemAdminPanel = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* ALL 104 TABS IN ONE SCROLLABLE ROW */}
-          <div className="mb-6 overflow-x-auto">
-            <TabsList className="flex w-max space-x-1 p-1">
-              {/* 1. OPEN STORE - FIRST */}
-              <TabsTrigger value="open-store" className="whitespace-nowrap">
-                🏪 Open Store
-              </TabsTrigger>
-              
-              {/* 2. AI BRAIN - SECOND */}
-              <TabsTrigger value="ai-brain" className="whitespace-nowrap">
-                🧠 AI Brain
-              </TabsTrigger>
-              
-              {/* 3. CLEANUP - THIRD */}
-              <TabsTrigger value="cleanup" className="whitespace-nowrap">
-                🚀 Cleanup
-              </TabsTrigger>
-              
-              {/* 4. OVERVIEW - FOURTH */}
-              <TabsTrigger value="overview" className="whitespace-nowrap">
-                📊 Overview
-              </TabsTrigger>
-              
-              {/* 5. USERS - FIFTH */}
-              <TabsTrigger value="users" className="whitespace-nowrap">
-                👥 Users
-              </TabsTrigger>
-              
-              {/* 6. COINS - SIXTH */}
-              <TabsTrigger value="coins" className="whitespace-nowrap">
-                🪙 Coins
-              </TabsTrigger>
-              
-              {/* 7. SECURITY - SEVENTH */}
-              <TabsTrigger value="security" className="whitespace-nowrap">
-                🔒 Security
-              </TabsTrigger>
-              
-              {/* 8. ANALYTICS - EIGHTH */}
-              <TabsTrigger value="analytics" className="whitespace-nowrap">
-                📈 Analytics
-              </TabsTrigger>
-              
-              {/* 9. SYSTEM PHASES - NINTH */}
-              <TabsTrigger value="system-phases" className="whitespace-nowrap">
-                ⚙️ System Phases
-              </TabsTrigger>
-
-              {/* 10-104: ALL 95 DATABASE TABLES - CONTINUING THE SEQUENCE */}
-              {databaseTables.map((table, index) => (
-                <TabsTrigger 
-                  key={table.name}
-                  value={`table-${table.name}`}
-                  className="whitespace-nowrap text-xs"
-                >
-                  📋 {table.display}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          {/* 104 TABS IN 12 ROWS OF ~9 TABS EACH */}
+          <div className="mb-6 space-y-2">
+            {tabRows.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex flex-wrap gap-1">
+                {row.map((tab) => (
+                  <TabsTrigger 
+                    key={tab.value}
+                    value={tab.value}
+                    className="text-xs px-3 py-2 whitespace-nowrap"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </div>
+            ))}
           </div>
 
-          {/* TAB CONTENTS - ALL 104 TABS */}
+          {/* TAB CONTENTS FOR ALL 104 TABS */}
           <TabsContent value="open-store" className="space-y-6">
             <AdminStoreManagerTab />
           </TabsContent>
@@ -281,9 +256,9 @@ const FullSystemAdminPanel = () => {
           </TabsContent>
 
           {/* ALL 95 DATABASE TABLE TABS WITH REAL DATA */}
-          {databaseTables.map((table) => (
-            <TabsContent key={table.name} value={`table-${table.name}`} className="space-y-6">
-              <DatabaseTableTab tableName={table.name} displayName={table.display} />
+          {allTabs.filter(tab => tab.type === 'table').map((tab) => (
+            <TabsContent key={tab.value} value={tab.value} className="space-y-6">
+              <DatabaseTableTab tableName={tab.tableName!} displayName={tab.label.replace('📋 ', '')} />
             </TabsContent>
           ))}
         </Tabs>
