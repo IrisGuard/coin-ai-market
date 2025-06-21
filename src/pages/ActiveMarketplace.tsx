@@ -155,7 +155,7 @@ const ActiveMarketplace = () => {
                 return (
                   <DealerStoreCard
                     key={dealer.id}
-                    id={profile?.id || dealer.user_id}
+                    id={dealer.id}
                     avatar_url={profile?.avatar_url || dealer.logo_url}
                     username={profile?.username}
                     full_name={profile?.full_name}

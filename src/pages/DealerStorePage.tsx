@@ -71,17 +71,32 @@ const DealerStorePage = () => {
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
     queryKey: ['store-coins', store?.user_id],
-    queryFn: async (): Promise<Coin[]> => {
+    queryFn: async () => {
       if (!store?.user_id) return [];
       
       const { data, error } = await supabase
         .from('coins')
-        .select('*')
+        .select(`
+          id,
+          name,
+          price,
+          year,
+          grade,
+          country,
+          image,
+          images,
+          obverse_image,
+          reverse_image,
+          rarity,
+          views,
+          featured
+        `)
         .eq('user_id', store.user_id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching store coins:', error);
         throw error;
       }
 
