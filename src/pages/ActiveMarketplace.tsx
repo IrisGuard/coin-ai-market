@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
+import EnhancedMarketplaceHeader from '@/components/marketplace/EnhancedMarketplaceHeader';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -56,19 +57,8 @@ const ActiveMarketplace = () => {
         <BackButton to="/" label="Back to Home" />
       </div>
       
-      {/* Simple Marketplace Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
-              Discover the Best Coin Stores
-            </h1>
-            <p className="text-lg text-gray-600">
-              Explore authentic coins from verified dealers worldwide
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Enhanced Marketplace Header with Green Open Store Button */}
+      <EnhancedMarketplaceHeader />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
