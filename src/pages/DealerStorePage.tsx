@@ -23,7 +23,6 @@ interface Store {
   user_id: string;
   created_at: string;
   verified: boolean;
-  profiles?: { role?: string };
 }
 
 interface Coin {
@@ -43,31 +42,31 @@ interface Coin {
 }
 
 const DealerStorePage = () => {
-  const { storeId } = useParams<{ storeId: string }>();
+  const { dealerId } = useParams<{ dealerId: string }>();
 
   const { data: store, isLoading: storeLoading } = useQuery({
-    queryKey: ['store', storeId],
+    queryKey: ['store', dealerId],
     queryFn: async (): Promise<Store | null> => {
-      if (!storeId) return null;
+      if (!dealerId) return null;
 
       // Final logic: Fetch a store if it has this ID AND (it is active OR its owner is an admin).
       const { data, error } = await supabase
         .from('stores')
-        .select('*, profiles(role)')
-        .eq('id', storeId)
-        .or('is_active.eq.true,profiles.role.eq.admin')
+        .select('*')
+        .eq('id', dealerId)
+        .eq('is_active', true)
         .single();
 
       if (error) {
         if (error.code !== 'PGRST116') {
-          console.error(`Error fetching store ${storeId}:`, error);
+          console.error(`Error fetching store ${dealerId}:`, error);
         }
         return null;
       }
       
       return data as Store;
     },
-    enabled: !!storeId,
+    enabled: !!dealerId,
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
@@ -183,9 +182,6 @@ const DealerStorePage = () => {
                 <div className="flex-1">
                   <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center gap-3">
                     {store.name}
-                    {store.profiles?.role === 'admin' && (
-                      <Badge className="bg-green-500 text-white text-base px-3 py-1 rounded-full">Verified</Badge>
-                    )}
                   </h1>
                   {store.description && (
                     <p className="text-lg text-gray-600 mb-4">{store.description}</p>
