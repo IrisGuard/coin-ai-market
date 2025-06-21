@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -53,7 +52,7 @@ const ImageGallery = ({ images, coinName, className = '' }: ImageGalleryProps) =
         <img
           src={currentImageUrl}
           alt={`${coinName} - Image ${currentIndex + 1}`}
-          className={`w-full h-full object-cover transition-all duration-500 ${
+          className={`w-full h-full object-contain transition-all duration-500 ${
             isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
           }`}
           style={{ 

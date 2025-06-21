@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -137,7 +136,7 @@ const CoinDetailsContent = ({
               <ImageGallery 
                 images={allImages}
                 coinName={coin.name}
-                className="w-full h-96"
+                className="w-full"
               />
             </CardContent>
           </Card>
