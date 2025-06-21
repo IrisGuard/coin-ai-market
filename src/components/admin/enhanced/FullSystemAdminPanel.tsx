@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle } from 'lucide-react';
 import AdminOverviewTab from '@/components/admin/tabs/AdminOverviewTab';
 import AdminUsersTab from '@/components/admin/tabs/AdminUsersTab';
 import AdminCoinsTab from '@/components/admin/tabs/AdminCoinsTab';
@@ -15,7 +14,6 @@ import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Database Table Component with proper typing
 const DatabaseTableTab = ({ tableName, displayName }: { tableName: string; displayName: string }) => {
   const { data: tableData, isLoading } = useQuery({
     queryKey: [`table-${tableName}`],
@@ -40,7 +38,7 @@ const DatabaseTableTab = ({ tableName, displayName }: { tableName: string; displ
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{displayName} Table</CardTitle>
+          <CardTitle>{displayName}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse">Loading real data...</div>
@@ -53,7 +51,7 @@ const DatabaseTableTab = ({ tableName, displayName }: { tableName: string; displ
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          {displayName} Table
+          {displayName}
           <Badge variant="outline">
             {tableData?.count || 0} Records
           </Badge>
@@ -89,102 +87,6 @@ const DatabaseTableTab = ({ tableName, displayName }: { tableName: string; displ
 const FullSystemAdminPanel = () => {
   const [activeTab, setActiveTab] = useState('open-store');
 
-  // All tabs in correct order: Open Store first, AI Brain second, then all database tables
-  const allTabs = [
-    // 1. Open Store - FIRST
-    { value: 'open-store', label: '🏪 Open Store', type: 'main' },
-    // 2. AI Brain - SECOND  
-    { value: 'ai-brain', label: '🧠 AI Brain', type: 'main' },
-    // 3-9. Other main tabs
-    { value: 'cleanup', label: '🚀 Cleanup', type: 'main' },
-    { value: 'overview', label: '📊 Overview', type: 'main' },
-    { value: 'users', label: '👥 Users', type: 'main' },
-    { value: 'coins', label: '🪙 Coins', type: 'main' },
-    { value: 'security', label: '🔒 Security', type: 'main' },
-    { value: 'analytics', label: '📈 Analytics', type: 'main' },
-    { value: 'system-phases', label: '⚙️ System Phases', type: 'main' },
-    // 10-104. All database tables
-    { value: 'table-admin_activity_logs', label: '📋 Admin Activity Logs', type: 'table', tableName: 'admin_activity_logs' },
-    { value: 'table-admin_roles', label: '📋 Admin Roles', type: 'table', tableName: 'admin_roles' },
-    { value: 'table-aggregated_coin_prices', label: '📋 Aggregated Coin Prices', type: 'table', tableName: 'aggregated_coin_prices' },
-    { value: 'table-ai_command_categories', label: '📋 AI Command Categories', type: 'table', tableName: 'ai_command_categories' },
-    { value: 'table-ai_command_execution_logs', label: '📋 AI Command Execution Logs', type: 'table', tableName: 'ai_command_execution_logs' },
-    { value: 'table-ai_command_executions', label: '📋 AI Command Executions', type: 'table', tableName: 'ai_command_executions' },
-    { value: 'table-ai_command_workflows', label: '📋 AI Command Workflows', type: 'table', tableName: 'ai_command_workflows' },
-    { value: 'table-ai_commands', label: '📋 AI Commands', type: 'table', tableName: 'ai_commands' },
-    { value: 'table-ai_configuration', label: '📋 AI Configuration', type: 'table', tableName: 'ai_configuration' },
-    { value: 'table-ai_error_detection_logs', label: '📋 AI Error Detection Logs', type: 'table', tableName: 'ai_error_detection_logs' },
-    { value: 'table-ai_performance_analytics', label: '📋 AI Performance Analytics', type: 'table', tableName: 'ai_performance_analytics' },
-    { value: 'table-ai_performance_metrics', label: '📋 AI Performance Metrics', type: 'table', tableName: 'ai_performance_metrics' },
-    { value: 'table-ai_recognition_cache', label: '📋 AI Recognition Cache', type: 'table', tableName: 'ai_recognition_cache' },
-    { value: 'table-ai_search_filters', label: '📋 AI Search Filters', type: 'table', tableName: 'ai_search_filters' },
-    { value: 'table-ai_training_data', label: '📋 AI Training Data', type: 'table', tableName: 'ai_training_data' },
-    { value: 'table-analytics_events', label: '📋 Analytics Events', type: 'table', tableName: 'analytics_events' },
-    { value: 'table-api_key_categories', label: '📋 API Key Categories', type: 'table', tableName: 'api_key_categories' },
-    { value: 'table-api_key_rotations', label: '📋 API Key Rotations', type: 'table', tableName: 'api_key_rotations' },
-    { value: 'table-api_keys', label: '📋 API Keys', type: 'table', tableName: 'api_keys' },
-    { value: 'table-auction_bids', label: '📋 Auction Bids', type: 'table', tableName: 'auction_bids' },
-    { value: 'table-automation_rules', label: '📋 Automation Rules', type: 'table', tableName: 'automation_rules' },
-    { value: 'table-bids', label: '📋 Bids', type: 'table', tableName: 'bids' },
-    { value: 'table-bulk_operations', label: '📋 Bulk Operations', type: 'table', tableName: 'bulk_operations' },
-    { value: 'table-categories', label: '📋 Categories', type: 'table', tableName: 'categories' },
-    { value: 'table-coin_analysis_logs', label: '📋 Coin Analysis Logs', type: 'table', tableName: 'coin_analysis_logs' },
-    { value: 'table-coin_data_cache', label: '📋 Coin Data Cache', type: 'table', tableName: 'coin_data_cache' },
-    { value: 'table-coin_evaluations', label: '📋 Coin Evaluations', type: 'table', tableName: 'coin_evaluations' },
-    { value: 'table-coin_history', label: '📋 Coin History', type: 'table', tableName: 'coin_history' },
-    { value: 'table-coin_images', label: '📋 Coin Images', type: 'table', tableName: 'coin_images' },
-    { value: 'table-coin_price_history', label: '📋 Coin Price History', type: 'table', tableName: 'coin_price_history' },
-    { value: 'table-coin_store_connections', label: '📋 Coin Store Connections', type: 'table', tableName: 'coin_store_connections' },
-    { value: 'table-coins', label: '📋 Coins', type: 'table', tableName: 'coins' },
-    { value: 'table-console_errors', label: '📋 Console Errors', type: 'table', tableName: 'console_errors' },
-    { value: 'table-data_sources', label: '📋 Data Sources', type: 'table', tableName: 'data_sources' },
-    { value: 'table-data_quality_reports', label: '📋 Data Quality Reports', type: 'table', tableName: 'data_quality_reports' },
-    { value: 'table-dual_image_analysis', label: '📋 Dual Image Analysis', type: 'table', tableName: 'dual_image_analysis' },
-    { value: 'table-error_logs', label: '📋 Error Logs', type: 'table', tableName: 'error_logs' },
-    { value: 'table-external_price_sources', label: '📋 External Price Sources', type: 'table', tableName: 'external_price_sources' },
-    { value: 'table-geographic_data', label: '📋 Geographic Data', type: 'table', tableName: 'geographic_data' },
-    { value: 'table-github_violations', label: '📋 GitHub Violations', type: 'table', tableName: 'github_violations' },
-    { value: 'table-listing_views', label: '📋 Listing Views', type: 'table', tableName: 'listing_views' },
-    { value: 'table-marketplace_listings', label: '📋 Marketplace Listings', type: 'table', tableName: 'marketplace_listings' },
-    { value: 'table-market_analytics', label: '📋 Market Analytics', type: 'table', tableName: 'market_analytics' },
-    { value: 'table-notifications', label: '📋 Notifications', type: 'table', tableName: 'notifications' },
-    { value: 'table-page_views', label: '📋 Page Views', type: 'table', tableName: 'page_views' },
-    { value: 'table-payment_transactions', label: '📋 Payment Transactions', type: 'table', tableName: 'payment_transactions' },
-    { value: 'table-performance_metrics', label: '📋 Performance Metrics', type: 'table', tableName: 'performance_metrics' },
-    { value: 'table-photo_quality_assessments', label: '📋 Photo Quality Assessments', type: 'table', tableName: 'photo_quality_assessments' },
-    { value: 'table-prediction_models', label: '📋 Prediction Models', type: 'table', tableName: 'prediction_models' },
-    { value: 'table-price_alerts', label: '📋 Price Alerts', type: 'table', tableName: 'price_alerts' },
-    { value: 'table-profiles', label: '📋 Profiles', type: 'table', tableName: 'profiles' },
-    { value: 'table-revenue_forecasts', label: '📋 Revenue Forecasts', type: 'table', tableName: 'revenue_forecasts' },
-    { value: 'table-scraping_jobs', label: '📋 Scraping Jobs', type: 'table', tableName: 'scraping_jobs' },
-    { value: 'table-search_analytics', label: '📋 Search Analytics', type: 'table', tableName: 'search_analytics' },
-    { value: 'table-security_incidents', label: '📋 Security Incidents', type: 'table', tableName: 'security_incidents' },
-    { value: 'table-static_coins_db', label: '📋 Static Coins DB', type: 'table', tableName: 'static_coins_db' },
-    { value: 'table-store_activity_logs', label: '📋 Store Activity Logs', type: 'table', tableName: 'store_activity_logs' },
-    { value: 'table-store_reviews', label: '📋 Store Reviews', type: 'table', tableName: 'store_reviews' },
-    { value: 'table-stores', label: '📋 Stores', type: 'table', tableName: 'stores' },
-    { value: 'table-subscription_plans', label: '📋 Subscription Plans', type: 'table', tableName: 'subscription_plans' },
-    { value: 'table-system_alerts', label: '📋 System Alerts', type: 'table', tableName: 'system_alerts' },
-    { value: 'table-system_metrics', label: '📋 System Metrics', type: 'table', tableName: 'system_metrics' },
-    { value: 'table-user_favorites', label: '📋 User Favorites', type: 'table', tableName: 'user_favorites' },
-    { value: 'table-user_portfolios', label: '📋 User Portfolios', type: 'table', tableName: 'user_portfolios' },
-    { value: 'table-user_purchases', label: '📋 User Purchases', type: 'table', tableName: 'user_purchases' },
-    { value: 'table-user_roles', label: '📋 User Roles', type: 'table', tableName: 'user_roles' },
-    { value: 'table-user_settings', label: '📋 User Settings', type: 'table', tableName: 'user_settings' },
-    { value: 'table-user_subscriptions', label: '📋 User Subscriptions', type: 'table', tableName: 'user_subscriptions' },
-    { value: 'table-visual_coin_matches', label: '📋 Visual Coin Matches', type: 'table', tableName: 'visual_coin_matches' },
-    { value: 'table-vpn_proxies', label: '📋 VPN Proxies', type: 'table', tableName: 'vpn_proxies' },
-    { value: 'table-wallet_balances', label: '📋 Wallet Balances', type: 'table', tableName: 'wallet_balances' },
-    { value: 'table-watchlist', label: '📋 Watchlist', type: 'table', tableName: 'watchlist' },
-    { value: 'table-web_discovery_results', label: '📋 Web Discovery Results', type: 'table', tableName: 'web_discovery_results' }
-  ];
-
-  // Split tabs into rows of 9 each
-  const tabRows = [];
-  for (let i = 0; i < allTabs.length; i += 9) {
-    tabRows.push(allTabs.slice(i, i + 9));
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
@@ -201,70 +103,219 @@ const FullSystemAdminPanel = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* 104 TABS IN 12 ROWS OF ~9 TABS EACH */}
-          <div className="mb-6 space-y-2">
-            {tabRows.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex flex-wrap gap-1">
-                {row.map((tab) => (
-                  <TabsTrigger 
-                    key={tab.value}
-                    value={tab.value}
-                    className="text-xs px-3 py-2 whitespace-nowrap"
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </div>
-            ))}
-          </div>
+          <TabsList className="grid w-full grid-cols-1 gap-2 h-auto p-2">
+            {/* ROW 1 - Open Store FIRST, AI Brain SECOND */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="open-store" className="text-xs px-2 py-1">🏪 Open Store</TabsTrigger>
+              <TabsTrigger value="ai-brain" className="text-xs px-2 py-1">🧠 AI Brain</TabsTrigger>
+              <TabsTrigger value="cleanup" className="text-xs px-2 py-1">🚀 Cleanup</TabsTrigger>
+              <TabsTrigger value="overview" className="text-xs px-2 py-1">📊 Overview</TabsTrigger>
+              <TabsTrigger value="users" className="text-xs px-2 py-1">👥 Users</TabsTrigger>
+              <TabsTrigger value="coins" className="text-xs px-2 py-1">🪙 Coins</TabsTrigger>
+              <TabsTrigger value="security" className="text-xs px-2 py-1">🔒 Security</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs px-2 py-1">📈 Analytics</TabsTrigger>
+              <TabsTrigger value="system-phases" className="text-xs px-2 py-1">⚙️ System Phases</TabsTrigger>
+            </div>
 
-          {/* TAB CONTENTS FOR ALL 104 TABS */}
-          <TabsContent value="open-store" className="space-y-6">
-            <AdminStoreManagerTab />
-          </TabsContent>
+            {/* ROW 2 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="admin-activity-logs" className="text-xs px-2 py-1">📋 Admin Activity Logs</TabsTrigger>
+              <TabsTrigger value="admin-roles" className="text-xs px-2 py-1">📋 Admin Roles</TabsTrigger>
+              <TabsTrigger value="aggregated-coin-prices" className="text-xs px-2 py-1">📋 Aggregated Coin Prices</TabsTrigger>
+              <TabsTrigger value="ai-command-categories" className="text-xs px-2 py-1">📋 AI Command Categories</TabsTrigger>
+              <TabsTrigger value="ai-command-execution-logs" className="text-xs px-2 py-1">📋 AI Command Execution Logs</TabsTrigger>
+              <TabsTrigger value="ai-command-executions" className="text-xs px-2 py-1">📋 AI Command Executions</TabsTrigger>
+              <TabsTrigger value="ai-command-workflows" className="text-xs px-2 py-1">📋 AI Command Workflows</TabsTrigger>
+              <TabsTrigger value="ai-commands" className="text-xs px-2 py-1">📋 AI Commands</TabsTrigger>
+              <TabsTrigger value="ai-configuration" className="text-xs px-2 py-1">📋 AI Configuration</TabsTrigger>
+            </div>
 
-          <TabsContent value="ai-brain" className="space-y-6">
-            <AdminAIBrainTab />
-          </TabsContent>
+            {/* ROW 3 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="ai-error-detection-logs" className="text-xs px-2 py-1">📋 AI Error Detection Logs</TabsTrigger>
+              <TabsTrigger value="ai-performance-analytics" className="text-xs px-2 py-1">📋 AI Performance Analytics</TabsTrigger>
+              <TabsTrigger value="ai-performance-metrics" className="text-xs px-2 py-1">📋 AI Performance Metrics</TabsTrigger>
+              <TabsTrigger value="ai-recognition-cache" className="text-xs px-2 py-1">📋 AI Recognition Cache</TabsTrigger>
+              <TabsTrigger value="ai-search-filters" className="text-xs px-2 py-1">📋 AI Search Filters</TabsTrigger>
+              <TabsTrigger value="ai-training-data" className="text-xs px-2 py-1">📋 AI Training Data</TabsTrigger>
+              <TabsTrigger value="analytics-events" className="text-xs px-2 py-1">📋 Analytics Events</TabsTrigger>
+              <TabsTrigger value="api-key-categories" className="text-xs px-2 py-1">📋 API Key Categories</TabsTrigger>
+              <TabsTrigger value="api-key-rotations" className="text-xs px-2 py-1">📋 API Key Rotations</TabsTrigger>
+            </div>
 
-          <TabsContent value="cleanup" className="space-y-6">
-            <AdminCleanupTab />
-          </TabsContent>
+            {/* ROW 4 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="api-keys" className="text-xs px-2 py-1">📋 API Keys</TabsTrigger>
+              <TabsTrigger value="auction-bids" className="text-xs px-2 py-1">📋 Auction Bids</TabsTrigger>
+              <TabsTrigger value="automation-rules" className="text-xs px-2 py-1">📋 Automation Rules</TabsTrigger>
+              <TabsTrigger value="bids" className="text-xs px-2 py-1">📋 Bids</TabsTrigger>
+              <TabsTrigger value="bulk-operations" className="text-xs px-2 py-1">📋 Bulk Operations</TabsTrigger>
+              <TabsTrigger value="categories" className="text-xs px-2 py-1">📋 Categories</TabsTrigger>
+              <TabsTrigger value="coin-analysis-logs" className="text-xs px-2 py-1">📋 Coin Analysis Logs</TabsTrigger>
+              <TabsTrigger value="coin-data-cache" className="text-xs px-2 py-1">📋 Coin Data Cache</TabsTrigger>
+              <TabsTrigger value="coin-evaluations" className="text-xs px-2 py-1">📋 Coin Evaluations</TabsTrigger>
+            </div>
 
-          <TabsContent value="overview" className="space-y-6">
-            <AdminOverviewTab />
-          </TabsContent>
+            {/* ROW 5 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="coin-history" className="text-xs px-2 py-1">📋 Coin History</TabsTrigger>
+              <TabsTrigger value="coin-images" className="text-xs px-2 py-1">📋 Coin Images</TabsTrigger>
+              <TabsTrigger value="coin-price-history" className="text-xs px-2 py-1">📋 Coin Price History</TabsTrigger>
+              <TabsTrigger value="coin-store-connections" className="text-xs px-2 py-1">📋 Coin Store Connections</TabsTrigger>
+              <TabsTrigger value="coins-table" className="text-xs px-2 py-1">📋 Coins Table</TabsTrigger>
+              <TabsTrigger value="console-errors" className="text-xs px-2 py-1">📋 Console Errors</TabsTrigger>
+              <TabsTrigger value="data-sources" className="text-xs px-2 py-1">📋 Data Sources</TabsTrigger>
+              <TabsTrigger value="data-quality-reports" className="text-xs px-2 py-1">📋 Data Quality Reports</TabsTrigger>
+              <TabsTrigger value="dual-image-analysis" className="text-xs px-2 py-1">📋 Dual Image Analysis</TabsTrigger>
+            </div>
 
-          <TabsContent value="users" className="space-y-6">
-            <AdminUsersTab />
-          </TabsContent>
+            {/* ROW 6 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="error-logs" className="text-xs px-2 py-1">📋 Error Logs</TabsTrigger>
+              <TabsTrigger value="external-price-sources" className="text-xs px-2 py-1">📋 External Price Sources</TabsTrigger>
+              <TabsTrigger value="geographic-data" className="text-xs px-2 py-1">📋 Geographic Data</TabsTrigger>
+              <TabsTrigger value="github-violations" className="text-xs px-2 py-1">📋 GitHub Violations</TabsTrigger>
+              <TabsTrigger value="listing-views" className="text-xs px-2 py-1">📋 Listing Views</TabsTrigger>
+              <TabsTrigger value="marketplace-listings" className="text-xs px-2 py-1">📋 Marketplace Listings</TabsTrigger>
+              <TabsTrigger value="market-analytics" className="text-xs px-2 py-1">📋 Market Analytics</TabsTrigger>
+              <TabsTrigger value="notifications" className="text-xs px-2 py-1">📋 Notifications</TabsTrigger>
+              <TabsTrigger value="page-views" className="text-xs px-2 py-1">📋 Page Views</TabsTrigger>
+            </div>
 
-          <TabsContent value="coins" className="space-y-6">
-            <AdminCoinsTab />
-          </TabsContent>
+            {/* ROW 7 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="payment-transactions" className="text-xs px-2 py-1">📋 Payment Transactions</TabsTrigger>
+              <TabsTrigger value="performance-metrics" className="text-xs px-2 py-1">📋 Performance Metrics</TabsTrigger>
+              <TabsTrigger value="photo-quality-assessments" className="text-xs px-2 py-1">📋 Photo Quality Assessments</TabsTrigger>
+              <TabsTrigger value="prediction-models" className="text-xs px-2 py-1">📋 Prediction Models</TabsTrigger>
+              <TabsTrigger value="price-alerts" className="text-xs px-2 py-1">📋 Price Alerts</TabsTrigger>
+              <TabsTrigger value="profiles" className="text-xs px-2 py-1">📋 Profiles</TabsTrigger>
+              <TabsTrigger value="revenue-forecasts" className="text-xs px-2 py-1">📋 Revenue Forecasts</TabsTrigger>
+              <TabsTrigger value="scraping-jobs" className="text-xs px-2 py-1">📋 Scraping Jobs</TabsTrigger>
+              <TabsTrigger value="search-analytics" className="text-xs px-2 py-1">📋 Search Analytics</TabsTrigger>
+            </div>
 
-          <TabsContent value="security" className="space-y-6">
-            <AdminSecurityTab />
-          </TabsContent>
+            {/* ROW 8 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="security-incidents" className="text-xs px-2 py-1">📋 Security Incidents</TabsTrigger>
+              <TabsTrigger value="static-coins-db" className="text-xs px-2 py-1">📋 Static Coins DB</TabsTrigger>
+              <TabsTrigger value="store-activity-logs" className="text-xs px-2 py-1">📋 Store Activity Logs</TabsTrigger>
+              <TabsTrigger value="store-reviews" className="text-xs px-2 py-1">📋 Store Reviews</TabsTrigger>
+              <TabsTrigger value="stores" className="text-xs px-2 py-1">📋 Stores</TabsTrigger>
+              <TabsTrigger value="subscription-plans" className="text-xs px-2 py-1">📋 Subscription Plans</TabsTrigger>
+              <TabsTrigger value="system-alerts" className="text-xs px-2 py-1">📋 System Alerts</TabsTrigger>
+              <TabsTrigger value="system-metrics" className="text-xs px-2 py-1">📋 System Metrics</TabsTrigger>
+              <TabsTrigger value="user-favorites" className="text-xs px-2 py-1">📋 User Favorites</TabsTrigger>
+            </div>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <AdminAnalyticsTab />
-          </TabsContent>
+            {/* ROW 9 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="user-portfolios" className="text-xs px-2 py-1">📋 User Portfolios</TabsTrigger>
+              <TabsTrigger value="user-purchases" className="text-xs px-2 py-1">📋 User Purchases</TabsTrigger>
+              <TabsTrigger value="user-roles" className="text-xs px-2 py-1">📋 User Roles</TabsTrigger>
+              <TabsTrigger value="user-settings" className="text-xs px-2 py-1">📋 User Settings</TabsTrigger>
+              <TabsTrigger value="user-subscriptions" className="text-xs px-2 py-1">📋 User Subscriptions</TabsTrigger>
+              <TabsTrigger value="visual-coin-matches" className="text-xs px-2 py-1">📋 Visual Coin Matches</TabsTrigger>
+              <TabsTrigger value="vpn-proxies" className="text-xs px-2 py-1">📋 VPN Proxies</TabsTrigger>
+              <TabsTrigger value="wallet-balances" className="text-xs px-2 py-1">📋 Wallet Balances</TabsTrigger>
+              <TabsTrigger value="watchlist" className="text-xs px-2 py-1">📋 Watchlist</TabsTrigger>
+            </div>
 
-          <TabsContent value="system-phases" className="space-y-6">
-            <AdminSystemPhasesTab />
-          </TabsContent>
+            {/* ROW 10 */}
+            <div className="flex flex-wrap gap-1">
+              <TabsTrigger value="web-discovery-results" className="text-xs px-2 py-1">📋 Web Discovery Results</TabsTrigger>
+            </div>
+          </TabsList>
 
-          {/* ALL 95 DATABASE TABLE TABS WITH REAL DATA */}
-          {allTabs.filter(tab => tab.type === 'table').map((tab) => (
-            <TabsContent key={tab.value} value={tab.value} className="space-y-6">
-              <DatabaseTableTab tableName={tab.tableName!} displayName={tab.label.replace('📋 ', '')} />
-            </TabsContent>
-          ))}
+          {/* ALL TAB CONTENTS */}
+          <TabsContent value="open-store"><AdminStoreManagerTab /></TabsContent>
+          <TabsContent value="ai-brain"><AdminAIBrainTab /></TabsContent>
+          <TabsContent value="cleanup"><AdminCleanupTab /></TabsContent>
+          <TabsContent value="overview"><AdminOverviewTab /></TabsContent>
+          <TabsContent value="users"><AdminUsersTab /></TabsContent>
+          <TabsContent value="coins"><AdminCoinsTab /></TabsContent>
+          <TabsContent value="security"><AdminSecurityTab /></TabsContent>
+          <TabsContent value="analytics"><AdminAnalyticsTab /></TabsContent>
+          <TabsContent value="system-phases"><AdminSystemPhasesTab /></TabsContent>
+          
+          {/* ALL DATABASE TABLE CONTENTS */}
+          <TabsContent value="admin-activity-logs"><DatabaseTableTab tableName="admin_activity_logs" displayName="Admin Activity Logs" /></TabsContent>
+          <TabsContent value="admin-roles"><DatabaseTableTab tableName="admin_roles" displayName="Admin Roles" /></TabsContent>
+          <TabsContent value="aggregated-coin-prices"><DatabaseTableTab tableName="aggregated_coin_prices" displayName="Aggregated Coin Prices" /></TabsContent>
+          <TabsContent value="ai-command-categories"><DatabaseTableTab tableName="ai_command_categories" displayName="AI Command Categories" /></TabsContent>
+          <TabsContent value="ai-command-execution-logs"><DatabaseTableTab tableName="ai_command_execution_logs" displayName="AI Command Execution Logs" /></TabsContent>
+          <TabsContent value="ai-command-executions"><DatabaseTableTab tableName="ai_command_executions" displayName="AI Command Executions" /></TabsContent>
+          <TabsContent value="ai-command-workflows"><DatabaseTableTab tableName="ai_command_workflows" displayName="AI Command Workflows" /></TabsContent>
+          <TabsContent value="ai-commands"><DatabaseTableTab tableName="ai_commands" displayName="AI Commands" /></TabsContent>
+          <TabsContent value="ai-configuration"><DatabaseTableTab tableName="ai_configuration" displayName="AI Configuration" /></TabsContent>
+          <TabsContent value="ai-error-detection-logs"><DatabaseTableTab tableName="ai_error_detection_logs" displayName="AI Error Detection Logs" /></TabsContent>
+          <TabsContent value="ai-performance-analytics"><DatabaseTableTab tableName="ai_performance_analytics" displayName="AI Performance Analytics" /></TabsContent>
+          <TabsContent value="ai-performance-metrics"><DatabaseTableTab tableName="ai_performance_metrics" displayName="AI Performance Metrics" /></TabsContent>
+          <TabsContent value="ai-recognition-cache"><DatabaseTableTab tableName="ai_recognition_cache" displayName="AI Recognition Cache" /></TabsContent>
+          <TabsContent value="ai-search-filters"><DatabaseTableTab tableName="ai_search_filters" displayName="AI Search Filters" /></TabsContent>
+          <TabsContent value="ai-training-data"><DatabaseTableTab tableName="ai_training_data" displayName="AI Training Data" /></TabsContent>
+          <TabsContent value="analytics-events"><DatabaseTableTab tableName="analytics_events" displayName="Analytics Events" /></TabsContent>
+          <TabsContent value="api-key-categories"><DatabaseTableTab tableName="api_key_categories" displayName="API Key Categories" /></TabsContent>
+          <TabsContent value="api-key-rotations"><DatabaseTableTab tableName="api_key_rotations" displayName="API Key Rotations" /></TabsContent>
+          <TabsContent value="api-keys"><DatabaseTableTab tableName="api_keys" displayName="API Keys" /></TabsContent>
+          <TabsContent value="auction-bids"><DatabaseTableTab tableName="auction_bids" displayName="Auction Bids" /></TabsContent>
+          <TabsContent value="automation-rules"><DatabaseTableTab tableName="automation_rules" displayName="Automation Rules" /></TabsContent>
+          <TabsContent value="bids"><DatabaseTableTab tableName="bids" displayName="Bids" /></TabsContent>
+          <TabsContent value="bulk-operations"><DatabaseTableTab tableName="bulk_operations" displayName="Bulk Operations" /></TabsContent>
+          <TabsContent value="categories"><DatabaseTableTab tableName="categories" displayName="Categories" /></TabsContent>
+          <TabsContent value="coin-analysis-logs"><DatabaseTableTab tableName="coin_analysis_logs" displayName="Coin Analysis Logs" /></TabsContent>
+          <TabsContent value="coin-data-cache"><DatabaseTableTab tableName="coin_data_cache" displayName="Coin Data Cache" /></TabsContent>
+          <TabsContent value="coin-evaluations"><DatabaseTableTab tableName="coin_evaluations" displayName="Coin Evaluations" /></TabsContent>
+          <TabsContent value="coin-history"><DatabaseTableTab tableName="coin_history" displayName="Coin History" /></TabsContent>
+          <TabsContent value="coin-images"><DatabaseTableTab tableName="coin_images" displayName="Coin Images" /></TabsContent>
+          <TabsContent value="coin-price-history"><DatabaseTableTab tableName="coin_price_history" displayName="Coin Price History" /></TabsContent>
+          <TabsContent value="coin-store-connections"><DatabaseTableTab tableName="coin_store_connections" displayName="Coin Store Connections" /></TabsContent>
+          <TabsContent value="coins-table"><DatabaseTableTab tableName="coins" displayName="Coins Table" /></TabsContent>
+          <TabsContent value="console-errors"><DatabaseTableTab tableName="console_errors" displayName="Console Errors" /></TabsContent>
+          <TabsContent value="data-sources"><DatabaseTableTab tableName="data_sources" displayName="Data Sources" /></TabsContent>
+          <TabsContent value="data-quality-reports"><DatabaseTableTab tableName="data_quality_reports" displayName="Data Quality Reports" /></TabsContent>
+          <TabsContent value="dual-image-analysis"><DatabaseTableTab tableName="dual_image_analysis" displayName="Dual Image Analysis" /></TabsContent>
+          <TabsContent value="error-logs"><DatabaseTableTab tableName="error_logs" displayName="Error Logs" /></TabsContent>
+          <TabsContent value="external-price-sources"><DatabaseTableTab tableName="external_price_sources" displayName="External Price Sources" /></TabsContent>
+          <TabsContent value="geographic-data"><DatabaseTableTab tableName="geographic_data" displayName="Geographic Data" /></TabsContent>
+          <TabsContent value="github-violations"><DatabaseTableTab tableName="github_violations" displayName="GitHub Violations" /></TabsContent>
+          <TabsContent value="listing-views"><DatabaseTableTab tableName="listing_views" displayName="Listing Views" /></TabsContent>
+          <TabsContent value="marketplace-listings"><DatabaseTableTab tableName="marketplace_listings" displayName="Marketplace Listings" /></TabsContent>
+          <TabsContent value="market-analytics"><DatabaseTableTab tableName="market_analytics" displayName="Market Analytics" /></TabsContent>
+          <TabsContent value="notifications"><DatabaseTableTab tableName="notifications" displayName="Notifications" /></TabsContent>
+          <TabsContent value="page-views"><DatabaseTableTab tableName="page_views" displayName="Page Views" /></TabsContent>
+          <TabsContent value="payment-transactions"><DatabaseTableTab tableName="payment_transactions" displayName="Payment Transactions" /></TabsContent>
+          <TabsContent value="performance-metrics"><DatabaseTableTab tableName="performance_metrics" displayName="Performance Metrics" /></TabsContent>
+          <TabsContent value="photo-quality-assessments"><DatabaseTableTab tableName="photo_quality_assessments" displayName="Photo Quality Assessments" /></TabsContent>
+          <TabsContent value="prediction-models"><DatabaseTableTab tableName="prediction_models" displayName="Prediction Models" /></TabsContent>
+          <TabsContent value="price-alerts"><DatabaseTableTab tableName="price_alerts" displayName="Price Alerts" /></TabsContent>
+          <TabsContent value="profiles"><DatabaseTableTab tableName="profiles" displayName="Profiles" /></TabsContent>
+          <TabsContent value="revenue-forecasts"><DatabaseTableTab tableName="revenue_forecasts" displayName="Revenue Forecasts" /></TabsContent>
+          <TabsContent value="scraping-jobs"><DatabaseTableTab tableName="scraping_jobs" displayName="Scraping Jobs" /></TabsContent>
+          <TabsContent value="search-analytics"><DatabaseTableTab tableName="search_analytics" displayName="Search Analytics" /></TabsContent>
+          <TabsContent value="security-incidents"><DatabaseTableTab tableName="security_incidents" displayName="Security Incidents" /></TabsContent>
+          <TabsContent value="static-coins-db"><DatabaseTableTab tableName="static_coins_db" displayName="Static Coins DB" /></TabsContent>
+          <TabsContent value="store-activity-logs"><DatabaseTableTab tableName="store_activity_logs" displayName="Store Activity Logs" /></TabsContent>
+          <TabsContent value="store-reviews"><DatabaseTableTab tableName="store_reviews" displayName="Store Reviews" /></TabsContent>
+          <TabsContent value="stores"><DatabaseTableTab tableName="stores" displayName="Stores" /></TabsContent>
+          <TabsContent value="subscription-plans"><DatabaseTableTab tableName="subscription_plans" displayName="Subscription Plans" /></TabsContent>
+          <TabsContent value="system-alerts"><DatabaseTableTab tableName="system_alerts" displayName="System Alerts" /></TabsContent>
+          <TabsContent value="system-metrics"><DatabaseTableTab tableName="system_metrics" displayName="System Metrics" /></TabsContent>
+          <TabsContent value="user-favorites"><DatabaseTableTab tableName="user_favorites" displayName="User Favorites" /></TabsContent>
+          <TabsContent value="user-portfolios"><DatabaseTableTab tableName="user_portfolios" displayName="User Portfolios" /></TabsContent>
+          <TabsContent value="user-purchases"><DatabaseTableTab tableName="user_purchases" displayName="User Purchases" /></TabsContent>
+          <TabsContent value="user-roles"><DatabaseTableTab tableName="user_roles" displayName="User Roles" /></TabsContent>
+          <TabsContent value="user-settings"><DatabaseTableTab tableName="user_settings" displayName="User Settings" /></TabsContent>
+          <TabsContent value="user-subscriptions"><DatabaseTableTab tableName="user_subscriptions" displayName="User Subscriptions" /></TabsContent>
+          <TabsContent value="visual-coin-matches"><DatabaseTableTab tableName="visual_coin_matches" displayName="Visual Coin Matches" /></TabsContent>
+          <TabsContent value="vpn-proxies"><DatabaseTableTab tableName="vpn_proxies" displayName="VPN Proxies" /></TabsContent>
+          <TabsContent value="wallet-balances"><DatabaseTableTab tableName="wallet_balances" displayName="Wallet Balances" /></TabsContent>
+          <TabsContent value="watchlist"><DatabaseTableTab tableName="watchlist" displayName="Watchlist" /></TabsContent>
+          <TabsContent value="web-discovery-results"><DatabaseTableTab tableName="web_discovery_results" displayName="Web Discovery Results" /></TabsContent>
         </Tabs>
       </div>
     </div>
   );
 };
 
-export default FullSystemAdminPanel;
+export default FullSystemAdminPanel; 
