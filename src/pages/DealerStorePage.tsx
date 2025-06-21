@@ -56,7 +56,6 @@ const DealerStorePage = () => {
         .select('*')
         .eq('id', storeId)
         .eq('is_active', true)
-        .eq('verified', true)
         .single();
 
       if (storeError) {
