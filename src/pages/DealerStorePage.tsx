@@ -49,45 +49,50 @@ const DealerStorePage = () => {
     queryKey: ['store', storeId],
     queryFn: async (): Promise<Store | null> => {
       if (!storeId) return null;
-      
-      // Step 1: Fetch store data first.
+
+      // New logic inspired by useDealerStores hook
+      // Attempt 1: Fetch as a standard active & verified store
       const { data: storeData, error: storeError } = await supabase
         .from('stores')
-        .select('*')
+        .select('*, profiles ( role )') // Include role from profiles
         .eq('id', storeId)
         .eq('is_active', true)
+        .eq('verified', true)
         .single();
-
-      if (storeError) {
-        if (storeError.code !== 'PGRST116') { // PGRST116: "exact one row not found"
-          console.error('Error fetching store data:', storeError);
-        }
-        return null;
-      }
       
-      if (!storeData) {
-        return null;
+      if (storeData) {
+        return storeData as Store;
       }
 
-      // Step 2: If store is found, try to fetch the associated profile role.
-      // This is a separate query to avoid RLS issues on the joined table.
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', storeData.user_id)
+      // Handle expected 'not found' error silently, log others
+      if (storeError && storeError.code !== 'PGRST116') {
+        console.error('Error fetching standard store:', storeError);
+      }
+
+      // Attempt 2: If standard fetch fails, check if it's an admin's store
+      // This allows admins to view their own stores even if not 'verified'
+      const { data: adminStoreData, error: adminStoreError } = await supabase
+        .from('stores')
+        .select('*, profiles!inner(role)')
+        .eq('id', storeId)
+        .eq('is_active', true)
+        .eq('profiles.role', 'admin')
         .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.warn('Could not fetch profile for store owner:', profileError);
-      }
       
-      // Combine the store data with the profile data (which might be null)
-      return {
-        ...storeData,
-        profiles: profileData
-      } as Store;
+      if (adminStoreData) {
+        return adminStoreData as Store;
+      }
+
+      // Log any unexpected errors from the admin check
+      if (adminStoreError && adminStoreError.code !== 'PGRST116') {
+        console.error('Error fetching admin store:', adminStoreError);
+      }
+
+      // If both attempts fail, the store is not accessible
+      console.log(`Store with ID ${storeId} not found or not accessible.`);
+      return null;
     },
-    enabled: !!storeId
+    enabled: !!storeId,
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
