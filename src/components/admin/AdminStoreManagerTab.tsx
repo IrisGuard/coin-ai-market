@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, Plus, ArrowRight, ExternalLink, Globe, Trash2 } from 'lucide-react';
+import { Store, Plus, ArrowRight, Globe, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -127,11 +127,6 @@ const AdminStoreManagerTab = () => {
     navigate('/dealer');
   };
 
-  const handleViewStore = (storeId: string) => {
-    // Navigate to the public store page
-    navigate(`/store/${storeId}`);
-  };
-
   const handleDeleteStore = (storeId: string) => {
     setStoreToDelete(storeId);
   };
@@ -241,15 +236,6 @@ const AdminStoreManagerTab = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewStore(store.id)}
-                        className="flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        View Store
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
