@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,11 +53,11 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onFavorite, isFavorited }) =>
     >
       <CardContent className="p-0">
         {/* Image Section */}
-        <div className="relative overflow-hidden rounded-t-lg">
+        <div className="relative overflow-hidden rounded-t-lg aspect-square">
           <img 
             src={coin.image || '/placeholder-coin.png'}
             alt={coin.name}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           
           {/* Overlay Badges */}
