@@ -182,7 +182,7 @@ const FullSystemAdminPanel = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* SCROLLABLE TABS LIST - 95+ TABS IN ORDER */}
+          {/* ALL 104 TABS IN ONE SCROLLABLE ROW */}
           <div className="mb-6 overflow-x-auto">
             <TabsList className="flex w-max space-x-1 p-1">
               {/* 1. OPEN STORE - FIRST */}
@@ -195,42 +195,42 @@ const FullSystemAdminPanel = () => {
                 🧠 AI Brain
               </TabsTrigger>
               
-              {/* 3. CLEANUP */}
+              {/* 3. CLEANUP - THIRD */}
               <TabsTrigger value="cleanup" className="whitespace-nowrap">
                 🚀 Cleanup
               </TabsTrigger>
               
-              {/* 4. OVERVIEW */}
+              {/* 4. OVERVIEW - FOURTH */}
               <TabsTrigger value="overview" className="whitespace-nowrap">
                 📊 Overview
               </TabsTrigger>
               
-              {/* 5. USERS */}
+              {/* 5. USERS - FIFTH */}
               <TabsTrigger value="users" className="whitespace-nowrap">
                 👥 Users
               </TabsTrigger>
               
-              {/* 6. COINS */}
+              {/* 6. COINS - SIXTH */}
               <TabsTrigger value="coins" className="whitespace-nowrap">
                 🪙 Coins
               </TabsTrigger>
               
-              {/* 7. SECURITY */}
+              {/* 7. SECURITY - SEVENTH */}
               <TabsTrigger value="security" className="whitespace-nowrap">
                 🔒 Security
               </TabsTrigger>
               
-              {/* 8. ANALYTICS */}
+              {/* 8. ANALYTICS - EIGHTH */}
               <TabsTrigger value="analytics" className="whitespace-nowrap">
                 📈 Analytics
               </TabsTrigger>
               
-              {/* 9. SYSTEM PHASES */}
+              {/* 9. SYSTEM PHASES - NINTH */}
               <TabsTrigger value="system-phases" className="whitespace-nowrap">
                 ⚙️ System Phases
               </TabsTrigger>
 
-              {/* ALL 95 DATABASE TABLES - IN ORDER */}
+              {/* 10-104: ALL 95 DATABASE TABLES - CONTINUING THE SEQUENCE */}
               {databaseTables.map((table, index) => (
                 <TabsTrigger 
                   key={table.name}
@@ -243,7 +243,7 @@ const FullSystemAdminPanel = () => {
             </TabsList>
           </div>
 
-          {/* TAB CONTENTS */}
+          {/* TAB CONTENTS - ALL 104 TABS */}
           <TabsContent value="open-store" className="space-y-6">
             <AdminStoreManagerTab />
           </TabsContent>
