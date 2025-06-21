@@ -7,14 +7,13 @@ export const useDealerStores = () => {
     queryFn: async () => {
       console.log('Fetching all visible stores...');
       
-      // Get all stores that should be visible in marketplace
+      // Get ALL stores with their profile information
       const { data: stores, error: storesError } = await supabase
         .from('stores')
         .select(`
           id, name, description, address, logo_url, user_id, created_at, is_active, verified,
-          profiles ( id, username, full_name, bio, avatar_url, rating, location, role )
+          profiles!user_id ( id, username, full_name, bio, avatar_url, rating, location, role )
         `)
-        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (storesError) {
@@ -23,12 +22,28 @@ export const useDealerStores = () => {
       }
 
       if (!stores || stores.length === 0) {
-        console.log('No visible stores found');
+        console.log('No stores found in database');
         return [];
       }
 
+      // Filter stores that should be visible:
+      // 1. Admin stores (always visible if is_active = true)
+      // 2. Regular dealer stores (need is_active = true AND verified = true)
+      const visibleStores = stores.filter(store => {
+        const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
+        const isAdmin = profile?.role === 'admin';
+        
+        if (isAdmin) {
+          // Admin stores only need to be active
+          return store.is_active === true;
+        } else {
+          // Regular dealer stores need both active and verified
+          return store.is_active === true && store.verified === true;
+        }
+      });
+
       // Process the results
-      const storesWithProfiles = stores.map(store => {
+      const storesWithProfiles = visibleStores.map(store => {
         const profile = Array.isArray(store.profiles) ? store.profiles[0] : store.profiles;
         const isAdminStore = profile?.role === 'admin';
         
