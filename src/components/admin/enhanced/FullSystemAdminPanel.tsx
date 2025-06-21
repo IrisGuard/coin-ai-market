@@ -119,7 +119,7 @@ const FullSystemAdminPanel = () => {
               <TabsTrigger value="cleanup" className="text-xs px-3 py-2 bg-red-100 hover:bg-red-200">🚀 Production Cleanup</TabsTrigger>
             </div>
 
-            {/* ROW 2 - AI & AUTOMATION TABLES */}
+            {/* ROW 2 - AI & AUTOMATION SYSTEMS */}
             <div className="flex flex-wrap gap-1 mb-2 p-2 bg-purple-50 rounded-lg">
               <div className="text-xs font-semibold text-purple-700 w-full mb-1">🤖 AI & AUTOMATION SYSTEMS</div>
               <TabsTrigger value="ai-commands" className="text-xs px-2 py-1">🤖 AI Commands</TabsTrigger>
