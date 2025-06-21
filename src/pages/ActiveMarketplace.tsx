@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
+import { useAuth } from '@/contexts/AuthContext';
 import Navbar from "@/components/Navbar";
 import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
 import BackButton from '@/components/navigation/BackButton';
@@ -11,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
+import DealerAuthModal from '@/components/auth/DealerAuthModal';
+import DealerUpgradeModal from '@/components/auth/DealerUpgradeModal';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,6 +21,10 @@ const ActiveMarketplace = () => {
   usePageView();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, session } = useAuth();
+  
+  const [showDealerAuth, setShowDealerAuth] = useState(false);
+  const [showDealerUpgrade, setShowDealerUpgrade] = useState(false);
   
   const { data: dealers, isLoading: dealersLoading, refetch: refetchDealers } = useDealerStores();
 
@@ -29,8 +36,22 @@ const ActiveMarketplace = () => {
 
   // Handle Open Store button click
   const handleOpenStore = () => {
-    console.log('🏪 Open Store clicked - navigating to dealer registration');
-    navigate('/dealer-registration');
+    console.log('🏪 Open Store clicked', { user: !!user, session: !!session });
+    
+    if (!user || !session) {
+      // User not authenticated - show dealer auth modal
+      console.log('User not authenticated - showing dealer auth modal');
+      setShowDealerAuth(true);
+    } else {
+      // User authenticated - check if they have dealer role or need to upgrade
+      if (user.user_metadata?.role === 'dealer') {
+        console.log('User is already a dealer - redirect to dealer panel');
+        navigate('/dealer-direct');
+      } else {
+        console.log('User needs to upgrade to dealer - show upgrade modal');
+        setShowDealerUpgrade(true);
+      }
+    }
   };
 
   // Get coin counts for stores
@@ -154,6 +175,18 @@ const ActiveMarketplace = () => {
           )}
         </div>
       </div>
+      
+      {/* Dealer Auth Modal */}
+      <DealerAuthModal 
+        isOpen={showDealerAuth} 
+        onClose={() => setShowDealerAuth(false)} 
+      />
+      
+      {/* Dealer Upgrade Modal */}
+      <DealerUpgradeModal 
+        isOpen={showDealerUpgrade} 
+        onClose={() => setShowDealerUpgrade(false)} 
+      />
     </div>
   );
 };
