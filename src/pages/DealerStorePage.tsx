@@ -50,34 +50,22 @@ const DealerStorePage = () => {
     queryFn: async (): Promise<Store | null> => {
       if (!storeId) return null;
 
-      // Step 1: Fetch store and owner's role, regardless of any status.
-      const { data: storeData, error } = await supabase
+      // Final logic: Fetch a store if it has this ID AND (it is active OR its owner is an admin).
+      const { data, error } = await supabase
         .from('stores')
         .select('*, profiles(role)')
         .eq('id', storeId)
+        .or('is_active.eq.true,profiles.role.eq.admin')
         .single();
 
-      // If store doesn't exist at all, stop.
-      if (error || !storeData) {
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching store by ID:', error);
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.error(`Error fetching store ${storeId}:`, error);
         }
         return null;
       }
       
-      // Step 2: Authorize access.
-      // An admin can see their store always.
-      // A non-admin can only see their store if it is active.
-      const isAdmin = storeData.profiles?.role === 'admin';
-      const isActive = storeData.is_active === true;
-
-      if (isAdmin || isActive) {
-        return storeData as Store;
-      }
-
-      // If not authorized, deny access.
-      console.log(`Access denied for store ${storeId}: Not active and owner is not admin.`);
-      return null;
+      return data as Store;
     },
     enabled: !!storeId,
   });
@@ -285,7 +273,7 @@ const DealerStorePage = () => {
                           <ImageGallery 
                             images={allImages}
                             coinName={coin.name}
-                            className="w-full h-auto"
+                            className="aspect-square"
                           />
                           
                           {/* Overlay Badges */}
