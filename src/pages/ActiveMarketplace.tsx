@@ -8,63 +8,14 @@ import BackButton from '@/components/navigation/BackButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Store, Shield, Star, ArrowRight, MapPin, Loader2 } from 'lucide-react';
+import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
-import DealerAuthModal from '@/components/auth/DealerAuthModal';
-import DealerUpgradeModal from '@/components/auth/DealerUpgradeModal';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useSmartUserRole } from '@/hooks/useSmartUserRole';
 
 const ActiveMarketplace = () => {
   usePageView();
   const queryClient = useQueryClient();
-  
-  // Open Store button logic
-  const [showDealerModal, setShowDealerModal] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const { data: userRole, isLoading: roleLoading } = useSmartUserRole();
-  const navigate = useNavigate();
-
-  const handleOpenStore = () => {
-    console.log('🏪 Open Store clicked:', {
-      isAuthenticated,
-      authLoading,
-      userRole,
-      roleLoading
-    });
-
-    if (authLoading) {
-      console.log('⏳ Authentication still loading, please wait...');
-      return;
-    }
-
-    if (isAuthenticated) {
-      if (roleLoading) {
-        console.log('⏳ Role still loading, please wait...');
-        return;
-      }
-      
-      if (userRole === 'dealer' || userRole === 'admin') {
-        console.log('✅ Authenticated dealer or admin, redirecting to /upload');
-        navigate('/upload');
-        return;
-      } else {
-        console.log('🔄 Authenticated non-dealer, showing upgrade modal');
-        setShowUpgradeModal(true);
-        return;
-      }
-    }
-    
-    console.log('🔐 Not authenticated, showing dealer auth modal');
-    setShowDealerModal(true);
-  };
-
-  const isLoading = authLoading || (isAuthenticated && roleLoading);
   
   const { data: dealers, isLoading: dealersLoading, refetch: refetchDealers } = useDealerStores();
 
@@ -95,7 +46,6 @@ const ActiveMarketplace = () => {
   });
 
   return (
-    <>
     <div className="min-h-screen bg-white">
       <Navbar />
       
@@ -106,32 +56,10 @@ const ActiveMarketplace = () => {
         <BackButton to="/" label="Back to Home" />
       </div>
       
-      {/* Simple Marketplace Header with Open Store Button */}
+      {/* Simple Marketplace Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center relative">
-            {/* Open Store Button - Top Right */}
-            <div className="absolute top-0 right-0">
-              <Button
-                onClick={handleOpenStore}
-                size="sm"
-                className="bg-electric-green hover:bg-electric-emerald text-white font-semibold px-4 py-2 rounded-full shadow-lg"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Store className="w-4 h-4 mr-2" />
-                    Open Store
-                  </>
-                )}
-              </Button>
-            </div>
-            
+          <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
               Discover the Best Coin Stores
             </h1>
@@ -209,18 +137,6 @@ const ActiveMarketplace = () => {
         </div>
       </div>
     </div>
-
-    {/* Modals */}
-    <DealerAuthModal 
-      isOpen={showDealerModal} 
-      onClose={() => setShowDealerModal(false)} 
-    />
-    
-    <DealerUpgradeModal 
-      isOpen={showUpgradeModal} 
-      onClose={() => setShowUpgradeModal(false)} 
-    />
-    </>
   );
 };
 
