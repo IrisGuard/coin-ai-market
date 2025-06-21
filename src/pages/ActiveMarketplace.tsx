@@ -77,10 +77,10 @@ const ActiveMarketplace = () => {
           <div className="flex items-center gap-3 mb-6">
             <Store className="w-6 h-6 text-electric-orange" />
             <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-              Active Stores
+              All Stores
             </h2>
             <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-              {dealers?.length || 0} Active Stores
+              {dealers?.length || 0} Stores Online
             </Badge>
           </div>
           
@@ -104,9 +104,9 @@ const ActiveMarketplace = () => {
           ) : dealers?.length === 0 ? (
             <div className="text-center py-16">
               <Store className="w-16 h-16 mx-auto mb-6 text-gray-300" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Active Stores Yet</h3>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Stores Yet</h3>
               <p className="text-gray-500">
-                Active stores will appear here once they are created.
+                Stores from admins and dealers will appear here.
               </p>
             </div>
           ) : (

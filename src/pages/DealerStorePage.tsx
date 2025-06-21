@@ -50,22 +50,34 @@ const DealerStorePage = () => {
     queryFn: async (): Promise<Store | null> => {
       if (!storeId) return null;
 
-      // Simplified logic: Fetch active store and its owner's role.
+      // Step 1: Fetch store and owner's role, regardless of any status.
       const { data: storeData, error } = await supabase
         .from('stores')
         .select('*, profiles(role)')
         .eq('id', storeId)
-        .eq('is_active', true)
         .single();
 
-      if (error) {
-        if (error.code !== 'PGRST116') {
-          console.error('Error fetching store:', error);
+      // If store doesn't exist at all, stop.
+      if (error || !storeData) {
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching store by ID:', error);
         }
         return null;
       }
       
-      return storeData as Store;
+      // Step 2: Authorize access.
+      // An admin can see their store always.
+      // A non-admin can only see their store if it is active.
+      const isAdmin = storeData.profiles?.role === 'admin';
+      const isActive = storeData.is_active === true;
+
+      if (isAdmin || isActive) {
+        return storeData as Store;
+      }
+
+      // If not authorized, deny access.
+      console.log(`Access denied for store ${storeId}: Not active and owner is not admin.`);
+      return null;
     },
     enabled: !!storeId,
   });
