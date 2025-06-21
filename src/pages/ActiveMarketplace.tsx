@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { useDealerStores } from '@/hooks/useDealerStores';
 import Navbar from "@/components/Navbar";
@@ -7,6 +7,7 @@ import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
 import BackButton from '@/components/navigation/BackButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
@@ -15,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const ActiveMarketplace = () => {
   usePageView();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   
   const { data: dealers, isLoading: dealersLoading, refetch: refetchDealers } = useDealerStores();
@@ -24,6 +26,12 @@ const ActiveMarketplace = () => {
     queryClient.invalidateQueries({ queryKey: ['dealer-stores'] });
     queryClient.invalidateQueries({ queryKey: ['store-coin-counts'] });
   }, [queryClient]);
+
+  // Handle Open Store button click
+  const handleOpenStore = () => {
+    console.log('🏪 Open Store clicked - navigating to dealer registration');
+    navigate('/dealer-registration');
+  };
 
   // Get coin counts for stores
   const { data: storeCounts = {} } = useQuery({
@@ -56,16 +64,26 @@ const ActiveMarketplace = () => {
         <BackButton to="/" label="Back to Home" />
       </div>
       
-      {/* Simple Marketplace Header */}
+      {/* Simple Marketplace Header with Green Open Store Button */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
               Discover the Best Coin Stores
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 mb-6">
               Explore authentic coins from verified dealers worldwide
             </p>
+            
+            {/* Green Open Store Button */}
+            <Button
+              onClick={handleOpenStore}
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg"
+            >
+              <Store className="w-5 h-5 mr-2" />
+              Open Store
+            </Button>
           </div>
         </div>
       </div>
