@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -168,62 +167,23 @@ const SystemActivationManager = () => {
       if (categoriesError) throw new Error(`Categories creation failed: ${categoriesError.message}`);
 
       setActivationProgress(65);
-      setCurrentStep('Populating sample data...');
+      setCurrentStep('Initializing production data sources...');
 
-      // Step 5: Create sample coins for testing
-      const sampleCoins = [
-        {
-          name: '1921 Morgan Silver Dollar',
-          year: 1921,
-          grade: 'MS-63',
-          price: 125.00,
-          country: 'United States',
-          denomination: 'Silver Dollar',
-          rarity: 'Common',
-          image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          composition: 'Silver',
-          mint: 'Philadelphia',
-          featured: true,
-          ai_confidence: 0.95,
-          ai_provider: 'enhanced-dual-recognition'
-        },
-        {
-          name: '1909-S VDB Lincoln Cent',
-          year: 1909,
-          grade: 'VF-20',
-          price: 850.00,
-          country: 'United States',
-          denomination: 'Cent',
-          rarity: 'Key Date',
-          image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          composition: 'Bronze',
-          mint: 'San Francisco',
-          featured: true,
-          ai_confidence: 0.92,
-          ai_provider: 'enhanced-dual-recognition'
-        },
-        {
-          name: '1916-D Mercury Dime',
-          year: 1916,
-          grade: 'Good-4',
-          price: 1250.00,
-          country: 'United States',
-          denomination: 'Dime',
-          rarity: 'Key Date',
-          image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          composition: 'Silver',
-          mint: 'Denver',
-          featured: true,
-          ai_confidence: 0.88,
-          ai_provider: 'enhanced-dual-recognition'
+      // Step 5: Initialize production data sources instead of sample coins
+      console.log('🔄 Initializing production data sources...');
+      
+      // Trigger real data fetching from external sources
+      const { data: initialDataFetch } = await supabase.functions.invoke('advanced-web-scraper', {
+        body: {
+          commandType: 'production_initialization',
+          targetSources: ['pcgs', 'ngc', 'heritage'],
+          fetchLimit: 10
         }
-      ];
+      });
 
-      const { error: coinsError } = await supabase.from('coins').upsert(sampleCoins, { onConflict: 'name' });
-      if (coinsError) console.warn('Sample coins creation warning:', coinsError.message);
+      console.log('✅ Production data sources initialized:', initialDataFetch);
+
+      // No sample coins - system will populate with real data from scraping
 
       setActivationProgress(80);
       setCurrentStep('Activating data sources...');

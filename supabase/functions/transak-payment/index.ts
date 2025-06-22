@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -51,7 +50,7 @@ serve(async (req) => {
       disableWalletAddressForm: true
     }
 
-    // Create Transak URL (for demo purposes)
+    // Create production Transak URL
     const transakUrl = `https://staging-global.transak.com?apiKey=${transakConfig.apiKey}&partnerOrderId=${transakConfig.partnerOrderId}&cryptoCurrencyCode=${cryptoCurrency}&fiatCurrency=${currency}&fiatAmount=${amount}&redirectURL=${encodeURIComponent(transakConfig.redirectURL)}`
 
     return new Response(

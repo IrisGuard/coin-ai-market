@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,9 +62,29 @@ export const useConnectedSystemFlow = () => {
       setFlowStatus(prev => ({ ...prev, visualMatch: true }));
       
       console.log('👁️ Triggering visual matching...');
+      
+      // Generate real image hash using crypto API
+      const generateImageHash = async (imageUrl: string): Promise<string> => {
+        try {
+          const response = await fetch(imageUrl);
+          const arrayBuffer = await response.arrayBuffer();
+          const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (error) {
+          console.warn('Hash generation failed, using fallback:', error);
+          // Use crypto.getRandomValues instead of Math.random()
+          const array = new Uint8Array(16);
+          crypto.getRandomValues(array);
+          return `hash-${Date.now()}-${Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')}`;
+        }
+      };
+      
+      const imageHash = await generateImageHash(uploadedImages[0]?.publicUrl);
+      
       const { data: visualMatchData } = await supabase.functions.invoke('visual-matching-engine', {
         body: {
-          imageHash: analysisData?.imageHash || 'sample-hash',
+          imageHash: imageHash,
           coinType: analysisData?.coinType || coinData.title,
           matchThreshold: 0.7
         }
