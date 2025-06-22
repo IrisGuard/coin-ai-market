@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Store, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Store, ArrowRight, Heart, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import ImageGallery from '@/components/ui/ImageGallery';
+import CoinCard from './CoinCard';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from '@/components/ui/pagination';
 
 interface Coin {
   id: string;
@@ -30,9 +30,21 @@ interface Coin {
   obverse_image?: string;
   reverse_image?: string;
   user_id: string;
+  store_id: string;
   rarity?: string;
   featured?: boolean;
   views?: number;
+  is_auction: boolean;
+  auction_end: string;
+  starting_bid: number;
+  ai_confidence: number;
+  authentication_status: string;
+  category: string;
+  description: string;
+  listing_type: string;
+  error_type: string;
+  denomination: string;
+  condition: string;
 }
 
 interface Store {
@@ -44,6 +56,7 @@ interface Store {
 const FeaturedCoinsGrid = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const coinsPerPage = 100;
+  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['featuredCoins', currentPage],
@@ -85,9 +98,21 @@ const FeaturedCoinsGrid = () => {
         obverse_image: coin.obverse_image,
         reverse_image: coin.reverse_image,
         user_id: coin.user_id,
+        store_id: coin.store_id,
         rarity: coin.rarity,
         featured: coin.featured,
-        views: coin.views || 0
+        views: coin.views || 0,
+        is_auction: coin.is_auction || false,
+        auction_end: coin.auction_end,
+        starting_bid: coin.starting_bid,
+        ai_confidence: coin.ai_confidence,
+        authentication_status: coin.authentication_status || 'pending',
+        category: coin.category,
+        description: coin.description,
+        listing_type: coin.listing_type,
+        error_type: coin.error_type,
+        denomination: coin.denomination,
+        condition: coin.condition
       }));
 
       return { coins: coinData, count: count ?? 0 };
@@ -113,35 +138,10 @@ const FeaturedCoinsGrid = () => {
     }
   });
 
-  // Helper function to get all available images for a coin
-  const getAllImages = (coin: Coin): string[] => {
-    const allImages: string[] = [];
-    
-    if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      allImages.push(...coin.images.filter(img => img && !img.startsWith('blob:')));
-    } else {
-      if (coin.image && !coin.image.startsWith('blob:')) allImages.push(coin.image);
-      if (coin.obverse_image && !coin.obverse_image.startsWith('blob:')) allImages.push(coin.obverse_image);
-      if (coin.reverse_image && !coin.reverse_image.startsWith('blob:')) allImages.push(coin.reverse_image);
-    }
-    
-    return allImages;
-  };
-
-  // Helper function to get store for a coin
-  const getStoreForCoin = (coin: Coin) => {
-    return stores?.find(store => store.user_id === coin.user_id);
-  };
-
-  const getRarityColor = (rarity?: string) => {
-    switch (rarity) {
-      case 'Key Date': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Ultra Rare': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Rare': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'Scarce': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Common': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const handleCoinClick = (coin: Coin) => {
+    setSelectedCoin(coin);
+    // Navigate to coin detail page
+    window.location.href = `/coin/${coin.id}`;
   };
 
   if (isLoading) {
@@ -173,103 +173,17 @@ const FeaturedCoinsGrid = () => {
 
   return (
     <div className="space-y-8">
-      {/* Modern Grid Layout */}
+      {/* Enhanced Grid Layout with CoinCard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {featuredCoins.map((coin, index) => {
-          const allImages = getAllImages(coin);
-          const store = getStoreForCoin(coin);
-          
-          return (
-            <motion.div
-              key={coin.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="group"
-            >
-              <Card className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] border-0 rounded-xl">
-                {/* Clean Image Gallery - NO OVERLAYS */}
-                <div className="relative">
-                  <ImageGallery 
-                    images={allImages}
-                    coinName={coin.name}
-                    className="aspect-square"
-                  />
-                </div>
-
-                {/* Enhanced Card Content */}
-                <CardContent className="p-6 space-y-4">
-                  {/* Coin Title & Year */}
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-lg text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {coin.name}
-                    </h3>
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <span className="font-medium">{coin.year}</span>
-                      <span>•</span>
-                      <span>{coin.grade}</span>
-                      <span>•</span>
-                      <span>{coin.country}</span>
-                    </div>
-                  </div>
-
-                  {/* Rarity Badge - Below image, not on it */}
-                  {coin.rarity && (
-                    <Badge variant="outline" className={`text-xs ${getRarityColor(coin.rarity)}`}>
-                      {coin.rarity}
-                    </Badge>
-                  )}
-
-                  {/* Price Display */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Price</div>
-                      <div className="text-2xl font-bold text-blue-600">
-                        ${coin.price.toLocaleString()}
-                      </div>
-                    </div>
-                    <Button variant="outline" size="icon" className="hover:bg-red-50 hover:border-red-200">
-                      <Heart className="h-4 w-4 hover:fill-red-500 hover:text-red-500 transition-colors" />
-                    </Button>
-                  </div>
-
-                  {/* Store Information & Navigation */}
-                  {store && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Store className="h-4 w-4" />
-                          <span>Sold by {store.name}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-2">
-                    <Link 
-                      to={`/coin/${coin.id}`}
-                      className="flex-1"
-                    >
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200">
-                        View Details
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </Link>
-                    
-                    {store && (
-                      <Link to={`/dealer-direct?dealer=${store.user_id}`}>
-                        <Button variant="outline" className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700">
-                          <Store className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
+        {featuredCoins.map((coin, index) => (
+          <CoinCard
+            key={coin.id}
+            coin={coin}
+            index={index}
+            onCoinClick={handleCoinClick}
+            showManagementOptions={true}
+          />
+        ))}
       </div>
 
       {/* Pagination Controls */}
@@ -287,7 +201,6 @@ const FeaturedCoinsGrid = () => {
               />
             </PaginationItem>
 
-            {/* Simplified pagination logic for display */}
             <PaginationItem>
               <PaginationLink href="#">{`Page ${currentPage} of ${totalPages}`}</PaginationLink>
             </PaginationItem>

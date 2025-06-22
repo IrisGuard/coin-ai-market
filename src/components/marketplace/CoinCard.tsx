@@ -1,11 +1,31 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Eye, Clock, DollarSign, Star, Zap } from 'lucide-react';
+import { Heart, Eye, Clock, DollarSign, Star, Zap, Edit, Trash2, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
+import { useAuth } from '@/hooks/useAuth';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Coin {
   id: string;
@@ -32,15 +52,46 @@ interface Coin {
   error_type?: string;
   denomination?: string;
   condition?: string;
+  user_id?: string;
+  store_id?: string;
 }
 
 interface CoinCardProps {
   coin: Coin;
   index: number;
   onCoinClick: (coin: Coin) => void;
+  showManagementOptions?: boolean;
 }
 
-const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
+const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: CoinCardProps) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Check if current user owns this coin
+  const isOwner = user?.id === coin.user_id;
+
+  // Delete coin mutation
+  const deleteCoinMutation = useMutation({
+    mutationFn: async (coinId: string) => {
+      const { error } = await supabase
+        .from('coins')
+        .delete()
+        .eq('id', coinId)
+        .eq('user_id', user?.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['featuredCoins'] });
+      queryClient.invalidateQueries({ queryKey: ['store-coins'] });
+      queryClient.invalidateQueries({ queryKey: ['dealer-coins'] });
+      toast.success('Coin deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete coin: ${error.message}`);
+    }
+  });
+
   // Enhanced function to get all available images
   const getAllImages = (coin: Coin): string[] => {
     const allImages: string[] = [];
@@ -91,6 +142,16 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
     return `${hours}h`;
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(`/coin/${coin.id}`, '_blank');
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteCoinMutation.mutate(coin.id);
+  };
+
   const allImages = getAllImages(coin);
 
   return (
@@ -100,7 +161,7 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
       transition={{ delay: index * 0.1 }}
     >
       <Card 
-        className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+        className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer relative"
         onClick={() => onCoinClick(coin)}
       >
         {/* Multi-Image Gallery */}
@@ -140,6 +201,60 @@ const CoinCard = ({ coin, index, onCoinClick }: CoinCardProps) => {
               {coin.views}
             </Badge>
           </div>
+
+          {/* Management Options for Owner */}
+          {(showManagementOptions || isOwner) && (
+            <div className="absolute bottom-2 right-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="bg-white/90 hover:bg-white text-gray-700"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleEdit}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Coin
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <div className="flex items-center w-full">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Coin
+                        </div>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Coin</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{coin.name}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
 
         <CardContent className="p-4">

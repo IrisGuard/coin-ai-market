@@ -70,9 +70,9 @@ const DealerStorePage = () => {
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ['store-coins', store?.user_id],
+    queryKey: ['store-coins', store?.id],
     queryFn: async () => {
-      if (!store?.user_id) return [];
+      if (!store?.id) return [];
       
       const { data, error } = await supabase
         .from('coins')
@@ -89,9 +89,11 @@ const DealerStorePage = () => {
           reverse_image,
           rarity,
           views,
-          featured
+          featured,
+          store_id,
+          user_id
         `)
-        .eq('user_id', store.user_id)
+        .eq('store_id', store.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -102,7 +104,7 @@ const DealerStorePage = () => {
 
       return data || [];
     },
-    enabled: !!store?.user_id
+    enabled: !!store?.id
   });
 
   // Helper function to get all available images for a coin
