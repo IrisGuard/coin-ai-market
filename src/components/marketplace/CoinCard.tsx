@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, Eye, Clock, DollarSign, Star, Zap, Edit, Trash2, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
