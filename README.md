@@ -2,7 +2,7 @@
 
 A modern marketplace for coin collectors and dealers.
 
-<!-- Last updated: 2024-12-21 - Re-triggering Vercel deployment -->
+<!-- Database cleaned - coins removed - ready for real data: 2025-01-22 22:50 -->
 
 ## Features
 
