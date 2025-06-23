@@ -42,7 +42,6 @@ interface Coin {
   category: string;
   description: string;
   listing_type: string;
-  error_type: string;
   denomination: string;
   condition: string;
 }
@@ -64,11 +63,30 @@ const FeaturedCoinsGrid = () => {
       const from = (currentPage - 1) * coinsPerPage;
       const to = from + coinsPerPage - 1;
 
+      // 🔍 DEBUG: Ελέγχω το συγκεκριμένο νόμισμα της Ελλάδας
+      const { data: debugCoins, error: debugError } = await supabase
+        .from('coins')
+        .select('*')
+        .or('name.ilike.%GREECE%,name.ilike.%10-978%,name.ilike.%GREECECOIN%');
+        
+      console.log('🏛️ GREECE COIN DEBUG:', {
+        found: debugCoins?.length || 0,
+        coins: debugCoins?.map(coin => ({
+          id: coin.id,
+          name: coin.name,
+          featured: coin.featured,
+          authentication_status: coin.authentication_status,
+          store_id: coin.store_id,
+          category: coin.category
+        }))
+      });
+
       // Fetch coins for the current page
       const { data: coins, error: coinsError } = await supabase
         .from('coins')
         .select('*')
         .eq('featured', true)
+        .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -80,7 +98,8 @@ const FeaturedCoinsGrid = () => {
       const { count, error: countError } = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true })
-        .eq('featured', true);
+        .eq('featured', true)
+        .eq('authentication_status', 'verified');
 
       if (countError) {
         throw countError;
@@ -110,7 +129,6 @@ const FeaturedCoinsGrid = () => {
         category: coin.category,
         description: coin.description,
         listing_type: coin.listing_type,
-        error_type: coin.error_type,
         denomination: coin.denomination,
         condition: coin.condition
       }));
