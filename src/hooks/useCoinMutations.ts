@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -21,16 +20,42 @@ export const useCreateCoin = () => {
       diameter?: number;
       weight?: number;
       mint?: string;
+      store_id?: string;
+      category?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+
+      // Enhanced category mapping for error detection
+      const coinName = coinData.name.toLowerCase();
+      const errorPatterns = ['error', 'double', 'die', 'doubled'];
+      const isErrorCoin = errorPatterns.some(pattern => coinName.includes(pattern)) || 
+                         coinData.category === 'error_coin';
+
+      // If no store_id provided, find user's default store
+      let finalStoreId = coinData.store_id;
+      if (!finalStoreId) {
+        const { data: userStores } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1);
+          
+        if (userStores && userStores.length > 0) {
+          finalStoreId = userStores[0].id;
+        }
+      }
 
       const { data, error } = await supabase
         .from('coins')
         .insert([{ 
           ...coinData, 
           user_id: user.id,
-          authentication_status: 'pending'
+          store_id: finalStoreId,
+          authentication_status: 'verified',
+          featured: isErrorCoin || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
+          category: isErrorCoin ? 'error_coin' as const : (coinData.category as any || 'modern' as const)
         }])
         .select()
         .single();
