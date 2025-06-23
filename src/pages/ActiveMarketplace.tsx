@@ -58,15 +58,23 @@ const ActiveMarketplace = () => {
   const { data: storeCounts = {} } = useQuery({
     queryKey: ['store-coin-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: coins, error } = await supabase
         .from('coins')
-        .select('user_id')
-        .eq('authentication_status', 'verified');
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            role,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
       
       if (error) throw error;
       
       const counts: Record<string, number> = {};
-      data?.forEach(coin => {
+      coins?.forEach(coin => {
         counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
       });
       

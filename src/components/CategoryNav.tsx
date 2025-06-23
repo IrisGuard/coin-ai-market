@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,16 +20,24 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   const { data: realCategoryCounts = { all: 0, featured: 0, auctions: 0, new: 0 } } = useQuery({
     queryKey: ['category-counts'],
     queryFn: async () => {
-      const { data: allCoins } = await supabase
+      const { data: categoryData, error } = await supabase
         .from('coins')
-        .select('featured, is_auction, created_at')
-        .eq('authentication_status', 'verified');
+        .select('category');
 
-      const { data: featuredCoins } = await supabase
+      if (error) throw error;
+
+      const { data: storeData, error: storeError } = await supabase
+        .from('stores')
+        .select('category');
+
+      if (storeError) throw storeError;
+
+      const { data: featuredData, error: featuredError } = await supabase
         .from('coins')
-        .select('id')
-        .eq('featured', true)
-        .eq('authentication_status', 'verified');
+        .select('category')
+        .eq('featured', true);
+
+      if (featuredError) throw featuredError;
 
       const { data: auctionCoins } = await supabase
         .from('coins')
@@ -41,12 +48,11 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
       const { data: recentCoins } = await supabase
         .from('coins')
         .select('id')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .eq('authentication_status', 'verified');
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
       return {
-        all: allCoins?.length || 0,
-        featured: featuredCoins?.length || 0,
+        all: categoryData?.length || 0,
+        featured: featuredData?.length || 0,
         auctions: auctionCoins?.length || 0,
         new: recentCoins?.length || 0
       };

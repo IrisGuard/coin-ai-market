@@ -86,7 +86,6 @@ const FeaturedCoinsGrid = () => {
         .from('coins')
         .select('*')
         .eq('featured', true)
-        .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -98,8 +97,7 @@ const FeaturedCoinsGrid = () => {
       const { count, error: countError } = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true })
-        .eq('featured', true)
-        .eq('authentication_status', 'verified');
+        .eq('featured', true);
 
       if (countError) {
         throw countError;

@@ -84,16 +84,6 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onFavorite, isFavorited }) =>
           >
             <Heart className={`w-4 h-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
           </Button>
-
-          {/* Authentication Status */}
-          {coin.authentication_status === 'verified' && (
-            <div className="absolute bottom-3 left-3">
-              <Badge className="bg-green-600 text-white">
-                <Shield className="w-3 h-3 mr-1" />
-                Verified
-              </Badge>
-            </div>
-          )}
         </div>
 
         {/* Content Section */}

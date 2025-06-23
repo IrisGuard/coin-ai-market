@@ -162,3 +162,25 @@ export const useCoin = (id: string) => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+const mapCoinData = (rawCoin: any) => ({
+  id: rawCoin.id,
+  name: rawCoin.name,
+  year: rawCoin.year,
+  grade: rawCoin.grade || 'Ungraded',
+  price: rawCoin.price || 0,
+  rarity: rawCoin.rarity || 'Common',
+  image: rawCoin.image || rawCoin.images?.[0] || '/placeholder-coin.png',
+  country: rawCoin.country || 'Unknown',
+  views: rawCoin.views || 0,
+  user_id: rawCoin.user_id,
+  store_id: rawCoin.store_id,
+  featured: rawCoin.featured || false,
+  is_auction: rawCoin.is_auction || false,
+  category: rawCoin.category || 'unclassified',
+  ai_confidence: rawCoin.ai_confidence || 0,
+  description: rawCoin.description || '',
+  denomination: rawCoin.denomination || '',
+  composition: rawCoin.composition || '',
+  condition: rawCoin.condition || ''
+});

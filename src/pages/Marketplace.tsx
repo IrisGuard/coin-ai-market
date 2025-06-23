@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -12,22 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 const Marketplace = () => {
   const { data: stats } = useQuery({
     queryKey: ['marketplace-stats'],
-    queryFn: async () => {
-      const [coins, auctions, users] = await Promise.all([
-        supabase.from('coins').select('*').eq('authentication_status', 'verified'),
-        supabase.from('coins').select('*').eq('is_auction', true).gt('auction_end', new Date().toISOString()),
-        supabase.from('profiles').select('id')
-      ]);
-
-      const totalValue = coins.data?.reduce((sum, coin) => sum + coin.price, 0) || 0;
-
-      return {
-        totalCoins: coins.data?.length || 0,
-        activeAuctions: auctions.data?.length || 0,
-        totalUsers: users.data?.length || 0,
-        totalValue
-      };
-    },
+    queryFn: () => Promise.all([
+      supabase.from('coins').select('*'),
+      supabase.from('stores').select('*'),
+      supabase.from('dealers').select('*')
+    ]),
     refetchInterval: 30000
   });
 

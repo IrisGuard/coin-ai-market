@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,6 +6,11 @@ export const useMarketplaceStats = () => {
     queryKey: ['marketplace-stats'],
     queryFn: async () => {
       // Get comprehensive marketplace statistics from real database
+      const [coinsResponse, auctionsResponse] = await Promise.all([
+        supabase.from('coins').select('*', { count: 'exact', head: true }),
+        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('is_auction', true)
+      ]);
+
       const [
         { count: totalCoins },
         { count: activeAuctions },
@@ -22,14 +26,10 @@ export const useMarketplaceStats = () => {
         { data: historicalVolume }
       ] = await Promise.all([
         // Total coins
-        supabase.from('coins').select('*', { count: 'exact', head: true }),
+        coinsResponse,
         
         // Active auctions
-        supabase
-          .from('coins')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_auction', true)
-          .gt('auction_end', new Date().toISOString()),
+        auctionsResponse,
         
         // Featured coins
         supabase
@@ -103,8 +103,7 @@ export const useMarketplaceStats = () => {
       // Get category statistics
       const { data: categoryStats } = await supabase
         .from('coins')
-        .select('category')
-        .eq('authentication_status', 'verified');
+        .select('category');
 
       const categoryCounts = categoryStats?.reduce((acc: Record<string, number>, coin) => {
         const category = coin.category || 'unclassified';

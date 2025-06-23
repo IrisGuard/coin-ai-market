@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
 import OptimizedCoinCard from '@/components/OptimizedCoinCard';
@@ -13,7 +12,6 @@ const TrendingCoins = () => {
     if (!coins || coins.length === 0) return [];
     
     return coins
-      .filter(coin => coin.authentication_status === 'verified')
       .sort((a, b) => (b.views || 0) - (a.views || 0))
       .slice(0, 6); // Fewer coins for trending section
   }, [coins]);

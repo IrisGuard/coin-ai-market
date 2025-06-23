@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,11 +32,8 @@ const PersonalizedRecommendations = () => {
       const { data: coins, error } = await supabase
         .from('coins')
         .select('*')
-        .in('category', preferredCategories.length > 0 ? preferredCategories : ['american', 'european'])
-        .eq('authentication_status', 'verified')
-        .neq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(6);
+        .limit(10);
 
       if (error) throw error;
       return coins || [];

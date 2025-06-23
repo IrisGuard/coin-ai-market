@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,8 +36,14 @@ export const useRealTimeCoins = (filters?: {
     queryFn: async (): Promise<RealTimeCoin[]> => {
       let query = supabase
         .from('coins')
-        .select('*')
-        .eq('authentication_status', 'verified')
+        .select(`
+          *,
+          profiles!coins_user_id_fkey (
+            username,
+            avatar_url,
+            role
+          )
+        `)
         .order('created_at', { ascending: false });
 
       // Apply filters with proper type casting

@@ -586,21 +586,6 @@ const SimpleDealerPanel = () => {
                           </div>
                         </div>
                       </div>
-
-                      {/* DATA SOURCES */}
-                      <div className="bg-white p-4 rounded-lg">
-                        <h5 className="font-semibold text-gray-800 mb-2">🌐 Verified Sources</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {images[0].aiAnalysis.sources?.map((source, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {source}
-                            </Badge>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-600 mt-2">
-                          ✅ Verification Status: <span className="font-semibold text-green-600">{images[0].aiAnalysis.verificationStatus}</span>
-                        </p>
-                      </div>
                     </div>
                   )}
                 </div>

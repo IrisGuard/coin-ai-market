@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,13 +5,13 @@ export const useRealCategoryDistribution = () => {
   return useQuery({
     queryKey: ['real-category-distribution'],
     queryFn: async () => {
-      // Get category distribution from actual coins
-      const { data: coinCategories } = await supabase
+      const { data: coins } = await supabase
         .from('coins')
-        .select('category')
-        .eq('authentication_status', 'verified');
+        .select('category, price');
 
-      const categoryCount = coinCategories?.reduce((acc: Record<string, number>, coin) => {
+      if (!coins) return { categories: [], totalValue: 0 };
+
+      const categoryCount = coins.reduce((acc: Record<string, number>, coin) => {
         const category = coin.category || 'unclassified';
         acc[category] = (acc[category] || 0) + 1;
         return acc;

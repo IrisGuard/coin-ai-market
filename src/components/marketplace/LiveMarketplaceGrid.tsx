@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,9 +43,16 @@ const LiveMarketplaceGrid = () => {
       
       const { data, error } = await supabase
         .from('coins')
-        .select('*, images')
-        .eq('authentication_status', 'verified')
-        .order('created_at', { ascending: false });
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url,
+            role
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
       if (error) {
         console.error('❌ Error fetching coins:', error);

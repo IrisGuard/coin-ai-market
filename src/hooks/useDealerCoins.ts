@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -47,18 +46,13 @@ export const useDealerCoins = (dealerId: string) => {
         .from('coins')
         .select(`
           *,
-          profiles!coins_user_id_fkey(
-            id,
-            name,
-            full_name,
+          profiles:user_id (
             username,
-            reputation,
-            verified_dealer,
+            role,
             avatar_url
           )
         `)
         .eq('user_id', dealerId)
-        .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false });
 
       if (error) {

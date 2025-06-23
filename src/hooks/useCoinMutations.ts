@@ -53,7 +53,6 @@ export const useCreateCoin = () => {
           ...coinData, 
           user_id: user.id,
           store_id: finalStoreId,
-          authentication_status: 'verified',
           featured: isErrorCoin || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
           category: isErrorCoin ? 'error_coin' as const : (coinData.category as any || 'modern' as const)
         }])

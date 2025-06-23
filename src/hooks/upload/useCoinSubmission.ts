@@ -130,7 +130,6 @@ export const useCoinSubmission = () => {
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid || '0') : null,
         category: mappedCategory as any,
         store_id: finalStoreId, // Fixed: No longer defaults to null
-        authentication_status: 'verified',
         featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
         sold: false,
         views: 0,
@@ -139,9 +138,15 @@ export const useCoinSubmission = () => {
       };
 
       // Step 5: Submit to database
-      const { data, error } = await supabase
+      const { data: coin, error } = await supabase
         .from('coins')
-        .insert(coinPayload)
+        .insert([{
+          ...coinPayload,
+          user_id: user.id,
+          store_id: finalStoreId,
+          featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
+          category: mappedCategory
+        }])
         .select()
         .single();
 
@@ -165,7 +170,7 @@ export const useCoinSubmission = () => {
         navigate('/marketplace');
       }, 2000);
 
-      return { success: true, coinId: data.id };
+      return { success: true, coinId: coin.id };
 
     } catch (error: any) {
       toast({

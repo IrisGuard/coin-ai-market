@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Coin, mapSupabaseCoinToCoin, SupabaseCoin } from '@/types/coin';
 import { marketplaceCache } from '@/utils/marketplaceCache';
@@ -24,10 +23,9 @@ export const useProcessedCoins = (rawCoins: SupabaseCoin[] | undefined) => {
     const processed = rawCoins
       .filter((coin: SupabaseCoin) => {
         // Additional verification - ensure coin has required fields
-        return coin.authentication_status === 'verified' && 
-               coin.name && 
-               typeof coin.price === 'number' &&
-               coin.year;
+        return coin.store_id &&
+               !coin.sold &&
+               coin.price > 0;
       })
       .map((coin: SupabaseCoin) => mapSupabaseCoinToCoin(coin)) // Map to proper Coin type
       .sort((a, b) => {

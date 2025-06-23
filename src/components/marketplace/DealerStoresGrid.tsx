@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Loader2, Store } from 'lucide-react';
 import DealerStoreCard from './DealerStoreCard';
@@ -16,16 +15,15 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
   const { data: storeCounts = {} } = useQuery({
     queryKey: ['store-coin-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: coins, error } = await supabase
         .from('coins')
-        .select('user_id')
-        .eq('authentication_status', 'verified');
-      
-      if (error) throw error;
+        .select('store_id');
+
+      if (error) return [];
       
       const counts: Record<string, number> = {};
-      data?.forEach(coin => {
-        counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
+      coins?.forEach(coin => {
+        counts[coin.store_id] = (counts[coin.store_id] || 0) + 1;
       });
       
       return counts;
