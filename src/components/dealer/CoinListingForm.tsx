@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,7 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
   const [isDraft, setIsDraft] = useState(false);
 
   const categories = [
-    'USA COINS',
+    'AMERICAN COINS',
     'EUROPEAN COINS',
     'ANCIENT COINS',
     'ERROR COINS',

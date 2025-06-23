@@ -322,6 +322,36 @@ const SimpleDealerPanel = () => {
     );
   };
 
+  // Helper function to map category names to valid enum values
+  const getCategoryEnum = (category: string): string => {
+    const categoryMap: { [key: string]: string } = {
+      'US Coins': 'american',
+      'American Coins': 'american',
+      'World Coins': 'modern',
+      'Ancient Coins': 'ancient',
+      'Modern Coins': 'modern',
+      'Gold Coins': 'gold',
+      'Silver Coins': 'silver',
+      'European Coins': 'european',
+      'Asian Coins': 'asian',
+      'British Coins': 'british',
+      'Greek Coins': 'greek',
+      'Error Coins': 'error_coin',
+      'Double Die': 'error_coin',
+      'Off-Center Strike': 'error_coin',
+      'Clipped Planchet': 'error_coin',
+      'Broadstrike': 'error_coin',
+      'Die Crack': 'error_coin',
+      'Lamination Error': 'error_coin',
+      'Wrong Planchet': 'error_coin',
+      'Rotated Die': 'error_coin',
+      'Cud Error': 'error_coin',
+      'Commemorative Coins': 'commemorative'
+    };
+    
+    return categoryMap[category] || 'unclassified';
+  };
+
   const handlePublish = async () => {
     if (images.length === 0) {
       toast.error('Please upload at least one image');
@@ -357,7 +387,7 @@ const SimpleDealerPanel = () => {
           : null,
         composition: formData.metal,
         tags: selectedCategories,
-        category: selectedCategories[0] || 'unclassified',
+        category: getCategoryEnum(selectedCategories[0]) as "error_coin" | "greek" | "american" | "british" | "asian" | "european" | "ancient" | "modern" | "silver" | "gold" | "commemorative" | "unclassified",
         featured: aiAnalysis?.estimatedValue > 1000, // Auto-feature high-value coins
         ai_confidence: aiAnalysis?.confidence || 0,
         error_type: formData.error || null,
@@ -366,7 +396,7 @@ const SimpleDealerPanel = () => {
 
       const { data, error } = await supabase
         .from('coins')
-        .insert([coinData])
+        .insert(coinData)
         .select()
         .single();
 
@@ -416,7 +446,7 @@ const SimpleDealerPanel = () => {
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="upload" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
             Upload Coins
@@ -424,22 +454,6 @@ const SimpleDealerPanel = () => {
           <TabsTrigger value="wallets" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             My Wallets
-          </TabsTrigger>
-          <TabsTrigger value="ai-brain" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            AI Brain
-          </TabsTrigger>
-          <TabsTrigger value="database" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Database
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Performance
           </TabsTrigger>
         </TabsList>
 
@@ -846,348 +860,6 @@ const SimpleDealerPanel = () => {
 
         <TabsContent value="wallets">
           <WalletManagementTab />
-        </TabsContent>
-
-        {/* AI BRAIN TAB - THOUSANDS OF FUNCTIONS */}
-        <TabsContent value="ai-brain" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-6 w-6 text-purple-600" />
-                🧠 AI BRAIN - THOUSANDS OF FUNCTIONS ACTIVE
-                <Badge className="bg-purple-100 text-purple-800">
-                  {aiStats?.activeCommands || 0} Functions
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {aiLoading ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-5 w-5 text-green-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{aiStats?.activeCommands || 0}</p>
-                          <p className="text-sm text-muted-foreground">Active AI Commands</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-yellow-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{aiStats?.dailyExecutions || 0}</p>
-                          <p className="text-sm text-muted-foreground">Daily Executions</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{aiStats?.successRate || 0}%</p>
-                          <p className="text-sm text-muted-foreground">Success Rate</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-              
-              {/* AI Tables Overview */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-4">AI System Tables</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {aiStats?.tables?.map((table) => (
-                    <Card key={table.name}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{table.name}</p>
-                            <p className="text-sm text-muted-foreground">{table.description}</p>
-                          </div>
-                          <Badge>{table.records} records</Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* DATABASE TAB - ALL 95+ TABLES */}
-        <TabsContent value="database" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-6 w-6 text-blue-600" />
-                📊 DATABASE OVERVIEW - 95+ TABLES
-                <Badge className="bg-blue-100 text-blue-800">
-                  {dbStats?.totalRecords || 0} Total Records
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dbLoading ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5 text-green-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{dbStats?.categories?.find(c => c.name === 'User Management')?.records || 0}</p>
-                          <p className="text-sm text-muted-foreground">User Records</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Package className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{dbStats?.categories?.find(c => c.name === 'Core Business')?.records || 0}</p>
-                          <p className="text-sm text-muted-foreground">Coin Records</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Store className="h-5 w-5 text-purple-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{dbStats?.categories?.find(c => c.name === 'E-commerce')?.records || 0}</p>
-                          <p className="text-sm text-muted-foreground">Store Records</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Brain className="h-5 w-5 text-yellow-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{dbStats?.categories?.find(c => c.name === 'AI & Intelligence')?.records || 0}</p>
-                          <p className="text-sm text-muted-foreground">AI Records</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Database Tables Grid */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-4">Database Categories</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-                  {dbStats?.categories?.map((category) => (
-                    <Card key={category.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-sm">{category.name}</p>
-                            <p className="text-xs text-muted-foreground">{category.description}</p>
-                          </div>
-                          <div className="text-right">
-                            <Badge variant="outline" className="text-xs mb-1">
-                              {category.tables} tables
-                            </Badge>
-                            <p className="text-xs text-muted-foreground">{category.records} records</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ANALYTICS TAB */}
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-green-600" />
-                📈 REAL-TIME ANALYTICS
-                <Badge className="bg-green-100 text-green-800">Live Data</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{analyticsStats?.totalEvents || 0}</p>
-                          <p className="text-sm text-muted-foreground">Total Events</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5 text-green-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{analyticsStats?.activeUsers || 0}</p>
-                          <p className="text-sm text-muted-foreground">Active Users</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-purple-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{analyticsStats?.pageViews || 0}</p>
-                          <p className="text-sm text-muted-foreground">Page Views</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-5 w-5 text-orange-600" />
-                        <div>
-                          <p className="text-2xl font-bold">{analyticsStats?.searchQueries || 0}</p>
-                          <p className="text-sm text-muted-foreground">Search Queries</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* PERFORMANCE TAB - DEALER SPECIFIC */}
-        <TabsContent value="performance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-6 w-6 text-orange-600" />
-                🚀 DEALER PERFORMANCE
-                <Badge className="bg-orange-100 text-orange-800">
-                  {dealerCoins.length} Listed Coins
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="text-2xl font-bold">{dealerCoins.length}</p>
-                        <p className="text-sm text-muted-foreground">Total Listings</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-2xl font-bold">
-                          ${dealerCoins.reduce((sum, coin) => sum + (coin.price || 0), 0).toLocaleString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Total Value</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-purple-600" />
-                      <div>
-                        <p className="text-2xl font-bold">
-                          {dealerCoins.filter(coin => coin.featured).length}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Featured Items</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-yellow-600" />
-                      <div>
-                        <p className="text-2xl font-bold">
-                          {dealerCoins.filter(coin => coin.is_auction).length}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Active Auctions</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Recent Listings */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-4">Recent Listings</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {dealerCoins.slice(0, 6).map((coin) => (
-                    <Card key={coin.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <img 
-                            src={coin.image || '/placeholder.svg'} 
-                            alt={coin.name}
-                            className="w-12 h-12 object-cover rounded"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = '/placeholder.svg';
-                            }}
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium text-sm truncate">{coin.name}</p>
-                            <p className="text-sm text-muted-foreground">{coin.year} • {coin.country}</p>
-                            <p className="text-sm font-semibold text-green-600">
-                              ${coin.price?.toLocaleString() || 'N/A'}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
