@@ -74,6 +74,7 @@ const DealerStorePage = () => {
     queryFn: async () => {
       if (!store?.id) return [];
       
+      // Enhanced query - get coins belonging to the store owner
       const { data, error } = await supabase
         .from('coins')
         .select(`
@@ -93,7 +94,7 @@ const DealerStorePage = () => {
           store_id,
           user_id
         `)
-        .eq('store_id', store.id)
+        .eq('user_id', store.user_id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -102,7 +103,29 @@ const DealerStorePage = () => {
         throw error;
       }
 
-      return data || [];
+      // Filter coins that belong to this store or have null store_id (unassigned)
+      const storeCoins = data?.filter(coin => 
+        coin.store_id === store.id || coin.store_id === null
+      ) || [];
+
+      // Log for debugging the specific Greece coin issue
+      const greeceCoin = storeCoins.find(coin => 
+        coin.name.toLowerCase().includes('greece') && 
+        coin.name.toLowerCase().includes('lepta') && 
+        coin.name.toLowerCase().includes('error')
+      );
+      
+      if (greeceCoin) {
+        console.log('🔍 FOUND Greece coin in store query:', {
+          id: greeceCoin.id,
+          name: greeceCoin.name,
+          store_id: greeceCoin.store_id,
+          user_id: greeceCoin.user_id,
+          storeUserId: store.user_id
+        });
+      }
+
+      return storeCoins;
     },
     enabled: !!store?.id
   });

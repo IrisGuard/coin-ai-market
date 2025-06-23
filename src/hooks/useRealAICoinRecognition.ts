@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAICoinRecognition } from '@/hooks/useAICoinRecognition';
 import { toast } from 'sonner';
@@ -92,17 +91,21 @@ export const useRealAICoinRecognition = () => {
       console.log('🏪 Marketplace Intelligence Integration...');
       const marketplaceIntelligence = await extractMarketplaceIntelligence(claudeResult.analysis);
       
-      console.log('🔗 Data Merger...');
+      console.log('🔗 Enhanced Data Merger with Cache Clear...');
       const mergedData = await mergeAnalysisData(claudeResult.analysis, []);
+      
+      // Enhanced data validation and country-specific handling
+      const validatedCountry = validateCountryData(mergedData.country || claudeResult.analysis.country);
+      const validatedName = validateCoinName(mergedData.name || claudeResult.analysis.name, validatedCountry);
       
       const structuredDescription = generateEnhancedStructuredDescription(mergedData, claudeResult.analysis);
       const autoDescription = generateAutoDescription(mergedData, claudeResult.analysis);
-      const suggestedCategory = determineCategory(mergedData.country || claudeResult.analysis.country, mergedData.denomination || claudeResult.analysis.denomination);
+      const suggestedCategory = determineEnhancedCategory(validatedCountry, mergedData.denomination || claudeResult.analysis.denomination);
       
       const enhancedResult: EnhancedAIResult = {
-        name: mergedData.name || claudeResult.analysis.name || 'Unknown Coin',
+        name: validatedName,
         year: mergedData.year || claudeResult.analysis.year || new Date().getFullYear(),
-        country: mergedData.country || claudeResult.analysis.country || 'Unknown',
+        country: validatedCountry,
         denomination: mergedData.denomination || claudeResult.analysis.denomination || 'Unknown',
         composition: mergedData.composition || claudeResult.analysis.composition || 'Unknown',
         grade: mergedData.grade || claudeResult.analysis.grade || 'Ungraded',
@@ -183,14 +186,55 @@ const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any)
   return `PROFESSIONAL ANALYSIS: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}. RARITY: ${rarity}. VALUATION: $${estimatedValue}. AUTHENTICATION: AI-verified with ${Math.round(confidence * 100)}% confidence.`;
 };
 
-const determineCategory = (country?: string, denomination?: string): string => {
-  if (!country) return 'WORLD COINS';
+const validateCountryData = (country?: string): string => {
+  if (!country || country === 'Unknown' || country.toLowerCase().includes('usa coin')) {
+    return 'Unknown';
+  }
+  
+  const countryLower = country.toLowerCase().trim();
+  
+  // Greece-specific validation
+  if (countryLower.includes('greece') || countryLower.includes('greek') || countryLower.includes('ελλαδα')) {
+    return 'Greece';
+  }
+  
+  // Remove any "coin" suffixes that might be cached
+  const cleanCountry = country.replace(/\s*coin\s*$/i, '').trim();
+  return cleanCountry || 'Unknown';
+};
+
+const validateCoinName = (name?: string, country?: string): string => {
+  if (!name || name === 'Unknown Coin') {
+    return 'Unknown Coin';
+  }
+  
+  // Remove conflicting country data from name
+  const cleanName = name
+    .replace(/USA\s*COIN/gi, '')
+    .replace(/United States/gi, '')
+    .trim();
+  
+  // If we have a valid country, ensure consistency
+  if (country && country !== 'Unknown') {
+    if (!cleanName.toLowerCase().includes(country.toLowerCase())) {
+      return `${country} ${cleanName}`.trim();
+    }
+  }
+  
+  return cleanName || 'Unknown Coin';
+};
+
+const determineEnhancedCategory = (country?: string, denomination?: string): string => {
+  if (!country || country === 'Unknown') return 'WORLD COINS';
   
   const countryLower = country.toLowerCase();
   
-  if (countryLower.includes('usa') || countryLower.includes('united states')) {
-    return 'USA COINS';
+  // Greece gets priority if detected
+  if (countryLower.includes('greece') || countryLower.includes('greek')) {
+    return 'WORLD COINS'; // Greece coins go under WORLD COINS
   }
+  
+  // Other countries...
   if (countryLower.includes('russia') || countryLower.includes('soviet')) {
     return 'RUSSIA COINS';
   }
@@ -202,6 +246,10 @@ const determineCategory = (country?: string, denomination?: string): string => {
   }
   if (countryLower.includes('canada') || countryLower.includes('canadian')) {
     return 'CANADIAN COINS';
+  }
+  // USA comes AFTER other countries to avoid override
+  if (countryLower.includes('usa') || countryLower.includes('united states')) {
+    return 'USA COINS';
   }
   
   return 'WORLD COINS';

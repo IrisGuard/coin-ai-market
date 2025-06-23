@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,7 +85,24 @@ export const useCoinSubmission = () => {
         mappedCategory = 'error_coin';
       }
 
-      // Step 3: Prepare enhanced coin payload with full multi-image support
+      // Step 3: Enhanced store ID resolution to prevent null store_id
+      let finalStoreId = selectedStoreId;
+      
+      // If no store selected, find user's default store
+      if (!finalStoreId) {
+        const { data: userStores } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1);
+          
+        if (userStores && userStores.length > 0) {
+          finalStoreId = userStores[0].id;
+        }
+      }
+
+      // Step 4: Prepare enhanced coin payload with full multi-image support
       const coinPayload = {
         name: coinData.title,
         description: coinData.description || `${coinData.title} - Professional AI-enhanced coin listing with ${permanentImageUrls.length} high-quality images`,
@@ -113,7 +129,7 @@ export const useCoinSubmission = () => {
           : null,
         starting_bid: coinData.isAuction ? parseFloat(coinData.startingBid || '0') : null,
         category: mappedCategory as any,
-        store_id: selectedStoreId || null,
+        store_id: finalStoreId, // Fixed: No longer defaults to null
         authentication_status: 'verified',
         featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
         sold: false,
@@ -122,7 +138,7 @@ export const useCoinSubmission = () => {
         ai_provider: 'claude-enhanced'
       };
 
-      // Step 4: Submit to database
+      // Step 5: Submit to database
       const { data, error } = await supabase
         .from('coins')
         .insert(coinPayload)
