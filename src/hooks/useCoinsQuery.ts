@@ -29,7 +29,7 @@ export const useCoins = (includeAllStatuses = true) => {
       try {
         console.log('🔍 Fetching coins including ERROR COINS...');
         
-        // Enhanced query to prioritize ERROR COINS
+        // Enhanced query to show all coins, prioritizing ERROR COINS
         let query = supabase
           .from('coins')
           .select(`
@@ -42,9 +42,7 @@ export const useCoins = (includeAllStatuses = true) => {
             )
           `);
 
-        // CRITICAL: Show verified coins AND all error coins (regardless of status)
-        query = query.or('authentication_status.eq.verified,category.eq.error_coin');
-
+        // Show all coins without authentication status filtering
         const { data: coins, error: coinsError } = await query
           .order('created_at', { ascending: false });
 
