@@ -167,6 +167,30 @@ const SimpleDealerPanel = () => {
                 description: `Estimated value: $${analysis.estimatedValue.toLocaleString()}`
               });
             }
+
+            // 🤖 AUTO-FILL FORM WITH AI RESULTS
+            setFormData(prev => ({
+              ...prev,
+              title: analysis.name,
+              year: analysis.year.toString(),
+              metal: analysis.composition,
+              error: analysis.hasError ? analysis.errorType.join(', ') : '',
+              price: analysis.estimatedValue.toString(),
+              description: `${analysis.name} - ${analysis.year} ${analysis.country}. ${analysis.hasError ? `ERROR COIN: ${analysis.errorDescription}` : 'Normal strike.'} Grade: ${analysis.grade}. ${analysis.historicalContext || ''}`
+            }));
+
+            // 🏷️ AUTO-SELECT APPROPRIATE CATEGORIES
+            const autoCategories = [];
+            if (analysis.country === 'United States') autoCategories.push('US Coins');
+            if (analysis.hasError) {
+              autoCategories.push('Error Coins');
+              if (analysis.errorType.includes('Double Die')) autoCategories.push('Double Die');
+              if (analysis.errorType.includes('Off-Center')) autoCategories.push('Off-Center Strike');
+            }
+            if (analysis.composition.includes('Gold')) autoCategories.push('Gold Coins');
+            if (analysis.composition.includes('Silver')) autoCategories.push('Silver Coins');
+            
+            setSelectedCategories(prev => [...new Set([...prev, ...autoCategories])]);
           }
         }
       } catch (error) {
@@ -310,16 +334,19 @@ const SimpleDealerPanel = () => {
     }
 
     try {
-      // Create coin listing
+      // Get AI analysis data for more accurate coin data
+      const aiAnalysis = images[0]?.aiAnalysis;
+      
+      // Create coin listing with AI-enhanced data
       const coinData = {
         user_id: user?.id,
         store_id: dealerStore?.id,
         name: formData.title,
         description: formData.description,
         year: parseInt(formData.year) || new Date().getFullYear(),
-        grade: 'Ungraded',
-        rarity: 'Common',
-        country: 'United States',
+        grade: aiAnalysis?.grade || 'Ungraded',
+        rarity: aiAnalysis?.rarity || 'Common',
+        country: aiAnalysis?.country || 'Unknown',
         price: parseFloat(formData.price) || 0,
         image: images[0]?.preview || '',
         is_auction: listingType === 'auction',
@@ -329,7 +356,12 @@ const SimpleDealerPanel = () => {
           ? new Date(Date.now() + parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000).toISOString()
           : null,
         composition: formData.metal,
-        tags: selectedCategories
+        tags: selectedCategories,
+        category: selectedCategories[0] || 'unclassified',
+        featured: aiAnalysis?.estimatedValue > 1000, // Auto-feature high-value coins
+        ai_confidence: aiAnalysis?.confidence || 0,
+        error_type: formData.error || null,
+        denomination: aiAnalysis?.denomination || null
       };
 
       const { data, error } = await supabase
@@ -631,7 +663,7 @@ const SimpleDealerPanel = () => {
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="AI will suggest a title..."
+                    placeholder="Coin name will be filled automatically by AI"
                   />
                 </div>
                 <div>
@@ -640,7 +672,7 @@ const SimpleDealerPanel = () => {
                     id="year"
                     value={formData.year}
                     onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
-                    placeholder="AI detected year..."
+                    placeholder="Year will be detected by AI analysis"
                   />
                 </div>
               </div>
@@ -651,7 +683,7 @@ const SimpleDealerPanel = () => {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="AI will generate description..."
+                  placeholder="Detailed description will be generated automatically"
                   rows={3}
                 />
               </div>
@@ -663,7 +695,7 @@ const SimpleDealerPanel = () => {
                     id="metal"
                     value={formData.metal}
                     onChange={(e) => setFormData(prev => ({ ...prev, metal: e.target.value }))}
-                    placeholder="AI detected metal..."
+                    placeholder="Metal composition from AI analysis"
                   />
                 </div>
                 <div>
@@ -672,7 +704,7 @@ const SimpleDealerPanel = () => {
                     id="error"
                     value={formData.error}
                     onChange={(e) => setFormData(prev => ({ ...prev, error: e.target.value }))}
-                    placeholder="AI detected errors..."
+                    placeholder="Errors will be detected automatically"
                   />
                 </div>
                 <div>
@@ -721,7 +753,7 @@ const SimpleDealerPanel = () => {
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="AI estimated value..."
+                    placeholder="Price will be estimated by AI analysis"
                   />
                 </div>
               ) : (
@@ -733,6 +765,7 @@ const SimpleDealerPanel = () => {
                       type="number"
                       value={formData.startingBid}
                       onChange={(e) => setFormData(prev => ({ ...prev, startingBid: e.target.value }))}
+                      placeholder="Suggested starting bid"
                     />
                   </div>
                   <div>
@@ -742,6 +775,7 @@ const SimpleDealerPanel = () => {
                       type="number"
                       value={formData.reservePrice}
                       onChange={(e) => setFormData(prev => ({ ...prev, reservePrice: e.target.value }))}
+                      placeholder="Minimum acceptable price"
                     />
                   </div>
                   <div>
