@@ -367,9 +367,6 @@ const SimpleDealerPanel = () => {
             <Badge variant={dealerStore?.is_active ? 'default' : 'secondary'}>
               {dealerStore?.is_active ? 'Store Active' : 'Store Inactive'}
             </Badge>
-            {dealerStore?.verified && (
-              <Badge className="bg-green-100 text-green-800">Verified</Badge>
-            )}
           </CardTitle>
         </CardHeader>
         <CardContent>

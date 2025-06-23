@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,20 +6,18 @@ export const useCoinAnalytics = () => {
     queryKey: ['admin-coin-analytics'],
     queryFn: async () => {
       // Get coin statistics
+      const [pendingCoins, totalCoins, rejectedCoins] = await Promise.all([
+        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'pending'),
+        supabase.from('coins').select('*', { count: 'exact', head: true }),
+        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'rejected'),
+      ]);
+
       const [
-        { count: totalCoins },
-        { count: pendingCoins },
-        { count: verifiedCoins },
-        { count: rejectedCoins },
         { count: featuredCoins },
         { data: coinsByStatus },
         { data: coinsByCategory },
         { data: coinsByMonth }
       ] = await Promise.all([
-        supabase.from('coins').select('*', { count: 'exact', head: true }),
-        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'pending'),
-        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'verified'),
-        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'rejected'),
         supabase.from('coins').select('*', { count: 'exact', head: true }).eq('featured', true),
         supabase.from('coins')
           .select('authentication_status')
@@ -48,7 +45,6 @@ export const useCoinAnalytics = () => {
         totals: {
           total: totalCoins || 0,
           pending: pendingCoins || 0,
-          verified: verifiedCoins || 0,
           rejected: rejectedCoins || 0,
           featured: featuredCoins || 0
         },

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -90,8 +89,9 @@ const CoinDetailsModal: React.FC<CoinDetailsModalProps> = ({ coin, isOpen, onClo
                 <div className="flex items-center gap-2">
                   <Badge 
                     variant={
-                      coin.authentication_status === 'verified' ? 'default' :
-                      coin.authentication_status === 'rejected' ? 'destructive' : 'secondary'
+                      coin.authentication_status === 'pending' ? 'secondary' :
+                      coin.authentication_status === 'rejected' ? 'destructive' :
+                      'outline'
                     }
                   >
                     {coin.authentication_status}

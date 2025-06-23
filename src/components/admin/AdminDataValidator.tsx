@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,10 +31,12 @@ const AdminDataValidator = () => {
         
         coins?.forEach(coin => {
           // Check for real data indicators
-          if (coin.authentication_status === 'verified') qualityScore += 2;
-          if (coin.price > 0) qualityScore += 1;
+          if (coin.price && coin.price > 0) qualityScore += 1;
           if (coin.user_id) qualityScore += 1;
           if (coin.name && !coin.name.toLowerCase().includes('test')) qualityScore += 1;
+          if (coin.grade && coin.grade !== 'Unknown') qualityScore += 1;
+          if (coin.rarity && coin.rarity !== 'Common') qualityScore += 1;
+          if (coin.category && coin.category !== 'unknown') qualityScore += 1;
           
           realDataCount++;
         });

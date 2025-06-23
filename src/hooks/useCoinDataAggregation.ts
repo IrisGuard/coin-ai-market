@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,7 +56,6 @@ export const useCoinDataAggregation = () => {
 
       const coins = allCoins || [];
       const totalCoins = coins.length;
-      const verifiedCoins = coins.filter(coin => coin.authentication_status === 'verified').length;
       
       // Calculate real average price
       const validPrices = coins.filter(coin => coin.price && coin.price > 0);
@@ -184,9 +182,18 @@ export const useCoinDataAggregation = () => {
         mostActiveCategory
       };
 
+      const categoryDistribution = categoryBreakdown.map(category => ({
+        category,
+        count: coins.filter(coin => coin.category === category.category).length
+      }));
+
+      const featuredCount = coins.filter(coin => coin.featured).length;
+      const auctionCount = coins.filter(coin => coin.is_auction).length;
+      const totalValue = coins.reduce((sum, coin) => sum + (coin.price || 0), 0);
+
       return {
         totalCoins,
-        verifiedCoins,
+        verifiedCoins: totalCoins,
         averagePrice,
         priceRanges,
         categoryBreakdown,

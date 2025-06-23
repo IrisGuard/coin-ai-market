@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,14 +20,17 @@ const CoinAuthenticationTab = ({ coin }: CoinAuthenticationTabProps) => {
             <Shield className="w-5 h-5 text-green-600" />
             <div>
               <div className="font-semibold">Authentication Status</div>
-              <Badge className={`mt-1 ${
-                coin.authentication_status === 'verified' ? 'bg-green-600 text-white' :
-                coin.authentication_status === 'rejected' ? 'bg-red-600 text-white' :
-                'bg-yellow-600 text-white'
-              }`}>
-                {coin.authentication_status === 'verified' ? 'Verified Authentic' :
-                 coin.authentication_status === 'rejected' ? 'Authentication Failed' :
-                 'Pending Authentication'}
+              <Badge 
+                variant="outline" 
+                className={
+                  coin.authentication_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  coin.authentication_status === 'rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-blue-100 text-blue-800'
+                }
+              >
+                {coin.authentication_status === 'pending' ? 'Authentication Pending' :
+                 coin.authentication_status === 'rejected' ? 'Authentication Issues' :
+                 'Authentication Complete'}
               </Badge>
             </div>
           </div>

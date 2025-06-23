@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -196,9 +195,7 @@ const AdminStoresTab = () => {
                         <div>
                           <div className="font-medium">{profile?.full_name || 'Unknown'}</div>
                           <div className="text-sm text-gray-500">{profile?.email}</div>
-                          {profile?.verified_dealer && (
-                            <Badge variant="secondary" className="text-xs mt-1">Verified Dealer</Badge>
-                          )}
+                          <Badge variant="secondary" className="text-xs mt-1">Store Profile</Badge>
                         </div>
                       </TableCell>
                       <TableCell>

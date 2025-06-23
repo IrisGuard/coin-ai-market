@@ -21,7 +21,6 @@ export const useAllDealerCoins = () => {
             avatar_url
           )
         `)
-        .eq('authentication_status', 'verified')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -46,10 +45,10 @@ export const useDealerCoins = (dealerId: string) => {
         .from('coins')
         .select(`
           *,
-          profiles:user_id (
-            username,
-            role,
-            avatar_url
+          stores (
+            id,
+            name,
+            verified
           )
         `)
         .eq('user_id', dealerId)

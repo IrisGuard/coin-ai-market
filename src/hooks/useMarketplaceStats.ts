@@ -6,9 +6,11 @@ export const useMarketplaceStats = () => {
     queryKey: ['marketplace-stats'],
     queryFn: async () => {
       // Get comprehensive marketplace statistics from real database
-      const [coinsResponse, auctionsResponse] = await Promise.all([
+      const queries = await Promise.all([
         supabase.from('coins').select('*', { count: 'exact', head: true }),
-        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('is_auction', true)
+        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('featured', true),
+        supabase.from('stores').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('users').select('*', { count: 'exact', head: true }),
       ]);
 
       const [
@@ -26,22 +28,16 @@ export const useMarketplaceStats = () => {
         { data: historicalVolume }
       ] = await Promise.all([
         // Total coins
-        coinsResponse,
+        queries[0],
         
         // Active auctions
-        auctionsResponse,
+        queries[3],
         
         // Featured coins
-        supabase
-          .from('coins')
-          .select('*', { count: 'exact', head: true })
-          .eq('featured', true),
+        queries[1],
         
         // Active users (users who have been active in last 30 days)
-        supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true })
-          .gte('updated_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        queries[2],
         
         // Total transactions
         supabase.from('payment_transactions').select('*', { count: 'exact', head: true }),
@@ -49,11 +45,8 @@ export const useMarketplaceStats = () => {
         // Coin prices for value calculation
         supabase.from('coins').select('price').not('price', 'is', null),
         
-        // Verified coins
-        supabase
-          .from('coins')
-          .select('*', { count: 'exact', head: true })
-          .eq('authentication_status', 'verified'),
+        // Total marketplace coins
+        supabase.from('coins').select('*', { count: 'exact', head: true }),
         
         // New listings today
         supabase

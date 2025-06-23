@@ -458,9 +458,7 @@ const AdminTransactionsTab = () => {
                         <div className="text-sm text-muted-foreground">
                           {transaction.profiles?.email || 'No email'}
                         </div>
-                        {transaction.profiles?.verified_dealer && (
-                          <Badge variant="outline" className="text-xs">Verified Dealer</Badge>
-                        )}
+                        <Badge variant="outline" className="text-xs">Store Profile</Badge>
                       </div>
                     </TableCell>
                     <TableCell>

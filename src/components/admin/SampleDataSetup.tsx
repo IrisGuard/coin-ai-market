@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,27 +14,20 @@ const ProductionDataManager = () => {
   const { data: stats, isLoading, refetch } = useQuery({
     queryKey: ['production-stats'],
     queryFn: async () => {
-      const [
-        { count: totalCoins },
-        { count: verifiedCoins },
-        { count: activeUsers },
-        { count: completedTransactions },
-        { data: recentActivity }
-      ] = await Promise.all([
+      const [pendingCoins, totalCoins, rejectedCoins, activeStores] = await Promise.all([
+        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'pending'),
         supabase.from('coins').select('*', { count: 'exact', head: true }),
-        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'verified'),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('updated_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
-        supabase.from('payment_transactions').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-        supabase.from('analytics_events').select('event_type, timestamp').gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()).limit(5)
+        supabase.from('coins').select('*', { count: 'exact', head: true }).eq('authentication_status', 'rejected'),
+        supabase.from('stores').select('*', { count: 'exact', head: true }).eq('is_active', true),
       ]);
 
       return {
         totalCoins: totalCoins || 0,
-        verifiedCoins: verifiedCoins || 0,
-        activeUsers: activeUsers || 0,
-        completedTransactions: completedTransactions || 0,
-        recentActivity: recentActivity || [],
-        verificationRate: totalCoins > 0 ? ((verifiedCoins || 0) / totalCoins) * 100 : 0
+        verifiedCoins: totalCoins - rejectedCoins || 0,
+        activeUsers: activeStores.length || 0,
+        completedTransactions: pendingCoins.length || 0,
+        recentActivity: [],
+        verificationRate: totalCoins > 0 ? ((totalCoins - rejectedCoins) / totalCoins) * 100 : 0
       };
     }
   });
