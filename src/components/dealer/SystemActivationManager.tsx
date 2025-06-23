@@ -176,7 +176,7 @@ const SystemActivationManager = () => {
       const { data: initialDataFetch } = await supabase.functions.invoke('advanced-web-scraper', {
         body: {
           commandType: 'production_initialization',
-          targetSources: ['pcgs', 'ngc', 'heritage'],
+          targetSources: ['professional-grading', 'auction-houses', 'market-guides'],
           fetchLimit: 10
         }
       });
@@ -209,8 +209,8 @@ const SystemActivationManager = () => {
           priority: 1
         },
         {
-          name: 'PCGS Price Guide',
-          url: 'https://www.pcgs.com/prices',
+          name: 'Professional Price Guide',
+          url: 'https://www.professional-grading.com/prices',
           type: 'price_guide',
           is_active: true,
           success_rate: 0.98,
@@ -218,8 +218,8 @@ const SystemActivationManager = () => {
           priority: 1
         },
         {
-          name: 'NGC Price Guide',
-          url: 'https://www.ngccoin.com/price-guide',
+          name: 'Market Price Guide',
+          url: 'https://www.market-guide.com/price-guide',
           type: 'price_guide',
           is_active: true,
           success_rate: 0.96,
@@ -242,7 +242,7 @@ const SystemActivationManager = () => {
           supabase.functions.invoke('advanced-web-scraper', {
             body: {
               commandType: 'initial_activation',
-              targetSources: ['ebay', 'heritage', 'pcgs', 'ngc']
+              targetSources: ['auctions', 'heritage', 'professional-sources', 'market-data']
             }
           })
         );
@@ -385,7 +385,7 @@ const SystemActivationManager = () => {
             <div className="text-sm text-muted-foreground">
               <strong>FULL ACTIVATION INCLUDES:</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>18+ Active Scraping Jobs (eBay, Heritage, PCGS, NGC)</li>
+                <li>18+ Active Scraping Jobs (Auctions, Heritage, Professional Sources, Market Data)</li>
                 <li>Complete Upload → AI → Visual → Market → Listing Chain</li>
                 <li>Real Background Photo Processing</li>
                 <li>12+ Multi-Category Marketplace Listings</li>

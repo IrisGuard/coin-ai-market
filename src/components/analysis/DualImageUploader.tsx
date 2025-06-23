@@ -289,7 +289,7 @@ const DualImageUploader: React.FC<DualImageUploaderProps> = ({ onAnalysisComplet
             </div>
             <div className="text-xs text-gray-600">
               <div className="font-medium">Global Discovery</div>
-              <div>eBay, Heritage, PCGS</div>
+              <div>Multiple market sources</div>
             </div>
           </div>
           

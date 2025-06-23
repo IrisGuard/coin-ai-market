@@ -6,8 +6,8 @@ import { Shield } from 'lucide-react';
 interface CoinAuthenticationTabProps {
   coin: {
     authentication_status?: string;
-    pcgs_number?: string;
-    ngc_number?: string;
+    certification_number?: string;
+    grading_service?: string;
   };
 }
 
@@ -35,17 +35,17 @@ const CoinAuthenticationTab = ({ coin }: CoinAuthenticationTabProps) => {
             </div>
           </div>
           
-          {coin.pcgs_number && (
+          {coin.certification_number && (
             <div>
-              <span className="text-sm text-gray-600">PCGS Number</span>
-              <div className="font-semibold">{coin.pcgs_number}</div>
+              <span className="text-sm text-gray-600">Certification Number</span>
+              <div className="font-semibold">{coin.certification_number}</div>
             </div>
           )}
           
-          {coin.ngc_number && (
+          {coin.grading_service && (
             <div>
-              <span className="text-sm text-gray-600">NGC Number</span>
-              <div className="font-semibold">{coin.ngc_number}</div>
+              <span className="text-sm text-gray-600">Grading Service</span>
+              <div className="font-semibold">{coin.grading_service}</div>
             </div>
           )}
         </div>
