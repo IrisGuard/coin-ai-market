@@ -1,4 +1,3 @@
-
 import { Camera, DollarSign, ShoppingCart, Shield, Award, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import FeatureCard from './FeatureCard';
@@ -12,7 +11,7 @@ const features = [
   },
   {
     name: 'Real-time Valuation',
-    description: 'Get accurate market valuation based on current prices from NGC, PCGS, NumisMaster, and eBay.',
+    description: 'Get accurate market valuation based on current market prices from multiple professional sources and auction results.',
     icon: <DollarSign className="h-8 w-8" />,
     color: 'from-green-500 to-green-600'
   },

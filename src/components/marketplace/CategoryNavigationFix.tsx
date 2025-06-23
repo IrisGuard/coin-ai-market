@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Coins, Clock, Star, Globe, TrendingUp, Shield, Crown, DollarSign, MapPin, AlertCircle, Gavel, FileText, Medal, Banknote, Target, Zap } from 'lucide-react';
@@ -86,7 +85,7 @@ const CategoryNavigationFix = () => {
       count: loading ? '...' : formatCount(stats.graded),
       href: '/category/graded',
       color: 'from-green-400 to-emerald-500',
-      description: 'PCGS/NGC certified'
+      description: 'Professionally graded'
     },
     {
       name: 'Commemorative Coins',
