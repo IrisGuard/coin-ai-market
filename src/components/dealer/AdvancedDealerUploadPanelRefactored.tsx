@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
-import AdvancedImageUploadManager from './AdvancedImageUploadManager';
+import ProductionCoinUploadManager from './ProductionCoinUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
 import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
@@ -161,7 +160,7 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
             {(!isAdminUser || effectiveSelectedStoreId) && (
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <AdvancedImageUploadManager
+                  <ProductionCoinUploadManager
                     onImagesProcessed={handleImagesProcessed}
                     onAIAnalysisComplete={handleAIAnalysisComplete}
                     maxImages={10}

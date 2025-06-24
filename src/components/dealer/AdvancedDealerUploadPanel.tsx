@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, Brain, TrendingUp, Package, Settings, Truck, CreditCard, Store, AlertCircle } from 'lucide-react';
-import AdvancedImageUploadManager from './AdvancedImageUploadManager';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import ProductionCoinUploadManager from './ProductionCoinUploadManager';
 import CoinListingForm from './CoinListingForm';
 import BulkUploadManager from './BulkUploadManager';
 import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
@@ -114,7 +115,7 @@ const AdvancedDealerUploadPanel: React.FC = () => {
         <TabsContent value="upload" className="space-y-6">
           {selectedStoreId && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AdvancedImageUploadManager
+              <ProductionCoinUploadManager
                 onImagesProcessed={handleImagesProcessed}
                 onAIAnalysisComplete={handleAIAnalysisComplete}
                 maxImages={10}
