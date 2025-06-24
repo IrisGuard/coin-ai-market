@@ -1,5 +1,13 @@
-
 {
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
   "functions": {
     "api/**/*.js": {
       "maxDuration": 60
