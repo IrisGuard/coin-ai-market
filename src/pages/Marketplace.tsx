@@ -9,13 +9,30 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const Marketplace = () => {
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading } = useQuery({
     queryKey: ['marketplace-stats'],
-    queryFn: () => Promise.all([
-      supabase.from('coins').select('*'),
-      supabase.from('stores').select('*'),
-      supabase.from('dealers').select('*')
-    ]),
+    queryFn: async () => {
+      const [
+        { data: coins, count: totalCoins },
+        { data: profiles, count: totalUsers },
+        { data: stores, count: totalStores }
+      ] = await Promise.all([
+        supabase.from('coins').select('*', { count: 'exact' }),
+        supabase.from('profiles').select('*', { count: 'exact' }),
+        supabase.from('stores').select('*', { count: 'exact' })
+      ]);
+
+      const activeAuctions = coins?.filter(coin => coin.is_auction && new Date(coin.auction_end_time || '') > new Date()).length || 0;
+      const totalValue = coins?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
+
+      return {
+        totalCoins: totalCoins || 0,
+        totalUsers: totalUsers || 0,
+        totalStores: totalStores || 0,
+        activeAuctions,
+        totalValue
+      };
+    },
     refetchInterval: 30000
   });
 
@@ -43,7 +60,7 @@ const Marketplace = () => {
           </motion.div>
 
           {/* Stats Cards */}
-          {stats && (
+          {!isLoading && stats && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -103,6 +120,28 @@ const Marketplace = () => {
                   <Badge className="bg-green-100 text-green-800 mt-1">USD</Badge>
                 </CardContent>
               </Card>
+            </motion.div>
+          )}
+
+          {/* Loading state for stats */}
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+            >
+              {[...Array(4)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="pb-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                  </CardContent>
+                </Card>
+              ))}
             </motion.div>
           )}
 
