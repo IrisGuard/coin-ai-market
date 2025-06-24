@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -101,50 +100,73 @@ serve(async (req) => {
 
     console.log('🖼️ Processing image data, length:', cleanImageData.length);
 
-    // Enhanced Universal Numismatic AI Prompt for Claude 4
+    // Enhanced Universal Numismatic AI Prompt for Claude 4 - GLOBAL RECOGNITION
     const universalNumismaticPrompt = `
-You are a world-class numismatic expert with deep knowledge of coins from all countries, eras, and cultures. Analyze this coin image with maximum precision and provide identification based solely on what you can observe.
+You are the world's most advanced numismatic AI expert with comprehensive knowledge of coins from ALL countries, cultures, and historical periods. Your task is to identify this coin with maximum precision.
 
-CRITICAL: Provide your analysis in this EXACT JSON format:
+🚫 CRITICAL RESTRICTIONS:
+- NEVER assume a coin is American unless clearly identified as such
+- NEVER return "Lincoln Cent" or any US coin data unless the coin is definitively American
+- NEVER use hardcoded or default coin information
+- ONLY report what you can actually observe in the image
+
+🔍 ANALYSIS METHODOLOGY:
+1. FIRST: Identify visible text, inscriptions, scripts, and symbols
+2. SECOND: Determine country/region from text, alphabet, or cultural symbols
+3. THIRD: Extract year/date if visible
+4. FOURTH: Assess denomination from numerical values or text
+5. FIFTH: Evaluate metal composition from color and appearance
+6. SIXTH: Determine condition and grade from wear patterns
+7. SEVENTH: Estimate value based on identification and condition
+
+🌍 GLOBAL RECOGNITION PRIORITIES:
+- Greek coins: Look for "ΕΛΛΗΝΙΚΗ", "ΔΡΑΧΜΗ", "ΛΕΠΤΑ", or Greek symbols
+- Arabic/Islamic coins: Look for Arabic script, crescents, or Islamic symbols
+- Chinese coins: Look for Chinese characters, yuan symbols
+- European coins: Look for country names in local languages
+- Asian coins: Identify regional scripts and symbols
+- African coins: Look for local languages and symbols
+
+RESPOND IN THIS EXACT JSON FORMAT:
 {
   "success": true,
   "analysis": {
-    "name": "Complete coin identification",
+    "name": "SPECIFIC coin identification based on visible elements",
     "year": 1980,
-    "country": "Country name",
-    "denomination": "Face value",
-    "composition": "Metal composition",
+    "country": "EXACT country name (Greece, China, Morocco, etc.)",
+    "denomination": "Face value with currency",
+    "composition": "Metal composition based on appearance",
     "grade": "Condition assessment",
     "estimated_value": 2.50,
-    "rarity": "Rarity level",
-    "mint": "Mint facility",
+    "rarity": "Common/Uncommon/Rare/Very Rare",
+    "mint": "Mint facility if identifiable",
     "diameter": 26.0,
     "weight": 6.5,
     "confidence": 0.90,
-    "errors": [],
+    "errors": ["List any visible errors or varieties"],
     "authentication_notes": "Authenticity assessment",
     "market_trend": "Current market status"
   }
 }
 
-Analysis Guidelines:
-1. IDENTIFY all visible text, inscriptions, dates, and numerical values
-2. DETERMINE country of origin from text, symbols, or design elements
-3. ASSESS year/date from visible markings
-4. EVALUATE denomination from face value indicators
-5. ESTIMATE condition based on wear patterns and surface quality
-6. PROVIDE current market valuation based on condition and rarity
-7. NOTE any varieties, errors, or special characteristics
-8. AUTHENTICATE based on design elements and manufacturing quality
+🎯 IDENTIFICATION GUIDELINES:
+- If text is in Greek alphabet → Country: "Greece"
+- If text is in Arabic script → Country: "Islamic/Arabic Region" or specific country
+- If text is in Chinese characters → Country: "China"
+- If text is in Cyrillic → Country: "Russia" or specific country
+- If text shows "UNITED STATES" or "AMERICA" → Country: "United States"
+- If text shows European language → Identify specific European country
 
-If ANY element cannot be determined from the image:
-- Use "Unknown" for that specific field
-- Set confidence score appropriately (0.10-1.00)
-- Do NOT guess or fabricate information
+⚠️ UNKNOWN DATA HANDLING:
+- If country cannot be determined: "Unknown"
+- If year cannot be read: Use current year with low confidence
+- If denomination unclear: "Unknown denomination"
+- If metal uncertain: "Unknown metal - appears [color description]"
+- Set confidence score between 0.10-1.00 based on certainty
 
-Be thorough, accurate, and only report what you can actually observe in the image.`;
+IMPORTANT: Base your analysis ONLY on what you can actually see in the image. Do not use template responses or default to American coins.`;
 
-    console.log('📞 Calling Anthropic API with Claude 4 Sonnet model...');
+    console.log('📞 Calling Anthropic API with enhanced global recognition prompt...');
 
     // Enhanced API call with better error handling
     let response;
