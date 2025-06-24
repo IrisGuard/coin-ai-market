@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://gzqdgkmkzffdgzkqrbxe.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6cWRna21remZmZGd6a3FyYnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4MjkzNzEsImV4cCI6MjA0NzQwNTM3MX0.7MWQe0O8mhk4kfLkl7kL5NNtfY_5fHGQOdOCdIuNy4k';
+const supabaseUrl = 'https://wdgnllgbfvjgurbqhfqb.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZ25sbGdiZnZqZ3VyYnFoZnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTM4NjUsImV4cCI6MjA2NDYyOTg2NX0.vPsjHXSqpx3SLKtoIroQkFZhTSdWEfHA4x5kg5p1veU';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkCoins() {
