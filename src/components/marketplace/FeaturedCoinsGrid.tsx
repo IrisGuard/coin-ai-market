@@ -63,29 +63,40 @@ const FeaturedCoinsGrid = () => {
       const from = (currentPage - 1) * coinsPerPage;
       const to = from + coinsPerPage - 1;
 
-      // 🔍 DEBUG: Ελέγχω το συγκεκριμένο νόμισμα της Ελλάδας
-      const { data: debugCoins, error: debugError } = await supabase
+      // 🔍 DEBUG: Ελέγχω όλα τα νομίσματα στη βάση
+      const { data: debugAllCoins, error: debugAllError } = await supabase
         .from('coins')
         .select('*')
-        .or('name.ilike.%GREECE%,name.ilike.%10-978%,name.ilike.%GREECECOIN%');
+        .order('created_at', { ascending: false });
         
-      console.log('🏛️ GREECE COIN DEBUG:', {
-        found: debugCoins?.length || 0,
-        coins: debugCoins?.map(coin => ({
+      console.log('🏛️ ALL COINS IN DATABASE:', {
+        total: debugAllCoins?.length || 0,
+        buyNow: debugAllCoins?.filter(coin => !coin.is_auction).length || 0,
+        auction: debugAllCoins?.filter(coin => coin.is_auction).length || 0,
+        featured: debugAllCoins?.filter(coin => coin.featured).length || 0,
+        withBlobImages: debugAllCoins?.filter(coin => coin.image?.startsWith('blob:')).length || 0,
+        withValidImages: debugAllCoins?.filter(coin => coin.image && !coin.image.startsWith('blob:')).length || 0
+      });
+      
+      if (debugAllCoins?.length > 0) {
+        console.log('📋 FIRST 5 COINS:', debugAllCoins.slice(0, 5).map(coin => ({
           id: coin.id,
           name: coin.name,
+          price: coin.price,
+          is_auction: coin.is_auction,
           featured: coin.featured,
-          authentication_status: coin.authentication_status,
           store_id: coin.store_id,
-          category: coin.category
-        }))
-      });
+          category: coin.category,
+          image: coin.image ? (coin.image.startsWith('blob:') ? 'BLOB_URL' : 'VALID_URL') : 'NO_IMAGE',
+          created_at: coin.created_at
+        })));
+      }
 
-      // Fetch coins for the current page
+      // Fetch coins for the current page - SHOW ALL BUY NOW COINS ON HOME PAGE
       const { data: coins, error: coinsError } = await supabase
         .from('coins')
         .select('*')
-        .eq('featured', true)
+        .eq('is_auction', false) // SHOW ALL BUY NOW COINS, NOT JUST FEATURED
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -93,11 +104,11 @@ const FeaturedCoinsGrid = () => {
         throw coinsError;
       }
 
-      // Fetch the total count of featured coins
+      // Fetch the total count of Buy Now coins
       const { count, error: countError } = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true })
-        .eq('featured', true);
+        .eq('is_auction', false); // COUNT ALL BUY NOW COINS
 
       if (countError) {
         throw countError;

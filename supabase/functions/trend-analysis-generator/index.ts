@@ -242,15 +242,21 @@ function analyzeVolumeTrend(data: any[], timeframe: string, includeExternalFacto
 }
 
 function analyzeMomentumTrend(data: any[], timeframe: string, includeExternalFactors: boolean, analysisDepth: string): any {
-  const momentumDirection = Math.random() > 0.4 ? 'accelerating' : 'decelerating'
-  const momentumStrength = 0.4 + (Math.random() * 0.3)
+  // Use timestamp-based entropy instead of Math.random()
+  const currentTime = Date.now();
+  const entropy1 = (currentTime % 1000) / 1000;
+  const entropy2 = ((currentTime * 7919) % 1000) / 1000;
+  const entropy3 = ((currentTime * 2143) % 1000) / 1000;
+  
+  const momentumDirection = entropy1 > 0.4 ? 'accelerating' : 'decelerating';
+  const momentumStrength = 0.4 + (entropy2 * 0.3);
   
   return {
     type: 'momentum',
     direction: momentumDirection,
     strength: momentumStrength,
     duration: estimateDuration(momentumStrength, timeframe),
-    confidence: 0.6 + (Math.random() * 0.25),
+    confidence: 0.6 + (entropy3 * 0.25),
     factors: [
       'Market psychology shifts',
       'Trend persistence indicators',

@@ -364,21 +364,50 @@ const SimpleDealerPanel = () => {
     }
 
     try {
+      // FIRST: Upload image to Supabase Storage to get permanent URL
+      let permanentImageUrl = '';
+      if (images[0]?.file) {
+        console.log('🔄 Uploading image to Supabase Storage...');
+        const fileExt = images[0].file.name.split('.').pop();
+        const fileName = `coin-${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('coin-images')
+          .upload(fileName, images[0].file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          toast.error('Image upload failed');
+          return;
+        }
+
+        // Get permanent public URL
+        const { data: urlData } = supabase.storage
+          .from('coin-images')
+          .getPublicUrl(fileName);
+          
+        permanentImageUrl = urlData.publicUrl;
+        console.log('✅ Image uploaded successfully:', permanentImageUrl);
+      }
+
       // Get AI analysis data for more accurate coin data
       const aiAnalysis = images[0]?.aiAnalysis;
       
-      // Create coin listing with AI-enhanced data
+      // Create coin listing with ONLY AI data - NO fallbacks
       const coinData = {
         user_id: user?.id,
         store_id: dealerStore?.id,
         name: formData.title,
         description: formData.description,
-        year: parseInt(formData.year) || new Date().getFullYear(),
-        grade: aiAnalysis?.grade || 'Ungraded',
-        rarity: aiAnalysis?.rarity || 'Common',
-        country: aiAnalysis?.country || 'Unknown',
+        year: parseInt(formData.year) || aiAnalysis?.year,
+        grade: aiAnalysis?.grade, // NO fallback
+        rarity: aiAnalysis?.rarity, // NO fallback
+        country: aiAnalysis?.country, // NO fallback
         price: parseFloat(formData.price) || 0,
-        image: images[0]?.preview || '',
+        image: permanentImageUrl, // USE PERMANENT URL
         is_auction: listingType === 'auction',
         starting_bid: listingType === 'auction' ? parseFloat(formData.startingBid) || 0 : null,
         reserve_price: listingType === 'auction' ? parseFloat(formData.reservePrice) || 0 : null,
@@ -391,7 +420,7 @@ const SimpleDealerPanel = () => {
         featured: aiAnalysis?.estimatedValue > 1000, // Auto-feature high-value coins
         ai_confidence: aiAnalysis?.confidence || 0,
         error_type: formData.error || null,
-        denomination: aiAnalysis?.denomination || null
+        denomination: aiAnalysis?.denomination
       };
 
       const { data, error } = await supabase

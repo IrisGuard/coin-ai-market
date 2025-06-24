@@ -49,19 +49,19 @@ const extractMarketplaceIntelligence = async (claudeResult: any) => {
 
 // Enhanced data merger function with cache clearing and validation
 const mergeAnalysisData = async (claudeResult: any, webResults: any[]) => {
-  // Sanitize and validate Claude data to prevent cached/wrong results
+  // Return ONLY Claude data - NO fallbacks whatsoever
   const sanitizedData = {
-    name: claudeResult.name || 'Unknown Coin',
-    country: claudeResult.country || 'Unknown',
-    year: claudeResult.year || new Date().getFullYear(),
-    denomination: claudeResult.denomination || 'Unknown',
-    composition: claudeResult.composition || 'Unknown',
-    grade: claudeResult.grade || 'Ungraded',
-    rarity: claudeResult.rarity || 'Common',
+    name: claudeResult.name,
+    country: claudeResult.country,
+    year: claudeResult.year,
+    denomination: claudeResult.denomination,
+    composition: claudeResult.composition,
+    grade: claudeResult.grade,
+    rarity: claudeResult.rarity,
     estimated_value: claudeResult.estimated_value || 0,
-    mint: claudeResult.mint || '',
-    diameter: claudeResult.diameter || 0,
-    weight: claudeResult.weight || 0,
+    mint: claudeResult.mint,
+    diameter: claudeResult.diameter,
+    weight: claudeResult.weight,
     errors: claudeResult.errors || [],
     confidence: claudeResult.confidence || 0.75
   };
@@ -121,16 +121,16 @@ export const useRealAICoinRecognition = () => {
       
       const enhancedResult: EnhancedAIResult = {
         name: validatedName,
-        year: mergedData.year || claudeResult.analysis.year || new Date().getFullYear(),
+        year: mergedData.year || claudeResult.analysis.year,
         country: validatedCountry,
-        denomination: mergedData.denomination || claudeResult.analysis.denomination || 'Unknown',
-        composition: mergedData.composition || claudeResult.analysis.composition || 'Unknown',
-        grade: mergedData.grade || claudeResult.analysis.grade || 'Ungraded',
+        denomination: mergedData.denomination || claudeResult.analysis.denomination,
+        composition: mergedData.composition || claudeResult.analysis.composition,
+        grade: mergedData.grade || claudeResult.analysis.grade,
         estimatedValue: mergedData.estimated_value || claudeResult.analysis.estimated_value || 0,
-        rarity: mergedData.rarity || claudeResult.analysis.rarity || 'Common',
-        mint: mergedData.mint || claudeResult.analysis.mint || '',
-        diameter: mergedData.diameter || claudeResult.analysis.diameter || 0,
-        weight: mergedData.weight || claudeResult.analysis.weight || 0,
+        rarity: mergedData.rarity || claudeResult.analysis.rarity,
+        mint: mergedData.mint || claudeResult.analysis.mint,
+        diameter: mergedData.diameter || claudeResult.analysis.diameter,
+        weight: mergedData.weight || claudeResult.analysis.weight,
         errors: mergedData.errors || claudeResult.analysis.errors || [],
         confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75,
         aiProvider: 'claude-enhanced',
@@ -139,7 +139,7 @@ export const useRealAICoinRecognition = () => {
         structured_description: structuredDescription,
         category: suggestedCategory,
         market_intelligence: marketplaceIntelligence,
-        condition: mergedData.grade || claudeResult.analysis.grade || 'Ungraded',
+        condition: mergedData.grade || claudeResult.analysis.grade,
         authentication_status: 'ai_verified',
         ai_confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75
       };
@@ -178,11 +178,11 @@ export const useRealAICoinRecognition = () => {
 };
 
 const generateAutoDescription = (mergedData: any, claudeData: any): string => {
-  const name = mergedData.name || claudeData.name || 'Coin';
-  const year = mergedData.year || claudeData.year || 'unknown year';
-  const grade = mergedData.grade || claudeData.grade || 'Ungraded';
-  const composition = mergedData.composition || claudeData.composition || 'Unknown composition';
-  const rarity = mergedData.rarity || claudeData.rarity || 'Common';
+  const name = mergedData.name || claudeData.name;
+  const year = mergedData.year || claudeData.year;
+  const grade = mergedData.grade || claudeData.grade;
+  const composition = mergedData.composition || claudeData.composition;
+  const rarity = mergedData.rarity || claudeData.rarity;
   const weight = mergedData.weight || claudeData.weight || 0;
   const diameter = mergedData.diameter || claudeData.diameter || 0;
   const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
@@ -191,12 +191,12 @@ const generateAutoDescription = (mergedData: any, claudeData: any): string => {
 };
 
 const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any): string => {
-  const name = mergedData.name || claudeData.name || 'Unknown Coin';
-  const year = mergedData.year || claudeData.year || 'Unknown';
-  const grade = mergedData.grade || claudeData.grade || 'Ungraded';
-  const composition = mergedData.composition || claudeData.composition || 'Unknown composition';
-  const country = mergedData.country || claudeData.country || 'Unknown origin';
-  const rarity = mergedData.rarity || claudeData.rarity || 'Common';
+  const name = mergedData.name || claudeData.name;
+  const year = mergedData.year || claudeData.year;
+  const grade = mergedData.grade || claudeData.grade;
+  const composition = mergedData.composition || claudeData.composition;
+  const country = mergedData.country || claudeData.country;
+  const rarity = mergedData.rarity || claudeData.rarity;
   const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
   const confidence = mergedData.final_confidence || claudeData.confidence || 0.75;
   
@@ -204,8 +204,8 @@ const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any)
 };
 
 const validateCountryData = (country?: string): string => {
-  if (!country || country === 'Unknown' || country.toLowerCase().includes('usa coin')) {
-    return 'Unknown';
+  if (!country) {
+    return '';
   }
   
   const countryLower = country.toLowerCase().trim();
@@ -217,12 +217,12 @@ const validateCountryData = (country?: string): string => {
   
   // Remove any "coin" suffixes that might be cached
   const cleanCountry = country.replace(/\s*coin\s*$/i, '').trim();
-  return cleanCountry || 'Unknown';
+  return cleanCountry;
 };
 
 const validateCoinName = (name?: string, country?: string): string => {
-  if (!name || name === 'Unknown Coin') {
-    return 'Unknown Coin';
+  if (!name) {
+    return '';
   }
   
   // Remove conflicting country data from name
@@ -232,17 +232,17 @@ const validateCoinName = (name?: string, country?: string): string => {
     .trim();
   
   // If we have a valid country, ensure consistency
-  if (country && country !== 'Unknown') {
+  if (country && country !== '') {
     if (!cleanName.toLowerCase().includes(country.toLowerCase())) {
       return `${country} ${cleanName}`.trim();
     }
   }
   
-  return cleanName || 'Unknown Coin';
+  return cleanName;
 };
 
 const determineEnhancedCategory = (country?: string, denomination?: string): string => {
-  if (!country || country === 'Unknown') return 'WORLD COINS';
+  if (!country) return '';
   
   const countryLower = country.toLowerCase();
   

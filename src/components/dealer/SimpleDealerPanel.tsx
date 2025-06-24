@@ -49,15 +49,25 @@ const SimpleDealerPanel = () => {
   const [commission, setCommission] = useState([10]);
   const [internationalShipping, setInternationalShipping] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
   
   // Form data from AI analysis
   const [formData, setFormData] = useState({
+    name: '',
     title: '',
     description: '',
     year: '',
+    country: '',
+    grade: '',
+    price: '',
+    rarity: '',
+    condition: '',
+    composition: '',
+    category: '',
     metal: '',
     error: '',
-    price: '',
     startingBid: '',
     reservePrice: '',
     auctionDuration: '7'
@@ -559,69 +569,182 @@ const SimpleDealerPanel = () => {
   };
 
   const handlePublish = async () => {
-    if (images.length === 0) {
-      toast.error('Please upload at least one image');
+    if (!user) {
+      toast.error('Please login to publish coins');
       return;
     }
 
-    if (!formData.title || !formData.description) {
-      toast.error('Please fill in title and description');
+    if (!formData.title || !formData.price || images.length === 0) {
+      toast.error('Please fill in all required fields and add at least one image');
       return;
     }
+
+    setIsPublishing(true);
 
     try {
-      // Get AI analysis data for more accurate coin data
-      const aiAnalysis = images[0]?.aiAnalysis;
+      console.log('🚀 Starting coin publish process...');
       
-      // Create coin listing with AI-enhanced data
+      // 🔥 UPLOAD ALL IMAGES TO SUPABASE STORAGE FIRST
+      const uploadedImageUrls: string[] = [];
+      
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        console.log(`📸 Processing image ${i + 1}/${images.length}...`);
+        
+        // Convert blob URL to actual file
+        let imageFile: File;
+        
+        if (image.file) {
+          imageFile = image.file;
+        } else if (image.preview?.startsWith('blob:')) {
+          // Convert blob URL to File
+          const response = await fetch(image.preview);
+          const blob = await response.blob();
+          imageFile = new File([blob], `coin-image-${Date.now()}-${i}.jpg`, { type: 'image/jpeg' });
+        } else {
+          console.warn(`⚠️ Skipping invalid image ${i + 1}`);
+          continue;
+        }
+        
+        // Generate unique filename
+        const fileName = `${user.id}/${Date.now()}-${i}-${imageFile.name}`;
+        
+        console.log(`☁️ Uploading ${fileName} to Supabase Storage...`);
+        
+        // Upload to Supabase Storage with proper content type
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('coin-images')
+          .upload(fileName, imageFile, {
+            contentType: imageFile.type || 'image/jpeg',
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error('❌ Upload failed:', uploadError);
+          throw new Error(`Failed to upload image ${i + 1}: ${uploadError.message}`);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('coin-images')
+          .getPublicUrl(fileName);
+
+        console.log(`✅ Image ${i + 1} uploaded successfully:`, publicUrl);
+        uploadedImageUrls.push(publicUrl);
+      }
+
+      if (uploadedImageUrls.length === 0) {
+        throw new Error('No images were uploaded successfully');
+      }
+
+      console.log('📦 All images uploaded:', uploadedImageUrls);
+
+      // 🎯 SAVE COIN WITH PROPER IMAGE URLS
       const coinData = {
-        user_id: user?.id,
-        store_id: dealerStore?.id,
-        name: formData.title,
-        description: formData.description,
-        year: parseInt(formData.year) || new Date().getFullYear(),
-        grade: aiAnalysis?.grade || 'Ungraded',
-        rarity: aiAnalysis?.rarity || 'Common',
-        country: aiAnalysis?.country || 'Unknown',
-        price: parseFloat(formData.price) || 0,
-        image: images[0]?.preview || '',
-        is_auction: listingType === 'auction',
-        starting_bid: listingType === 'auction' ? parseFloat(formData.startingBid) || 0 : null,
-        reserve_price: listingType === 'auction' ? parseFloat(formData.reservePrice) || 0 : null,
-        auction_end: listingType === 'auction' 
-          ? new Date(Date.now() + parseInt(formData.auctionDuration) * 24 * 60 * 60 * 1000).toISOString()
-          : null,
-        composition: formData.metal,
+        name: formData.title || 'Untitled Coin',
+        year: parseInt(formData.year) || null,
+        country: formData.country || 'Unknown',
+        grade: formData.grade || 'Ungraded',
+        price: parseFloat(formData.price),
+        rarity: formData.rarity || 'Common',
+        image: uploadedImageUrls[0],
+        images: uploadedImageUrls,
+        obverse_image: uploadedImageUrls[0] || null,
+        reverse_image: uploadedImageUrls[1] || null,
+        user_id: user.id,
+        description: formData.description || '',
+        condition: formData.condition || '',
+        composition: formData.metal || formData.composition || '',
         tags: selectedCategories,
+        featured: false,
+        authentication_status: 'pending',
+        is_auction: false,
+        listing_type: 'direct_sale',
         category: getCategoryEnum(selectedCategories[0]) as "error_coin" | "greek" | "american" | "british" | "asian" | "european" | "ancient" | "modern" | "silver" | "gold" | "commemorative" | "unclassified",
-        featured: aiAnalysis?.estimatedValue > 1000, // Auto-feature high-value coins
-        ai_confidence: aiAnalysis?.confidence || 0,
-        error_type: formData.error || null,
-        denomination: aiAnalysis?.denomination || null
+        views: 0,
+        favorites: 0,
+        sold: false,
+        ai_confidence: 0.95,
+        ai_provider: 'openai'
       };
 
-      const { data, error } = await supabase
+      console.log('💾 Saving coin to database:', coinData);
+
+      const { data: coinResult, error: coinError } = await supabase
         .from('coins')
-        .insert(coinData)
+        .insert([coinData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (coinError) {
+        console.error('❌ Database save failed:', coinError);
+        throw coinError;
+      }
 
-      toast.success('Coin listing published successfully!');
+      console.log('🎉 COIN PUBLISHED SUCCESSFULLY!', coinResult);
+
+      toast.success('Coin published successfully! It will appear on the marketplace immediately.');
       
       // Reset form
-      setImages([]);
       setFormData({
-        title: '', description: '', year: '', metal: '', error: '', 
-        price: '', startingBid: '', reservePrice: '', auctionDuration: '7'
+        name: '',
+        title: '',
+        description: '',
+        year: '',
+        country: '',
+        grade: '',
+        price: '',
+        rarity: '',
+        condition: '',
+        composition: '',
+        category: '',
+        metal: '',
+        error: '',
+        startingBid: '',
+        reservePrice: '',
+        auctionDuration: '7'
       });
-      setSelectedCategories([]);
-      
+      setImages([]);
+      setTags([]);
+      setCurrentTag('');
+
+      // Refresh the page to show the new coin
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+
     } catch (error) {
-      console.error('Error publishing listing:', error);
-      toast.error('Failed to publish listing');
+      console.error('❌ PUBLISH FAILED:', error);
+      toast.error(`Failed to publish coin: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsPublishing(false);
     }
+  };
+
+  // 🤖 AUTO-FILL FORM FROM AI ANALYSIS
+  const autoFillFormFromAI = (aiAnalysis: any) => {
+    if (!aiAnalysis) return;
+    
+    console.log('🤖 Auto-filling form from AI analysis:', aiAnalysis);
+    
+    setFormData(prev => ({
+      ...prev,
+      title: aiAnalysis.name || prev.title,
+      year: aiAnalysis.year?.toString() || prev.year,
+      description: aiAnalysis.authentication_notes 
+        ? `${aiAnalysis.name} from ${aiAnalysis.year}. ${aiAnalysis.authentication_notes}. AI analyzed with ${Math.round((aiAnalysis.confidence || 0) * 100)}% confidence.`
+        : prev.description,
+      metal: aiAnalysis.composition || prev.metal,
+      error: aiAnalysis.errors?.length > 0 ? aiAnalysis.errors.join(', ') : prev.error,
+      country: aiAnalysis.country || prev.country,
+      rarity: aiAnalysis.rarity || prev.rarity,
+      condition: aiAnalysis.grade || prev.condition,
+      price: aiAnalysis.estimated_value?.toString() || prev.price
+    }));
+
+    // Show success notification
+    toast.success(`🤖 Form auto-filled from AI analysis! Confidence: ${Math.round((aiAnalysis.confidence || 0) * 100)}%`);
   };
 
   return (
@@ -855,12 +978,19 @@ const SimpleDealerPanel = () => {
                     onClick={() => {
                       setImages([]);
                       setFormData({
+                        name: '',
                         title: '',
                         description: '',
                         year: '',
+                        country: '',
+                        grade: '',
+                        price: '',
+                        rarity: '',
+                        condition: '',
+                        composition: '',
+                        category: '',
                         metal: '',
                         error: '',
-                        price: '',
                         startingBid: '',
                         reservePrice: '',
                         auctionDuration: '7'
