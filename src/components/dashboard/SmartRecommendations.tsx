@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,7 +42,7 @@ const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       expectedReturn: "+18%",
       confidence: 76,
       price: "$450",
-      rarity: "Common",
+      rarity: "Rare",
       image: "/placeholder.svg",
       priority: "medium"
     },

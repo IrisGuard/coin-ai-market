@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -120,10 +119,9 @@ const CoinListingDetailsForm = ({ coinData, onCoinDataChange }: CoinListingDetai
             <Label htmlFor="rarity">Rarity</Label>
             <Select value={coinData.rarity} onValueChange={(value) => updateCoinData('rarity', value)}>
               <SelectTrigger className="border-indigo-200 focus:border-indigo-500">
-                <SelectValue placeholder="Select rarity" />
+                <SelectValue placeholder="AI will determine rarity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Common">Common</SelectItem>
                 <SelectItem value="Uncommon">Uncommon</SelectItem>
                 <SelectItem value="Rare">Rare</SelectItem>
                 <SelectItem value="Very Rare">Very Rare</SelectItem>

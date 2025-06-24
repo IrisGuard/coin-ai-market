@@ -15,7 +15,28 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import type { DualComparisonResult } from '@/hooks/useDualImageAnalysis';
+
+interface DualComparisonResult {
+  name?: string;
+  confidence?: number;
+  grade?: string;
+  estimatedValue?: number;
+  errors?: string[];
+  errorDetected?: boolean;
+  category?: string;
+  rarity?: string;
+  featured?: boolean;
+  country?: string;
+  denomination?: string;
+  year?: number;
+  condition?: string;
+  composition?: string;
+  mint?: string;
+  anthropic_analysis?: any;
+  claude_analysis?: any;
+  comparison?: any;
+  processing_time?: number;
+}
 
 interface AnalysisResultsProps {
   results: DualComparisonResult;

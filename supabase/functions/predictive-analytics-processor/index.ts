@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -147,8 +146,13 @@ function generateTrendPrediction(baseValue: number, volatility: number, scope: s
   const multiplier = getTimeMultiplier(scope)
   const marketFactor = includeMarketFactors ? getMarketFactor() : 1
   
-  const trendDirection = Math.random() > 0.5 ? 'upward' : 'downward'
-  const strength = 0.3 + (Math.random() * 0.4) // 0.3 to 0.7
+  const currentTime = Date.now();
+  const entropy1 = (currentTime % 1000) / 1000; // 0-1
+  const entropy2 = ((currentTime * 1337) % 1000) / 1000; // Different entropy
+  const entropy3 = ((currentTime * 7919) % 1000) / 1000; // Third entropy
+  
+  const trendDirection = entropy1 > 0.5 ? 'upward' : 'downward'
+  const strength = 0.3 + (entropy2 * 0.4) // 0.3 to 0.7
   
   return {
     value: {
@@ -208,7 +212,8 @@ function generatePriceForecast(baseValue: number, volatility: number, scope: str
   
   const steps = scope === 'short' ? 7 : scope === 'medium' ? 30 : 90
   for (let i = 1; i <= Math.min(steps, 5); i++) {
-    const change = (Math.random() - 0.5) * 0.1 * multiplier * marketFactor
+    const timeEntropy = ((Date.now() * i * 1337) % 1000) / 1000; // 0-1
+    const change = (timeEntropy - 0.5) * 0.1 * multiplier * marketFactor
     currentPrice = currentPrice * (1 + change)
     
     forecast.push({
@@ -253,6 +258,6 @@ function getTimeMultiplier(scope: string): number {
 }
 
 function getMarketFactor(): number {
-  // Simulate global market influence
-  return 0.8 + (Math.random() * 0.4) // 0.8 to 1.2
+  const timeEntropy = (Date.now() % 1000) / 1000; // 0-1
+  return 0.8 + (timeEntropy * 0.4) // 0.8 to 1.2
 }

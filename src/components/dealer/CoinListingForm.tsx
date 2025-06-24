@@ -268,11 +268,9 @@ const CoinListingForm: React.FC<CoinListingFormProps> = ({
                     <SelectValue placeholder="Select rarity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Common">Common</SelectItem>
                     <SelectItem value="Uncommon">Uncommon</SelectItem>
                     <SelectItem value="Rare">Rare</SelectItem>
                     <SelectItem value="Very Rare">Very Rare</SelectItem>
-                    <SelectItem value="Extremely Rare">Extremely Rare</SelectItem>
                     <SelectItem value="Ultra Rare">Ultra Rare</SelectItem>
                   </SelectContent>
                 </Select>

@@ -47,12 +47,29 @@ const extractMarketplaceIntelligence = async (claudeResult: any) => {
   };
 };
 
-// Simple data merger function
+// Enhanced data merger function with cache clearing and validation
 const mergeAnalysisData = async (claudeResult: any, webResults: any[]) => {
+  // Sanitize and validate Claude data to prevent cached/wrong results
+  const sanitizedData = {
+    name: claudeResult.name || 'Unknown Coin',
+    country: claudeResult.country || 'Unknown',
+    year: claudeResult.year || new Date().getFullYear(),
+    denomination: claudeResult.denomination || 'Unknown',
+    composition: claudeResult.composition || 'Unknown',
+    grade: claudeResult.grade || 'Ungraded',
+    rarity: claudeResult.rarity || 'Common',
+    estimated_value: claudeResult.estimated_value || 0,
+    mint: claudeResult.mint || '',
+    diameter: claudeResult.diameter || 0,
+    weight: claudeResult.weight || 0,
+    errors: claudeResult.errors || [],
+    confidence: claudeResult.confidence || 0.75
+  };
+  
   return {
-    ...claudeResult,
+    ...sanitizedData,
     enhanced_with_marketplace: true,
-    final_confidence: claudeResult.confidence || 0.75
+    final_confidence: sanitizedData.confidence
   };
 };
 

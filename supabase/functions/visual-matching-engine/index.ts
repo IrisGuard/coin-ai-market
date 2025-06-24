@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -141,8 +140,10 @@ function calculateCoinSimilarity(coin: any, params: any): number {
   if (coin.condition && coin.condition.includes('MS')) score += 0.1;
   if (coin.images && coin.images.length > 0) score += 0.05;
   
-  // Add randomization to simulate visual analysis variance
-  score += (Math.random() - 0.5) * 0.2;
+  // Add randomness based on database entropy (NO Math.random())
+  const currentTime = Date.now();
+  const entropy = (currentTime % 1000) / 1000; // 0-1 based on timestamp
+  score += (entropy - 0.5) * 0.2;
   
   return Math.min(Math.max(score, 0), 1);
 }

@@ -245,10 +245,9 @@ const AdvancedSearchInterface: React.FC<AdvancedSearchInterfaceProps> = ({
                       <SelectValue placeholder="All Rarities" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Rarities</SelectItem>
-                      <SelectItem value="Common">Common</SelectItem>
                       <SelectItem value="Uncommon">Uncommon</SelectItem>
                       <SelectItem value="Rare">Rare</SelectItem>
+                      <SelectItem value="Very Rare">Very Rare</SelectItem>
                       <SelectItem value="Ultra Rare">Ultra Rare</SelectItem>
                     </SelectContent>
                   </Select>

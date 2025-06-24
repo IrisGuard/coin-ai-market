@@ -1,48 +1,23 @@
-
-import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import DualImageUploader from '@/components/analysis/DualImageUploader';
-import AnalysisResults from '@/components/analysis/AnalysisResults';
-import type { DualComparisonResult } from '@/hooks/useDualImageAnalysis';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const DualAnalysis = () => {
-  const [analysisResult, setAnalysisResult] = useState<DualComparisonResult | null>(null);
+  const navigate = useNavigate();
 
-  const handleAnalysisComplete = (result: DualComparisonResult) => {
-    setAnalysisResult(result);
-  };
-
-  const handleNewAnalysis = () => {
-    setAnalysisResult(null);
-  };
+  useEffect(() => {
+    // Redirect to dealer page for coin analysis
+    navigate('/dealer');
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <Navbar />
-      
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {!analysisResult ? (
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Complete Dual-Side Coin Analysis
-              </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Upload both sides of your coin for comprehensive AI recognition, 
-                global market discovery, error detection, and investment analysis
-              </p>
-            </div>
-          ) : null}
-          
-          {!analysisResult ? (
-            <DualImageUploader onAnalysisComplete={handleAnalysisComplete} />
-          ) : (
-            <AnalysisResults 
-              results={analysisResult} 
-              onNewAnalysis={handleNewAnalysis}
-            />
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Redirecting to Coin Analysis...
+        </h1>
+        <p className="text-gray-600">
+          Please use the dealer panel for comprehensive coin analysis.
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { usePageView } from '@/hooks/usePageView';
-import EnhancedDealerPanel from "@/components/dealer/EnhancedDealerPanel";
+import SimpleDealerPanel from "@/components/dealer/SimpleDealerPanel";
 
 const DealerPage = () => {
   try {
@@ -10,7 +9,7 @@ const DealerPage = () => {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <EnhancedDealerPanel />
+          <SimpleDealerPanel />
         </div>
       </div>
     );
@@ -21,7 +20,7 @@ const DealerPage = () => {
           <div className="text-6xl mb-4">💥</div>
           <h2 className="text-2xl font-bold text-foreground">Page Error</h2>
           <p className="text-muted-foreground">
-            Error loading enhanced dealer panel. Please refresh the page.
+            Error loading dealer panel. Please refresh the page.
           </p>
           <button 
             onClick={() => window.location.href = '/'} 

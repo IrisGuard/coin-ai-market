@@ -62,56 +62,36 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
       return;
     }
 
+    // 🚨 OFFLINE MODE COMPLETELY DISABLED - ONLY LIVE AI ANALYSIS
+    if (isOfflineMode) {
+      toast({
+        title: "Network Required",
+        description: "Please connect to internet for AI coin analysis. Offline mode disabled.",
+        variant: "destructive",
+      });
+      setAnalysisStage('idle');
+      return;
+    }
+
     setAnalysisStage('analyzing');
     const startTime = Date.now();
 
     try {
-      if (isOfflineMode) {
-        // Offline mode - use basic analysis
-        const basicResult = {
-          success: true,
-          confidence: 0.75,
-          name: "Coin Analysis (Offline)",
-          year: new Date().getFullYear(),
-          country: "Unknown",
-          denomination: "Unknown",
-          grade: "Estimated VF-20",
-          estimatedValue: 25,
-          provider: "offline",
-          offline: true
-        };
+      // Online mode - use enhanced AI analysis ONLY
+      const imageComplexity = calculateImageComplexity(imageBase64);
+      const result = await enhancedRecognition(imageBase64, imageComplexity);
 
-        setAnalysisResults(basicResult);
-        setConfidenceMetrics({
-          imageQuality: 0.8,
-          historicalAccuracy: 0.7,
-          providerReliability: 0.75,
-          crossValidation: 0.6,
-          userFeedback: 0.8
-        });
+      setAnalysisResults(result);
+      setConfidenceMetrics(result.metrics);
 
-        toast({
-          title: "Offline Analysis Complete",
-          description: "Basic analysis completed. Connect to internet for full AI analysis.",
-        });
+      // Log the analysis for stats
+      const analysisTime = Date.now() - startTime;
+      await logAnalysis(analysisTime, result.confidence);
 
-      } else {
-        // Online mode - use enhanced AI analysis
-        const imageComplexity = calculateImageComplexity(imageBase64);
-        const result = await enhancedRecognition(imageBase64, imageComplexity);
-
-        setAnalysisResults(result);
-        setConfidenceMetrics(result.metrics);
-
-        // Log the analysis for stats
-        const analysisTime = Date.now() - startTime;
-        await logAnalysis(analysisTime, result.confidence);
-
-        toast({
-          title: "Enhanced Analysis Complete",
-          description: `${result.name || 'Coin'} identified with ${Math.round(result.confidence * 100)}% confidence`,
-        });
-      }
+      toast({
+        title: "Enhanced Analysis Complete",
+        description: `${result.name || 'Coin'} identified with ${Math.round(result.confidence * 100)}% confidence`,
+      });
 
       setAnalysisStage('complete');
       onAnalysisComplete(analysisResults);
@@ -174,7 +154,7 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
               <h3 className="font-semibold mb-2">Ready for AI Analysis</h3>
               <p className="text-sm text-gray-600 mb-4">
                 {isOfflineMode 
-                  ? "Offline mode: Basic analysis available"
+                  ? "Network required: Connect to internet for AI analysis"
                   : "Online mode: Full AI analysis with multiple providers"
                 }
               </p>
@@ -182,11 +162,11 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
             
             <Button 
               onClick={runEnhancedAnalysis}
-              disabled={!imageBase64 || isProcessing}
+              disabled={!imageBase64 || isProcessing || isOfflineMode}
               className="w-full bg-purple-600 hover:bg-purple-700"
             >
               <Zap className="w-4 h-4 mr-2" />
-              {isOfflineMode ? 'Start Basic Analysis' : 'Start Enhanced Analysis'}
+              {isOfflineMode ? 'Network Required' : 'Start Enhanced Analysis'}
             </Button>
 
             {/* Provider Status */}
@@ -216,14 +196,9 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
               <Brain className="w-6 h-6 text-purple-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
             </div>
             <div>
-              <h3 className="font-semibold mb-2">
-                {isOfflineMode ? 'Processing Locally...' : 'Enhanced AI Analysis...'}
-              </h3>
+              <h3 className="font-semibold mb-2">Enhanced AI Analysis...</h3>
               <p className="text-sm text-gray-600">
-                {isOfflineMode 
-                  ? "Running basic coin analysis offline"
-                  : "Analyzing with multiple AI providers for maximum accuracy"
-                }
+                Analyzing with multiple AI providers for maximum accuracy
               </p>
             </div>
             <Progress value={50} className="w-full" />
@@ -250,19 +225,19 @@ const EnhancedMobileAI = ({ imageBase64, onAnalysisComplete }: EnhancedMobileAIP
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-gray-600">Coin:</span>
-                    <p className="font-medium">{analysisResults.name || 'Unknown'}</p>
+                    <p className="font-medium">{analysisResults.name}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Year:</span>
-                    <p className="font-medium">{analysisResults.year || 'Unknown'}</p>
+                    <p className="font-medium">{analysisResults.year}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Grade:</span>
-                    <p className="font-medium">{analysisResults.grade || 'Unknown'}</p>
+                    <p className="font-medium">{analysisResults.grade}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Value:</span>
-                    <p className="font-medium">${analysisResults.estimatedValue || 0}</p>
+                    <p className="font-medium">${analysisResults.estimatedValue}</p>
                   </div>
                 </div>
               </div>
