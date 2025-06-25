@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,30 +7,42 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, MapPin, Star, Shield } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Star, Shield, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { usePageView } from '@/hooks/usePageView';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 const Profile = () => {
   usePageView();
   const { user } = useAuth();
+  const { profile, setProfile, updateProfile, saving, data: profileData } = useUserProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user?.user_metadata?.full_name || '',
-    email: user?.email || '',
-    phone: '',
-    location: '',
-    bio: ''
-  });
 
-  const handleSave = () => {
-    // TODO: Implement profile update with Supabase
+  // Sync form data with profile data
+  useEffect(() => {
+    if (profileData) {
+      setProfile({
+        full_name: profileData.full_name || '',
+        phone: profileData.phone || '',
+        location: profileData.location || '',
+        bio: profileData.bio || '',
+        avatar_url: profileData.avatar_url || ''
+      });
+    }
+  }, [profileData, setProfile]);
+
+  const handleSave = async () => {
+    await updateProfile();
     setIsEditing(false);
   };
 
   const getUserInitials = () => {
-    const name = formData.fullName || user?.email || 'User';
+    const name = profile.full_name || user?.email || 'User';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setProfile(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -55,16 +66,16 @@ const Profile = () => {
               <CardHeader className="text-center">
                 <div className="flex justify-center">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user?.user_metadata?.avatar_url} />
+                    <AvatarImage src={profile.avatar_url} />
                     <AvatarFallback className="text-xl bg-purple-100 text-purple-600">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <CardTitle className="mt-4">{formData.fullName || 'User'}</CardTitle>
+                <CardTitle className="mt-4">{profile.full_name || 'User'}</CardTitle>
                 <CardDescription className="flex items-center justify-center gap-2">
                   <Mail className="h-4 w-4" />
-                  {formData.email}
+                  {user?.email}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -102,8 +113,8 @@ const Profile = () => {
                       <User className="h-4 w-4 text-gray-500" />
                       <Input
                         id="fullName"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        value={profile.full_name}
+                        onChange={(e) => handleInputChange('full_name', e.target.value)}
                         disabled={!isEditing}
                       />
                     </div>
@@ -115,9 +126,8 @@ const Profile = () => {
                       <Input
                         id="email"
                         type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        disabled={!isEditing}
+                        value={user?.email || ''}
+                        disabled={true}
                       />
                     </div>
                   </div>
@@ -127,8 +137,8 @@ const Profile = () => {
                       <Phone className="h-4 w-4 text-gray-500" />
                       <Input
                         id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        value={profile.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
                         disabled={!isEditing}
                       />
                     </div>
@@ -139,8 +149,8 @@ const Profile = () => {
                       <MapPin className="h-4 w-4 text-gray-500" />
                       <Input
                         id="location"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        value={profile.location}
+                        onChange={(e) => handleInputChange('location', e.target.value)}
                         disabled={!isEditing}
                       />
                     </div>
@@ -151,8 +161,8 @@ const Profile = () => {
                   <Textarea
                     id="bio"
                     placeholder="Tell us about yourself..."
-                    value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    value={profile.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
                     disabled={!isEditing}
                     rows={4}
                   />
