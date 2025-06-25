@@ -1,7 +1,7 @@
 {
   "name": "coin-ai-market",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -71,5 +71,5 @@
     "typescript": "^5.2.2",
     "vite": "^4.5.0"
   },
-  "description": "Coin AI Market - Modern marketplace for coin collectors and dealers - Updated for Vercel deployment"
+  "description": "CoinVault - AI-Powered Coin Marketplace v2.1.0 - DEPLOYMENT ACTIVE 2025-01-25 - Real AI Recognition System"
 }

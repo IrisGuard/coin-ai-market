@@ -56,6 +56,11 @@ const Index = () => {
   return (
     <ErrorBoundaryWrapper>
       <div className="min-h-screen bg-white">
+        {/* DEPLOYMENT SUCCESS BANNER - VERY VISIBLE */}
+        <div className="bg-green-600 text-white py-3 px-4 text-center font-bold text-lg">
+          🎉 SYSTEM UPDATED SUCCESSFULLY! • {new Date().toLocaleString('el-GR')} • All Features Active 🚀
+        </div>
+        
         <Navbar />
         
         {/* Enhanced Hero Section */}
@@ -75,8 +80,8 @@ const Index = () => {
               </p>
               
               {/* Version indicator */}
-              <div className="text-xs text-gray-400 mb-4">
-                System Updated: {new Date().toLocaleDateString('el-GR')} • v2.1.0 • Real AI Recognition Active
+              <div className="text-sm text-green-600 font-semibold mb-4 bg-green-50 p-3 rounded-lg">
+                ✅ System Updated: {new Date().toLocaleDateString('el-GR')} • v2.1.0 • Real AI Recognition Active
               </div>
               
               {/* Enhanced Search Bar with larger width */}
