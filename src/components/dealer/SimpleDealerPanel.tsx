@@ -182,11 +182,11 @@ const SimpleDealerPanel = () => {
           setImages(prevImages => {
             const updated = [...prevImages];
             const imageIndex = updated.findIndex(img => img.id === imageData.id);
-            
-            if (imageIndex !== -1) {
+          
+          if (imageIndex !== -1) {
               updated[imageIndex] = {
                 ...updated[imageIndex],
-                analyzing: false,
+              analyzing: false,
                 aiAnalysis: {
                   ...analysis,
                   // Ensure we use the real analysis data, not hardcoded values
@@ -213,13 +213,13 @@ const SimpleDealerPanel = () => {
             }
             return updated;
           });
-          
-          // 🎉 SUCCESS NOTIFICATION WITH DETAILED RESULTS
+            
+            // 🎉 SUCCESS NOTIFICATION WITH DETAILED RESULTS
           toast.success(`🎯 Analysis Complete! Image ${index + 1}`, {
             description: `${analysis.name} • ${Math.round((analysis.confidence || 0) * 100)}% confidence • ${analysis.country}`
-          });
-          
-          // 💰 VALUATION NOTIFICATION
+            });
+            
+            // 💰 VALUATION NOTIFICATION
           if ((analysis.estimatedValue || 0) > 1000) {
             toast.success(`💰 High Value Coin Detected! Image ${index + 1}`, {
               description: `Estimated value: $${(analysis.estimatedValue || 0).toLocaleString()}`
@@ -283,14 +283,14 @@ const SimpleDealerPanel = () => {
         setImages(prevImages => {
           const updated = [...prevImages];
           const imageIndex = updated.findIndex(img => img.id === imageData.id);
-          
-          if (imageIndex !== -1) {
+        
+        if (imageIndex !== -1) {
             updated[imageIndex] = {
               ...updated[imageIndex],
-              analyzing: false,
-              aiAnalysis: null
-            };
-          }
+            analyzing: false,
+            aiAnalysis: null
+          };
+        }
           return updated;
         });
         
@@ -713,7 +713,7 @@ const SimpleDealerPanel = () => {
       setTimeout(() => {
         window.location.reload();
       }, 2000);
-
+      
     } catch (error) {
       console.error('❌ PUBLISH FAILED:', error);
       toast.error(`Failed to publish coin: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -1005,7 +1005,7 @@ const SimpleDealerPanel = () => {
                   </Button>
                 </div>
               )}
-
+              
               {/* 🎯 ADVANCED AI ANALYSIS RESULTS */}
               {images.some(img => img.aiAnalysis) && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">

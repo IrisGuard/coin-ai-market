@@ -227,7 +227,7 @@ const ProductionCoinUploadManager: React.FC<ProductionCoinUploadManagerProps> = 
       toast.error(`Maximum ${maxImages} images allowed`);
       return;
     }
-    
+
     setUploadData(prev => ({ ...prev, images: files }));
     
     // Trigger AI analysis when images are uploaded
