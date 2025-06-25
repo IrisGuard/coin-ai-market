@@ -1,0 +1,22 @@
+# Vercel ignore file - only ignore what we don't need
+
+# Node modules
+node_modules/
+
+# Development files
+.env.local
+.env.development
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Don't ignore our important deployment files
+!BUILD_INFO.js
+!DEPLOYMENT_TRIGGER.txt
+!FORCE_UPDATE.txt
+!CACHE_FIX_SUMMARY.md 
