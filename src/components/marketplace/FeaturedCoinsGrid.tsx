@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ImageGallery from '@/components/ui/ImageGallery';
 import CoinCard from './CoinCard';
+import { Coin, mapSupabaseCoinToCoin } from '@/types/coin';
 import {
   Pagination,
   PaginationContent,
@@ -17,34 +18,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-
-interface Coin {
-  id: string;
-  name: string;
-  year: number;
-  country: string;
-  grade: string;
-  price: number;
-  image: string;
-  images?: string[];
-  obverse_image?: string;
-  reverse_image?: string;
-  user_id: string;
-  store_id: string;
-  rarity?: string;
-  featured?: boolean;
-  views?: number;
-  is_auction: boolean;
-  auction_end: string;
-  starting_bid: number;
-  ai_confidence: number;
-  authentication_status: string;
-  category: string;
-  description: string;
-  listing_type: string;
-  denomination: string;
-  condition: string;
-}
 
 interface Store {
   id: string;
@@ -114,33 +87,7 @@ const FeaturedCoinsGrid = () => {
         throw countError;
       }
       
-      const coinData = (coins || []).map(coin => ({
-        id: coin.id,
-        name: coin.name,
-        year: coin.year,
-        country: coin.country || '',
-        grade: coin.grade,
-        price: coin.price,
-        image: coin.image,
-        images: coin.images,
-        obverse_image: coin.obverse_image,
-        reverse_image: coin.reverse_image,
-        user_id: coin.user_id,
-        store_id: coin.store_id,
-        rarity: coin.rarity,
-        featured: coin.featured,
-        views: coin.views || 0,
-        is_auction: coin.is_auction || false,
-        auction_end: coin.auction_end,
-        starting_bid: coin.starting_bid,
-        ai_confidence: coin.ai_confidence,
-        authentication_status: coin.authentication_status || 'pending',
-        category: coin.category,
-        description: coin.description,
-        listing_type: coin.listing_type,
-        denomination: coin.denomination,
-        condition: coin.condition
-      }));
+      const coinData = (coins || []).map(coin => mapSupabaseCoinToCoin(coin));
 
       return { coins: coinData, count: count ?? 0 };
     }

@@ -33,7 +33,6 @@ const PhotoBackgroundSelector = () => {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    console.log('🔍 DEBUG PhotoBackgroundSelector - Processing files:', fileArray.length);
     await processMultipleImages(fileArray, selectedItemType);
   };
 
@@ -69,11 +68,8 @@ const PhotoBackgroundSelector = () => {
   const selectedBackgroundName = backgrounds.find(b => b.color === selectedBackground)?.name || 'Unknown';
 
   // Debug logging for processed images
-  console.log('🔍 DEBUG PhotoBackgroundSelector - processedImages:', processedImages);
   processedImages.forEach((img, index) => {
-    console.log(`🔍 DEBUG Image ${index}:`, {
-      filename: img.filename,
-      original: img.original?.substring(0, 50) + '...',
+    + '...',
       processed: img.processed?.substring(0, 50) + '...',
       originalType: img.original?.startsWith('data:') ? 'DATA_URL' : img.original?.startsWith('blob:') ? 'BLOB_URL' : 'OTHER',
       processedType: img.processed?.startsWith('data:') ? 'DATA_URL' : img.processed?.startsWith('blob:') ? 'BLOB_URL' : 'OTHER'

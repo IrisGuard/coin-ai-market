@@ -74,58 +74,25 @@ const DealerStorePage = () => {
     queryFn: async () => {
       if (!store?.id) return [];
       
-      // Enhanced query - get coins belonging to the store owner
-      const { data, error } = await supabase
-        .from('coins')
-        .select(`
-          id,
-          name,
-          price,
-          year,
-          grade,
-          country,
-          image,
-          images,
-          obverse_image,
-          reverse_image,
-          rarity,
-          views,
-          featured,
-          store_id,
-          user_id
-        `)
-        .eq('user_id', store.user_id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      try {
+        // Simple query to avoid TypeScript issues
+        const response = await supabase
+          .from('coins')
+          .select('*')
+          .eq('store_id', store.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching store coins:', error);
-        throw error;
+        if (response.error) {
+          console.error('Error fetching store coins:', response.error);
+          return [];
+        }
+
+        return response.data || [];
+      } catch (error) {
+        console.error('Query failed:', error);
+        return [];
       }
-
-      // Filter coins that belong to this store or have null store_id (unassigned)
-      const storeCoins = data?.filter(coin => 
-        coin.store_id === store.id || coin.store_id === null
-      ) || [];
-
-      // Log for debugging the specific Greece coin issue
-      const greeceCoin = storeCoins.find(coin => 
-        coin.name.toLowerCase().includes('greece') && 
-        coin.name.toLowerCase().includes('lepta') && 
-        coin.name.toLowerCase().includes('error')
-      );
-      
-      if (greeceCoin) {
-        console.log('🔍 FOUND Greece coin in store query:', {
-          id: greeceCoin.id,
-          name: greeceCoin.name,
-          store_id: greeceCoin.store_id,
-          user_id: greeceCoin.user_id,
-          storeUserId: store.user_id
-        });
-      }
-
-      return storeCoins;
     },
     enabled: !!store?.id
   });

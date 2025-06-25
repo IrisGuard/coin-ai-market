@@ -1,7 +1,5 @@
 
 export const mapUIToDatabaseCategory = (uiCategory: string): string => {
-  console.log('🔄 Mapping UI category to database:', uiCategory);
-  
   const mapping: Record<string, string> = {
     // Core categories
     'modern': 'modern',
@@ -46,11 +44,9 @@ export const mapUIToDatabaseCategory = (uiCategory: string): string => {
       uiCategory.toLowerCase().includes('die') ||
       uiCategory.toLowerCase().includes('strike') ||
       uiCategory.toLowerCase().includes('planchet')) {
-    console.log('🚨 ERROR COIN DETECTED via category mapping - Setting to error_coin');
     return 'error_coin';
   }
   
-  console.log('✅ Category mapped:', uiCategory, '->', mapped);
   return mapped;
 };
 
@@ -104,8 +100,7 @@ export const detectErrorCoinPatterns = (coinName: string, description: string = 
   );
   
   if (hasErrorPattern) {
-    console.log('🚨 ERROR COIN PATTERN DETECTED:', coinName);
-  }
+    }
   
   return hasErrorPattern;
 };

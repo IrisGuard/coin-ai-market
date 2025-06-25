@@ -3,8 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const getOptimizedDashboardStats = async () => {
   try {
-    console.log('🚀 Fetching optimized dashboard stats...');
-    
     // Use the existing admin dashboard function
     const { data, error } = await supabase.rpc('get_admin_dashboard_comprehensive');
     
@@ -14,7 +12,6 @@ export const getOptimizedDashboardStats = async () => {
       return await getBasicDashboardStats();
     }
 
-    console.log('✅ Comprehensive dashboard data:', data);
     return data;
   } catch (error) {
     console.error('❌ Failed to fetch optimized dashboard:', error);
@@ -24,8 +21,6 @@ export const getOptimizedDashboardStats = async () => {
 
 const getBasicDashboardStats = async () => {
   try {
-    console.log('📊 Fetching basic dashboard stats as fallback...');
-    
     // Basic stats queries with proper error handling
     const [usersResult, coinsResult, transactionsResult] = await Promise.allSettled([
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -74,8 +69,6 @@ const getBasicDashboardStats = async () => {
 
 export const validateSecurityStatus = async () => {
   try {
-    console.log('🔒 Validating security status...');
-    
     // Use existing security validation function
     const { data, error } = await supabase.rpc('validate_security_config');
     
@@ -84,7 +77,6 @@ export const validateSecurityStatus = async () => {
       return { status: 'error', message: 'Security validation failed' };
     }
     
-    console.log('✅ Security validation complete:', data);
     return data;
   } catch (error) {
     console.error('❌ Security validation failed:', error);

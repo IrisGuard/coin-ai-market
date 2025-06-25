@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Coin } from '@/types/coin';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,35 +27,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-interface Coin {
-  id: string;
-  name: string;
-  image: string;
-  images?: string[];
-  obverse_image?: string;
-  reverse_image?: string;
-  price: number;
-  grade: string;
-  year: number;
-  rarity: string;
-  is_auction: boolean;
-  auction_end: string | null;
-  starting_bid: number | null;
-  views: number;
-  featured: boolean;
-  ai_confidence: number | null;
-  country: string;
-  authentication_status: string;
-  category?: string;
-  description?: string;
-  listing_type?: string;
-  error_type?: string;
-  denomination?: string;
-  condition?: string;
-  user_id?: string;
-  store_id?: string;
-}
 
 interface CoinCardProps {
   coin: Coin;
@@ -277,11 +249,11 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
             <Badge 
               variant="outline" 
               className={`
-                ${coin.rarity === 'Key Date' ? 'border-red-200 text-red-700' : ''}
                 ${coin.rarity === 'Ultra Rare' ? 'border-purple-200 text-purple-700' : ''}
                 ${coin.rarity === 'Rare' ? 'border-orange-200 text-orange-700' : ''}
-                ${coin.rarity === 'Scarce' ? 'border-yellow-200 text-yellow-700' : ''}
+                ${coin.rarity === 'Uncommon' ? 'border-yellow-200 text-yellow-700' : ''}
                 ${coin.rarity === 'Common' ? 'border-green-200 text-green-700' : ''}
+                ${coin.rarity === 'Legendary' ? 'border-red-200 text-red-700' : ''}
               `}
             >
               {coin.rarity}

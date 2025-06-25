@@ -3,12 +3,8 @@ import { usePageView } from '@/hooks/usePageView';
 import FullSystemAdminPanel from "@/components/admin/enhanced/FullSystemAdminPanel";
 
 const AdminPanelPage = () => {
-  console.log('📄 AdminPanelPage - FULL SYSTEM ADMIN with 104 FLAT TABS & REAL DATA');
-  
   try {
     usePageView();
-    console.log('✅ AdminPanelPage: usePageView hook completed');
-    
     return <FullSystemAdminPanel />;
   } catch (error) {
     console.error('💥 Error in AdminPanelPage:', error);

@@ -13,15 +13,11 @@ export const useProductionCleanup = () => {
 
   const calculateCurrentStatus = async () => {
     try {
-      console.log('🔍 Υπολογισμός τρέχουσας κατάστασης συστήματος...');
-      
       // Platform is 100% complete
       setPlatformCompletion(100);
       setIsReady(true);
       
-      console.log(`✅ Status: Platform ${100}%, Ready: ${true}`);
-      
-    } catch (error) {
+      } catch (error) {
       console.error('❌ Σφάλμα κατά τον υπολογισμό κατάστασης:', error);
       setPlatformCompletion(100);
       setIsReady(true);
@@ -30,16 +26,11 @@ export const useProductionCleanup = () => {
 
   const executeFullCleanup = async () => {
     try {
-      console.log('🧹 Ξεκινά η τελική βελτιστοποίηση του συστήματος...');
-
       await cleanDatabaseData();
       const migrationResult = await executeProductionMigration();
-      console.log('📋 Migration result:', migrationResult);
       await updateSystemToProduction();
       await validateProductionReadiness();
 
-      console.log('✅ Τελική βελτιστοποίηση ολοκληρώθηκε επιτυχώς!');
-      
       setPlatformCompletion(100);
       
       return { success: true, message: 'Βελτιστοποίηση ολοκληρώθηκε επιτυχώς!' };
@@ -59,8 +50,6 @@ export const useProductionCleanup = () => {
   };
 
   const cleanDatabaseData = async () => {
-    console.log('🗑️ Καθαρισμός δεδομένων από βάση...');
-    
     try {
       const { error: analyticsError } = await supabase
         .from('analytics_events')
@@ -82,17 +71,13 @@ export const useProductionCleanup = () => {
         throw logsError;
       }
 
-      console.log('✅ Database data καθαρίστηκε επιτυχώς');
-      
-    } catch (error) {
+      } catch (error) {
       console.error('❌ Σφάλμα στον καθαρισμό βάσης:', error);
       throw error;
     }
   };
 
   const executeProductionMigration = async () => {
-    console.log('📊 Εκτέλεση production migration...');
-    
     try {
       const { data, error } = await supabase.rpc('execute_production_cleanup');
       
@@ -100,9 +85,6 @@ export const useProductionCleanup = () => {
         console.error('❌ Migration error:', error);
         throw new Error(`Migration απέτυχε: ${error.message}`);
       }
-      
-      console.log('✅ Production migration ολοκληρώθηκε επιτυχώς');
-      console.log('📋 Migration data:', data);
       
       return data;
       
@@ -113,8 +95,6 @@ export const useProductionCleanup = () => {
   };
 
   const updateSystemToProduction = async () => {
-    console.log('🚀 Ενεργοποίηση production mode...');
-    
     try {
       const { error } = await supabase.from('analytics_events').insert({
         event_type: 'production_mode_activated',
@@ -131,17 +111,13 @@ export const useProductionCleanup = () => {
         throw error;
       }
       
-      console.log('✅ Production mode ενεργοποιήθηκε επιτυχώς');
-      
-    } catch (error) {
+      } catch (error) {
       console.error('❌ Σφάλμα στην ενεργοποίηση production mode:', error);
       throw error;
     }
   };
 
   const validateProductionReadiness = async () => {
-    console.log('🔍 Τελική επαλήθευση production readiness...');
-    
     try {
       const { data: events, error } = await supabase
         .from('analytics_events')
@@ -153,9 +129,7 @@ export const useProductionCleanup = () => {
         throw error;
       }
 
-      console.log('✅ Production readiness επαληθεύτηκε');
-      
-    } catch (error) {
+      } catch (error) {
       console.error('❌ Σφάλμα στην επαλήθευση:', error);
       throw error;
     }

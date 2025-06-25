@@ -17,7 +17,6 @@ export const useRealExternalSources = () => {
         throw error;
       }
       
-      console.log('✅ Real external sources loaded:', data?.length);
       return data || [];
     }
   });
@@ -38,7 +37,6 @@ export const useRealMarketAnalytics = () => {
         throw error;
       }
       
-      console.log('✅ Real market analytics loaded:', data?.length);
       return data || [];
     }
   });
@@ -59,7 +57,6 @@ export const useRealAICommands = () => {
         throw error;
       }
       
-      console.log('✅ Real AI commands loaded:', data?.length);
       return data || [];
     }
   });
@@ -80,7 +77,6 @@ export const useRealAutomationRules = () => {
         throw error;
       }
       
-      console.log('✅ Real automation rules loaded:', data?.length);
       return data || [];
     }
   });
@@ -101,7 +97,6 @@ export const useRealSystemMetrics = () => {
         throw error;
       }
       
-      console.log('✅ Real system metrics loaded:', data?.length);
       return data || [];
     }
   });
@@ -122,7 +117,6 @@ export const useRealPerformanceMetrics = () => {
         throw error;
       }
       
-      console.log('✅ Real performance metrics loaded:', data?.length);
       return data || [];
     }
   });

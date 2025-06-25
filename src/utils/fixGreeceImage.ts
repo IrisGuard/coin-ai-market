@@ -3,8 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fixGreeceImageDisplay = async () => {
   try {
-    console.log('🏛️ FIXING GREECE COIN IMAGE DISPLAY...');
-    
     // Find the Greece coin
     const { data: greeceCoin, error: fetchError } = await supabase
       .from('coins')
@@ -16,15 +14,6 @@ export const fixGreeceImageDisplay = async () => {
       console.error('❌ Greece coin not found:', fetchError);
       return { success: false, error: 'Coin not found' };
     }
-
-    console.log('🔍 Found Greece coin:', {
-      id: greeceCoin.id,
-      name: greeceCoin.name,
-      currentImages: greeceCoin.images,
-      imageField: greeceCoin.image,
-      obverseImage: greeceCoin.obverse_image,
-      reverseImage: greeceCoin.reverse_image
-    });
 
     // Collect all available image URLs
     const allImageUrls: string[] = [];
@@ -70,15 +59,6 @@ export const fixGreeceImageDisplay = async () => {
         return { success: false, error: updateError.message };
       }
 
-      console.log('✅ GREECE COIN FIXED SUCCESSFULLY:', {
-        coinId: updatedCoin.id,
-        name: updatedCoin.name,
-        totalImages: allImageUrls.length,
-        imagesArray: updatedCoin.images,
-        featured: updatedCoin.featured,
-        category: updatedCoin.category
-      });
-
       return { 
         success: true, 
         coinId: updatedCoin.id,
@@ -86,7 +66,6 @@ export const fixGreeceImageDisplay = async () => {
         images: updatedCoin.images
       };
     } else {
-      console.log('⚠️ No valid images found for Greece coin');
       return { success: false, error: 'No valid images found' };
     }
 

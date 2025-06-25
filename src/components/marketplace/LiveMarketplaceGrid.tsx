@@ -39,8 +39,6 @@ const LiveMarketplaceGrid = () => {
   const { data: coins = [], isLoading, error } = useQuery({
     queryKey: ['live-marketplace-coins'],
     queryFn: async (): Promise<Coin[]> => {
-      console.log('🔍 Fetching live marketplace coins with images...');
-      
       const { data, error } = await supabase
         .from('coins')
         .select(`
@@ -59,19 +57,10 @@ const LiveMarketplaceGrid = () => {
         throw error;
       }
 
-      console.log('✅ Fetched coins with images:', data?.length || 0);
-      
       // Debug logging for the specific coin
       const greeceCoin = data?.find(coin => coin.name.includes('GREECE COIN 10 LEPTA DOUBLED DIE ERROR'));
       if (greeceCoin) {
-        console.log('🔍 DEBUG - Greece coin found:', {
-          id: greeceCoin.id,
-          name: greeceCoin.name,
-          images: greeceCoin.images,
-          imagesLength: greeceCoin.images?.length || 0,
-          imageField: greeceCoin.image
-        });
-      }
+        }
       
       return data as Coin[] || [];
     },

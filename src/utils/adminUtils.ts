@@ -4,8 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 // Check if user has admin role using the new secure function
 export const checkAdminRole = async (userId: string): Promise<boolean> => {
   try {
-    console.log('🔍 Checking admin role for user:', userId);
-    
     // Use the new secure function that prevents infinite recursion
     const { data, error } = await supabase.rpc('is_user_admin', { 
       check_user_id: userId 
@@ -16,7 +14,6 @@ export const checkAdminRole = async (userId: string): Promise<boolean> => {
       return false;
     }
 
-    console.log('✅ Admin verification result:', data);
     return Boolean(data);
   } catch (error) {
     console.error('❌ Admin role check failed:', error);
@@ -47,7 +44,6 @@ export const verifyAdminAccess = async (): Promise<boolean> => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
-      console.log('❌ No authenticated user found');
       return false;
     }
 
@@ -60,11 +56,9 @@ export const verifyAdminAccess = async (): Promise<boolean> => {
     }
 
     if (data) {
-      console.log('✅ Admin verified via secure function');
       return true;
     }
 
-    console.log('❌ Admin verification failed - user is not admin');
     return false;
   } catch (error) {
     console.error('❌ Admin verification error:', error);
@@ -75,8 +69,6 @@ export const verifyAdminAccess = async (): Promise<boolean> => {
 // Setup admin user (for first-time setup)
 export const setupAdminUser = async (userId: string): Promise<boolean> => {
   try {
-    console.log('🔧 Setting up admin user:', userId);
-    
     // Insert or update user role
     const { error } = await supabase
       .from('user_roles')
@@ -90,7 +82,6 @@ export const setupAdminUser = async (userId: string): Promise<boolean> => {
       return false;
     }
 
-    console.log('✅ Admin user setup completed');
     return true;
   } catch (error) {
     console.error('❌ Admin setup failed:', error);
@@ -101,8 +92,6 @@ export const setupAdminUser = async (userId: string): Promise<boolean> => {
 // Create first admin user
 export const createFirstAdmin = async (email: string): Promise<{ success: boolean; message: string }> => {
   try {
-    console.log('🔧 Creating first admin for email:', email);
-    
     // Get the current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -127,7 +116,6 @@ export const createFirstAdmin = async (email: string): Promise<{ success: boolea
     }
 
     if (data) {
-      console.log('✅ First admin created successfully');
       return { success: true, message: 'Admin user created successfully' };
     } else {
       return { success: false, message: 'Admin user already exists' };
@@ -162,8 +150,7 @@ export const logAdminActivity = async (
         details: details || {}
       });
 
-    console.log('📝 Admin activity logged:', action);
-  } catch (error) {
+    } catch (error) {
     console.error('❌ Failed to log admin activity:', error);
   }
 };

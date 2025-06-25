@@ -36,19 +36,14 @@ const ActiveMarketplace = () => {
 
   // Handle Open Store button click
   const handleOpenStore = () => {
-    console.log('🏪 Open Store clicked', { user: !!user, session: !!session });
-    
     if (!user || !session) {
       // User not authenticated - show dealer auth modal
-      console.log('User not authenticated - showing dealer auth modal');
       setShowDealerAuth(true);
     } else {
       // User authenticated - check if they have dealer role or need to upgrade
       if (user.user_metadata?.role === 'dealer') {
-        console.log('User is already a dealer - redirect to dealer panel');
         navigate('/dealer-direct');
       } else {
-        console.log('User needs to upgrade to dealer - show upgrade modal');
         setShowDealerUpgrade(true);
       }
     }

@@ -9,8 +9,6 @@ interface SecurityInitResult {
 
 export const initializeEnhancedSecurity = async (): Promise<SecurityInitResult> => {
   try {
-    console.log('🔒 Initializing enhanced security systems...');
-
     // 1. Validate database security configuration
     const { data: securityValidation, error: validationError } = await supabase
       .rpc('validate_production_security_config');
@@ -49,7 +47,6 @@ export const initializeEnhancedSecurity = async (): Promise<SecurityInitResult> 
       console.warn('⚠️ Performance monitoring setup warning:', performanceError);
     }
 
-    console.log('✅ Enhanced security systems initialized successfully');
     return {
       status: 'success',
       message: 'Enhanced security systems initialized successfully',
@@ -78,7 +75,6 @@ export const validateSecurityHeaders = () => {
   ];
 
   // This would normally check HTTP headers but we'll simulate for frontend
-  console.log('🔍 Validating security headers...');
   return { valid: true, headers: requiredHeaders };
 };
 
@@ -90,8 +86,7 @@ export const monitorSecurityEvents = () => {
     window.addEventListener(event, () => {
       // Log security relevant events
       if (sessionStorage.getItem('adminAuthenticated')) {
-        console.log(`🔐 Security event: ${event} while admin session active`);
-      }
+        }
     });
   });
 };

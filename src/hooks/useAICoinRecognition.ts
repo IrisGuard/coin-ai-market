@@ -6,8 +6,6 @@ import { toast } from '@/hooks/use-toast';
 export const useAICoinRecognition = () => {
   return useMutation({
     mutationFn: async (imageData: { image: string; additionalImages?: string[]; aiProvider?: string }) => {
-      console.log('Starting Claude AI coin recognition...');
-      
       // Use only anthropic-coin-recognition function (Claude AI)
       const { data, error } = await supabase.functions.invoke('anthropic-coin-recognition', {
         body: {
@@ -23,7 +21,6 @@ export const useAICoinRecognition = () => {
         throw error;
       }
 
-      console.log('Claude AI recognition result:', data);
       return data;
     },
     onSuccess: (data) => {

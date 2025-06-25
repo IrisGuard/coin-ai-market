@@ -49,4 +49,4 @@ export const secureRandom = {
   percentage: () => generateSecureRandomNumber(0, 100)
 };
 
-console.log('🔒 Secure Random Utils loaded - 100% Math.random() free');
+free');

@@ -26,15 +26,12 @@ export const useEnhancedImageUpload = () => {
         setUploadProgress(((i + 1) / files.length) * 100);
         
         // Upload to Supabase Storage immediately for permanent URL
-        console.log(`📸 Uploading image ${i + 1}/${files.length} to Supabase Storage...`);
         const permanentUrl = await uploadImage(file, 'coin-images');
         
         // Verify URL is permanent (not blob:)
         if (permanentUrl.startsWith('blob:')) {
           throw new Error('Upload failed: temporary URL returned instead of permanent');
         }
-        
-        console.log(`✅ Image ${i + 1} uploaded with permanent URL:`, permanentUrl);
         
         uploadedImages.push({
           file,
@@ -46,8 +43,6 @@ export const useEnhancedImageUpload = () => {
       }
 
       setImages(uploadedImages);
-      console.log(`🎉 All ${files.length} images uploaded successfully with permanent URLs`);
-      
       return uploadedImages;
     } catch (error) {
       console.error('❌ Multi-upload failed:', error);
