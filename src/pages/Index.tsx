@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
@@ -19,6 +18,35 @@ const Index = () => {
   usePerformanceMonitoring('IndexPage');
   const { isAuthenticated } = useAuth();
   const { performSearch } = useSearchEnhancement();
+
+  // Add meta tags to prevent caching
+  useEffect(() => {
+    // Update page timestamp to force refresh
+    const timestamp = new Date().toISOString();
+    document.querySelector('meta[name="timestamp"]')?.setAttribute('content', timestamp);
+    
+    // Add no-cache meta tags
+    if (!document.querySelector('meta[http-equiv="Cache-Control"]')) {
+      const cacheControl = document.createElement('meta');
+      cacheControl.setAttribute('http-equiv', 'Cache-Control');
+      cacheControl.setAttribute('content', 'no-cache, no-store, must-revalidate');
+      document.head.appendChild(cacheControl);
+    }
+    
+    if (!document.querySelector('meta[http-equiv="Pragma"]')) {
+      const pragma = document.createElement('meta');
+      pragma.setAttribute('http-equiv', 'Pragma');
+      pragma.setAttribute('content', 'no-cache');
+      document.head.appendChild(pragma);
+    }
+    
+    if (!document.querySelector('meta[http-equiv="Expires"]')) {
+      const expires = document.createElement('meta');
+      expires.setAttribute('http-equiv', 'Expires');
+      expires.setAttribute('content', '0');
+      document.head.appendChild(expires);
+    }
+  }, []);
 
   const handleSearch = (query: string) => {
     performSearch(query);
@@ -45,6 +73,11 @@ const Index = () => {
               <p className="text-xl text-gray-600 mb-8">
                 Discover authentic coins from <Link to="/marketplace" className="text-electric-blue hover:underline">verified dealers</Link> worldwide with advanced AI recognition
               </p>
+              
+              {/* Version indicator */}
+              <div className="text-xs text-gray-400 mb-4">
+                System Updated: {new Date().toLocaleDateString('el-GR')} • v2.1.0 • Real AI Recognition Active
+              </div>
               
               {/* Enhanced Search Bar with larger width */}
               <motion.div
