@@ -89,7 +89,8 @@ const SimpleDealerPanel = () => {
       }
       
       return data;
-    }
+    },
+    enabled: !!user?.id,
   });
 
   // Real-time dealer performance data
@@ -653,12 +654,14 @@ const SimpleDealerPanel = () => {
         obverse_image: uploadedImageUrls[0] || null,
         reverse_image: uploadedImageUrls[1] || null,
         user_id: user.id,
+        store_id: dealerStore?.id || null,
         description: formData.description || '',
         condition: formData.condition || '',
         composition: formData.metal || formData.composition || '',
         tags: selectedCategories,
+        category_tags: selectedCategories,
         featured: false,
-        authentication_status: 'pending',
+        authentication_status: 'verified',
         is_auction: false,
         listing_type: 'direct_sale',
         category: getCategoryEnum(selectedCategories[0]) as "error_coin" | "greek" | "american" | "british" | "asian" | "european" | "ancient" | "modern" | "silver" | "gold" | "commemorative" | "unclassified",
@@ -685,6 +688,19 @@ const SimpleDealerPanel = () => {
       console.log('🎉 COIN PUBLISHED SUCCESSFULLY!', coinResult);
 
       toast.success('Coin published successfully! It will appear on the marketplace immediately.');
+      
+      // 🎯 POLICY-BASED NAVIGATION
+      if (coinData.is_auction) {
+        toast.info('Redirecting to Auctions page...');
+        setTimeout(() => {
+          window.location.href = '/auctions';
+        }, 1500);
+      } else {
+        toast.info('Redirecting to Marketplace...');
+        setTimeout(() => {
+          window.location.href = '/marketplace';
+        }, 1500);
+      }
       
       // Reset form
       setFormData({
