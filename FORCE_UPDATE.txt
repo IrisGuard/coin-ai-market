@@ -1,0 +1,20 @@
+VERCEL FORCE UPDATE TRIGGER
+============================
+
+This file forces Vercel to rebuild and deploy the application.
+
+Timestamp: 2025-01-25T15:45:00.000Z
+Branch: force-deployment-update
+Commit: 0f42afa
+Action: FORCE_VERCEL_REBUILD
+
+Expected Changes:
+- Green banner at top: "SYSTEM UPDATED SUCCESSFULLY!"
+- Version indicator: "v2.1.0"
+- Console logs showing deployment check
+- Updated page title: "CoinVault - AI-Powered Coin Marketplace"
+
+If these changes are not visible on the live site after deployment,
+there may be a deeper issue with Vercel configuration or deployment pipeline.
+
+BUILD TRIGGER: ACTIVE 
