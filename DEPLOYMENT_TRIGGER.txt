@@ -1,0 +1,18 @@
+VERCEL DEPLOYMENT TRIGGER
+=========================
+
+Timestamp: 2025-01-25 12:00:00
+Commit: CACHE FIX - Prevent homepage caching
+Status: FORCING DEPLOYMENT REFRESH
+
+Changes Made:
+- Added no-cache headers in vercel.json for index.html and root path
+- Updated index.html with cache prevention meta tags
+- Added version indicator on homepage
+- Updated page title and meta descriptions
+- Added useEffect to dynamically add no-cache meta tags
+
+This file forces Vercel to recognize changes and redeploy the application.
+The homepage should now refresh properly without browser cache interference.
+
+Build trigger: 56f482e 
