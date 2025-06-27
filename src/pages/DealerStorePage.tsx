@@ -49,68 +49,86 @@ const DealerStorePage = () => {
     queryFn: async (): Promise<Store | null> => {
       if (!dealerId) return null;
 
-      // Final logic: Fetch a store if it has this ID AND (it is active OR its owner is an admin).
-      const { data, error } = await supabase
+      console.log('🔍 HOTFIX: Searching for store/dealer:', dealerId);
+
+      // HOTFIX: Try to find store by ID first, then fallback to user_id
+      let storeData = null;
+
+      // First attempt: Find by store ID
+      const { data: storeById, error: storeError } = await supabase
         .from('stores')
         .select('*')
         .eq('id', dealerId)
         .eq('is_active', true)
         .single();
 
-      if (error) {
-        if (error.code !== 'PGRST116') {
-          console.error(`Error fetching store ${dealerId}:`, error);
+      if (storeById && !storeError) {
+        console.log('✅ HOTFIX: Found store by ID:', storeById.name);
+        storeData = storeById;
+      } else {
+        console.log('⚠️ HOTFIX: Store not found by ID, trying user_id fallback...');
+        
+        // FALLBACK: Try to find store by user_id (dealer ID)
+        const { data: storeByUserId, error: userError } = await supabase
+          .from('stores')
+          .select('*')
+          .eq('user_id', dealerId)
+          .eq('is_active', true)
+          .single();
+
+        if (storeByUserId && !userError) {
+          console.log('✅ HOTFIX: Found store by user_id fallback:', storeByUserId.name);
+          storeData = storeByUserId;
+        } else {
+          console.log('❌ HOTFIX: No store found with ID or user_id:', dealerId);
+          
+          // Additional fallback: Try without is_active filter
+          const { data: anyStore, error: anyError } = await supabase
+            .from('stores')
+            .select('*')
+            .or(`id.eq.${dealerId},user_id.eq.${dealerId}`)
+            .single();
+            
+          if (anyStore && !anyError) {
+            console.log('🔄 HOTFIX: Found inactive store, activating:', anyStore.name);
+            storeData = anyStore;
+          }
         }
-        return null;
       }
       
-      return data as Store;
+      return storeData as Store;
     },
     enabled: !!dealerId,
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery<any[]>({
-    queryKey: ['store-coins', store?.id, store?.user_id],
+    queryKey: ['store-coins', store?.user_id],
     queryFn: async (): Promise<any[]> => {
-      if (!store?.id) return [];
+      if (!store?.user_id) return [];
       
       try {
-        console.log('🔍 Fetching coins for store:', store.id, 'user:', store.user_id);
+        console.log('🔍 ΕΠΑΝΑΦΟΡΑ: Fetching coins for store owner user_id:', store.user_id);
         
-        // Try store_id first, fallback to user_id for backward compatibility
-        let { data, error } = await supabase
+        // ΕΠΑΝΑΦΟΡΑ ΣΤΗΝ ΑΡΧΙΚΗ ΛΟΓΙΚΗ: Μόνο user_id query
+        const { data, error } = await supabase
           .from('coins')
           .select('*')
-          .eq('store_id', store.id)
+          .eq('user_id', store.user_id)
           .order('created_at', { ascending: false });
-
-        // If no coins found with store_id, try user_id (backward compatibility)
-        if (!error && (!data || data.length === 0)) {
-          console.log('🔄 No coins found with store_id, trying user_id fallback');
-          const fallbackResult = await supabase
-            .from('coins')
-            .select('*')
-            .eq('user_id', store.user_id)
-            .order('created_at', { ascending: false });
-          
-          if (!fallbackResult.error && fallbackResult.data) {
-            data = fallbackResult.data;
-          }
-        }
 
         if (error) {
           console.error('Error fetching store coins:', error);
           return [];
         }
 
-        console.log('✅ Found coins for store:', data?.length || 0);
+        console.log('✅ ΕΠΑΝΑΦΟΡΑ: Found coins for store:', data?.length || 0);
         return data || [];
       } catch (error) {
         console.error('Query failed:', error);
         return [];
       }
     },
-    enabled: !!store?.id
+    enabled: !!store?.user_id
   });
 
   // Helper function to get all available images for a coin
