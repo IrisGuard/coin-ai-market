@@ -77,11 +77,11 @@ const DealerStorePage = () => {
       try {
         console.log('🔍 Fetching coins for store:', store.id, 'user:', store.user_id);
         
-        // Query by user_id since that's more reliable
+        // Query by store_id to get only coins belonging to this specific store
         const { data, error } = await supabase
           .from('coins')
           .select('*')
-          .eq('user_id', store.user_id)
+          .eq('store_id', store.id)
           .order('created_at', { ascending: false });
 
         if (error) {

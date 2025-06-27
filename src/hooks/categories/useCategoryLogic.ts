@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Coin } from '@/types/coin';
 
@@ -17,6 +16,14 @@ export const useCategoryLogic = (allCoins: Coin[], category: string) => {
         case 'us':
           // Only show coins from United States
           return coin.country === 'United States' || coin.country === 'USA';
+        case 'greek':
+          // Filter for Greek coins - either by country or category
+          return coin.country === 'Greece' || 
+                 coin.category === 'greek' ||
+                 coin.name.toLowerCase().includes('greece') ||
+                 coin.name.toLowerCase().includes('greek') ||
+                 coin.name.toLowerCase().includes('ελλ') ||
+                 coin.name.toLowerCase().includes('δραχμ');
         case 'ancient':
           return coin.year < 1000;
         case 'modern':
