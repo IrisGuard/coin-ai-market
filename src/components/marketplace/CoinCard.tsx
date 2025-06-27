@@ -142,6 +142,8 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
             images={allImages}
             coinName={coin.name}
             className="aspect-square"
+            compact={true}
+            showThumbnails={true}
           />
           
           {/* Overlay Badges */}

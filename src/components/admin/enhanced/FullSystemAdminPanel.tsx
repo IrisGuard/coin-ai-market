@@ -11,6 +11,7 @@ import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSystemPhasesTab from '@/components/admin/tabs/AdminSystemPhasesTab';
 import AdminCleanupTab from '@/components/admin/tabs/AdminCleanupTab';
 import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
+import ImageDebugTool from '@/components/admin/ImageDebugTool';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -117,6 +118,7 @@ const FullSystemAdminPanel = () => {
               <TabsTrigger value="analytics" className="text-xs px-3 py-2">📈 Analytics</TabsTrigger>
               <TabsTrigger value="system-phases" className="text-xs px-3 py-2">⚙️ System Phases</TabsTrigger>
               <TabsTrigger value="cleanup" className="text-xs px-3 py-2 bg-red-100 hover:bg-red-200">🚀 Production Cleanup</TabsTrigger>
+              <TabsTrigger value="image-debug" className="text-xs px-3 py-2 bg-pink-100 hover:bg-pink-200">🖼️ Image Debug</TabsTrigger>
             </div>
 
             {/* ROW 2 - AI & AUTOMATION SYSTEMS */}
@@ -260,6 +262,7 @@ const FullSystemAdminPanel = () => {
           <TabsContent value="analytics"><AdminAnalyticsTab /></TabsContent>
           <TabsContent value="system-phases"><AdminSystemPhasesTab /></TabsContent>
           <TabsContent value="cleanup"><AdminCleanupTab /></TabsContent>
+          <TabsContent value="image-debug"><ImageDebugTool /></TabsContent>
           
           {/* AI & AUTOMATION SYSTEMS */}
           <TabsContent value="ai-commands"><DatabaseTableTab tableName="ai_commands" displayName="AI Commands" /></TabsContent>

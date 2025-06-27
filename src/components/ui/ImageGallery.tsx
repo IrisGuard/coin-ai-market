@@ -6,9 +6,17 @@ interface ImageGalleryProps {
   images: string[];
   coinName: string;
   className?: string;
+  showThumbnails?: boolean;
+  compact?: boolean;
 }
 
-const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageGalleryProps) => {
+const ImageGallery = ({ 
+  images = [], 
+  coinName = 'Coin', 
+  className = '', 
+  showThumbnails = true,
+  compact = false 
+}: ImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [errorImages, setErrorImages] = useState<Set<number>>(new Set());
@@ -166,14 +174,14 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
     <div className={`relative ${className}`}>
       {/* Main Image Display */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
-        {/* Navigation Arrows for Multiple Images */}
-        {validImages.length > 1 && (
+        {/* Navigation Arrows for Multiple Images - Only show in non-compact mode or when hovering */}
+        {validImages.length > 1 && !compact && (
           <>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToPrevious}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -181,16 +189,16 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
               variant="ghost"
               size="sm"
               onClick={goToNext}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
           </>
         )}
 
-        {/* Image Counter */}
+        {/* Image Counter - More subtle in compact mode */}
         {validImages.length > 1 && (
-          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+          <div className={`absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full ${compact ? 'opacity-70' : 'opacity-90'}`}>
             {safeCurrentIndex + 1} / {validImages.length}
           </div>
         )}
@@ -220,7 +228,7 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
               onError={() => handleImageError(safeCurrentIndex)}
               onClick={() => {
                 try {
-                  setIsZoomed(!isZoomed);
+                  if (!compact) setIsZoomed(!isZoomed);
                 } catch (error) {
                   console.error('Error toggling zoom:', error);
                 }
@@ -241,25 +249,27 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
         )}
       </div>
       
-      {/* Thumbnail Navigation - Only show when there are multiple images */}
-      {validImages.length > 1 && (
-        <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
+      {/* 🎯 IMPROVED: Thumbnail Navigation - Always visible when multiple images */}
+      {validImages.length > 1 && showThumbnails && (
+        <div className={`flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide ${compact ? 'justify-center' : ''}`}>
           {validImages.map((image, index) => {
             if (!image || typeof image !== 'string') return null;
             
             return (
               <button
-                key={`${index}-${image}`}
+                key={index}
                 onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                className={`relative flex-shrink-0 ${compact ? 'w-12 h-12' : 'w-16 h-16'} rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                   index === safeCurrentIndex 
-                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg scale-105' 
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md hover:scale-102'
-                }`}
+                    ? 'border-blue-500 ring-2 ring-blue-200' 
+                    : 'border-gray-200 hover:border-gray-300'
+                } bg-gray-100`}
+                title={`View image ${index + 1}`}
               >
                 {errorImages.has(index) ? (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-xs text-gray-500">Error</span>
+                  // Thumbnail error state
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <div className="text-xs text-gray-500">❌</div>
                   </div>
                 ) : (
                   <>
@@ -275,15 +285,15 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
                     {/* Thumbnail loading indicator */}
                     {!loadedImages.has(index) && !errorImages.has(index) && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     )}
 
                     {/* Active indicator */}
                     {index === safeCurrentIndex && (
                       <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                         </div>
                       </div>
                     )}
