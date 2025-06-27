@@ -77,12 +77,26 @@ const DealerStorePage = () => {
       try {
         console.log('🔍 Fetching coins for store:', store.id, 'user:', store.user_id);
         
-        // Query by store_id to get only coins belonging to this specific store
-        const { data, error } = await supabase
+        // Try store_id first, fallback to user_id for backward compatibility
+        let { data, error } = await supabase
           .from('coins')
           .select('*')
           .eq('store_id', store.id)
           .order('created_at', { ascending: false });
+
+        // If no coins found with store_id, try user_id (backward compatibility)
+        if (!error && (!data || data.length === 0)) {
+          console.log('🔄 No coins found with store_id, trying user_id fallback');
+          const fallbackResult = await supabase
+            .from('coins')
+            .select('*')
+            .eq('user_id', store.user_id)
+            .order('created_at', { ascending: false });
+          
+          if (!fallbackResult.error && fallbackResult.data) {
+            data = fallbackResult.data;
+          }
+        }
 
         if (error) {
           console.error('Error fetching store coins:', error);
