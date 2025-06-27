@@ -69,9 +69,9 @@ const DealerStorePage = () => {
     enabled: !!dealerId,
   });
 
-  const { data: coins, isLoading: coinsLoading } = useQuery({
+  const { data: coins, isLoading: coinsLoading } = useQuery<any[]>({
     queryKey: ['store-coins', store?.id, store?.user_id],
-    queryFn: async () => {
+    queryFn: async (): Promise<any[]> => {
       if (!store?.id) return [];
       
       try {
@@ -82,7 +82,6 @@ const DealerStorePage = () => {
           .from('coins')
           .select('*')
           .eq('user_id', store.user_id)
-          .eq('is_active', true)
           .order('created_at', { ascending: false });
 
         if (error) {

@@ -14,6 +14,7 @@ import Auctions from "./pages/Auctions";
 import CoinUpload from "./pages/CoinUpload";
 import Profile from "./pages/Profile";
 import AdminPanelPage from "./pages/AdminPanelPage";
+import AdminTestPage from "./pages/AdminTestPage";
 import CoinDetails from "./pages/CoinDetails";
 import DealerDirect from "./pages/DealerDirect";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -44,6 +45,7 @@ function App() {
                   <Route path="/upload" element={<CoinUpload />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/admin" element={<AdminPanelPage />} />
+                  <Route path="/admin/test" element={<AdminTestPage />} />
                   <Route path="/coin/:id" element={<CoinDetails />} />
                   <Route path="/dealer-direct" element={<DealerDirect />} />
                   <Route path="/dealer" element={<DealerDirect />} />
