@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Heart, Share2 } from 'lucide-react';
+import { Star, Heart, Share2, Store, Wallet, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
@@ -191,6 +191,103 @@ const CoinDetailsContent = ({
                       <Star className="w-3 h-3 mr-1" />
                       Verified Dealer
                     </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Store Information */}
+          {dealerStore && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Store className="w-4 h-4 text-blue-600" />
+                  <h3 className="font-semibold text-gray-900">Store Information</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Store Name */}
+                  <div>
+                    <p className="text-sm text-gray-600">Store Name</p>
+                    <p className="font-medium text-lg">{dealerStore.name}</p>
+                  </div>
+
+                  {/* Crypto Wallets */}
+                  {(dealerStore.solana_wallet_address || dealerStore.ethereum_wallet_address || 
+                    dealerStore.bitcoin_wallet_address || dealerStore.usdc_wallet_address) && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Wallet className="w-4 h-4 text-green-600" />
+                        <p className="text-sm font-medium text-gray-700">Crypto Wallets</p>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {dealerStore.solana_wallet_address && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Solana:</span>
+                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                              {dealerStore.solana_wallet_address.slice(0, 8)}...{dealerStore.solana_wallet_address.slice(-8)}
+                            </span>
+                          </div>
+                        )}
+                        {dealerStore.ethereum_wallet_address && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ethereum:</span>
+                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                              {dealerStore.ethereum_wallet_address.slice(0, 8)}...{dealerStore.ethereum_wallet_address.slice(-8)}
+                            </span>
+                          </div>
+                        )}
+                        {dealerStore.bitcoin_wallet_address && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Bitcoin:</span>
+                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                              {dealerStore.bitcoin_wallet_address.slice(0, 8)}...{dealerStore.bitcoin_wallet_address.slice(-8)}
+                            </span>
+                          </div>
+                        )}
+                        {dealerStore.usdc_wallet_address && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">USDC:</span>
+                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                              {dealerStore.usdc_wallet_address.slice(0, 8)}...{dealerStore.usdc_wallet_address.slice(-8)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Banking Information */}
+                  {(dealerStore.bank_name || dealerStore.iban || dealerStore.swift_bic) && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Building2 className="w-4 h-4 text-blue-600" />
+                        <p className="text-sm font-medium text-gray-700">Banking Information</p>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {dealerStore.bank_name && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Bank:</span>
+                            <span className="font-medium">{dealerStore.bank_name}</span>
+                          </div>
+                        )}
+                        {dealerStore.iban && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">IBAN:</span>
+                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                              {dealerStore.iban.slice(0, 4)}...{dealerStore.iban.slice(-4)}
+                            </span>
+                          </div>
+                        )}
+                        {dealerStore.swift_bic && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">SWIFT/BIC:</span>
+                            <span className="font-medium">{dealerStore.swift_bic}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </CardContent>
