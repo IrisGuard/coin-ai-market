@@ -74,8 +74,8 @@ interface CoinDetailsContentProps {
 const CoinDetailsContent = ({
   coin,
   dealerStore,
-  bidsData,
-  relatedCoins,
+  bidsData = [],
+  relatedCoins = [],
   isFavorited,
   bidAmount,
   setBidAmount,
@@ -86,45 +86,72 @@ const CoinDetailsContent = ({
   onBid,
   isOwner
 }: CoinDetailsContentProps) => {
-  const highestBid = bidsData && bidsData.length > 0 
+  // 🛡️ DEFENSIVE CHECKS - Prevent crashes
+  if (!coin || !coin.id) {
+    console.error('❌ CRITICAL: Missing coin data', { coin });
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Card className="p-8 text-center">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error Loading Coin</h2>
+          <p className="text-gray-600">Coin data is missing or invalid. Please try again.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // 🔍 DETAILED DEBUG LOGS
+  console.log('🪙 COIN DATA DEBUG:', {
+    coinId: coin?.id,
+    coinName: coin?.name,
+    userId: coin?.user_id,
+    hasImages: Boolean(coin?.images?.length),
+    imageCount: coin?.images?.length || 0,
+    dealerStoreExists: Boolean(dealerStore),
+    dealerStoreName: dealerStore?.name,
+    profiles: coin?.profiles
+  });
+
+  const highestBid = Array.isArray(bidsData) && bidsData.length > 0 
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
-  // 🔍 DEBUG LOGS - Removed in production
-  console.log('🪙 Coin Data:', coin);
-  console.log('🏪 Dealer Store:', dealerStore);
-  console.log('👤 Coin User ID:', coin.user_id);
-
-  // Enhanced function to get all available images with better fallbacks
+  // 🖼️ Enhanced function to get all available images with comprehensive validation
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
-    // Priority 1: Check images array
-    if (coin.images && Array.isArray(coin.images) && coin.images.length > 0) {
-      const validImagesFromArray = coin.images.filter(img => 
-        img && 
-        typeof img === 'string' && 
-        img.trim() !== '' && 
-        !img.startsWith('blob:')
-      );
-      allImages.push(...validImagesFromArray);
-    }
-    
-    // Priority 2: Add individual image fields if not already included
-    const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
-      .filter(img => 
-        img && 
-        typeof img === 'string' && 
-        img.trim() !== '' && 
-        !img.startsWith('blob:') &&
-        !allImages.includes(img)
-      );
-    
-    allImages.push(...individualImages);
-    
-    // Fallback: Add placeholder if no valid images found
-    if (allImages.length === 0) {
-      console.warn('⚠️ No valid images found for coin, using placeholder');
+    try {
+      // Priority 1: Check images array with comprehensive validation
+      if (coin.images && Array.isArray(coin.images)) {
+        const validImagesFromArray = coin.images
+          .filter(img => {
+            if (!img || typeof img !== 'string' || img.trim() === '') return false;
+            if (img.startsWith('blob:')) return false;
+            return img.startsWith('http') || img.startsWith('/') || img.startsWith('data:');
+          });
+        allImages.push(...validImagesFromArray);
+        console.log('✅ Images from array:', validImagesFromArray.length);
+      }
+      
+      // Priority 2: Add individual image fields if not already included
+      const individualImages = [coin.image, coin.obverse_image, coin.reverse_image]
+        .filter(img => {
+          if (!img || typeof img !== 'string' || img.trim() === '') return false;
+          if (img.startsWith('blob:')) return false;
+          if (allImages.includes(img)) return false;
+          return img.startsWith('http') || img.startsWith('/') || img.startsWith('data:');
+        });
+      
+      allImages.push(...individualImages);
+      console.log('✅ Individual images added:', individualImages.length);
+      
+      // Fallback: Add placeholder if no valid images found
+      if (allImages.length === 0) {
+        console.warn('⚠️ No valid images found for coin, using placeholder');
+        allImages.push('/placeholder-coin.svg');
+      }
+      
+    } catch (error) {
+      console.error('💥 Error processing images:', error);
       allImages.push('/placeholder-coin.svg');
     }
     
@@ -134,9 +161,18 @@ const CoinDetailsContent = ({
 
   const allImages = getAllImages();
 
+  // 🛡️ Safe user_id with fallback
+  const safeUserId = coin?.user_id || 'unknown';
+  const hasValidUserId = coin?.user_id && typeof coin.user_id === 'string' && coin.user_id.trim() !== '';
+
   // Function to render rich text HTML safely
   const renderRichText = (htmlContent: string) => {
-    return { __html: htmlContent };
+    try {
+      return { __html: htmlContent || '' };
+    } catch (error) {
+      console.error('Error rendering rich text:', error);
+      return { __html: '' };
+    }
   };
 
   return (
@@ -148,7 +184,7 @@ const CoinDetailsContent = ({
             <CardContent className="p-0">
               <ImageGallery 
                 images={allImages}
-                coinName={coin.name}
+                coinName={coin?.name || 'Unknown Coin'}
                 className="w-full"
               />
             </CardContent>
@@ -161,11 +197,11 @@ const CoinDetailsContent = ({
           <div>
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{coin.name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{coin?.name || 'Unknown Coin'}</h1>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  {coin.year && <span>Year: {coin.year}</span>}
-                  {coin.grade && <span>Grade: {coin.grade}</span>}
-                  {coin.condition && <span>Condition: {coin.condition}</span>}
+                  {coin?.year && <span>Year: {coin.year}</span>}
+                  {coin?.grade && <span>Grade: {coin.grade}</span>}
+                  {coin?.condition && <span>Condition: {coin.condition}</span>}
                 </div>
               </div>
               
@@ -183,7 +219,7 @@ const CoinDetailsContent = ({
               </div>
             </div>
 
-            {coin.category && (
+            {coin?.category && (
               <Badge variant="secondary" className="mb-4">
                 {coin.category}
               </Badge>
@@ -191,13 +227,13 @@ const CoinDetailsContent = ({
           </div>
 
           {/* Seller Info */}
-          {coin.profiles && (
+          {coin?.profiles && (
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Sold by</p>
-                    <p className="font-medium">{coin.profiles.name || coin.profiles.username}</p>
+                    <p className="font-medium">{coin.profiles.name || coin.profiles.username || 'Anonymous Seller'}</p>
                   </div>
                   {coin.profiles.verified_dealer && (
                     <Badge className="bg-blue-100 text-blue-800">
@@ -210,7 +246,7 @@ const CoinDetailsContent = ({
             </Card>
           )}
 
-          {/* 🏪 ENHANCED Store Information Card - ALWAYS VISIBLE */}
+          {/* 🏪 ENHANCED Store Information Card - ALWAYS VISIBLE with comprehensive error handling */}
           <Card className="border-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -220,17 +256,24 @@ const CoinDetailsContent = ({
                   </div>
                   <h3 className="font-bold text-xl text-gray-900">Store Information</h3>
                 </div>
-                <Link 
-                  to={`/store/${coin.user_id}`}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Visit Store
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
+                {hasValidUserId ? (
+                  <Link 
+                    to={`/store/${safeUserId}`}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Visit Store
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2 bg-gray-400 text-white px-4 py-2 rounded-lg font-medium text-sm cursor-not-allowed">
+                    <ShoppingBag className="w-4 h-4" />
+                    Store Unavailable
+                  </div>
+                )}
               </div>
               
-              {dealerStore ? (
+              {dealerStore && dealerStore.name ? (
                 <div className="space-y-4">
                   {/* Store Name */}
                   <div className="bg-white p-5 rounded-xl border-2 border-blue-200 shadow-sm">
@@ -316,7 +359,7 @@ const CoinDetailsContent = ({
                   )}
                 </div>
               ) : (
-                // 🔧 Enhanced Fallback when dealerStore is null
+                // 🔧 Enhanced Fallback when dealerStore is null or missing
                 <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="p-2 bg-orange-100 rounded-full">
@@ -326,14 +369,20 @@ const CoinDetailsContent = ({
                   </div>
                   <div className="space-y-2">
                     <p className="text-gray-700">
-                      <strong>Seller:</strong> {coin.profiles?.name || coin.profiles?.username || 'Verified Dealer'}
+                      <strong>Seller:</strong> {coin?.profiles?.name || coin?.profiles?.username || 'Verified Dealer'}
                     </p>
                     <p className="text-sm text-gray-600">
                       📍 This coin belongs to a verified dealer. Store details are being loaded.
                     </p>
-                    <p className="text-xs text-blue-600 font-medium">
-                      💡 Click "Visit Store" above to see all items from this dealer!
-                    </p>
+                    {hasValidUserId ? (
+                      <p className="text-xs text-blue-600 font-medium">
+                        💡 Click "Visit Store" above to see all items from this dealer!
+                      </p>
+                    ) : (
+                      <p className="text-xs text-red-600 font-medium">
+                        ⚠️ Store information temporarily unavailable
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -352,11 +401,11 @@ const CoinDetailsContent = ({
             isOwner={isOwner}
             isPurchasing={isPurchasing}
             isBidding={isBidding}
-            bidsCount={bidsData?.length || 0}
+            bidsCount={Array.isArray(bidsData) ? bidsData.length : 0}
           />
 
           {/* Description */}
-          {coin.description && (
+          {coin?.description && (
             <Card>
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-3">Description</h3>
@@ -371,14 +420,14 @@ const CoinDetailsContent = ({
       </div>
 
       {/* Bid History */}
-      {coin.is_auction && bidsData && bidsData.length > 0 && (
+      {coin?.is_auction && Array.isArray(bidsData) && bidsData.length > 0 && (
         <div className="mt-12">
           <CoinBidHistory bids={bidsData} />
         </div>
       )}
 
       {/* Related Coins */}
-      {relatedCoins && relatedCoins.length > 0 && (
+      {Array.isArray(relatedCoins) && relatedCoins.length > 0 && (
         <div className="mt-12">
           <RelatedCoins relatedCoins={relatedCoins} />
         </div>
