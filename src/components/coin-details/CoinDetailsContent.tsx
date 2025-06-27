@@ -365,22 +365,26 @@ const CoinDetailsContent = ({
                     <div className="p-2 bg-orange-100 rounded-full">
                       <Store className="w-4 h-4 text-orange-600" />
                     </div>
-                    <p className="font-bold text-lg text-orange-800">Loading Store Information...</p>
+                    <p className="font-bold text-lg text-orange-800">
+                      {hasValidUserId ? "Loading Store Information..." : "Store Information Unavailable"}
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <p className="text-gray-700">
                       <strong>Seller:</strong> {coin?.profiles?.name || coin?.profiles?.username || 'Verified Dealer'}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      📍 This coin belongs to a verified dealer. Store details are being loaded.
-                    </p>
                     {hasValidUserId ? (
-                      <p className="text-xs text-blue-600 font-medium">
-                        💡 Click "Visit Store" above to see all items from this dealer!
-                      </p>
+                      <>
+                        <p className="text-sm text-gray-600">
+                          📍 This coin belongs to a verified dealer. Store details are being loaded.
+                        </p>
+                        <p className="text-xs text-blue-600 font-medium">
+                          💡 Click "Visit Store" above to see all items from this dealer!
+                        </p>
+                      </>
                     ) : (
-                      <p className="text-xs text-red-600 font-medium">
-                        ⚠️ Store information temporarily unavailable
+                      <p className="text-sm text-red-600">
+                        ⚠️ Store information temporarily unavailable. Please try again later.
                       </p>
                     )}
                   </div>

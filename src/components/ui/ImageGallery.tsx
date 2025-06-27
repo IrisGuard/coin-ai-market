@@ -58,22 +58,32 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
     }
   }, [validImages]);
 
-  // Preload next and previous images
+  // ⚡ IMPROVED: Better image preloading and load detection
   useEffect(() => {
     try {
       const preloadImage = (src: string, index: number) => {
         if (!src || typeof src !== 'string') return;
         
         const img = new Image();
+        
+        // 🔧 FIX: Handle already cached images
         img.onload = () => {
           setLoadedImages(prev => new Set([...prev, index]));
           console.log(`✅ Image ${index} loaded:`, src);
         };
+        
         img.onerror = () => {
           setErrorImages(prev => new Set([...prev, index]));
           console.error(`❌ Image ${index} failed to load:`, src);
         };
+        
         img.src = src;
+        
+        // 🚀 CRITICAL FIX: If image is already loaded (cached), trigger onload immediately
+        if (img.complete && img.naturalHeight !== 0) {
+          setLoadedImages(prev => new Set([...prev, index]));
+          console.log(`🚀 Image ${index} already cached:`, src);
+        }
       };
 
       // Preload current, next, and previous images
@@ -150,6 +160,8 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
   const isCurrentImageLoaded = loadedImages.has(safeCurrentIndex);
   const isCurrentImageError = errorImages.has(safeCurrentIndex);
 
+  console.log(`🎯 Current image ${safeCurrentIndex}: loaded=${isCurrentImageLoaded}, error=${isCurrentImageError}, url=${currentImageUrl}`);
+
   return (
     <div className={`relative ${className}`}>
       {/* Main Image Display */}
@@ -197,7 +209,7 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
             <img
               src={currentImageUrl}
               alt={`${safeCoinName} - Image ${safeCurrentIndex + 1}`}
-              className={`w-full h-full object-contain transition-all duration-500 ${
+              className={`w-full h-full object-contain transition-all duration-300 ${
                 isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
               } ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'}`}
               style={{ 
@@ -216,7 +228,7 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
               loading="eager"
             />
             
-            {/* Loading indicator - only show if image hasn't loaded yet */}
+            {/* Loading indicator - only show if image hasn't loaded yet AND no error */}
             {!isCurrentImageLoaded && !isCurrentImageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                 <div className="flex flex-col items-center gap-3">
@@ -256,11 +268,12 @@ const ImageGallery = ({ images = [], coinName = 'Coin', className = '' }: ImageG
                       alt={`${safeCoinName} thumbnail ${index + 1}`}
                       className="w-full h-full object-cover transition-opacity duration-200"
                       loading="lazy"
+                      onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageError(index)}
                     />
                     
                     {/* Thumbnail loading indicator */}
-                    {!loadedImages.has(index) && (
+                    {!loadedImages.has(index) && !errorImages.has(index) && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
                         <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                       </div>

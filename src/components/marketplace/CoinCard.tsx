@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Eye, Clock, DollarSign, Star, Zap, Edit, Trash2, Settings } from 'lucide-react';
+import { Heart, Eye, Clock, DollarSign, Star, Zap, Edit, Trash2, Settings, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
 import { useAuth } from '@/contexts/AuthContext';
@@ -322,6 +322,21 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
               <Heart className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* 🏪 NEW: Go to Store Button */}
+          {coin.user_id && (
+            <Button 
+              variant="outline" 
+              className="w-full mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `/store/${coin.user_id}`;
+              }}
+            >
+              <Store className="h-4 w-4 mr-2" />
+              Visit Store
+            </Button>
+          )}
 
           {/* AI Confidence & Image Count */}
           <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
