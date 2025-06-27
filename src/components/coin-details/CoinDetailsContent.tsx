@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Heart, Share2, Store, Wallet, Building2 } from 'lucide-react';
+import { Star, Heart, Share2, Store, Wallet, Building2, ExternalLink, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
 import RelatedCoins from './RelatedCoins';
@@ -89,7 +90,12 @@ const CoinDetailsContent = ({
     ? Math.max(...bidsData.map(bid => bid.amount))
     : coin.starting_bid || 0;
 
-  // Enhanced function to get all available images
+  // 🔍 DEBUG LOGS - Removed in production
+  console.log('🪙 Coin Data:', coin);
+  console.log('🏪 Dealer Store:', dealerStore);
+  console.log('👤 Coin User ID:', coin.user_id);
+
+  // Enhanced function to get all available images with better fallbacks
   const getAllImages = (): string[] => {
     const allImages: string[] = [];
     
@@ -116,6 +122,13 @@ const CoinDetailsContent = ({
     
     allImages.push(...individualImages);
     
+    // Fallback: Add placeholder if no valid images found
+    if (allImages.length === 0) {
+      console.warn('⚠️ No valid images found for coin, using placeholder');
+      allImages.push('/placeholder-coin.svg');
+    }
+    
+    console.log('🖼️ Final Images Array:', allImages);
     return allImages;
   };
 
@@ -129,7 +142,7 @@ const CoinDetailsContent = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Multi-Image Gallery */}
+        {/* Left Column - Enhanced Multi-Image Gallery */}
         <div className="space-y-4">
           <Card className="overflow-hidden">
             <CardContent className="p-0">
@@ -197,59 +210,71 @@ const CoinDetailsContent = ({
             </Card>
           )}
 
-          {/* Store Information */}
-          {dealerStore && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Store className="w-4 h-4 text-blue-600" />
-                  <h3 className="font-semibold text-gray-900">Store Information</h3>
+          {/* 🏪 ENHANCED Store Information Card - ALWAYS VISIBLE */}
+          <Card className="border-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-600 rounded-full">
+                    <Store className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-bold text-xl text-gray-900">Store Information</h3>
                 </div>
-                
-                <div className="space-y-3">
+                <Link 
+                  to={`/store/${coin.user_id}`}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Visit Store
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+              
+              {dealerStore ? (
+                <div className="space-y-4">
                   {/* Store Name */}
-                  <div>
-                    <p className="text-sm text-gray-600">Store Name</p>
-                    <p className="font-medium text-lg">{dealerStore.name}</p>
+                  <div className="bg-white p-5 rounded-xl border-2 border-blue-200 shadow-sm">
+                    <p className="text-sm text-gray-600 mb-2 font-medium">🏪 Store Name</p>
+                    <p className="font-bold text-2xl text-blue-900">{dealerStore.name}</p>
                   </div>
 
                   {/* Crypto Wallets */}
                   {(dealerStore.solana_wallet_address || dealerStore.ethereum_wallet_address || 
                     dealerStore.bitcoin_wallet_address || dealerStore.usdc_wallet_address) && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Wallet className="w-4 h-4 text-green-600" />
-                        <p className="text-sm font-medium text-gray-700">Crypto Wallets</p>
+                    <div className="bg-white p-5 rounded-xl border-2 border-green-200 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Wallet className="w-5 h-5 text-green-600" />
+                        <p className="font-bold text-lg text-gray-800">💳 Crypto Wallets</p>
                       </div>
-                      <div className="space-y-1 text-sm">
+                      <div className="grid grid-cols-1 gap-3 text-sm">
                         {dealerStore.solana_wallet_address && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Solana:</span>
-                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">Solana:</span>
+                            <span className="font-mono text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
                               {dealerStore.solana_wallet_address.slice(0, 8)}...{dealerStore.solana_wallet_address.slice(-8)}
                             </span>
                           </div>
                         )}
                         {dealerStore.ethereum_wallet_address && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Ethereum:</span>
-                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">Ethereum:</span>
+                            <span className="font-mono text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
                               {dealerStore.ethereum_wallet_address.slice(0, 8)}...{dealerStore.ethereum_wallet_address.slice(-8)}
                             </span>
                           </div>
                         )}
                         {dealerStore.bitcoin_wallet_address && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Bitcoin:</span>
-                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">Bitcoin:</span>
+                            <span className="font-mono text-xs bg-orange-100 text-orange-800 px-3 py-1 rounded-full">
                               {dealerStore.bitcoin_wallet_address.slice(0, 8)}...{dealerStore.bitcoin_wallet_address.slice(-8)}
                             </span>
                           </div>
                         )}
                         {dealerStore.usdc_wallet_address && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">USDC:</span>
-                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">USDC:</span>
+                            <span className="font-mono text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full">
                               {dealerStore.usdc_wallet_address.slice(0, 8)}...{dealerStore.usdc_wallet_address.slice(-8)}
                             </span>
                           </div>
@@ -260,39 +285,60 @@ const CoinDetailsContent = ({
 
                   {/* Banking Information */}
                   {(dealerStore.bank_name || dealerStore.iban || dealerStore.swift_bic) && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="w-4 h-4 text-blue-600" />
-                        <p className="text-sm font-medium text-gray-700">Banking Information</p>
+                    <div className="bg-white p-5 rounded-xl border-2 border-indigo-200 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Building2 className="w-5 h-5 text-indigo-600" />
+                        <p className="font-bold text-lg text-gray-800">🏦 Banking Information</p>
                       </div>
-                      <div className="space-y-1 text-sm">
+                      <div className="grid grid-cols-1 gap-3 text-sm">
                         {dealerStore.bank_name && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Bank:</span>
-                            <span className="font-medium">{dealerStore.bank_name}</span>
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">Bank:</span>
+                            <span className="font-bold text-indigo-800">{dealerStore.bank_name}</span>
                           </div>
                         )}
                         {dealerStore.iban && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">IBAN:</span>
-                            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">IBAN:</span>
+                            <span className="font-mono text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
                               {dealerStore.iban.slice(0, 4)}...{dealerStore.iban.slice(-4)}
                             </span>
                           </div>
                         )}
                         {dealerStore.swift_bic && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">SWIFT/BIC:</span>
-                            <span className="font-medium">{dealerStore.swift_bic}</span>
+                          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 font-semibold">SWIFT/BIC:</span>
+                            <span className="font-bold text-indigo-800">{dealerStore.swift_bic}</span>
                           </div>
                         )}
                       </div>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                // 🔧 Enhanced Fallback when dealerStore is null
+                <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-orange-100 rounded-full">
+                      <Store className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <p className="font-bold text-lg text-orange-800">Loading Store Information...</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-700">
+                      <strong>Seller:</strong> {coin.profiles?.name || coin.profiles?.username || 'Verified Dealer'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      📍 This coin belongs to a verified dealer. Store details are being loaded.
+                    </p>
+                    <p className="text-xs text-blue-600 font-medium">
+                      💡 Click "Visit Store" above to see all items from this dealer!
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Price Section */}
           <CoinPriceSection

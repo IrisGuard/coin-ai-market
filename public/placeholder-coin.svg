@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" style="background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);">
+  <!-- Background Circle -->
+  <circle cx="200" cy="200" r="180" fill="url(#goldGradient)" stroke="#c4a000" stroke-width="4"/>
+  
+  <!-- Inner Ring -->
+  <circle cx="200" cy="200" r="150" fill="none" stroke="#e6d700" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Coin Icon -->
+  <g transform="translate(200, 200)">
+    <!-- Coin symbol -->
+    <circle cx="0" cy="-30" r="40" fill="none" stroke="#b8860b" stroke-width="3"/>
+    <text x="0" y="-25" text-anchor="middle" font-family="serif" font-size="32" font-weight="bold" fill="#b8860b">€</text>
+    
+    <!-- Star decorations -->
+    <g stroke="#b8860b" stroke-width="2" fill="none" opacity="0.6">
+      <polygon points="0,60 6,78 24,78 12,90 18,108 0,96 -18,108 -12,90 -24,78 -6,78" transform="scale(0.6)"/>
+      <polygon points="60,0 66,18 84,18 72,30 78,48 60,36 42,48 48,30 36,18 54,18" transform="scale(0.5)"/>
+      <polygon points="-60,0 -54,18 -36,18 -48,30 -42,48 -60,36 -78,48 -72,30 -84,18 -66,18" transform="scale(0.5)"/>
+    </g>
+    
+    <!-- Text -->
+    <text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#8b7355">COIN IMAGE</text>
+    <text x="0" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="400" fill="#8b7355" opacity="0.8">Not Available</text>
+  </g>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.9" />
+      <stop offset="30%" style="stop-color:#ffed4e;stop-opacity:0.8" />
+      <stop offset="70%" style="stop-color:#e6c200;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#b8860b;stop-opacity:0.9" />
+    </linearGradient>
+  </defs>
+</svg> 
