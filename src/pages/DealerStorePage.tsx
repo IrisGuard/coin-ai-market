@@ -70,25 +70,28 @@ const DealerStorePage = () => {
   });
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ['store-coins', store?.id],
+    queryKey: ['store-coins', store?.id, store?.user_id],
     queryFn: async () => {
       if (!store?.id) return [];
       
       try {
-        // Simple query to avoid TypeScript issues
-        const response = await supabase
+        console.log('🔍 Fetching coins for store:', store.id, 'user:', store.user_id);
+        
+        // Query by user_id since that's more reliable
+        const { data, error } = await supabase
           .from('coins')
           .select('*')
-          .eq('store_id', store.id)
+          .eq('user_id', store.user_id)
           .eq('is_active', true)
           .order('created_at', { ascending: false });
 
-        if (response.error) {
-          console.error('Error fetching store coins:', response.error);
+        if (error) {
+          console.error('Error fetching store coins:', error);
           return [];
         }
 
-        return response.data || [];
+        console.log('✅ Found coins for store:', data?.length || 0);
+        return data || [];
       } catch (error) {
         console.error('Query failed:', error);
         return [];
