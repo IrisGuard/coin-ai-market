@@ -1,5 +1,4 @@
 {
-  "_comment": "FORCE REBUILD: Clear cache and redeploy DealerStorePage fix - 2025-01-25T14:30:00Z",
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
