@@ -118,7 +118,8 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(`/coin/${coin.id}`, '_blank');
+    // Navigate to upload page with edit parameter for photo editing
+    window.open(`/upload?edit=${coin.id}`, '_blank');
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -327,13 +328,20 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
             </Button>
           </div>
 
-          {/* 🏪 NEW: Go to Store Button */}
+          {/* 🏪 FIXED: Go to Store Button with validation */}
           {coin.user_id && (
             <Button 
               variant="outline" 
               className="w-full mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
               onClick={(e) => {
                 e.stopPropagation();
+                // Validate user_id before navigation
+                if (!coin.user_id || typeof coin.user_id !== 'string') {
+                  console.error('❌ Invalid user_id for Visit Store:', coin.user_id);
+                  alert('Store information not available');
+                  return;
+                }
+                console.log('✅ Navigating to store for user:', coin.user_id);
                 navigate(`/store/${coin.user_id}`);
               }}
             >

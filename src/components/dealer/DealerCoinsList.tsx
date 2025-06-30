@@ -63,7 +63,8 @@ const DealerCoinsList = () => {
   };
 
   const handleEdit = (coinId: string) => {
-    window.open(`/coin/${coinId}`, '_blank');
+    // Navigate to upload page with edit parameter for photo editing and coin details
+    window.open(`/upload?edit=${coinId}`, '_blank');
   };
 
   const handleEditImages = (coin: Coin) => {
