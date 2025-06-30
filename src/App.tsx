@@ -5,25 +5,35 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { AdminStoreProvider } from "@/contexts/AdminStoreContext";
+import { validateProductionReadiness } from "@/lib/productionConfig";
 import AdminKeyboardHandler from "@/components/admin/AdminKeyboardHandler";
 import DirectDealerButton from "@/components/DirectDealerButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import CoinUpload from "./pages/CoinUpload";
 import ActiveMarketplace from "./pages/ActiveMarketplace";
 import Auctions from "./pages/Auctions";
-import CoinUpload from "./pages/CoinUpload";
 import Profile from "./pages/Profile";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import CoinDetails from "./pages/CoinDetails";
 import DealerDirect from "./pages/DealerDirect";
+import DealerUpgradePage from "./pages/DealerUpgradePage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
-import DealerUpgradePage from "./pages/DealerUpgradePage";
 import CategoryPage from "./pages/CategoryPage";
 import TokenPage from "./pages/TokenPage";
 import DealerStorePage from "./pages/DealerStorePage";
 
+
 const queryClient = new QueryClient();
+
+// 🚀 PRODUCTION READINESS CHECK
+const productionCheck = validateProductionReadiness();
+if (!productionCheck.isReady) {
+  console.warn('⚠️ Production readiness issues:', productionCheck.issues);
+} else {
+  console.log('✅ PRODUCTION READY! No mock data detected, system ready for live coins.');
+}
 
 function App() {
   return (
@@ -54,6 +64,7 @@ function App() {
                   <Route path="/payment-failure" element={<PaymentFailure />} />
                   <Route path="/category/:category" element={<CategoryPage />} />
                   <Route path="/token" element={<TokenPage />} />
+
                 </Routes>
               </AdminStoreProvider>
             </AdminProvider>
