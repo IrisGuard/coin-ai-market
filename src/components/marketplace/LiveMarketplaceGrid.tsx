@@ -6,31 +6,7 @@ import { Zap } from 'lucide-react';
 import EnhancedCoinDetailsModal from './EnhancedCoinDetailsModal';
 import CoinCard from './CoinCard';
 import LiveMarketplaceHeader from './LiveMarketplaceHeader';
-
-interface Coin {
-  id: string;
-  name: string;
-  image: string;
-  images?: string[];
-  price: number;
-  grade: string;
-  year: number;
-  rarity: string;
-  is_auction: boolean;
-  auction_end: string | null;
-  starting_bid: number | null;
-  views: number;
-  featured: boolean;
-  ai_confidence: number | null;
-  country: string;
-  authentication_status: string;
-  category?: string;
-  description?: string;
-  listing_type?: string;
-  error_type?: string;
-  denomination?: string;
-  condition?: string;
-}
+import { Coin, mapSupabaseCoinToCoin } from '@/types/coin';
 
 const LiveMarketplaceGrid = () => {
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
@@ -41,14 +17,7 @@ const LiveMarketplaceGrid = () => {
     queryFn: async (): Promise<Coin[]> => {
       const { data, error } = await supabase
         .from('coins')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url,
-            role
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -62,7 +31,7 @@ const LiveMarketplaceGrid = () => {
       if (greeceCoin) {
         }
       
-      return data as Coin[] || [];
+      return (data || []).map(coin => mapSupabaseCoinToCoin(coin));
     },
     refetchInterval: 10000 // Refresh every 10 seconds
   });
@@ -135,6 +104,8 @@ const LiveMarketplaceGrid = () => {
               coin={coin}
               index={index}
               onCoinClick={handleCoinClick}
+              showManagementOptions={false}
+              hideDebugInfo={false}
             />
           ))}
         </div>
@@ -142,7 +113,7 @@ const LiveMarketplaceGrid = () => {
 
       {/* Enhanced Coin Details Modal */}
       <EnhancedCoinDetailsModal
-        coin={selectedCoin}
+        coin={selectedCoin as any}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />

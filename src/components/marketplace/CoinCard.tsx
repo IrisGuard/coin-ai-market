@@ -34,9 +34,10 @@ interface CoinCardProps {
   index: number;
   onCoinClick: (coin: Coin) => void;
   showManagementOptions?: boolean;
+  hideDebugInfo?: boolean;
 }
 
-const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: CoinCardProps) => {
+const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hideDebugInfo = false }: CoinCardProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -328,21 +329,41 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
             </Button>
           </div>
 
-          {/* 🏪 FIXED: Go to Store Button with validation */}
+          {/* 🏪 ENHANCED: Visit Store with store existence check */}
           {coin.user_id && (
             <Button 
               variant="outline" 
               className="w-full mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                // Validate user_id before navigation
+                
+                // Enhanced validation
                 if (!coin.user_id || typeof coin.user_id !== 'string') {
                   console.error('❌ Invalid user_id for Visit Store:', coin.user_id);
                   alert('Store information not available');
                   return;
                 }
-                console.log('✅ Navigating to store for user:', coin.user_id);
-                navigate(`/store/${coin.user_id}`);
+
+                try {
+                  // Check if store exists
+                  const { data: store, error } = await supabase
+                    .from('stores')
+                    .select('id, name')
+                    .eq('user_id', coin.user_id)
+                    .single();
+
+                  if (error || !store) {
+                    console.error('❌ Store not found for user:', coin.user_id, error);
+                    alert('This dealer\'s store is not available at the moment.');
+                    return;
+                  }
+
+                  console.log('✅ Store found, navigating:', store);
+                  navigate(`/store/${coin.user_id}`);
+                } catch (error) {
+                  console.error('❌ Error checking store:', error);
+                  alert('Unable to access store at the moment.');
+                }
               }}
             >
               <Store className="h-4 w-4 mr-2" />
@@ -350,15 +371,17 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
             </Button>
           )}
 
-          {/* AI Confidence & Image Count */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
-            {coin.ai_confidence && (
-              <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
-            )}
-            {allImages.length > 1 && (
-              <span className="text-green-600">{allImages.length} photos</span>
-            )}
-          </div>
+          {/* 🔧 FIXED: Hide debug info on homepage */}
+          {!hideDebugInfo && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground mt-3">
+              {coin.ai_confidence && (
+                <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
+              )}
+              {allImages.length > 1 && (
+                <span className="text-green-600">{allImages.length} photos</span>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
