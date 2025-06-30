@@ -55,9 +55,13 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onFavorite, isFavorited }) =>
         {/* Image Section */}
         <div className="relative overflow-hidden rounded-t-lg aspect-square">
           <img 
-            src={coin.image || '/placeholder-coin.png'}
+            src={coin.image || '/placeholder-coin.svg'}
             alt={coin.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/placeholder-coin.svg';
+            }}
           />
           
           {/* Overlay Badges */}

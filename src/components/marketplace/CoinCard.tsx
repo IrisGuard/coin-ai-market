@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
 
 interface CoinCardProps {
   coin: Coin;
@@ -38,6 +39,7 @@ interface CoinCardProps {
 const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: CoinCardProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Check if current user owns this coin
   const isOwner = user?.id === coin.user_id;
@@ -332,7 +334,7 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false }: C
               className="w-full mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = `/store/${coin.user_id}`;
+                navigate(`/store/${coin.user_id}`);
               }}
             >
               <Store className="h-4 w-4 mr-2" />

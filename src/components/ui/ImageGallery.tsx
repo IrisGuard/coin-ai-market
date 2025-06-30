@@ -204,14 +204,16 @@ const ImageGallery = ({
         )}
 
         {isCurrentImageError ? (
-          // Error state
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
-            <div className="text-center">
-              <div className="text-4xl mb-2">⚠️</div>
-              <p className="text-sm text-gray-600">Image failed to load</p>
-              <p className="text-xs text-gray-500 mt-1">Using placeholder instead</p>
-            </div>
-          </div>
+          // Error state - Show placeholder instead
+          <img
+            src="/placeholder-coin.svg"
+            alt={`${safeCoinName} - Placeholder`}
+            className="w-full h-full object-contain opacity-90"
+            style={{ 
+              display: 'block', 
+              minHeight: '100%'
+            }}
+          />
         ) : (
           <>
             <img
@@ -267,10 +269,12 @@ const ImageGallery = ({
                 title={`View image ${index + 1}`}
               >
                 {errorImages.has(index) ? (
-                  // Thumbnail error state
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                    <div className="text-xs text-gray-500">❌</div>
-                  </div>
+                  // Thumbnail error state - show mini placeholder
+                  <img
+                    src="/placeholder-coin.svg"
+                    alt={`${safeCoinName} thumbnail placeholder`}
+                    className="w-full h-full object-contain opacity-70"
+                  />
                 ) : (
                   <>
                     <img
