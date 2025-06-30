@@ -299,7 +299,8 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
                 className="flex-1 bg-red-600 hover:bg-red-700"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle bid action
+                  // Navigate to auction details for bidding
+                  window.open(`/auctions?coin=${coin.id}`, '_blank');
                 }}
               >
                 <Clock className="h-4 w-4 mr-2" />
@@ -310,7 +311,8 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
                 className="flex-1 bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle buy action
+                  // Navigate to coin details for purchase
+                  window.open(`/coin/${coin.id}`, '_blank');
                 }}
               >
                 <DollarSign className="h-4 w-4 mr-2" />
@@ -323,6 +325,7 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
               onClick={(e) => {
                 e.stopPropagation();
                 // Handle favorite action
+                console.log('Adding to favorites:', coin.id);
               }}
             >
               <Heart className="h-4 w-4" />
