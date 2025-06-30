@@ -160,7 +160,7 @@ const FeaturedCoinsGrid = () => {
         ))}
       </div>
 
-      {/* Pagination Controls */}
+      {/* Enhanced Pagination Controls */}
       {totalPages > 1 && (
         <Pagination>
           <PaginationContent>
@@ -169,22 +169,51 @@ const FeaturedCoinsGrid = () => {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setCurrentPage(prev => Math.max(1, prev - 1));
+                  if (currentPage > 1) setCurrentPage(currentPage - 1);
                 }}
                 className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
               />
             </PaginationItem>
 
-            <PaginationItem>
-              <PaginationLink href="#">{`Page ${currentPage} of ${totalPages}`}</PaginationLink>
-            </PaginationItem>
+            {/* Show numbered pagination */}
+            {(() => {
+              const pages = [];
+              const maxVisible = 5;
+              
+              let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+              let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+              
+              // Adjust start if we're near the end
+              if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+              }
+              
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(i);
+                      }}
+                      className={currentPage === i ? 'bg-blue-600 text-white' : ''}
+                    >
+                      {i}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              }
+              
+              return pages;
+            })()}
             
             <PaginationItem>
               <PaginationNext 
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                 }}
                 className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
               />
@@ -193,20 +222,7 @@ const FeaturedCoinsGrid = () => {
         </Pagination>
       )}
 
-      {/* Enhanced Call to Action */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="text-center pt-8"
-      >
-        <Link to="/marketplace">
-          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            Explore All Coins
-            <ArrowRight className="ml-3 w-5 h-5" />
-          </Button>
-        </Link>
-      </motion.div>
+      {/* Call to Action Removed - Using pagination instead */}
     </div>
   );
 };

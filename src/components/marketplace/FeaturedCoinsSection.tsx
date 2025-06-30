@@ -39,19 +39,7 @@ const FeaturedCoinsSection = () => {
         </motion.div>
 
         {/* Action button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="text-center mt-12"
-        >
-          <Link to="/marketplace">
-            <Button className="bg-gradient-to-r from-electric-blue to-electric-purple hover:from-electric-blue/90 hover:to-electric-purple/90 text-white px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105">
-              View All Coins
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </motion.div>
+        {/* View All Coins button removed - Using pagination in marketplace instead */}
       </div>
     </section>
   );

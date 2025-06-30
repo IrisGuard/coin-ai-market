@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Heart, Share2, Store, Wallet, Building2, ExternalLink, ShoppingBag } from 'lucide-react';
+import { Star, Heart, Share2, Store, Wallet, Building2, ExternalLink, ShoppingBag, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import CoinPriceSection from './CoinPriceSection';
@@ -206,6 +206,59 @@ const CoinDetailsContent = ({
               </div>
               
               <div className="flex items-center gap-2">
+                {/* Owner Management Buttons */}
+                {isOwner && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // Navigate to edit page (could be upload page with coin data)
+                        window.open(`/upload?edit=${coin.id}`, '_blank');
+                      }}
+                      className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                                         <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={async () => {
+                         if (confirm(`Are you sure you want to delete "${coin.name}"? This action cannot be undone.`)) {
+                           try {
+                             // Import supabase dynamically
+                             const { supabase } = await import('@/integrations/supabase/client');
+                             
+                             const { error } = await supabase
+                               .from('coins')
+                               .delete()
+                               .eq('id', coin.id)
+                               .eq('user_id', coin.user_id);
+                             
+                             if (error) {
+                               console.error('Delete error:', error);
+                               alert('Failed to delete coin: ' + error.message);
+                               return;
+                             }
+                             
+                             alert('Coin deleted successfully');
+                             window.location.href = '/dealer-direct';
+                           } catch (error) {
+                             console.error('Delete error:', error);
+                             alert('Failed to delete coin');
+                           }
+                         }
+                       }}
+                       className="border-red-200 text-red-700 hover:bg-red-50"
+                     >
+                       <Trash2 className="w-4 h-4 mr-1" />
+                       Delete
+                     </Button>
+                  </>
+                )}
+                
+                {/* Regular Action Buttons */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -260,6 +313,15 @@ const CoinDetailsContent = ({
                   <Link 
                     to={`/store/${safeUserId}`}
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                    onClick={(e) => {
+                      // Ensure we have valid user_id before navigation
+                      if (!coin?.user_id) {
+                        e.preventDefault();
+                        console.error('❌ Cannot navigate to store: missing user_id');
+                        return;
+                      }
+                      console.log('✅ Navigating to store:', coin.user_id);
+                    }}
                   >
                     <ShoppingBag className="w-4 h-4" />
                     Visit Store
