@@ -69,7 +69,8 @@ const PhotoBackgroundSelector = () => {
 
   // Debug logging for processed images
   processedImages.forEach((img, index) => {
-    + '...',
+    console.log(`Image ${index}:`, {
+      original: img.original?.substring(0, 50) + '...',
       processed: img.processed?.substring(0, 50) + '...',
       originalType: img.original?.startsWith('data:') ? 'DATA_URL' : img.original?.startsWith('blob:') ? 'BLOB_URL' : 'OTHER',
       processedType: img.processed?.startsWith('data:') ? 'DATA_URL' : img.processed?.startsWith('blob:') ? 'BLOB_URL' : 'OTHER'

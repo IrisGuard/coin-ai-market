@@ -48,5 +48,3 @@ export const secureRandom = {
   boolean: () => generateSecureRandomNumber(0, 1) === 1,
   percentage: () => generateSecureRandomNumber(0, 100)
 };
-
-free');

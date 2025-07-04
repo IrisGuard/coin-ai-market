@@ -4291,6 +4291,10 @@ export type Database = {
         Args: { coin_store_id: string }
         Returns: boolean
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
