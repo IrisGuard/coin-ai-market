@@ -4259,6 +4259,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      final_security_audit: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       final_system_validation: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4425,6 +4429,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      resolve_all_security_warnings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       resolve_security_warnings: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -4451,6 +4459,10 @@ export type Database = {
       }
       validate_final_optimization: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      validate_password_security: {
+        Args: { password_input: string }
         Returns: Json
       }
       validate_phase_2_security_fixes: {
