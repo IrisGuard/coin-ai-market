@@ -212,7 +212,7 @@ const RealTimeAdminConnection: React.FC<AdminConnectionProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-sm">
-                      {activity.stores?.profiles?.name || 'Dealer'}
+                      {Array.isArray(activity.stores?.profiles) ? activity.stores.profiles[0]?.name || 'Dealer' : 'Dealer'}
                     </p>
                     <Badge variant="outline" className="text-xs">
                       {activity.activity_type}
@@ -227,9 +227,9 @@ const RealTimeAdminConnection: React.FC<AdminConnectionProps> = ({
                   <p className="text-xs text-muted-foreground">
                     {getTimeAgo(activity.created_at)}
                   </p>
-                  {activity.activity_data?.confidence && (
+                  {activity.activity_data && typeof activity.activity_data === 'object' && 'confidence' in activity.activity_data && (
                     <Badge variant="secondary" className="text-xs">
-                      {Math.round(activity.activity_data.confidence * 100)}%
+                      {Math.round((activity.activity_data as any).confidence * 100)}%
                     </Badge>
                   )}
                 </div>

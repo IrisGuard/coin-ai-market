@@ -17,7 +17,7 @@ const AdminDataValidator = () => {
         // Check for real production data patterns
         const { data: coins, error } = await supabase
           .from('coins')
-          .select('id, name, description, price, user_id, authentication_status')
+          .select('id, name, description, price, user_id, authentication_status, grade, rarity, category')
           .limit(100);
         
         if (error) {
@@ -36,7 +36,7 @@ const AdminDataValidator = () => {
           if (coin.name && !coin.name.toLowerCase().includes('test')) qualityScore += 1;
           if (coin.grade && coin.grade !== 'Unknown') qualityScore += 1;
           if (coin.rarity && coin.rarity !== 'Common') qualityScore += 1;
-          if (coin.category && coin.category !== 'unknown') qualityScore += 1;
+          if (coin.category && coin.category !== 'unclassified') qualityScore += 1;
           
           realDataCount++;
         });

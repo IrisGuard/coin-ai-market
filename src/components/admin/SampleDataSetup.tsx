@@ -22,12 +22,12 @@ const ProductionDataManager = () => {
       ]);
 
       return {
-        totalCoins: totalCoins || 0,
-        verifiedCoins: totalCoins - rejectedCoins || 0,
-        activeUsers: activeStores.length || 0,
-        completedTransactions: pendingCoins.length || 0,
+        totalCoins: totalCoins.count || 0,
+        verifiedCoins: (totalCoins.count || 0) - (rejectedCoins.count || 0),
+        activeUsers: activeStores.count || 0,
+        completedTransactions: pendingCoins.count || 0,
         recentActivity: [],
-        verificationRate: totalCoins > 0 ? ((totalCoins - rejectedCoins) / totalCoins) * 100 : 0
+        verificationRate: (totalCoins.count || 0) > 0 ? (((totalCoins.count || 0) - (rejectedCoins.count || 0)) / (totalCoins.count || 0)) * 100 : 0
       };
     }
   });
