@@ -158,20 +158,23 @@ const ImageGallery = ({
     }
   }, [currentIndex, validImages.length]);
 
-  // PHASE 5: Enhanced touch gesture handling for mobile
+  // PHASE 5: CONTAINER-ENFORCED touch gesture handling for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile || showMainOnly) return;
+    e.stopPropagation(); // Prevent event bubbling
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile || showMainOnly) return;
+    e.stopPropagation(); // Prevent event bubbling
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isMobile || showMainOnly || !touchStart || !touchEnd) return;
+    e.stopPropagation(); // Prevent event bubbling
     
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
@@ -274,22 +277,29 @@ const ImageGallery = ({
   }
 
   return (
-    <div className={`relative ${className}`}>
-      {/* CONTAINER-RESPECTING: Main Image Display */}
+    <div className={`relative overflow-hidden ${className}`} style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
+      {/* CONTAINER-ENFORCED: Main Image Display */}
       <div 
-        className="relative aspect-square w-full rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm border border-gray-100"
+        className="relative aspect-square w-full max-w-full rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg border border-gray-200"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        style={{ 
+          boxSizing: 'border-box',
+          maxWidth: '100%',
+          touchAction: 'pan-y pinch-zoom',
+          WebkitOverflowScrolling: 'touch'
+        }}
       >
-        {/* CONTAINER-RESPECTING: Navigation Arrows */}
+        {/* CONTAINER-ENFORCED: Navigation Arrows */}
         {validImages.length > 1 && !showMainOnly && (
           <>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToPrevious}
-              className="absolute left-1 top-1/2 transform -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full w-7 h-7 p-0 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full w-8 h-8 p-0 transition-all duration-200 opacity-80 hover:opacity-100 shadow-lg"
+              style={{ touchAction: 'manipulation' }}
               aria-label="Previous image"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -298,7 +308,8 @@ const ImageGallery = ({
               variant="ghost"
               size="sm"
               onClick={goToNext}
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full w-7 h-7 p-0 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full w-8 h-8 p-0 transition-all duration-200 opacity-80 hover:opacity-100 shadow-lg"
+              style={{ touchAction: 'manipulation' }}
               aria-label="Next image"
             >
               <ChevronRight className="w-4 h-4" />
@@ -306,9 +317,9 @@ const ImageGallery = ({
           </>
         )}
 
-        {/* CONTAINER-RESPECTING: Image Counter */}
+        {/* CONTAINER-ENFORCED: Image Counter */}
         {validImages.length > 1 && !showMainOnly && (
-          <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-2 py-1 rounded-full opacity-75">
+          <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-full shadow-lg">
             {safeCurrentIndex + 1} / {validImages.length}
           </div>
         )}
@@ -325,28 +336,33 @@ const ImageGallery = ({
             <img
               src={currentImageUrl}
               alt={`${safeCoinName} - Image ${safeCurrentIndex + 1}`}
-              className={`w-full h-full object-contain transition-opacity duration-200 ${
+              className={`w-full h-full max-w-full max-h-full object-contain transition-opacity duration-200 ${
                 isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
+              style={{ 
+                boxSizing: 'border-box',
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
               onLoad={() => handleImageLoad(safeCurrentIndex)}
               onError={() => handleImageError(safeCurrentIndex)}
               loading="eager"
               draggable={false}
             />
             
-            {/* CONTAINER-RESPECTING: Loading indicator */}
+            {/* CONTAINER-ENFORCED: Loading indicator */}
             {!isCurrentImageLoaded && !isCurrentImageError && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-200 border-t-blue-600"></div>
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl">
+                <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-200 border-t-blue-600 shadow-lg"></div>
               </div>
             )}
           </>
         )}
       </div>
       
-      {/* CONTAINER-RESPECTING: Thumbnail Navigation */}
+      {/* CONTAINER-ENFORCED: Thumbnail Navigation */}
       {validImages.length > 1 && showThumbnails && !showMainOnly && (
-        <div className="flex gap-1.5 mt-2 justify-center overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 mt-3 justify-center overflow-x-auto scrollbar-hide px-2">
           {validImages.map((image, index) => {
             if (!image || typeof image !== 'string') return null;
             
@@ -354,11 +370,12 @@ const ImageGallery = ({
               <button
                 key={index}
                 onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 w-10 h-10 rounded-md overflow-hidden border-2 transition-all duration-200 ${
+                className={`relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 shadow-md ${
                   index === safeCurrentIndex 
-                    ? 'border-blue-500 ring-1 ring-blue-200' 
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg' 
+                    : 'border-gray-300 hover:border-gray-400 hover:shadow-lg'
                 } bg-gray-100`}
+                style={{ touchAction: 'manipulation' }}
                 title={`View image ${index + 1}`}
               >
                 {errorImages.has(index) ? (
@@ -372,7 +389,12 @@ const ImageGallery = ({
                     <img
                       src={image}
                       alt={`${safeCoinName} thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full max-w-full max-h-full object-cover"
+                      style={{ 
+                        boxSizing: 'border-box',
+                        maxWidth: '100%',
+                        maxHeight: '100%'
+                      }}
                       loading="lazy"
                       onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageError(index)}
@@ -380,8 +402,8 @@ const ImageGallery = ({
                     
                     {/* Active indicator */}
                     {index === safeCurrentIndex && (
-                      <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="absolute inset-0 bg-blue-500/30 flex items-center justify-center rounded-lg">
+                        <div className="w-3 h-3 bg-blue-600 rounded-full shadow-lg"></div>
                       </div>
                     )}
                   </>
