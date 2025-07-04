@@ -1,6 +1,4 @@
-
 import { useState } from 'react';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Camera as CameraIcon, X, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadImage } from '@/utils/imageUpload';
@@ -13,113 +11,46 @@ interface NativeCameraOnlyProps {
 const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyProps) => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedImages, setCapturedImages] = useState<{ file: File; preview: string; url?: string }[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
 
-  const processAndUploadImage = async (blob: Blob, source: string): Promise<{ file: File; preview: string; url: string }> => {
-    const file = new File([blob], `error-coin-${source}-${Date.now()}.jpeg`, { type: 'image/jpeg' });
-    const preview = URL.createObjectURL(file);
+  const handleFileSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
     
-    // Upload immediately to Supabase Storage for permanent URL
-    console.log('📸 Uploading ERROR COIN image to Supabase Storage...');
-    const uploadedUrl = await uploadImage(file, 'coin-images');
-    console.log('✅ ERROR COIN image uploaded with permanent URL:', uploadedUrl);
+    if (files.length === 0) return;
     
-    // Verify URL is permanent (not blob:)
-    if (uploadedUrl.startsWith('blob:')) {
-      throw new Error('Upload failed: temporary URL returned instead of permanent');
-    }
+    setIsCapturing(true);
     
-    return { file, preview, url: uploadedUrl };
-  };
-
-  const captureFromCamera = async () => {
     try {
-      setIsCapturing(true);
-      setIsUploading(true);
+      const processedImages = [];
       
-      const image = await Camera.getPhoto({
-        quality: 95,
-        allowEditing: true,
-        resultType: CameraResultType.Uri,
-        source: CameraSource.Camera,
-        width: 1200,
-        height: 1200,
-        saveToGallery: false
-      });
-      
-      if (!image.webPath) {
-        throw new Error('Failed to capture image');
+      for (const file of files) {
+        const preview = URL.createObjectURL(file);
+        const uploadedUrl = await uploadImage(file, 'coin-images');
+        
+        processedImages.push({
+          file,
+          preview,
+          url: uploadedUrl
+        });
       }
-
-      const response = await fetch(image.webPath);
-      const blob = await response.blob();
       
-      // Wait for complete upload with permanent URL
-      const processedImage = await processAndUploadImage(blob, 'camera');
-      const updatedImages = [...capturedImages, processedImage];
-      
+      const updatedImages = [...capturedImages, ...processedImages];
       setCapturedImages(updatedImages);
       onImagesSelected(updatedImages);
-
+      
       toast({
-        title: "📸 ERROR COIN Image Captured!",
-        description: "Image saved to cloud storage with permanent URL - ready for listing!",
+        title: "Images Selected!",
+        description: `${files.length} image(s) processed and uploaded successfully.`,
       });
       
     } catch (error: any) {
-      console.error('Native camera capture failed:', error);
+      console.error('File processing failed:', error);
       toast({
-        title: "Camera Error",
-        description: error.message || "Failed to capture image. Please try again.",
+        title: "Upload Error",
+        description: error.message || "Failed to process images. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsCapturing(false);
-      setIsUploading(false);
-    }
-  };
-
-  const selectFromGallery = async () => {
-    try {
-      setIsCapturing(true);
-      setIsUploading(true);
-      
-      const image = await Camera.getPhoto({
-        quality: 95,
-        allowEditing: true,
-        resultType: CameraResultType.Uri,
-        source: CameraSource.Photos
-      });
-      
-      if (!image.webPath) {
-        throw new Error('Failed to select image');
-      }
-
-      const response = await fetch(image.webPath);
-      const blob = await response.blob();
-      
-      // Wait for complete upload with permanent URL
-      const processedImage = await processAndUploadImage(blob, 'gallery');
-      const updatedImages = [...capturedImages, processedImage];
-      
-      setCapturedImages(updatedImages);
-      onImagesSelected(updatedImages);
-
-      toast({
-        title: "🖼️ ERROR COIN Image Selected!",
-        description: "Image saved to cloud storage with permanent URL - ready for listing!",
-      });
-      
-    } catch (error: any) {
-      console.error('Gallery selection failed:', error);
-      toast({
-        title: "Gallery Error",
-        description: error.message || "Failed to select image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCapturing(false);
-      setIsUploading(false);
     }
   };
 
@@ -132,66 +63,48 @@ const NativeCameraOnly = ({ onImagesSelected, maxImages = 5 }: NativeCameraOnlyP
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex space-x-2">
-        <button
-          onClick={captureFromCamera}
-          disabled={isCapturing || capturedImages.length >= maxImages || isUploading}
-          className="flex-1 flex items-center justify-center bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-          style={{ touchAction: 'manipulation' }}
-        >
-          {isCapturing || isUploading ? (
-            <Loader2 size={20} className="mr-2 animate-spin" />
+        <label className="flex-1 flex items-center justify-center bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition-colors cursor-pointer">
+          {isCapturing ? (
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
           ) : (
-            <CameraIcon size={20} className="mr-2" />
+            <CameraIcon className="h-5 w-5 mr-2" />
           )}
-          {isUploading ? 'Uploading...' : 'Capture ERROR COIN'}
-        </button>
-        
-        <button
-          onClick={selectFromGallery}
-          disabled={isCapturing || capturedImages.length >= maxImages || isUploading}
-          className="flex-1 flex items-center justify-center border-2 border-red-600 text-red-600 py-3 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-          style={{ touchAction: 'manipulation' }}
-        >
-          {isCapturing || isUploading ? (
-            <Loader2 size={20} className="mr-2 animate-spin" />
-          ) : (
-            <CameraIcon size={20} className="mr-2" />
-          )}
-          {isUploading ? 'Uploading...' : 'Gallery'}
-        </button>
+          {isCapturing ? 'Processing...' : 'Select Images'}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelection}
+            className="hidden"
+            disabled={isCapturing || capturedImages.length >= maxImages}
+          />
+        </label>
       </div>
 
       {capturedImages.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 mt-4">
+        <div className="grid grid-cols-2 gap-2">
           {capturedImages.map((image, index) => (
             <div key={index} className="relative">
               <img
-                src={image.url || image.preview}
-                alt={`ERROR COIN ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg border-2 border-red-300"
+                src={image.preview}
+                alt={`Captured ${index + 1}`}
+                className="w-full h-32 object-cover rounded-lg"
               />
               <button
                 onClick={() => removeImage(index)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 touch-manipulation"
-                style={{ touchAction: 'manipulation' }}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
               >
-                <X className="w-3 h-3" />
+                <X className="h-3 w-3" />
               </button>
-              {image.url && !image.url.startsWith('blob:') && (
-                <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded flex items-center">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Permanent
+              {image.url && (
+                <div className="absolute bottom-1 right-1">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
                 </div>
               )}
             </div>
           ))}
         </div>
       )}
-      
-      <p className="text-sm text-red-600 text-center font-medium">
-        ERROR COIN Camera Ready • {maxImages - capturedImages.length} more photos available
-        {capturedImages.length > 0 && ` • ${capturedImages.length}/${maxImages} uploaded with permanent URLs`}
-      </p>
     </div>
   );
 };

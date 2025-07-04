@@ -143,7 +143,7 @@ const AdvancedAdminCharts = () => {
             <ChartContainer config={chartConfig} className="h-[300px]">
               <PieChart>
                 <Pie
-                  data={categoryData || []}
+                  data={Array.isArray(categoryData) ? categoryData : []}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -152,7 +152,7 @@ const AdvancedAdminCharts = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {categoryData?.map((entry, index) => (
+                  {Array.isArray(categoryData) && categoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>

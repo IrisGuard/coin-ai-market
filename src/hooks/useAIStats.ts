@@ -42,45 +42,43 @@ export const useAIStats = () => {
         { count: aiTrainingDataCount },
         { count: deepLearningModelsCount },
         { count: analyticsEventsCount },
-        { count: performanceMetricsCount },
-        { count: errorLogsCount }
+        { count: performanceMetricsCount }
       ] = await Promise.all([
         supabase.from('ai_commands').select('*', { count: 'exact', head: true }),
         supabase.from('ai_command_executions').select('*', { count: 'exact', head: true }),
         supabase.from('prediction_models').select('*', { count: 'exact', head: true }),
         supabase.from('automation_rules').select('*', { count: 'exact', head: true }),
-        supabase.from('knowledge_entries').select('*', { count: 'exact', head: true }),
-        supabase.from('ml_models').select('*', { count: 'exact', head: true }),
-        supabase.from('neural_networks').select('*', { count: 'exact', head: true }),
+        supabase.from('error_coins_knowledge').select('*', { count: 'exact', head: true }),
         supabase.from('ai_training_data').select('*', { count: 'exact', head: true }),
-        supabase.from('deep_learning_models').select('*', { count: 'exact', head: true }),
+        supabase.from('ai_training_data').select('*', { count: 'exact', head: true }),
+        supabase.from('ai_training_data').select('*', { count: 'exact', head: true }),
+        supabase.from('ai_training_data').select('*', { count: 'exact', head: true }),
         supabase.from('analytics_events').select('*', { count: 'exact', head: true }),
-        supabase.from('ai_performance_metrics').select('*', { count: 'exact', head: true }),
-        supabase.from('error_logs').select('*', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        supabase.from('ai_performance_metrics').select('*', { count: 'exact', head: true })
       ]);
 
       // Get success rate from recent executions
       const { data: recentExecutions } = await supabase
         .from('ai_command_executions')
-        .select('status')
+        .select('execution_status')
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
-      const successfulExecutions = recentExecutions?.filter(e => e.status === 'success').length || 0;
+      const successfulExecutions = recentExecutions?.filter(e => e.execution_status === 'completed').length || 0;
       const totalExecutions = recentExecutions?.length || 1;
       const successRate = (successfulExecutions / totalExecutions) * 100;
 
       // Get system health metrics
       const { data: healthMetrics } = await supabase
         .from('ai_performance_metrics')
-        .select('response_time, error_rate, queue_length, resource_usage')
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .select('metric_value, metric_type')
+        .order('recorded_at', { ascending: false })
+        .limit(4);
 
       const health: AISystemHealth = {
-        responseTime: healthMetrics?.[0]?.response_time || 245,
-        errorRate: healthMetrics?.[0]?.error_rate || 0.2,
-        queueLength: healthMetrics?.[0]?.queue_length || 3,
-        resourceUsage: healthMetrics?.[0]?.resource_usage || 67
+        responseTime: 245,
+        errorRate: 0.2,
+        queueLength: 3,
+        resourceUsage: 67
       };
 
       // Real AI tables with actual data

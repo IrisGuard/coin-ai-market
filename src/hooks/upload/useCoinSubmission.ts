@@ -145,7 +145,7 @@ export const useCoinSubmission = () => {
           user_id: user.id,
           store_id: finalStoreId,
           featured: mappedCategory === 'error_coin' || (coinData.rarity && ['Rare', 'Very Rare', 'Ultra Rare'].includes(coinData.rarity)),
-          category: mappedCategory
+          category: mappedCategory as any
         }])
         .select()
         .single();
