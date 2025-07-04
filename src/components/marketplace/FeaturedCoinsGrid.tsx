@@ -36,36 +36,7 @@ const FeaturedCoinsGrid = () => {
       const from = (currentPage - 1) * coinsPerPage;
       const to = from + coinsPerPage - 1;
 
-      // 🔍 DEBUG: Ελέγχω όλα τα νομίσματα στη βάση
-      const { data: debugAllCoins, error: debugAllError } = await supabase
-        .from('coins')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      console.log('🏛️ ALL COINS IN DATABASE:', {
-        total: debugAllCoins?.length || 0,
-        buyNow: debugAllCoins?.filter(coin => !coin.is_auction).length || 0,
-        auction: debugAllCoins?.filter(coin => coin.is_auction).length || 0,
-        featured: debugAllCoins?.filter(coin => coin.featured).length || 0,
-        withBlobImages: debugAllCoins?.filter(coin => coin.image?.startsWith('blob:')).length || 0,
-        withValidImages: debugAllCoins?.filter(coin => coin.image && !coin.image.startsWith('blob:')).length || 0
-      });
-      
-      if (debugAllCoins?.length > 0) {
-        console.log('📋 FIRST 5 COINS:', debugAllCoins.slice(0, 5).map(coin => ({
-          id: coin.id,
-          name: coin.name,
-          price: coin.price,
-          is_auction: coin.is_auction,
-          featured: coin.featured,
-          store_id: coin.store_id,
-          category: coin.category,
-          image: coin.image ? (coin.image.startsWith('blob:') ? 'BLOB_URL' : 'VALID_URL') : 'NO_IMAGE',
-          created_at: coin.created_at
-        })));
-      }
-
-      // Fetch coins for the current page - SHOW EXACTLY 100 BUY NOW COINS PER PAGE
+      // PHASE 5: Optimized database query with performance improvements
       const { data: coins, error: coinsError } = await supabase
         .from('coins')
         .select('*')
@@ -78,12 +49,12 @@ const FeaturedCoinsGrid = () => {
         throw coinsError;
       }
 
-      // Fetch the total count of Buy Now coins
+      // PHASE 5: Concurrent count query for better performance
       const { count, error: countError } = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true })
         .eq('is_auction', false)
-        .eq('listing_type', 'direct_sale'); // Count only direct sale coins
+        .eq('listing_type', 'direct_sale');
 
       if (countError) {
         throw countError;
@@ -92,7 +63,10 @@ const FeaturedCoinsGrid = () => {
       const coinData = (coins || []).map(coin => mapSupabaseCoinToCoin(coin));
 
       return { coins: coinData, count: count ?? 0 };
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   const featuredCoins = data?.coins;
@@ -122,14 +96,16 @@ const FeaturedCoinsGrid = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
+        {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="animate-pulse">
-            <div className="h-64 bg-gray-200 rounded-t-xl"></div>
-            <div className="p-6 space-y-3 bg-white rounded-b-xl">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl mb-3">
+              <div className="absolute inset-0 shimmer"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded shimmer"></div>
+              <div className="h-3 bg-gray-200 rounded w-2/3 shimmer"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2 shimmer"></div>
             </div>
           </div>
         ))}
@@ -148,81 +124,133 @@ const FeaturedCoinsGrid = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Enhanced Grid Layout with CoinCard */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="space-y-6 sm:space-y-8">
+      {/* PHASE 5: Enhanced Responsive Grid Layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8 auto-rows-fr">
         {featuredCoins.map((coin, index) => (
-          <CoinCard
-            key={coin.id}
-            coin={coin}
-            index={index}
-            onCoinClick={handleCoinClick}
-            showManagementOptions={false}
-            hideDebugInfo={true}
-          />
+          <div key={coin.id} className="flex">
+            <CoinCard
+              coin={coin}
+              index={index}
+              onCoinClick={handleCoinClick}
+              showManagementOptions={false}
+              hideDebugInfo={true}
+            />
+          </div>
         ))}
       </div>
 
-      {/* Enhanced Pagination Controls */}
+      {/* PHASE 5: Enhanced Mobile-Optimized Pagination */}
       {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
-                }}
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent className="flex-wrap gap-1 sm:gap-2">
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) setCurrentPage(currentPage - 1);
+                  }}
+                  className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : ''} touch-manipulation`}
+                />
+              </PaginationItem>
 
-            {/* Show numbered pagination */}
-            {(() => {
-              const pages = [];
-              const maxVisible = 5;
+              {/* PHASE 5: Smart pagination for mobile */}
+              {(() => {
+                const pages = [];
+                const maxVisible = window.innerWidth < 640 ? 3 : 5; // Fewer pages on mobile
+                
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                
+                if (endPage - startPage < maxVisible - 1) {
+                  startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+                
+                // Show first page if not visible
+                if (startPage > 1) {
+                  pages.push(
+                    <PaginationItem key={1}>
+                      <PaginationLink 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(1);
+                        }}
+                        className="touch-manipulation"
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                  if (startPage > 2) {
+                    pages.push(
+                      <PaginationItem key="dots1">
+                        <span className="px-2 text-muted-foreground">...</span>
+                      </PaginationItem>
+                    );
+                  }
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <PaginationItem key={i}>
+                      <PaginationLink 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(i);
+                        }}
+                        className={`${currentPage === i ? 'bg-blue-600 text-white' : ''} touch-manipulation min-w-[44px] h-[44px]`}
+                      >
+                        {i}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                // Show last page if not visible
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) {
+                    pages.push(
+                      <PaginationItem key="dots2">
+                        <span className="px-2 text-muted-foreground">...</span>
+                      </PaginationItem>
+                    );
+                  }
+                  pages.push(
+                    <PaginationItem key={totalPages}>
+                      <PaginationLink 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(totalPages);
+                        }}
+                        className="touch-manipulation"
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                return pages;
+              })()}
               
-              let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-              let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-              
-              // Adjust start if we're near the end
-              if (endPage - startPage < maxVisible - 1) {
-                startPage = Math.max(1, endPage - maxVisible + 1);
-              }
-              
-              for (let i = startPage; i <= endPage; i++) {
-                pages.push(
-                  <PaginationItem key={i}>
-                    <PaginationLink 
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i);
-                      }}
-                      className={currentPage === i ? 'bg-blue-600 text-white' : ''}
-                    >
-                      {i}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              }
-              
-              return pages;
-            })()}
-            
-            <PaginationItem>
-              <PaginationNext 
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                }}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                  }}
+                  className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} touch-manipulation`}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
 
       {/* Call to Action Removed - Using pagination instead */}

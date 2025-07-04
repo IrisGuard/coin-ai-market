@@ -77,20 +77,54 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-/* Custom animations */
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
+/* PHASE 5: Enhanced mobile-first animations and effects */
+@keyframes shimmer-enhanced {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
 }
 
 .shimmer {
   background: linear-gradient(90deg, #f0f0f0 0px, #e0e0e0 40px, #f0f0f0 80px);
   background-size: 200px;
-  animation: shimmer 1.5s infinite linear;
+  animation: shimmer-enhanced 1.5s infinite linear;
+}
+
+/* PHASE 5: Touch-friendly interactive elements */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* PHASE 5: Smooth scrolling for mobile */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* PHASE 5: Hide scrollbars on mobile for cleaner look */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* PHASE 5: Mobile-optimized card hover effects */
+@media (hover: hover) {
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* PHASE 5: Touch feedback for mobile */
+@media (hover: none) {
+  .touch-feedback:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
 }
 
 /* Glass effect */

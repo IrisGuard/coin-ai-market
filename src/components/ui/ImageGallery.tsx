@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ImageGalleryProps {
   images: string[];
@@ -25,6 +26,9 @@ const ImageGallery = ({
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [errorImages, setErrorImages] = useState<Set<number>>(new Set());
   const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const isMobile = useIsMobile();
   
   // 🛡️ DEFENSIVE: Ensure we have valid props
   const safeImages = Array.isArray(images) ? images : [];
@@ -138,21 +142,68 @@ const ImageGallery = ({
     }
   };
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     try {
       goToImage(currentIndex + 1 >= validImages.length ? 0 : currentIndex + 1);
     } catch (error) {
       console.error('Error going to next image:', error);
     }
-  };
+  }, [currentIndex, validImages.length]);
 
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     try {
       goToImage(currentIndex - 1 < 0 ? validImages.length - 1 : currentIndex - 1);
     } catch (error) {
       console.error('Error going to previous image:', error);
     }
+  }, [currentIndex, validImages.length]);
+
+  // PHASE 5: Enhanced touch gesture handling for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile || showMainOnly) return;
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
   };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile || showMainOnly) return;
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isMobile || showMainOnly || !touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && validImages.length > 1) {
+      goToNext();
+    }
+    if (isRightSwipe && validImages.length > 1) {
+      goToPrevious();
+    }
+  };
+
+  // PHASE 5: Keyboard navigation
+  useEffect(() => {
+    if (showMainOnly || thumbnailsOnly) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrevious();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNext();
+      } else if (e.key === 'Escape') {
+        setIsZoomed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToNext, goToPrevious, showMainOnly, thumbnailsOnly]);
 
   // 🛡️ Safety check for empty images
   if (!validImages || validImages.length === 0) {
@@ -224,37 +275,70 @@ const ImageGallery = ({
 
   return (
     <div className={`relative group ${className}`}>
-      {/* PHASE 4: Main Image Display - Clean & Square */}
-      <div className={`relative ${showMainOnly ? 'aspect-square' : 'aspect-square'} rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm`}>
-        {/* PHASE 4: Navigation Arrows - Only show if not showMainOnly */}
+      {/* PHASE 5: Enhanced Main Image Display with touch support */}
+      <div 
+        className={`relative ${showMainOnly ? 'aspect-square' : 'aspect-square'} rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm transition-all duration-300 hover:shadow-md`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* PHASE 5: Enhanced Navigation Arrows with mobile optimization */}
         {validImages.length > 1 && !showMainOnly && (
           <>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToPrevious}
-              className={`absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 transition-opacity ${
-                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-70 hover:opacity-100'
-              }`}
+              className={`absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/30 hover:bg-black/50 text-white rounded-full ${
+                isMobile ? 'w-10 h-10' : 'w-8 h-8'
+              } p-0 transition-all duration-200 ${
+                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-80 hover:opacity-100'
+              } hover:scale-110 active:scale-95`}
+              aria-label="Previous image"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToNext}
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 transition-opacity ${
-                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-70 hover:opacity-100'
-              }`}
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/30 hover:bg-black/50 text-white rounded-full ${
+                isMobile ? 'w-10 h-10' : 'w-8 h-8'
+              } p-0 transition-all duration-200 ${
+                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-80 hover:opacity-100'
+              } hover:scale-110 active:scale-95`}
+              aria-label="Next image"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
             </Button>
           </>
         )}
 
-        {/* PHASE 4: Image Counter - Hide in showMainOnly mode */}
+        {/* PHASE 5: Zoom indicator for desktop */}
+        {!isMobile && !showMainOnly && !isZoomed && (
+          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-80 transition-opacity">
+            <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <ZoomIn className="w-3 h-3" />
+              <span>Click to zoom</span>
+            </div>
+          </div>
+        )}
+
+        {/* PHASE 5: Zoom out indicator */}
+        {isZoomed && !showMainOnly && (
+          <div className="absolute bottom-2 right-2 opacity-80">
+            <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <ZoomOut className="w-3 h-3" />
+              <span>Click to zoom out</span>
+            </div>
+          </div>
+        )}
+
+        {/* PHASE 5: Enhanced Image Counter with mobile optimization */}
         {validImages.length > 1 && !showMainOnly && (
-          <div className={`absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full ${compact ? 'opacity-70' : 'opacity-90'}`}>
+          <div className={`absolute top-2 right-2 bg-black/60 text-white text-xs ${
+            isMobile ? 'px-3 py-1.5' : 'px-2 py-1'
+          } rounded-full transition-opacity ${compact ? 'opacity-70' : 'opacity-90'} backdrop-blur-sm`}>
             {safeCurrentIndex + 1} / {validImages.length}
           </div>
         )}
@@ -277,27 +361,32 @@ const ImageGallery = ({
               alt={`${safeCoinName} - Image ${safeCurrentIndex + 1}`}
               className={`w-full h-full object-contain transition-all duration-300 ${
                 isZoomed && !showMainOnly ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
-              } ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              } ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'} ${
+                isMobile ? 'active:scale-95' : 'hover:scale-105'
+              }`}
               style={{ 
                 display: 'block', 
-                minHeight: '100%'
+                minHeight: '100%',
+                transformOrigin: 'center center'
               }}
               onLoad={() => handleImageLoad(safeCurrentIndex)}
               onError={() => handleImageError(safeCurrentIndex)}
               onClick={() => {
                 try {
-                  if (!compact && !showMainOnly) setIsZoomed(!isZoomed);
+                  if (!compact && !showMainOnly && !isMobile) setIsZoomed(!isZoomed);
                 } catch (error) {
                   console.error('Error toggling zoom:', error);
                 }
               }}
               loading="eager"
+              draggable={false}
             />
             
-            {/* Loading indicator - only show if image hasn't loaded yet AND no error */}
+            {/* PHASE 5: Enhanced loading indicator with shimmer effect */}
             {!isCurrentImageLoaded && !isCurrentImageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                <div className="flex flex-col items-center gap-3">
+                <div className="absolute inset-0 shimmer"></div>
+                <div className="flex flex-col items-center gap-3 z-10">
                   <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-200 border-t-blue-600"></div>
                   <span className="text-sm text-gray-600 font-medium">Loading image...</span>
                 </div>
@@ -307,9 +396,11 @@ const ImageGallery = ({
         )}
       </div>
       
-      {/* PHASE 4: Thumbnail Navigation - Only show if not showMainOnly */}
+      {/* PHASE 5: Enhanced Thumbnail Navigation with mobile optimization */}
       {validImages.length > 1 && showThumbnails && !showMainOnly && (
-        <div className={`flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide ${compact ? 'justify-center' : ''}`}>
+        <div className={`flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth ${
+          compact ? 'justify-center' : ''
+        } ${isMobile ? 'gap-1.5' : 'gap-2'}`}>
           {validImages.map((image, index) => {
             if (!image || typeof image !== 'string') return null;
             
@@ -317,11 +408,13 @@ const ImageGallery = ({
               <button
                 key={index}
                 onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 ${compact ? 'w-12 h-12' : 'w-16 h-16'} rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                className={`relative flex-shrink-0 ${
+                  compact ? 'w-12 h-12' : isMobile ? 'w-14 h-14' : 'w-16 h-16'
+                } rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                   index === safeCurrentIndex 
-                    ? 'border-blue-500 ring-2 ring-blue-200' 
-                    : 'border-gray-200 hover:border-gray-300'
-                } bg-gray-100`}
+                    ? 'border-blue-500 ring-2 ring-blue-200 scale-105' 
+                    : 'border-gray-200 hover:border-gray-300 hover:scale-105'
+                } bg-gray-100 active:scale-95`}
                 title={`View image ${index + 1}`}
               >
                 {errorImages.has(index) ? (
