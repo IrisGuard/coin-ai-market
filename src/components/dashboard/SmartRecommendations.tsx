@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,22 @@ interface SmartRecommendationsProps {
   isAnalyzing: boolean;
 }
 
+interface Recommendation {
+  id: string;
+  type: string;
+  title: string;
+  reason: string;
+  expectedReturn: string;
+  confidence: number;
+  price: string;
+  rarity: string;
+  image: string;
+  priority: string;
+  category: string;
+  year: number;
+  country: string;
+}
+
 const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({ 
   portfolioItems, 
   isAnalyzing 
@@ -29,7 +46,7 @@ const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
   // Fetch real recommendations based on user's portfolio and market data
   const { data: recommendations = [], isLoading } = useQuery({
     queryKey: ['smart-recommendations', user?.id, portfolioItems.length],
-    queryFn: async () => {
+    queryFn: async (): Promise<Recommendation[]> => {
       if (!user?.id) return [];
 
       // Get trending coins with high potential
@@ -47,7 +64,7 @@ const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
           grade,
           created_at
         `)
-        .eq('is_active', true)
+        .eq('authentication_status', 'authenticated')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -56,9 +73,8 @@ const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       // Analyze user's portfolio to generate smart recommendations
       const userCategories = portfolioItems.map(item => item.category).filter(Boolean);
       const userCountries = portfolioItems.map(item => item.country).filter(Boolean);
-      const userYearRanges = portfolioItems.map(item => item.year).filter(Boolean);
 
-      const smartRecommendations = trendingCoins?.slice(0, 4).map((coin, index) => {
+      const smartRecommendations: Recommendation[] = (trendingCoins || []).slice(0, 4).map((coin) => {
         let type = 'trending';
         let reason = 'High market demand detected';
         let expectedReturn = '+12%';
@@ -101,7 +117,7 @@ const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
           year: coin.year,
           country: coin.country
         };
-      }) || [];
+      });
 
       return smartRecommendations;
     },

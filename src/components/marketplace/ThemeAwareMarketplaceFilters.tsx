@@ -5,7 +5,6 @@ import { Search, Filter, Clock, Star, Grid, List, SlidersHorizontal } from 'luci
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useI18n } from '@/hooks/useI18n';
 
 interface ThemeAwareMarketplaceFiltersProps {
   filters: any;
@@ -39,8 +38,6 @@ const ThemeAwareMarketplaceFilters: React.FC<ThemeAwareMarketplaceFiltersProps> 
   setViewMode,
   stats
 }) => {
-  const { t } = useI18n();
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,7 +49,7 @@ const ThemeAwareMarketplaceFilters: React.FC<ThemeAwareMarketplaceFiltersProps> 
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
         <Input
-          placeholder={t('marketplace.search.placeholder')}
+          placeholder="Search coins..."
           value={filters.searchTerm}
           onChange={(e) => updateFilter('searchTerm', e.target.value)}
           className="pl-12 h-12 text-lg bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-500"
@@ -67,7 +64,7 @@ const ThemeAwareMarketplaceFilters: React.FC<ThemeAwareMarketplaceFiltersProps> 
           className="flex items-center gap-2"
         >
           <Clock className="w-4 h-4" />
-          {t('marketplace.filters.liveAuctions')} ({auctionsCount})
+          Live Auctions ({auctionsCount})
         </Button>
         <Button
           variant={filters.showFeaturedOnly ? "default" : "outline"}
@@ -75,7 +72,7 @@ const ThemeAwareMarketplaceFilters: React.FC<ThemeAwareMarketplaceFiltersProps> 
           className="flex items-center gap-2"
         >
           <Star className="w-4 h-4" />
-          {t('marketplace.filters.featuredOnly')} ({featuredCount})
+          Featured Only ({featuredCount})
         </Button>
         {hasActiveFilters && (
           <Button
@@ -84,7 +81,7 @@ const ThemeAwareMarketplaceFilters: React.FC<ThemeAwareMarketplaceFiltersProps> 
             className="text-gray-600 dark:text-gray-400"
           >
             <SlidersHorizontal className="w-4 h-4 mr-2" />
-            {t('marketplace.filters.clearFilters')}
+            Clear Filters
           </Button>
         )}
       </div>
@@ -93,7 +90,7 @@ const ThemeAwareMarketplaceFilters: React.FC<ThemeAwareMarketplaceFiltersProps> 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Showing <span className="font-semibold text-gray-900 dark:text-white">{totalResults}</span> {t('marketplace.filters.coinsFound')}
+            Showing <span className="font-semibold text-gray-900 dark:text-white">{totalResults}</span> coins found
           </span>
           {hasActiveFilters && (
             <Badge variant="secondary" className="text-xs">
