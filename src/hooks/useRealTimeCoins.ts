@@ -89,6 +89,16 @@ export const useRealTimeCoins = (filters?: {
       setIsConnected(false);
     }
 
+    const handleCoinChange = (payload: any) => {
+      console.log('💡 Real-time coin change detected:', payload);
+      
+      // Refresh coin data when changes occur
+      refetch();
+      
+      // Update connection status
+      setIsConnected(true);
+    };
+
     console.log('🔄 Setting up real-time coins subscription...');
     
     const channelName = `coins-changes-realtime-${Date.now()}`;

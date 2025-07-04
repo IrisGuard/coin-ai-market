@@ -8,6 +8,7 @@ import { uploadImage } from '@/utils/imageUpload';
 interface EnhancedMobileCameraUploaderProps {
   onImagesSelected: (images: { file: File; preview: string; url?: string }[]) => void;
   maxImages?: number;
+  onComplete?: () => void;
 }
 
 const EnhancedMobileCameraUploader: React.FC<EnhancedMobileCameraUploaderProps> = ({

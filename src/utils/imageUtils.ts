@@ -189,7 +189,7 @@ export const generateImageReport = async (): Promise<CoinImageReport[]> => {
         coinId: coin.id,
         coinName: coin.name,
         userId: coin.user_id,
-        userName: coin.profiles?.name || coin.profiles?.username,
+        userName: (coin.profiles as any)?.name || (coin.profiles as any)?.username || 'Unknown User',
         storeName: coin.stores?.[0]?.name,
         images: imageValidations,
         hasValidImages: validImages > 0,

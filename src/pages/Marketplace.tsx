@@ -22,7 +22,7 @@ const Marketplace = () => {
         supabase.from('stores').select('*', { count: 'exact' })
       ]);
 
-      const activeAuctions = coins?.filter(coin => coin.is_auction && new Date(coin.auction_end_time || '') > new Date()).length || 0;
+      const activeAuctions = coins?.filter(coin => coin.is_auction && new Date(coin.auction_end || '') > new Date()).length || 0;
       const totalValue = coins?.reduce((sum, coin) => sum + (coin.price || 0), 0) || 0;
 
       return {

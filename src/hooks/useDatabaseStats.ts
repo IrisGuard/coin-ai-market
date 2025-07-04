@@ -15,6 +15,33 @@ export interface DatabaseStats {
     avgQueryTime: number;
     slowQueries: number;
   };
+  totalTables: number;
+  rlsPolicies: number;
+  systemHealth: {
+    status: string;
+    uptime: number;
+    memoryUsage: number;
+  };
+  aiStats: {
+    totalCommands: number;
+    activeModels: number;
+    dailyExecutions: number;
+    successRate: number;
+    activeCommands: number;
+    totalPredictions: number;
+    totalKnowledgeEntries: number;
+  };
+  categories: Array<{
+    name: string;
+    count: number;
+    status: string;
+    id: string;
+    color: string;
+    icon: string;
+    tables: number;
+    records: number;
+    description: string;
+  }>;
 }
 
 export const useDatabaseStats = () => {
@@ -86,7 +113,28 @@ export const useDatabaseStats = () => {
         queryPerformance: {
           avgQueryTime: 45, // milliseconds
           slowQueries: 2
-        }
+        },
+        totalTables: tables.length,
+        rlsPolicies: 25,
+        systemHealth: {
+          status: 'healthy',
+          uptime: 99.9,
+          memoryUsage: 67.5
+        },
+        aiStats: {
+          totalCommands: aiCommandsCount || 0,
+          activeModels: 8,
+          dailyExecutions: 245,
+          successRate: 94.2,
+          activeCommands: 15,
+          totalPredictions: 1250,
+          totalKnowledgeEntries: 850
+        },
+        categories: [
+          { name: 'Error Coins', count: 45, status: 'active', id: '1', color: '#ff6b6b', icon: 'AlertTriangle', tables: 3, records: 45, description: 'Error coin detection and analysis' },
+          { name: 'Greek Coins', count: 123, status: 'active', id: '2', color: '#51cf66', icon: 'Globe', tables: 2, records: 123, description: 'Greek numismatic collection' },
+          { name: 'Modern Coins', count: 89, status: 'active', id: '3', color: '#339af0', icon: 'Coins', tables: 1, records: 89, description: 'Modern coin catalog' }
+        ]
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

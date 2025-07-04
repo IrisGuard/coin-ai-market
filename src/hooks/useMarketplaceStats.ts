@@ -10,7 +10,7 @@ export const useMarketplaceStats = () => {
         supabase.from('coins').select('*', { count: 'exact', head: true }),
         supabase.from('coins').select('*', { count: 'exact', head: true }).eq('featured', true),
         supabase.from('stores').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
       ]);
 
       const [
