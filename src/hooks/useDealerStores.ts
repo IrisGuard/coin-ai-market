@@ -47,17 +47,17 @@ export const useDealerStores = () => {
         verified: s.verified 
       })));
 
-      // Filter for visible stores
+      // FIXED: Enhanced visibility logic for Admin vs User stores
       const visibleStores = allStores.filter(store => {
         const isAdminStore = adminUserIds.includes(store.user_id);
         
         if (isAdminStore) {
-          // Admin stores only need to be active
-          console.log(`✅ [useDealerStores] Admin store ${store.name}: active=${store.is_active}`);
+          // Admin stores: Only need to be active (no verification required)
+          console.log(`✅ [useDealerStores] Admin store "${store.name}": active=${store.is_active}`);
           return store.is_active === true;
         } else {
-          // Regular stores need active AND verified
-          console.log(`🔍 [useDealerStores] Regular store ${store.name}: active=${store.is_active}, verified=${store.verified}`);
+          // User stores: Must be both active AND verified
+          console.log(`🔍 [useDealerStores] User store "${store.name}": active=${store.is_active}, verified=${store.verified}`);
           return store.is_active === true && store.verified === true;
         }
       });

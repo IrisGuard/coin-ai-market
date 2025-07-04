@@ -140,14 +140,14 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer relative"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Multi-Image Gallery */}
+        {/* Multi-Image Gallery - FIXED: Proper sizing for homepage */}
         <div className="relative">
           <ImageGallery 
             images={allImages}
             coinName={coin.name}
-            className="aspect-square"
+            className="aspect-square w-full max-h-64"
             compact={true}
-            showThumbnails={true}
+            showThumbnails={allImages.length > 1}
           />
           
           {/* Overlay Badges */}
@@ -332,7 +332,7 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
             </Button>
           </div>
 
-          {/* 🏪 ENHANCED: Visit Store with store existence check */}
+          {/* 🏪 FIXED: Visit Store navigation with proper store ID */}
           {coin.user_id && (
             <Button 
               variant="outline" 
@@ -340,7 +340,6 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
               onClick={async (e) => {
                 e.stopPropagation();
                 
-                // Enhanced validation
                 if (!coin.user_id || typeof coin.user_id !== 'string') {
                   console.error('❌ Invalid user_id for Visit Store:', coin.user_id);
                   alert('Store information not available');
@@ -348,11 +347,12 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
                 }
 
                 try {
-                  // Check if store exists
+                  // Find the store for this user
                   const { data: store, error } = await supabase
                     .from('stores')
-                    .select('id, name')
+                    .select('id, name, user_id, is_active')
                     .eq('user_id', coin.user_id)
+                    .eq('is_active', true)
                     .single();
 
                   if (error || !store) {
@@ -361,8 +361,9 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
                     return;
                   }
 
-                  console.log('✅ Store found, navigating:', store);
-                  navigate(`/store/${coin.user_id}`);
+                  console.log('✅ Store found, navigating to store page:', store);
+                  // Navigate using the user_id (dealerId parameter in DealerStorePage)
+                  navigate(`/store/${store.user_id}`);
                 } catch (error) {
                   console.error('❌ Error checking store:', error);
                   alert('Unable to access store at the moment.');

@@ -27,7 +27,7 @@ interface Store {
 
 const FeaturedCoinsGrid = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const coinsPerPage = 100;
+  const coinsPerPage = 100; // Exactly 100 coins per page as requested
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
   const { data, isLoading, error } = useQuery({
@@ -65,11 +65,12 @@ const FeaturedCoinsGrid = () => {
         })));
       }
 
-      // Fetch coins for the current page - SHOW ALL BUY NOW COINS ON HOME PAGE
+      // Fetch coins for the current page - SHOW EXACTLY 100 BUY NOW COINS PER PAGE
       const { data: coins, error: coinsError } = await supabase
         .from('coins')
         .select('*')
-        .eq('is_auction', false) // SHOW ALL BUY NOW COINS, NOT JUST FEATURED
+        .eq('is_auction', false) // Only Buy Now coins for homepage
+        .eq('listing_type', 'direct_sale') // Ensure only direct sale coins
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -81,7 +82,8 @@ const FeaturedCoinsGrid = () => {
       const { count, error: countError } = await supabase
         .from('coins')
         .select('*', { count: 'exact', head: true })
-        .eq('is_auction', false); // COUNT ALL BUY NOW COINS
+        .eq('is_auction', false)
+        .eq('listing_type', 'direct_sale'); // Count only direct sale coins
 
       if (countError) {
         throw countError;

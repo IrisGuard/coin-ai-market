@@ -19,19 +19,25 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
       
       const { data: coins, error } = await supabase
         .from('coins')
-        .select('store_id, user_id');
+        .select('id, store_id, user_id');
 
       if (error) {
         console.error('❌ [DealerStoresGrid] Error fetching coin counts:', error);
         return {};
       }
       
+      // FIXED: Proper coin counting logic to prevent duplicates
       const counts: Record<string, number> = {};
+      const countedCoins = new Set<string>(); // Track counted coin IDs to prevent duplicates
+      
       coins?.forEach(coin => {
-        // Count by store_id if available, fallback to user_id for legacy data
-        const key = coin.store_id || coin.user_id;
-        if (key) {
-          counts[key] = (counts[key] || 0) + 1;
+        // Skip if we've already counted this coin
+        if (countedCoins.has(coin.id)) return;
+        
+        // Count by user_id (store owner) - this is the correct approach
+        if (coin.user_id) {
+          counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
+          countedCoins.add(coin.id);
         }
       });
       
@@ -101,7 +107,7 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
             rating={profile?.rating}
             location={profile?.location}
             verified_dealer={profile?.verified_dealer}
-            totalCoins={storeCounts[store.id] || storeCounts[store.user_id] || 0}
+            totalCoins={storeCounts[store.user_id] || 0}
             storeName={store.name}
             storeDescription={store.description}
             created_at={store.created_at}

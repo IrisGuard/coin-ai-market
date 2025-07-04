@@ -171,17 +171,19 @@ const ImageGallery = ({
   console.log(`🎯 Current image ${safeCurrentIndex}: loaded=${isCurrentImageLoaded}, error=${isCurrentImageError}, url=${currentImageUrl}`);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative group ${className}`}>
       {/* Main Image Display */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
-        {/* Navigation Arrows for Multiple Images - Only show in non-compact mode or when hovering */}
-        {validImages.length > 1 && !compact && (
+        {/* Navigation Arrows for Multiple Images - Show on hover for compact mode */}
+        {validImages.length > 1 && (
           <>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToPrevious}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className={`absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 transition-opacity ${
+                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-70 hover:opacity-100'
+              }`}
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -189,7 +191,9 @@ const ImageGallery = ({
               variant="ghost"
               size="sm"
               onClick={goToNext}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 p-0 transition-opacity ${
+                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-70 hover:opacity-100'
+              }`}
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
