@@ -140,24 +140,26 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer relative"
         onClick={() => onCoinClick(coin)}
       >
-        {/* PHASE 4: Main Image - Small, Square, Clean */}
+        {/* CONTAINER-RESPECTING: Main Image */}
         <div className="relative">
-          <ImageGallery 
-            images={allImages}
-            coinName={coin.name}
-            className="aspect-square w-full h-48"
-            compact={true}
-            showThumbnails={false}
-            showMainOnly={true}
-          />
+          <div className="aspect-square w-full max-w-full">
+            <ImageGallery 
+              images={allImages}
+              coinName={coin.name}
+              className="w-full h-full"
+              compact={true}
+              showThumbnails={false}
+              showMainOnly={true}
+            />
+          </div>
           
-          {/* PHASE 4: Image Carousel Below Main Image */}
+          {/* CONTAINER-RESPECTING: Thumbnail Navigation */}
           {allImages.length > 1 && (
-            <div className="mt-2 px-2">
+            <div className="mt-2 px-3">
               <ImageGallery 
                 images={allImages}
                 coinName={coin.name}
-                className="h-12"
+                className="h-10"
                 compact={true}
                 showThumbnails={true}
                 showMainOnly={false}

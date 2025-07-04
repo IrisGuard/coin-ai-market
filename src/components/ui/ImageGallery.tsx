@@ -274,133 +274,79 @@ const ImageGallery = ({
   }
 
   return (
-    <div className={`relative group ${className}`}>
-      {/* PHASE 5: Enhanced Main Image Display with touch support */}
+    <div className={`relative ${className}`}>
+      {/* CONTAINER-RESPECTING: Main Image Display */}
       <div 
-        className={`relative ${showMainOnly ? 'aspect-square' : 'aspect-square'} rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm transition-all duration-300 hover:shadow-md`}
+        className="relative aspect-square w-full rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm border border-gray-100"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* PHASE 5: Enhanced Navigation Arrows with mobile optimization */}
+        {/* CONTAINER-RESPECTING: Navigation Arrows */}
         {validImages.length > 1 && !showMainOnly && (
           <>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToPrevious}
-              className={`absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/30 hover:bg-black/50 text-white rounded-full ${
-                isMobile ? 'w-10 h-10' : 'w-8 h-8'
-              } p-0 transition-all duration-200 ${
-                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-80 hover:opacity-100'
-              } hover:scale-110 active:scale-95`}
+              className="absolute left-1 top-1/2 transform -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full w-7 h-7 p-0 transition-colors duration-200 opacity-0 group-hover:opacity-100"
               aria-label="Previous image"
             >
-              <ChevronLeft className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={goToNext}
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black/30 hover:bg-black/50 text-white rounded-full ${
-                isMobile ? 'w-10 h-10' : 'w-8 h-8'
-              } p-0 transition-all duration-200 ${
-                compact ? 'opacity-0 group-hover:opacity-100' : 'opacity-80 hover:opacity-100'
-              } hover:scale-110 active:scale-95`}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full w-7 h-7 p-0 transition-colors duration-200 opacity-0 group-hover:opacity-100"
               aria-label="Next image"
             >
-              <ChevronRight className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </>
         )}
 
-        {/* PHASE 5: Zoom indicator for desktop */}
-        {!isMobile && !showMainOnly && !isZoomed && (
-          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-80 transition-opacity">
-            <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-              <ZoomIn className="w-3 h-3" />
-              <span>Click to zoom</span>
-            </div>
-          </div>
-        )}
-
-        {/* PHASE 5: Zoom out indicator */}
-        {isZoomed && !showMainOnly && (
-          <div className="absolute bottom-2 right-2 opacity-80">
-            <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-              <ZoomOut className="w-3 h-3" />
-              <span>Click to zoom out</span>
-            </div>
-          </div>
-        )}
-
-        {/* PHASE 5: Enhanced Image Counter with mobile optimization */}
+        {/* CONTAINER-RESPECTING: Image Counter */}
         {validImages.length > 1 && !showMainOnly && (
-          <div className={`absolute top-2 right-2 bg-black/60 text-white text-xs ${
-            isMobile ? 'px-3 py-1.5' : 'px-2 py-1'
-          } rounded-full transition-opacity ${compact ? 'opacity-70' : 'opacity-90'} backdrop-blur-sm`}>
+          <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-2 py-1 rounded-full opacity-75">
             {safeCurrentIndex + 1} / {validImages.length}
           </div>
         )}
 
         {isCurrentImageError ? (
-          // Error state - Show placeholder instead
+          // Error state - Show placeholder
           <img
             src="/placeholder-coin.svg"
             alt={`${safeCoinName} - Placeholder`}
-            className="w-full h-full object-contain opacity-90"
-            style={{ 
-              display: 'block', 
-              minHeight: '100%'
-            }}
+            className="w-full h-full object-contain"
           />
         ) : (
           <>
             <img
               src={currentImageUrl}
               alt={`${safeCoinName} - Image ${safeCurrentIndex + 1}`}
-              className={`w-full h-full object-contain transition-all duration-300 ${
-                isZoomed && !showMainOnly ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
-              } ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'} ${
-                isMobile ? 'active:scale-95' : 'hover:scale-105'
+              className={`w-full h-full object-contain transition-opacity duration-200 ${
+                isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
-              style={{ 
-                display: 'block', 
-                minHeight: '100%',
-                transformOrigin: 'center center'
-              }}
               onLoad={() => handleImageLoad(safeCurrentIndex)}
               onError={() => handleImageError(safeCurrentIndex)}
-              onClick={() => {
-                try {
-                  if (!compact && !showMainOnly && !isMobile) setIsZoomed(!isZoomed);
-                } catch (error) {
-                  console.error('Error toggling zoom:', error);
-                }
-              }}
               loading="eager"
               draggable={false}
             />
             
-            {/* PHASE 5: Enhanced loading indicator with shimmer effect */}
+            {/* CONTAINER-RESPECTING: Loading indicator */}
             {!isCurrentImageLoaded && !isCurrentImageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                <div className="absolute inset-0 shimmer"></div>
-                <div className="flex flex-col items-center gap-3 z-10">
-                  <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-200 border-t-blue-600"></div>
-                  <span className="text-sm text-gray-600 font-medium">Loading image...</span>
-                </div>
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-200 border-t-blue-600"></div>
               </div>
             )}
           </>
         )}
       </div>
       
-      {/* PHASE 5: Enhanced Thumbnail Navigation with mobile optimization */}
+      {/* CONTAINER-RESPECTING: Thumbnail Navigation */}
       {validImages.length > 1 && showThumbnails && !showMainOnly && (
-        <div className={`flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth ${
-          compact ? 'justify-center' : ''
-        } ${isMobile ? 'gap-1.5' : 'gap-2'}`}>
+        <div className="flex gap-1.5 mt-2 justify-center overflow-x-auto scrollbar-hide">
           {validImages.map((image, index) => {
             if (!image || typeof image !== 'string') return null;
             
@@ -408,17 +354,14 @@ const ImageGallery = ({
               <button
                 key={index}
                 onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 ${
-                  compact ? 'w-12 h-12' : isMobile ? 'w-14 h-14' : 'w-16 h-16'
-                } rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                className={`relative flex-shrink-0 w-10 h-10 rounded-md overflow-hidden border-2 transition-all duration-200 ${
                   index === safeCurrentIndex 
-                    ? 'border-blue-500 ring-2 ring-blue-200 scale-105' 
-                    : 'border-gray-200 hover:border-gray-300 hover:scale-105'
-                } bg-gray-100 active:scale-95`}
+                    ? 'border-blue-500 ring-1 ring-blue-200' 
+                    : 'border-gray-200 hover:border-gray-300'
+                } bg-gray-100`}
                 title={`View image ${index + 1}`}
               >
                 {errorImages.has(index) ? (
-                  // Thumbnail error state - show mini placeholder
                   <img
                     src="/placeholder-coin.svg"
                     alt={`${safeCoinName} thumbnail placeholder`}
@@ -429,25 +372,16 @@ const ImageGallery = ({
                     <img
                       src={image}
                       alt={`${safeCoinName} thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover transition-opacity duration-200"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                       onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageError(index)}
                     />
                     
-                    {/* Thumbnail loading indicator */}
-                    {!loadedImages.has(index) && !errorImages.has(index) && (
-                      <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    )}
-
                     {/* Active indicator */}
                     {index === safeCurrentIndex && (
                       <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       </div>
                     )}
                   </>
