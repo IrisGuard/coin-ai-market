@@ -50,10 +50,23 @@ const ProductionStoreManager = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Store className="w-5 h-5" />
-          Production Store Management
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+           Production Store Management
+         </CardTitle>
+       </CardHeader>
+       <CardContent className="space-y-4">
+         <div className="mb-4">
+           <div className="flex items-center justify-between">
+             <h4 className="font-medium">Live Store Status</h4>
+             <div className="flex gap-2">
+               <Badge variant="secondary">
+                 Admin Stores: {stores.filter(s => s.isAdminStore).length}
+               </Badge>
+               <Badge variant="outline">
+                 User Stores: {stores.filter(s => !s.isAdminStore).length}
+               </Badge>
+             </div>
+           </div>
+         </div>
         {stores.length === 0 ? (
           <div className="text-center py-8">
             <Store className="w-16 h-16 mx-auto text-gray-400 mb-4" />

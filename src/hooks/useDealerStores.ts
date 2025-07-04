@@ -21,10 +21,13 @@ export const useDealerStores = () => {
       const adminUserIds = adminProfiles?.map(p => p.id) || [];
       console.log('👑 [useDealerStores] Admin user IDs found:', adminUserIds);
 
-      // Get all stores
+      // Get all stores with coin counts
       const { data: allStores, error: storesError } = await supabase
         .from('stores')
-        .select('*')
+        .select(`
+          *,
+          coins!left(count)
+        `)
         .order('created_at', { ascending: false });
 
       if (storesError) {

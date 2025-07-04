@@ -15,17 +15,27 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
   const { data: storeCounts = {} } = useQuery({
     queryKey: ['store-coin-counts'],
     queryFn: async () => {
+      console.log('🔍 [DealerStoresGrid] Fetching coin counts for stores...');
+      
       const { data: coins, error } = await supabase
         .from('coins')
-        .select('store_id');
+        .select('store_id, user_id');
 
-      if (error) return [];
+      if (error) {
+        console.error('❌ [DealerStoresGrid] Error fetching coin counts:', error);
+        return {};
+      }
       
       const counts: Record<string, number> = {};
       coins?.forEach(coin => {
-        counts[coin.store_id] = (counts[coin.store_id] || 0) + 1;
+        // Count by store_id if available, fallback to user_id for legacy data
+        const key = coin.store_id || coin.user_id;
+        if (key) {
+          counts[key] = (counts[key] || 0) + 1;
+        }
       });
       
+      console.log('📊 [DealerStoresGrid] Coin counts calculated:', counts);
       return counts;
     }
   });
@@ -91,7 +101,7 @@ const DealerStoresGrid: React.FC<DealerStoresGridProps> = ({ searchTerm }) => {
             rating={profile?.rating}
             location={profile?.location}
             verified_dealer={profile?.verified_dealer}
-            totalCoins={storeCounts[store.user_id] || 0}
+            totalCoins={storeCounts[store.id] || storeCounts[store.user_id] || 0}
             storeName={store.name}
             storeDescription={store.description}
             created_at={store.created_at}
