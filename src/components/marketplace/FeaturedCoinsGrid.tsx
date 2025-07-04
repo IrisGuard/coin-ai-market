@@ -125,10 +125,18 @@ const FeaturedCoinsGrid = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* CONTAINER-ENFORCED: Responsive Grid Layout */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8 auto-rows-max overflow-hidden">
+      {/* CONTAINER-ENFORCED: Responsive Grid Layout with strict boundaries */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
         {featuredCoins.map((coin, index) => (
-          <div key={coin.id} className="w-full max-w-full min-w-0 overflow-hidden" style={{ boxSizing: 'border-box' }}>
+          <div 
+            key={coin.id} 
+            className="w-full min-w-0" 
+            style={{ 
+              boxSizing: 'border-box',
+              maxWidth: '100%',
+              overflow: 'hidden'
+            }}
+          >
             <CoinCard
               coin={coin}
               index={index}

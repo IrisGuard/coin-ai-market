@@ -147,24 +147,15 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
               images={allImages}
               coinName={coin.name}
               className="w-full h-full max-w-full"
-              compact={true}
-              showThumbnails={false}
-              showMainOnly={true}
             />
           </div>
           
-          {/* CONTAINER-ENFORCED: Thumbnail Navigation */}
+          {/* CONTAINER-ENFORCED: Multiple images indicator */}
           {allImages.length > 1 && (
-            <div className="mt-3 px-4 overflow-hidden">
-              <ImageGallery 
-                images={allImages}
-                coinName={coin.name}
-                className="h-12 max-w-full"
-                compact={true}
-                showThumbnails={true}
-                showMainOnly={false}
-                thumbnailsOnly={true}
-              />
+            <div className="absolute bottom-2 left-2">
+              <Badge className="bg-black/50 text-white text-xs">
+                +{allImages.length - 1} more
+              </Badge>
             </div>
           )}
           
