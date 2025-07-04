@@ -141,8 +141,8 @@ const AdminAnalyticsSection = () => {
               <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <TrendingUp className={`h-4 w-4 ${
-                    insight.trend === 'up' ? 'text-green-500' : 
-                    insight.trend === 'down' ? 'text-red-500' : 'text-blue-500'
+                    insight.trend > 0 ? 'text-green-500' : 
+                    insight.trend < 0 ? 'text-red-500' : 'text-blue-500'
                   }`} />
                   <div>
                     <p className="font-medium">{insight.insight}</p>
@@ -150,8 +150,8 @@ const AdminAnalyticsSection = () => {
                   </div>
                 </div>
                 <div className={`text-sm font-medium ${
-                  insight.trend === 'up' ? 'text-green-600' : 
-                  insight.trend === 'down' ? 'text-red-600' : 'text-blue-600'
+                  insight.trend > 0 ? 'text-green-600' : 
+                  insight.trend < 0 ? 'text-red-600' : 'text-blue-600'
                 }`}>
                   {insight.metric}
                 </div>
