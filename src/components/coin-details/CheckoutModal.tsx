@@ -4,10 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Copy, Check, Wallet, CreditCard, Bitcoin, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import EnhancedTransakPayment from '@/components/payment/EnhancedTransakPayment';
+import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector';
+import StripePaymentForm from '@/components/payment/StripePaymentForm';
+import TraditionalPaymentForm from '@/components/payment/TraditionalPaymentForm';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -43,7 +45,7 @@ const CheckoutModal = ({
   onTransakSuccess,
   onTransakFailure
 }: CheckoutModalProps) => {
-  const [paymentMethod, setPaymentMethod] = useState<'traditional' | 'crypto' | 'direct'>('traditional');
+  const [paymentStep, setPaymentStep] = useState<'select' | 'stripe' | 'traditional' | 'crypto' | 'direct'>('select');
   const [copiedField, setCopiedField] = useState<string>('');
   const [showTransak, setShowTransak] = useState(false);
 
@@ -163,7 +165,27 @@ const CheckoutModal = ({
     );
   };
 
-  if (showTransak) {
+  const handlePaymentMethodSelect = (method: 'stripe' | 'traditional' | 'crypto' | 'direct') => {
+    setPaymentStep(method);
+  };
+
+  const handlePaymentSuccess = (transactionId: string) => {
+    onTransakSuccess();
+    onClose();
+  };
+
+  const handlePaymentError = (error: string) => {
+    if (onTransakFailure) {
+      onTransakFailure();
+    }
+  };
+
+  const handleBackToSelection = () => {
+    setPaymentStep('select');
+    setShowTransak(false);
+  };
+
+  if (showTransak || paymentStep === 'crypto') {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -173,7 +195,7 @@ const CheckoutModal = ({
           <div className="space-y-4">
             <Button 
               variant="outline" 
-              onClick={() => setShowTransak(false)}
+              onClick={handleBackToSelection}
               className="w-full"
             >
               ← Back to Payment Options
@@ -183,11 +205,7 @@ const CheckoutModal = ({
               coinId={coin.id}
               coinName={coin.name}
               price={coin.price}
-              onPaymentSuccess={() => {
-                setShowTransak(false);
-                onTransakSuccess();
-                onClose();
-              }}
+              onPaymentSuccess={handlePaymentSuccess}
             />
           </div>
         </DialogContent>
@@ -195,96 +213,64 @@ const CheckoutModal = ({
     );
   }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Purchase: {coin.name}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Coin Summary */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                {coin.image && (
-                  <img src={coin.image} alt={coin.name} className="w-16 h-16 rounded-lg object-cover" />
-                )}
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{coin.name}</h3>
-                  <p className="text-2xl font-bold text-green-600">${coin.price.toFixed(2)}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Sold by</p>
-                  <p className="font-medium">{dealerStore?.name || 'Dealer Store'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Method Selection */}
+  // Render different payment steps
+  const renderPaymentContent = () => {
+    switch (paymentStep) {
+      case 'select':
+        return (
+          <PaymentMethodSelector 
+            coin={coin}
+            onMethodSelect={handlePaymentMethodSelect}
+          />
+        );
+      
+      case 'stripe':
+        return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Choose Payment Method</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                variant={paymentMethod === 'traditional' ? 'default' : 'outline'}
-                onClick={() => setPaymentMethod('traditional')}
-                className="p-4 h-auto flex-col gap-2"
-              >
-                <CreditCard className="h-6 w-6" />
-                <span>Traditional Payment</span>
-                <span className="text-xs opacity-70">Internal system</span>
-              </Button>
-
-              <Button
-                variant={paymentMethod === 'crypto' ? 'default' : 'outline'}
-                onClick={() => setPaymentMethod('crypto')}
-                className="p-4 h-auto flex-col gap-2"
-              >
-                <Wallet className="h-6 w-6" />
-                <span>Crypto/Card Payment</span>
-                <span className="text-xs opacity-70">Via Transak</span>
-              </Button>
-
-              <Button
-                variant={paymentMethod === 'direct' ? 'default' : 'outline'}
-                onClick={() => setPaymentMethod('direct')}
-                className="p-4 h-auto flex-col gap-2"
-              >
-                <Bitcoin className="h-6 w-6" />
-                <span>Direct Transfer</span>
-                <span className="text-xs opacity-70">To dealer wallets</span>
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleBackToSelection}
+              className="w-full"
+            >
+              ← Back to Payment Options
+            </Button>
+            <StripePaymentForm
+              coin={coin}
+              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentError={handlePaymentError}
+            />
           </div>
-
-          <Separator />
-
-          {/* Payment Method Content */}
-          {paymentMethod === 'traditional' && (
-            <div className="space-y-4">
-              <h4 className="font-semibold">Traditional Payment</h4>
-              <p className="text-gray-600">Process payment through our secure internal system.</p>
-              <Button onClick={onTraditionalPurchase} className="w-full" size="lg">
-                Purchase with Traditional Payment
-              </Button>
-            </div>
-          )}
-
-          {paymentMethod === 'crypto' && (
-            <div className="space-y-4">
-              <h4 className="font-semibold">Crypto/Card Payment via Transak</h4>
-              <p className="text-gray-600">
-                Pay with cryptocurrency or credit/debit card through our secure partner Transak.
-              </p>
-              <Button onClick={() => setShowTransak(true)} className="w-full" size="lg">
-                Continue with Transak Payment
-              </Button>
-            </div>
-          )}
-
-          {paymentMethod === 'direct' && (
+        );
+      
+      case 'traditional':
+        return (
+          <div className="space-y-4">
+            <Button 
+              variant="outline" 
+              onClick={handleBackToSelection}
+              className="w-full"
+            >
+              ← Back to Payment Options
+            </Button>
+            <TraditionalPaymentForm
+              coin={coin}
+              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentError={handlePaymentError}
+            />
+          </div>
+        );
+      
+      case 'direct':
+        return (
+          <div className="space-y-4">
+            <Button 
+              variant="outline" 
+              onClick={handleBackToSelection}
+              className="w-full"
+            >
+              ← Back to Payment Options
+            </Button>
+            {/* ... keep existing direct transfer code ... */}
             <div className="space-y-4">
               <h4 className="font-semibold">Direct Transfer to Dealer</h4>
               <p className="text-gray-600 mb-4">
@@ -328,24 +314,23 @@ const CheckoutModal = ({
                 <h5 className="font-medium">Traditional Banking</h5>
                 <BankingCard />
               </div>
-
-              {(!dealerStore?.solana_wallet_address && 
-                !dealerStore?.ethereum_wallet_address && 
-                !dealerStore?.bitcoin_wallet_address && 
-                !dealerStore?.usdc_wallet_address &&
-                !dealerStore?.bank_name && 
-                !dealerStore?.iban) && (
-                <Card className="border-yellow-200 bg-yellow-50">
-                  <CardContent className="p-4">
-                    <p className="text-yellow-800">
-                      The dealer hasn't set up payment addresses yet. Please use one of the other payment methods.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
             </div>
-          )}
-        </div>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Purchase: {coin.name}</DialogTitle>
+        </DialogHeader>
+
+        {renderPaymentContent()}
       </DialogContent>
     </Dialog>
   );
