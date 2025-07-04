@@ -8,6 +8,8 @@ interface ImageGalleryProps {
   className?: string;
   showThumbnails?: boolean;
   compact?: boolean;
+  showMainOnly?: boolean;
+  thumbnailsOnly?: boolean;
 }
 
 const ImageGallery = ({ 
@@ -15,7 +17,9 @@ const ImageGallery = ({
   coinName = 'Coin', 
   className = '', 
   showThumbnails = true,
-  compact = false 
+  compact = false,
+  showMainOnly = false,
+  thumbnailsOnly = false
 }: ImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
@@ -170,12 +174,60 @@ const ImageGallery = ({
 
   console.log(`🎯 Current image ${safeCurrentIndex}: loaded=${isCurrentImageLoaded}, error=${isCurrentImageError}, url=${currentImageUrl}`);
 
+  // PHASE 4: Return only thumbnails if thumbnailsOnly mode
+  if (thumbnailsOnly) {
+    return (
+      <div className={`flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide ${className}`}>
+        {validImages.map((image, index) => {
+          if (!image || typeof image !== 'string') return null;
+          
+          return (
+            <button
+              key={index}
+              onClick={() => goToImage(index)}
+              className={`relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                index === safeCurrentIndex 
+                  ? 'border-blue-500 ring-1 ring-blue-200' 
+                  : 'border-gray-200 hover:border-gray-300'
+              } bg-gray-100`}
+              title={`View image ${index + 1}`}
+            >
+              {errorImages.has(index) ? (
+                <img
+                  src="/placeholder-coin.svg"
+                  alt={`${safeCoinName} thumbnail placeholder`}
+                  className="w-full h-full object-contain opacity-70"
+                />
+              ) : (
+                <img
+                  src={image}
+                  alt={`${safeCoinName} thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover transition-opacity duration-200"
+                  loading="lazy"
+                  onLoad={() => handleImageLoad(index)}
+                  onError={() => handleImageError(index)}
+                />
+              )}
+              {index === safeCurrentIndex && (
+                <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                  </div>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className={`relative group ${className}`}>
-      {/* Main Image Display */}
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
-        {/* Navigation Arrows for Multiple Images - Show on hover for compact mode */}
-        {validImages.length > 1 && (
+      {/* PHASE 4: Main Image Display - Clean & Square */}
+      <div className={`relative ${showMainOnly ? 'aspect-square' : 'aspect-square'} rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm`}>
+        {/* PHASE 4: Navigation Arrows - Only show if not showMainOnly */}
+        {validImages.length > 1 && !showMainOnly && (
           <>
             <Button
               variant="ghost"
@@ -200,8 +252,8 @@ const ImageGallery = ({
           </>
         )}
 
-        {/* Image Counter - More subtle in compact mode */}
-        {validImages.length > 1 && (
+        {/* PHASE 4: Image Counter - Hide in showMainOnly mode */}
+        {validImages.length > 1 && !showMainOnly && (
           <div className={`absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full ${compact ? 'opacity-70' : 'opacity-90'}`}>
             {safeCurrentIndex + 1} / {validImages.length}
           </div>
@@ -224,7 +276,7 @@ const ImageGallery = ({
               src={currentImageUrl}
               alt={`${safeCoinName} - Image ${safeCurrentIndex + 1}`}
               className={`w-full h-full object-contain transition-all duration-300 ${
-                isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
+                isZoomed && !showMainOnly ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
               } ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'}`}
               style={{ 
                 display: 'block', 
@@ -234,7 +286,7 @@ const ImageGallery = ({
               onError={() => handleImageError(safeCurrentIndex)}
               onClick={() => {
                 try {
-                  if (!compact) setIsZoomed(!isZoomed);
+                  if (!compact && !showMainOnly) setIsZoomed(!isZoomed);
                 } catch (error) {
                   console.error('Error toggling zoom:', error);
                 }
@@ -255,8 +307,8 @@ const ImageGallery = ({
         )}
       </div>
       
-      {/* 🎯 IMPROVED: Thumbnail Navigation - Always visible when multiple images */}
-      {validImages.length > 1 && showThumbnails && (
+      {/* PHASE 4: Thumbnail Navigation - Only show if not showMainOnly */}
+      {validImages.length > 1 && showThumbnails && !showMainOnly && (
         <div className={`flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide ${compact ? 'justify-center' : ''}`}>
           {validImages.map((image, index) => {
             if (!image || typeof image !== 'string') return null;

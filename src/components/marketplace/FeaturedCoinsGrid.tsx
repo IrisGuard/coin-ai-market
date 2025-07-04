@@ -157,7 +157,7 @@ const FeaturedCoinsGrid = () => {
             coin={coin}
             index={index}
             onCoinClick={handleCoinClick}
-            showManagementOptions={true}
+            showManagementOptions={false}
             hideDebugInfo={true}
           />
         ))}

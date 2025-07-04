@@ -140,15 +140,31 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
         className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer relative"
         onClick={() => onCoinClick(coin)}
       >
-        {/* Multi-Image Gallery - FIXED: Proper sizing for homepage */}
+        {/* PHASE 4: Main Image - Small, Square, Clean */}
         <div className="relative">
           <ImageGallery 
             images={allImages}
             coinName={coin.name}
-            className="aspect-square w-full max-h-64"
+            className="aspect-square w-full h-48"
             compact={true}
-            showThumbnails={allImages.length > 1}
+            showThumbnails={false}
+            showMainOnly={true}
           />
+          
+          {/* PHASE 4: Image Carousel Below Main Image */}
+          {allImages.length > 1 && (
+            <div className="mt-2 px-2">
+              <ImageGallery 
+                images={allImages}
+                coinName={coin.name}
+                className="h-12"
+                compact={true}
+                showThumbnails={true}
+                showMainOnly={false}
+                thumbnailsOnly={true}
+              />
+            </div>
+          )}
           
           {/* Overlay Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -180,8 +196,8 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
             </Badge>
           </div>
 
-          {/* Management Options for Owner */}
-          {(showManagementOptions || isOwner) && (
+          {/* PHASE 4: Management Options - Only for Owner (not on homepage) */}
+          {showManagementOptions && isOwner && (
             <div className="absolute bottom-2 right-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -332,47 +348,62 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
             </Button>
           </div>
 
-          {/* 🏪 FIXED: Visit Store navigation with proper store ID */}
+          {/* PHASE 4: Dual-Function Store & Purchase Buttons */}
           {coin.user_id && (
-            <Button 
-              variant="outline" 
-              className="w-full mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
-              onClick={async (e) => {
-                e.stopPropagation();
-                
-                if (!coin.user_id || typeof coin.user_id !== 'string') {
-                  console.error('❌ Invalid user_id for Visit Store:', coin.user_id);
-                  alert('Store information not available');
-                  return;
-                }
-
-                try {
-                  // Find the store for this user
-                  const { data: store, error } = await supabase
-                    .from('stores')
-                    .select('id, name, user_id, is_active')
-                    .eq('user_id', coin.user_id)
-                    .eq('is_active', true)
-                    .single();
-
-                  if (error || !store) {
-                    console.error('❌ Store not found for user:', coin.user_id, error);
-                    alert('This dealer\'s store is not available at the moment.');
+            <div className="flex gap-2 mt-2">
+              <Button 
+                variant="outline" 
+                className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  
+                  if (!coin.user_id || typeof coin.user_id !== 'string') {
+                    console.error('❌ Invalid user_id for Visit Store:', coin.user_id);
+                    alert('Store information not available');
                     return;
                   }
 
-                  console.log('✅ Store found, navigating to store page:', store);
-                  // Navigate using the user_id (dealerId parameter in DealerStorePage)
-                  navigate(`/store/${store.user_id}`);
-                } catch (error) {
-                  console.error('❌ Error checking store:', error);
-                  alert('Unable to access store at the moment.');
-                }
-              }}
-            >
-              <Store className="h-4 w-4 mr-2" />
-              Visit Store
-            </Button>
+                  try {
+                    // Find the store for this user
+                    const { data: store, error } = await supabase
+                      .from('stores')
+                      .select('id, name, user_id, is_active')
+                      .eq('user_id', coin.user_id)
+                      .eq('is_active', true)
+                      .single();
+
+                    if (error || !store) {
+                      console.error('❌ Store not found for user:', coin.user_id, error);
+                      alert('This dealer\'s store is not available at the moment.');
+                      return;
+                    }
+
+                    console.log('✅ Store found, navigating to store page:', store);
+                    // Navigate using the user_id (dealerId parameter in DealerStorePage)
+                    navigate(`/store/${store.user_id}`);
+                  } catch (error) {
+                    console.error('❌ Error checking store:', error);
+                    alert('Unable to access store at the moment.');
+                  }
+                }}
+              >
+                <Store className="h-4 w-4 mr-2" />
+                Visit Store
+              </Button>
+              
+              <Button 
+                variant="default" 
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Direct purchase navigation 
+                  window.open(`/coin/${coin.id}`, '_blank');
+                }}
+              >
+                <DollarSign className="h-4 w-4 mr-2" />
+                Buy Now
+              </Button>
+            </div>
           )}
 
           {/* 🔧 FIXED: Hide debug info on homepage */}
