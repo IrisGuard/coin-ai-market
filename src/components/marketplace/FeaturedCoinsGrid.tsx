@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Store, ArrowRight, Heart, Eye } from 'lucide-react';
+import { Store, ArrowRight, Heart, Eye, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ImageGallery from '@/components/ui/ImageGallery';
 import CoinCard from './CoinCard';
-import { Coin, mapSupabaseCoinToCoin } from '@/types/coin';
+import { Coin } from '@/types/coin';
 import {
   Pagination,
   PaginationContent,
@@ -18,80 +16,58 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-
-interface Store {
-  id: string;
-  name: string;
-  user_id: string;
-}
+import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
+import SearchBar from '@/components/search/SearchBar';
+import AdvancedSearchFilters from '@/components/search/AdvancedSearchFilters';
+import MobileFilterDrawer from '@/components/search/MobileFilterDrawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const FeaturedCoinsGrid = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const coinsPerPage = 100; // Exactly 100 coins per page as requested
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
+  const [showDesktopFilters, setShowDesktopFilters] = useState(false);
+  const isMobile = useIsMobile();
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['featuredCoins', currentPage],
-    queryFn: async () => {
-      const from = (currentPage - 1) * coinsPerPage;
-      const to = from + coinsPerPage - 1;
+  // PHASE 6: Advanced Search Integration
+  const {
+    filters,
+    updateFilters,
+    clearFilters,
+    hasActiveFilters,
+    searchResults,
+    totalCount,
+    isLoading,
+    error,
+    filterOptions,
+    isFiltersPanelOpen,
+    setIsFiltersPanelOpen
+  } = useAdvancedSearch(currentPage, coinsPerPage);
 
-      // PHASE 5: Optimized database query with performance improvements
-      const { data: coins, error: coinsError } = await supabase
-        .from('coins')
-        .select('*')
-        .eq('is_auction', false) // Only Buy Now coins for homepage
-        .eq('listing_type', 'direct_sale') // Ensure only direct sale coins
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (coinsError) {
-        throw coinsError;
-      }
-
-      // PHASE 5: Concurrent count query for better performance
-      const { count, error: countError } = await supabase
-        .from('coins')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_auction', false)
-        .eq('listing_type', 'direct_sale');
-
-      if (countError) {
-        throw countError;
-      }
-      
-      const coinData = (coins || []).map(coin => mapSupabaseCoinToCoin(coin));
-
-      return { coins: coinData, count: count ?? 0 };
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-    refetchInterval: 30000, // Refresh every 30 seconds
-    refetchOnWindowFocus: true,
-  });
-
-  const featuredCoins = data?.coins;
-  const totalCoins = data?.count ?? 0;
+  const featuredCoins = searchResults;
+  const totalCoins = totalCount;
   const totalPages = Math.ceil(totalCoins / coinsPerPage);
 
-  const { data: stores } = useQuery({
-    queryKey: ['stores'],
-    queryFn: async (): Promise<Store[]> => {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('id, name, user_id');
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
-    }
-  });
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => 
+    key !== 'sortBy' && key !== 'sortOrder' && value !== ''
+  ).length;
 
   const handleCoinClick = (coin: Coin) => {
     setSelectedCoin(coin);
     // Navigate to coin detail page
     window.location.href = `/coin/${coin.id}`;
+  };
+
+  const handleSearchChange = (query: string) => {
+    updateFilters({ query });
+  };
+
+  const handleFiltersToggle = () => {
+    if (isMobile) {
+      setIsFiltersPanelOpen(!isFiltersPanelOpen);
+    } else {
+      setShowDesktopFilters(!showDesktopFilters);
+    }
   };
 
   if (isLoading) {
@@ -113,18 +89,133 @@ const FeaturedCoinsGrid = () => {
     );
   }
 
-  if (error || !featuredCoins?.length) {
+  if (error || (!isLoading && !featuredCoins?.length)) {
     return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">🪙</div>
-        <h3 className="text-xl font-semibold mb-2 text-gray-900">No Featured Coins Available</h3>
-        <p className="text-gray-600">Check back soon for featured coins from our verified dealers.</p>
+      <div className="space-y-6 sm:space-y-8">
+        {/* Search Bar (always visible) */}
+        <SearchBar
+          value={filters.query}
+          onChange={handleSearchChange}
+          onFiltersToggle={handleFiltersToggle}
+          hasActiveFilters={hasActiveFilters}
+          activeFiltersCount={activeFiltersCount}
+          placeholder="Search coins, countries, categories..."
+        />
+
+        {hasActiveFilters ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-900">No Results Found</h3>
+            <p className="text-gray-600 mb-4">
+              No coins match your current search criteria. Try adjusting your filters.
+            </p>
+            <Button onClick={clearFilters} className="bg-blue-600 hover:bg-blue-700">
+              Clear All Filters
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🪙</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-900">No Coins Available</h3>
+            <p className="text-gray-600">Check back soon for coins from our verified dealers.</p>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* PHASE 6: Advanced Search System */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <SearchBar
+          value={filters.query}
+          onChange={handleSearchChange}
+          onFiltersToggle={handleFiltersToggle}
+          hasActiveFilters={hasActiveFilters}
+          activeFiltersCount={activeFiltersCount}
+          placeholder="Search coins, countries, categories..."
+        />
+
+        {/* Desktop Filters */}
+        {!isMobile && showDesktopFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <AdvancedSearchFilters
+              filters={filters}
+              filterOptions={filterOptions}
+              onFiltersChange={updateFilters}
+              onClearFilters={clearFilters}
+              resultsCount={totalCoins}
+            />
+          </motion.div>
+        )}
+
+        {/* Mobile Filter Drawer */}
+        {isMobile && (
+          <MobileFilterDrawer
+            isOpen={isFiltersPanelOpen}
+            onClose={() => setIsFiltersPanelOpen(false)}
+            filters={filters}
+            onFiltersChange={updateFilters}
+            onClearFilters={clearFilters}
+            filterOptions={filterOptions}
+            resultsCount={totalCoins}
+          />
+        )}
+
+        {/* Active Filters Display */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-gray-600">Active filters:</span>
+            {Object.entries(filters).map(([key, value]) => {
+              if (key === 'sortBy' || key === 'sortOrder' || !value) return null;
+              return (
+                <Badge 
+                  key={key}
+                  variant="secondary" 
+                  className="cursor-pointer hover:bg-red-100"
+                  onClick={() => updateFilters({ [key]: '' })}
+                >
+                  {key}: {value} ×
+                </Badge>
+              );
+            })}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearFilters}
+              className="text-red-600 hover:text-red-700"
+            >
+              Clear all
+            </Button>
+          </div>
+        )}
+
+        {/* Results Summary */}
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <span>
+            Showing {featuredCoins?.length || 0} of {totalCoins} coins
+            {hasActiveFilters && ' (filtered)'}
+          </span>
+          {!isLoading && totalCoins === 0 && hasActiveFilters && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={clearFilters}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Clear filters to see all coins
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* CONTAINER-ENFORCED: Responsive Grid Layout with strict boundaries */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
         {featuredCoins.map((coin, index) => (
