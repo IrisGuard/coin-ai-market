@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const verifyAdminAccess = async (): Promise<boolean> => {

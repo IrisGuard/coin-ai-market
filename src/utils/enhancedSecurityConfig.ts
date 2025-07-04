@@ -1,4 +1,3 @@
-
 // Enhanced Security Configuration for Production Environment
 import { supabase } from '@/integrations/supabase/client';
 
@@ -149,12 +148,18 @@ export const discoverCoinDataGlobally = async (coinIdentifier: string, imageHash
   }
 };
 
-// Real-time market intelligence without API dependencies
-export const getGlobalMarketIntelligence = async () => {
+// Global market intelligence - missing export
+export const getGlobalMarketIntelligence = async (coinData?: any) => {
   try {
-    // Use existing functions for market intelligence
-    const { data, error } = await supabase.rpc('get_advanced_analytics_dashboard');
-    
+    const { data, error } = await supabase.functions.invoke('market-intelligence-engine', {
+      body: {
+        coin_data: coinData,
+        analysis_type: 'comprehensive',
+        include_trends: true,
+        include_predictions: true
+      }
+    });
+
     if (error) {
       console.error('Market intelligence error:', error);
       return {
@@ -166,8 +171,9 @@ export const getGlobalMarketIntelligence = async () => {
     return {
       success: true,
       data: data,
-      global_intelligence_active: true,
-      real_time_analytics: true
+      market_trends: data?.trends || [],
+      predictions: data?.predictions || [],
+      confidence_score: data?.confidence || 0.5
     };
   } catch (error) {
     console.error('Market intelligence failed:', error);

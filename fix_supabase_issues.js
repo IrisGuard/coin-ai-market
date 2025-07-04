@@ -71,4 +71,4 @@ async function fixAllSupabaseIssues() {
 }
 
 // Execute the verification
-fixAllSupabaseIssues() 
+fixAllSupabaseIssues()
