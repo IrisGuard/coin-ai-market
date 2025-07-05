@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { useCoinSubmission } from '@/hooks/upload/useCoinSubmission';
 import { useEnhancedCoinRecognition } from '@/hooks/useEnhancedCoinRecognition';
 import EnhancedImageUploadZone from '@/components/upload/EnhancedImageUploadZone';
+import EnhancedMobileAIUpload from '@/components/mobile/EnhancedMobileAIUpload';
 import type { CoinData, UploadedImage } from '@/types/upload';
 
 const MobileCoinUploadForm = () => {
@@ -214,11 +215,18 @@ const MobileCoinUploadForm = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Enhanced Image Upload Zone */}
-          <EnhancedImageUploadZone
-            onImagesUploaded={setImages}
+          {/* Phase 5: Enhanced Mobile AI Upload */}
+          <EnhancedMobileAIUpload
+            onImagesUploaded={(urls, results) => {
+              const uploadedImages = urls.map((url, index) => ({
+                url,
+                file: null,
+                type: index === 0 ? 'front' : index === 1 ? 'back' : 'detail'
+              }));
+              setImages(uploadedImages);
+            }}
             maxImages={10}
-            title="Upload 1-10 Coin Images"
+            coinData={coinData}
           />
 
           {/* AI Analysis Section */}
