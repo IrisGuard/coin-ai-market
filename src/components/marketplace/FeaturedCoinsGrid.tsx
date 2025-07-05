@@ -38,8 +38,8 @@ const FeaturedCoinsGrid = () => {
     setIsClient(true);
   }, []);
 
-  // PHASE 6: Advanced Search Integration - Client-side only
-  const searchHookResult = isClient ? useAdvancedSearch(currentPage, coinsPerPage) : null;
+  // PHASE 6: Advanced Search Integration - Always use hook
+  const searchHookResult = useAdvancedSearch(currentPage, coinsPerPage);
   
   const {
     filters = { query: '', country: '', yearFrom: '', yearTo: '', priceFrom: '', priceTo: '', grade: '', rarity: '', category: '', sortBy: 'name' as const, sortOrder: 'desc' as const },
