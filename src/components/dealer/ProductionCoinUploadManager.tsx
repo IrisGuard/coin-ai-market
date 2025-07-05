@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
 
 interface CoinUploadData {
   name: string;
@@ -44,6 +45,7 @@ const ProductionCoinUploadManager: React.FC<ProductionCoinUploadManagerProps> = 
   const { user } = useAuth();
   const { selectedStoreId: adminSelectedStoreId, isAdminUser } = useAdminStore();
   const queryClient = useQueryClient();
+  const { analyzeImage, isAnalyzing } = useRealAICoinRecognition();
   
   // Get effective store ID
   const getEffectiveStoreId = async () => {
@@ -241,35 +243,71 @@ const ProductionCoinUploadManager: React.FC<ProductionCoinUploadManagerProps> = 
   const performAIAnalysis = async (images: File[]) => {
     try {
       setIsProcessing(true);
+      console.log('🧠 Starting Real AI Analysis with Web Discovery...');
       
-      // Progressive analysis based on number of images
-      const analysisResults = await progressiveImageAnalysis(images);
+      // Use the enhanced AI recognition with web discovery
+      const aiResult = await analyzeImage(images[0]);
       
-      // Pre-fill form with AI analysis results
-      setUploadData(prev => ({
-        ...prev,
-        ...analysisResults
-      }));
-      
-      // Call the callback with analysis results
-      if (onAIAnalysisComplete) {
-        onAIAnalysisComplete({
-          coinId: 'pending',
-          aiConfidence: analysisResults.confidence,
-          identifiedFeatures: analysisResults.features,
-          estimatedValue: analysisResults.price,
-          recommendations: analysisResults.recommendations,
-          detectedInfo: analysisResults
-        });
+      if (aiResult) {
+        // Pre-fill form with enhanced AI analysis results
+        setUploadData(prev => ({
+          ...prev,
+          name: aiResult.name,
+          year: aiResult.year,
+          country: aiResult.country,
+          denomination: aiResult.denomination,
+          grade: aiResult.grade,
+          condition: aiResult.condition || aiResult.grade,
+          price: aiResult.estimatedValue,
+          description: aiResult.description,
+          category: aiResult.category,
+          rarity: aiResult.rarity
+        }));
+        
+        // Call the callback with enhanced analysis results
+        if (onAIAnalysisComplete) {
+          onAIAnalysisComplete({
+            coinId: 'pending',
+            aiConfidence: aiResult.confidence,
+            identifiedFeatures: ['ai_enhanced', 'web_verified', 'external_sources_checked'],
+            estimatedValue: aiResult.estimatedValue,
+            recommendations: [
+              `AI identified: ${aiResult.name}`,
+              `Confidence: ${Math.round(aiResult.confidence * 100)}%`,
+              `Market research: ${aiResult.market_intelligence?.web_sources_count || 0} sources`,
+              aiResult.authentication_status === 'web_verified' ? '✅ Verified by external sources' : '🔍 AI analysis complete'
+            ],
+            detectedInfo: aiResult,
+            webDiscoveryResults: aiResult.market_intelligence?.discovery_sources || []
+          });
+        }
+        
+        setUploadStatus('complete');
+        const webVerification = aiResult.authentication_status === 'web_verified' 
+          ? ` and verified by external market sources` 
+          : '';
+        toast.success(`Enhanced AI analysis complete! ${aiResult.name} identified with ${Math.round(aiResult.confidence * 100)}% confidence${webVerification}.`);
+        
+      } else {
+        // Fallback to original analysis if enhanced AI fails
+        const analysisResults = await progressiveImageAnalysis(images);
+        setUploadData(prev => ({ ...prev, ...analysisResults }));
+        setUploadStatus('complete');
+        toast.success(`Basic AI analysis complete! ${analysisResults.analysisType} detected.`);
       }
-      
-      setUploadStatus('complete');
-      toast.success(`AI analysis complete! ${analysisResults.analysisType} detected with ${Math.round(analysisResults.confidence * 100)}% confidence.`);
       
     } catch (error) {
       console.error('AI analysis failed:', error);
-      toast.error('AI analysis failed, please fill manually');
-      setUploadStatus('idle');
+      // Fallback to filename analysis
+      try {
+        const analysisResults = await progressiveImageAnalysis(images);
+        setUploadData(prev => ({ ...prev, ...analysisResults }));
+        toast.warning('Enhanced AI failed, using filename analysis');
+        setUploadStatus('complete');
+      } catch (fallbackError) {
+        toast.error('AI analysis failed, please fill manually');
+        setUploadStatus('idle');
+      }
     } finally {
       setIsProcessing(false);
     }

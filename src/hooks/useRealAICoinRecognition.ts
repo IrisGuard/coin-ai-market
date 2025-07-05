@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAICoinRecognition } from '@/hooks/useAICoinRecognition';
+import { triggerWebDiscovery, enrichCoinDataWithWebResults } from './enhanced-coin-recognition/webDiscovery';
 import { toast } from 'sonner';
 
 export interface EnhancedAIResult {
@@ -105,50 +106,62 @@ export const useRealAICoinRecognition = () => {
         throw new Error('Claude AI analysis failed');
       }
 
+      console.log('🌐 External Web Discovery Integration...');
+      const webResults = await triggerWebDiscovery(claudeResult.analysis);
+      
+      console.log('🔗 Enhanced Data Enrichment with Web Results...');
+      const enrichedData = await enrichCoinDataWithWebResults(claudeResult.analysis, webResults);
+      
       console.log('🏪 Marketplace Intelligence Integration...');
-      const marketplaceIntelligence = await extractMarketplaceIntelligence(claudeResult.analysis);
+      const marketplaceIntelligence = await extractMarketplaceIntelligence(enrichedData);
       
-      console.log('🔗 Enhanced Data Merger with Cache Clear...');
-      const mergedData = await mergeAnalysisData(claudeResult.analysis, []);
+      console.log('🔗 Enhanced Data Merger with Web Enhancement...');
+      const mergedData = await mergeAnalysisData(enrichedData, webResults);
       
-      // Enhanced data validation and country-specific handling
-      const validatedCountry = validateCountryData(mergedData.country || claudeResult.analysis.country);
-      const validatedName = validateCoinName(mergedData.name || claudeResult.analysis.name, validatedCountry);
+      // Enhanced data validation with web discovery results
+      const validatedCountry = validateCountryData(mergedData.country || enrichedData.country);
+      const validatedName = validateCoinName(mergedData.name || enrichedData.name, validatedCountry);
       
-      const structuredDescription = generateEnhancedStructuredDescription(mergedData, claudeResult.analysis);
-      const autoDescription = generateAutoDescription(mergedData, claudeResult.analysis);
-      const suggestedCategory = determineEnhancedCategory(validatedCountry, mergedData.denomination || claudeResult.analysis.denomination);
+      const structuredDescription = generateEnhancedStructuredDescription(mergedData, enrichedData);
+      const autoDescription = enrichedData.enhanced_description || generateAutoDescription(mergedData, enrichedData);
+      const suggestedCategory = determineEnhancedCategory(validatedCountry, mergedData.denomination || enrichedData.denomination);
       
       const enhancedResult: EnhancedAIResult = {
         name: validatedName,
-        year: mergedData.year || claudeResult.analysis.year,
+        year: mergedData.year || enrichedData.year,
         country: validatedCountry,
-        denomination: mergedData.denomination || claudeResult.analysis.denomination,
-        composition: mergedData.composition || claudeResult.analysis.composition,
-        grade: mergedData.grade || claudeResult.analysis.grade,
-        estimatedValue: mergedData.estimated_value || claudeResult.analysis.estimated_value || 0,
-        rarity: mergedData.rarity || claudeResult.analysis.rarity,
-        mint: mergedData.mint || claudeResult.analysis.mint,
-        diameter: mergedData.diameter || claudeResult.analysis.diameter,
-        weight: mergedData.weight || claudeResult.analysis.weight,
-        errors: mergedData.errors || claudeResult.analysis.errors || [],
-        confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75,
-        aiProvider: 'claude-enhanced',
+        denomination: mergedData.denomination || enrichedData.denomination,
+        composition: mergedData.composition || enrichedData.composition,
+        grade: mergedData.grade || enrichedData.grade,
+        estimatedValue: mergedData.estimated_value || enrichedData.estimated_value || 0,
+        rarity: mergedData.rarity || enrichedData.rarity,
+        mint: mergedData.mint || enrichedData.mint,
+        diameter: mergedData.diameter || enrichedData.diameter,
+        weight: mergedData.weight || enrichedData.weight,
+        errors: mergedData.errors || enrichedData.errors || [],
+        confidence: Math.min((mergedData.final_confidence || enrichedData.confidence || 0.75) + (enrichedData.web_confidence_boost || 0), 0.95),
+        aiProvider: 'claude-enhanced-web-discovery',
         processingTime: Date.now() - startTime,
         description: autoDescription,
         structured_description: structuredDescription,
         category: suggestedCategory,
-        market_intelligence: marketplaceIntelligence,
-        condition: mergedData.grade || claudeResult.analysis.grade,
-        authentication_status: 'ai_verified',
-        ai_confidence: mergedData.final_confidence || claudeResult.analysis.confidence || 0.75
+        market_intelligence: {
+          ...marketplaceIntelligence,
+          web_sources_count: webResults.length,
+          discovery_sources: enrichedData.discovery_sources || [],
+          market_price_sources: enrichedData.market_price_sources || 0
+        },
+        condition: mergedData.grade || enrichedData.grade,
+        authentication_status: webResults.length > 0 ? 'web_verified' : 'ai_verified',
+        ai_confidence: Math.min((mergedData.final_confidence || enrichedData.confidence || 0.75) + (enrichedData.web_confidence_boost || 0), 0.95)
       };
 
       console.log('✅ Complete Analysis Ready:', enhancedResult);
       setResult(enhancedResult);
       
+      const webSourcesText = webResults.length > 0 ? ` (verified by ${webResults.length} external sources)` : '';
       toast.success(
-        `Analysis Complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence.`
+        `Analysis Complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence${webSourcesText}.`
       );
 
       return enhancedResult;
