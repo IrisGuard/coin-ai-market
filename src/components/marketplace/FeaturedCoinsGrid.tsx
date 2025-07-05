@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,22 +29,30 @@ const FeaturedCoinsGrid = () => {
   const coinsPerPage = 100; // Exactly 100 coins per page as requested
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
   const [showDesktopFilters, setShowDesktopFilters] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const isMobile = useIsMobile();
 
-  // PHASE 6: Advanced Search Integration
+  // Client-side only rendering to fix SSR issues
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // PHASE 6: Advanced Search Integration - Client-side only
+  const searchHookResult = isClient ? useAdvancedSearch(currentPage, coinsPerPage) : null;
+  
   const {
-    filters,
-    updateFilters,
-    clearFilters,
-    hasActiveFilters,
-    searchResults,
-    totalCount,
-    isLoading,
-    error,
-    filterOptions,
-    isFiltersPanelOpen,
-    setIsFiltersPanelOpen
-  } = useAdvancedSearch(currentPage, coinsPerPage);
+    filters = { query: '', country: '', yearFrom: '', yearTo: '', priceFrom: '', priceTo: '', grade: '', rarity: '', category: '', sortBy: 'name' as const, sortOrder: 'desc' as const },
+    updateFilters = () => {},
+    clearFilters = () => {},
+    hasActiveFilters = false,
+    searchResults = [],
+    totalCount = 0,
+    isLoading = false,
+    error = null,
+    filterOptions = { countries: [], grades: [], rarities: [], categories: [], yearRange: { min: 1800, max: 2024 }, priceRange: { min: 0, max: 10000 } },
+    isFiltersPanelOpen = false,
+    setIsFiltersPanelOpen = () => {}
+  } = searchHookResult || {};
 
   const featuredCoins = searchResults;
   const totalCoins = totalCount;
@@ -70,7 +80,8 @@ const FeaturedCoinsGrid = () => {
     }
   };
 
-  if (isLoading) {
+  // Show loading state for SSR and client-side loading
+  if (!isClient || isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
         {Array.from({ length: 12 }).map((_, i) => (

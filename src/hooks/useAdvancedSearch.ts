@@ -44,47 +44,60 @@ export const useAdvancedSearch = (currentPage: number = 1, coinsPerPage: number 
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
   const [isFiltersPanelOpen, setIsFiltersPanelOpen] = useState(false);
 
-  // Get filter options from database
+  // Get filter options from database - conditional to avoid SSR issues
   const { data: filterOptions } = useQuery<FilterOptions>({
     queryKey: ['filter-options'],
     queryFn: async () => {
-      const { data: coins } = await supabase
-        .from('coins')
-        .select('country, grade, rarity, category, year, price');
+      try {
+        const { data: coins } = await supabase
+          .from('coins')
+          .select('country, grade, rarity, category, year, price');
 
-      if (!coins) return {
-        countries: [],
-        grades: [],
-        rarities: [],
-        categories: [],
-        yearRange: { min: 1800, max: 2024 },
-        priceRange: { min: 0, max: 10000 }
-      };
+        if (!coins) return {
+          countries: [],
+          grades: [],
+          rarities: [],
+          categories: [],
+          yearRange: { min: 1800, max: 2024 },
+          priceRange: { min: 0, max: 10000 }
+        };
 
-      const countries = [...new Set(coins.map(c => c.country).filter(Boolean))].sort();
-      const grades = [...new Set(coins.map(c => c.grade).filter(Boolean))].sort();
-      const rarities = [...new Set(coins.map(c => c.rarity).filter(Boolean))].sort();
-      const categories = [...new Set(coins.map(c => c.category).filter(Boolean))].sort();
-      
-      const years = coins.map(c => c.year).filter(Boolean);
-      const prices = coins.map(c => c.price).filter(Boolean);
+        const countries = [...new Set(coins.map(c => c.country).filter(Boolean))].sort();
+        const grades = [...new Set(coins.map(c => c.grade).filter(Boolean))].sort();
+        const rarities = [...new Set(coins.map(c => c.rarity).filter(Boolean))].sort();
+        const categories = [...new Set(coins.map(c => c.category).filter(Boolean))].sort();
+        
+        const years = coins.map(c => c.year).filter(Boolean);
+        const prices = coins.map(c => c.price).filter(Boolean);
 
-      return {
-        countries,
-        grades,
-        rarities,
-        categories,
-        yearRange: {
-          min: Math.min(...years),
-          max: Math.max(...years)
-        },
-        priceRange: {
-          min: Math.min(...prices),
-          max: Math.max(...prices)
-        }
-      };
+        return {
+          countries,
+          grades,
+          rarities,
+          categories,
+          yearRange: {
+            min: Math.min(...years),
+            max: Math.max(...years)
+          },
+          priceRange: {
+            min: Math.min(...prices),
+            max: Math.max(...prices)
+          }
+        };
+      } catch (error) {
+        console.warn('Filter options failed:', error);
+        return {
+          countries: [],
+          grades: [],
+          rarities: [],
+          categories: [],
+          yearRange: { min: 1800, max: 2024 },
+          priceRange: { min: 0, max: 10000 }
+        };
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: typeof window !== 'undefined', // Only run on client
   });
 
   // Build search query
@@ -148,47 +161,56 @@ export const useAdvancedSearch = (currentPage: number = 1, coinsPerPage: number 
     return query;
   }, [filters, currentPage, coinsPerPage]);
 
-  // Execute search query
+  // Execute search query - conditional for SSR
   const { data: searchResults, isLoading, error } = useQuery({
     queryKey: ['advanced-search', filters, currentPage],
     queryFn: async () => {
-      const result = await searchQuery;
-      
-      if (result.error) {
-        throw result.error;
+      try {
+        const result = await searchQuery;
+        
+        if (result.error) {
+          throw result.error;
+        }
+
+        // Get total count for pagination
+        let countQuery = supabase
+          .from('coins')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_auction', false)
+          .eq('listing_type', 'direct_sale');
+
+        // Apply same filters for count
+        if (filters.query) {
+          countQuery = countQuery.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,country.ilike.%${filters.query}%`);
+        }
+        if (filters.country) countQuery = countQuery.eq('country', filters.country);
+        if (filters.yearFrom) countQuery = countQuery.gte('year', parseInt(filters.yearFrom));
+        if (filters.yearTo) countQuery = countQuery.lte('year', parseInt(filters.yearTo));
+        if (filters.priceFrom) countQuery = countQuery.gte('price', parseFloat(filters.priceFrom));
+        if (filters.priceTo) countQuery = countQuery.lte('price', parseFloat(filters.priceTo));
+        if (filters.grade) countQuery = countQuery.eq('grade', filters.grade);
+        if (filters.rarity) countQuery = countQuery.eq('rarity', filters.rarity);
+        if (filters.category) countQuery = countQuery.eq('category', filters.category as any);
+
+        const { count } = await countQuery;
+
+        const coins = (result.data || []).map(coin => mapSupabaseCoinToCoin(coin));
+
+        return {
+          coins,
+          count: count || 0
+        };
+      } catch (error) {
+        console.warn('Search query failed:', error);
+        return {
+          coins: [],
+          count: 0
+        };
       }
-
-      // Get total count for pagination
-      let countQuery = supabase
-        .from('coins')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_auction', false)
-        .eq('listing_type', 'direct_sale');
-
-      // Apply same filters for count
-      if (filters.query) {
-        countQuery = countQuery.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,country.ilike.%${filters.query}%`);
-      }
-      if (filters.country) countQuery = countQuery.eq('country', filters.country);
-      if (filters.yearFrom) countQuery = countQuery.gte('year', parseInt(filters.yearFrom));
-      if (filters.yearTo) countQuery = countQuery.lte('year', parseInt(filters.yearTo));
-      if (filters.priceFrom) countQuery = countQuery.gte('price', parseFloat(filters.priceFrom));
-      if (filters.priceTo) countQuery = countQuery.lte('price', parseFloat(filters.priceTo));
-      if (filters.grade) countQuery = countQuery.eq('grade', filters.grade);
-      if (filters.rarity) countQuery = countQuery.eq('rarity', filters.rarity);
-      if (filters.category) countQuery = countQuery.eq('category', filters.category as any);
-
-      const { count } = await countQuery;
-
-      const coins = (result.data || []).map(coin => mapSupabaseCoinToCoin(coin));
-
-      return {
-        coins,
-        count: count || 0
-      };
     },
     staleTime: 30000, // 30 seconds cache
     refetchOnWindowFocus: true,
+    enabled: typeof window !== 'undefined', // Only run on client
   });
 
   const updateFilters = (newFilters: Partial<SearchFilters>) => {

@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageView } from '@/hooks/usePageView';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
@@ -14,14 +16,23 @@ import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 import { motion } from 'framer-motion';
 
 const Index = () => {
-  usePageView();
-  usePerformanceMonitoring('IndexPage');
-  const { isAuthenticated } = useAuth();
-  const { performSearch } = useSearchEnhancement();
+  const [isClient, setIsClient] = useState(false);
+  
+  // Client-side only hooks
+  const pageViewHook = isClient ? usePageView() : null;
+  const perfMonHook = isClient ? usePerformanceMonitoring('IndexPage') : null;
+  const { isAuthenticated } = isClient ? useAuth() : { isAuthenticated: false };
+  const { performSearch } = isClient ? useSearchEnhancement() : { performSearch: () => {} };
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSearch = (query: string) => {
-    performSearch(query);
-    window.location.href = `/marketplace?search=${encodeURIComponent(query)}`;
+    if (isClient && performSearch) {
+      performSearch(query);
+      window.location.href = `/marketplace?search=${encodeURIComponent(query)}`;
+    }
   };
 
   return (
