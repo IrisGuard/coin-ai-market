@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Eye, Calendar, Star, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ExpandableAIDetails from '@/components/ai/ExpandableAIDetails';
 
 interface CoinCardProps {
   coin: {
@@ -19,6 +20,16 @@ interface CoinCardProps {
     is_auction?: boolean;
     authentication_status?: string;
     featured?: boolean;
+    user_id: string;
+    ai_confidence?: number;
+    ai_provider?: string;
+    condition?: string;
+    country?: string;
+    denomination?: string;
+    composition?: string;
+    weight?: number;
+    diameter?: number;
+    created_at?: string;
     seller?: {
       verified_dealer?: boolean;
       rating?: number;
@@ -113,6 +124,9 @@ const CoinCard: React.FC<CoinCardProps> = ({ coin, onFavorite, isFavorited }) =>
               <span className="text-sm text-gray-500">Current bid</span>
             )}
           </div>
+
+          {/* AI Analysis Details */}
+          <ExpandableAIDetails coin={coin as any} />
 
           {/* Stats */}
           <div className="flex items-center justify-between text-sm text-gray-500">

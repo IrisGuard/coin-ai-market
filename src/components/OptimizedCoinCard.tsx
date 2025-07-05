@@ -6,6 +6,7 @@ import { Heart, Eye, Clock, Star, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
 import { Coin } from '@/types/coin';
+import ExpandableAIDetails from '@/components/ai/ExpandableAIDetails';
 
 interface OptimizedCoinCardProps {
   coin: Coin;
@@ -156,15 +157,15 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = ({ coin, index, prio
               )}
             </div>
 
-            {/* AI Confidence & Image Count */}
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              {coin.ai_confidence && coin.ai_confidence > 0.8 && (
-                <span className="text-blue-600">AI: {Math.round(coin.ai_confidence * 100)}%</span>
-              )}
-              {allImages.length > 1 && (
+            {/* AI Analysis Details */}
+            <ExpandableAIDetails coin={coin} />
+
+            {/* Image Count */}
+            {allImages.length > 1 && (
+              <div className="flex justify-end text-xs text-gray-500">
                 <span className="text-green-600">{allImages.length} photos</span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </Link>

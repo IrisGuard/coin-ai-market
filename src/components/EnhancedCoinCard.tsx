@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Coin } from '@/types/coin';
 import { useEnhancedFavorites } from '@/hooks/useEnhancedFavorites';
+import ExpandableAIDetails from '@/components/ai/ExpandableAIDetails';
 
 interface EnhancedCoinCardProps {
   coin: Coin;
@@ -157,6 +158,9 @@ const EnhancedCoinCard: React.FC<EnhancedCoinCardProps> = ({ coin, index = 0 }) 
                 </Badge>
               )}
             </div>
+
+            {/* AI Analysis Details */}
+            <ExpandableAIDetails coin={coin} />
 
             {/* Views and Stats */}
             <div className="flex items-center justify-between text-sm text-text-muted pt-2 border-t border-border-primary">
