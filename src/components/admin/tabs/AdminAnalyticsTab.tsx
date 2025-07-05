@@ -5,12 +5,12 @@ import AnalyticsOverviewCards from '../analytics/AnalyticsOverviewCards';
 import SystemPerformanceCard from '../analytics/SystemPerformanceCard';
 import PopularPagesCard from '../analytics/PopularPagesCard';
 import SearchAnalyticsCard from '../analytics/SearchAnalyticsCard';
-import Phase8AnalyticsManager from '../enhanced/Phase8AnalyticsManager';
+import Phase8AIPredictiveIntelligence from '../enhanced/Phase8AIPredictiveIntelligence';
 import Phase9MobileManager from '../enhanced/Phase9MobileManager';
 import Phase6AdvancedAnalytics from '../enhanced/Phase6AdvancedAnalytics';
 import Phase6PerformanceEngine from '../enhanced/Phase6PerformanceEngine';
 import Phase6SecurityMonitor from '../enhanced/Phase6SecurityMonitor';
-import { BarChart3, Activity, TrendingUp, Users, Smartphone, Zap, Shield } from 'lucide-react';
+import { BarChart3, Activity, TrendingUp, Users, Smartphone, Zap, Shield, Brain } from 'lucide-react';
 
 const AdminAnalyticsTab = () => {
   const [activeView, setActiveView] = useState('overview');
@@ -43,8 +43,8 @@ const AdminAnalyticsTab = () => {
             Phase 9
           </TabsTrigger>
           <TabsTrigger value="phase8" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Phase 8
+            <Brain className="h-4 w-4" />
+            Phase 8 AI
           </TabsTrigger>
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -81,7 +81,7 @@ const AdminAnalyticsTab = () => {
         </TabsContent>
 
         <TabsContent value="phase8" className="space-y-6">
-          <Phase8AnalyticsManager />
+          <Phase8AIPredictiveIntelligence />
         </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
