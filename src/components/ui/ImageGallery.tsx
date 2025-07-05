@@ -41,12 +41,15 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
   return (
     <div className={`relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden ${className}`}>
       {/* Main Image */}
-      <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
         <img
           src={currentImage}
           alt={`${coinName} - Image ${selectedIndex + 1}`}
-          className="w-full h-full object-contain"
+          className="max-w-full max-h-full object-contain"
           draggable={false}
+          style={{ 
+            objectPosition: 'center'
+          }}
           onError={(e) => {
             const img = e.target as HTMLImageElement;
             if (img.src !== '/placeholder-coin.svg') {

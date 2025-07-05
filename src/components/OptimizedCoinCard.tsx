@@ -1,12 +1,14 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Eye, Clock, Star, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Heart, Eye, Clock, Star, AlertTriangle, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageGallery from '@/components/ui/ImageGallery';
 import { Coin } from '@/types/coin';
 import ExpandableAIDetails from '@/components/ai/ExpandableAIDetails';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OptimizedCoinCardProps {
   coin: Coin;
@@ -15,6 +17,7 @@ interface OptimizedCoinCardProps {
 }
 
 const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = ({ coin, index, priority = false }) => {
+  const navigate = useNavigate();
   // Prepare all available images for the gallery
   const getAllImages = (coin: Coin): string[] => {
     const allImages: string[] = [];
@@ -160,9 +163,72 @@ const OptimizedCoinCard: React.FC<OptimizedCoinCardProps> = ({ coin, index, prio
             {/* AI Analysis Details */}
             <ExpandableAIDetails coin={coin} />
 
+            {/* Visit Store Button */}
+            <div className="mt-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  try {
+                    let store = null;
+                    
+                    // Try to use store_id from coin first, then fallback to user_id search
+                    if (coin.store_id) {
+                      console.log('🔍 Finding store by store_id:', coin.store_id);
+                      const { data: storeById, error: storeError } = await supabase
+                        .from('stores')
+                        .select('id, name, user_id, is_active')
+                        .eq('id', coin.store_id)
+                        .eq('is_active', true)
+                        .single();
+                      
+                      if (storeById && !storeError) {
+                        store = storeById;
+                        console.log('✅ Found store by store_id:', store);
+                      }
+                    }
+                    
+                    // Fallback: Find store by user_id if store_id lookup failed
+                    if (!store && coin.user_id) {
+                      console.log('🔍 Finding store by user_id:', coin.user_id);
+                      const { data: storeByUserId, error: userError } = await supabase
+                        .from('stores')
+                        .select('id, name, user_id, is_active')
+                        .eq('user_id', coin.user_id)
+                        .eq('is_active', true)
+                        .single();
+                      
+                      if (storeByUserId && !userError) {
+                        store = storeByUserId;
+                        console.log('✅ Found store by user_id:', store);
+                      }
+                    }
+                    
+                    if (store) {
+                      // Navigate using the store owner's user_id
+                      navigate(`/store/${store.user_id}`);
+                    } else {
+                      console.error('❌ No store found for coin:', coin.id);
+                      alert('Store not found for this coin.');
+                    }
+                  } catch (error) {
+                    console.error('❌ Error accessing store:', error);
+                    alert('Unable to access store at the moment.');
+                  }
+                }}
+              >
+                <Store className="h-3 w-3 mr-1" />
+                Visit Store
+              </Button>
+            </div>
+
             {/* Image Count */}
             {allImages.length > 1 && (
-              <div className="flex justify-end text-xs text-gray-500">
+              <div className="flex justify-end text-xs text-gray-500 mt-1">
                 <span className="text-green-600">{allImages.length} photos</span>
               </div>
             )}
