@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Heart, Share2, Store, Wallet, Building2, ExternalLink, ShoppingBag, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import CoinPriceSection from './CoinPriceSection';
 import CoinBidHistory from './CoinBidHistory';
 import RelatedCoins from './RelatedCoins';
@@ -27,6 +28,7 @@ interface CoinDetailsContentProps {
     sold?: boolean;
     starting_bid?: number;
     user_id: string;
+    store_id?: string;
     profiles?: {
       name?: string;
       username?: string;
@@ -86,6 +88,7 @@ const CoinDetailsContent = ({
   onBid,
   isOwner
 }: CoinDetailsContentProps) => {
+  const navigate = useNavigate();
   // 🛡️ DEFENSIVE CHECKS - Prevent crashes
   if (!coin || !coin.id) {
     console.error('❌ CRITICAL: Missing coin data', { coin });
@@ -310,23 +313,67 @@ const CoinDetailsContent = ({
                   <h3 className="font-bold text-xl text-gray-900">Store Information</h3>
                 </div>
                 {hasValidUserId ? (
-                  <Link 
-                    to={`/store/${safeUserId}`}
+                  <Button
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
-                    onClick={(e) => {
-                      // Ensure we have valid user_id before navigation
-                      if (!coin?.user_id) {
-                        e.preventDefault();
-                        console.error('❌ Cannot navigate to store: missing user_id');
-                        return;
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      try {
+                        let store = null;
+                        
+                        // FIXED: Try to use store_id from coin first, then fallback to user_id search
+                        if (coin.store_id) {
+                          console.log('🔍 Finding store by store_id:', coin.store_id);
+                          const { data: storeById, error: storeError } = await supabase
+                            .from('stores')
+                            .select('id, name, user_id, is_active')
+                            .eq('id', coin.store_id)
+                            .eq('is_active', true)
+                            .single();
+                          
+                          if (storeById && !storeError) {
+                            store = storeById;
+                            console.log('✅ Found store by ID:', store.name);
+                          }
+                        }
+                        
+                        // Fallback: Find any active store for this user
+                        if (!store && coin.user_id) {
+                          console.log('🔍 Fallback: Finding store by user_id:', coin.user_id);
+                          const { data: storeByUser, error: userError } = await supabase
+                            .from('stores')
+                            .select('id, name, user_id, is_active')
+                            .eq('user_id', coin.user_id)
+                            .eq('is_active', true)
+                            .limit(1)
+                            .single();
+                          
+                          if (storeByUser && !userError) {
+                            store = storeByUser;
+                            console.log('✅ Found store by user_id:', store.name);
+                          }
+                        }
+
+                        if (!store) {
+                          console.error('❌ No store found for coin:', coin.id);
+                          alert('This dealer\'s store is not available at the moment.');
+                          return;
+                        }
+
+                        console.log('✅ Navigating to store:', store.name, 'with user_id:', store.user_id);
+                        // Navigate using the store owner's user_id
+                        navigate(`/store/${store.user_id}`);
+                      } catch (error) {
+                        console.error('❌ Error accessing store:', error);
+                        alert('Unable to access store at the moment.');
                       }
-                      console.log('✅ Navigating to store:', coin.user_id);
                     }}
                   >
                     <ShoppingBag className="w-4 h-4" />
                     Visit Store
                     <ExternalLink className="w-3 h-3" />
-                  </Link>
+                  </Button>
                 ) : (
                   <div className="flex items-center gap-2 bg-gray-400 text-white px-4 py-2 rounded-lg font-medium text-sm cursor-not-allowed">
                     <ShoppingBag className="w-4 h-4" />
