@@ -6,7 +6,8 @@ import SystemPerformanceCard from '../analytics/SystemPerformanceCard';
 import PopularPagesCard from '../analytics/PopularPagesCard';
 import SearchAnalyticsCard from '../analytics/SearchAnalyticsCard';
 import Phase8AnalyticsManager from '../enhanced/Phase8AnalyticsManager';
-import { BarChart3, Activity, TrendingUp, Users } from 'lucide-react';
+import Phase9MobileManager from '../enhanced/Phase9MobileManager';
+import { BarChart3, Activity, TrendingUp, Users, Smartphone } from 'lucide-react';
 
 const AdminAnalyticsTab = () => {
   const [activeView, setActiveView] = useState('overview');
@@ -21,7 +22,11 @@ const AdminAnalyticsTab = () => {
       </div>
 
       <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="phase9" className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4" />
+            Phase 9
+          </TabsTrigger>
           <TabsTrigger value="phase8" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Phase 8
@@ -43,6 +48,10 @@ const AdminAnalyticsTab = () => {
             Trends
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="phase9" className="space-y-6">
+          <Phase9MobileManager />
+        </TabsContent>
 
         <TabsContent value="phase8" className="space-y-6">
           <Phase8AnalyticsManager />
