@@ -11,17 +11,26 @@ import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 import { motion } from 'framer-motion';
+import { useCachedMarketplaceData } from '@/hooks/useCachedMarketplaceData';
+import OptimizedCoinCard from '@/components/OptimizedCoinCard';
 
 const Index = () => {
   usePageView();
   usePerformanceMonitoring('IndexPage');
   const { isAuthenticated } = useAuth();
   const { performSearch } = useSearchEnhancement();
+  const { coins, isLoading } = useCachedMarketplaceData();
 
   const handleSearch = (query: string) => {
     performSearch(query);
     window.location.href = `/marketplace?search=${encodeURIComponent(query)}`;
   };
+
+  // Get first 3 coins from the database
+  const displayCoins = React.useMemo(() => {
+    if (!coins || coins.length === 0) return [];
+    return coins.slice(0, 3);
+  }, [coins]);
 
   return (
     <ErrorBoundaryWrapper>
@@ -62,6 +71,19 @@ const Index = () => {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <CategoryNavigationFix />
+          
+          {/* Coins from Database */}
+          {!isLoading && displayCoins.length > 0 && (
+            <div className="mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {displayCoins.map((coin, index) => (
+                  <div key={coin.id} className="w-full">
+                    <OptimizedCoinCard coin={coin} index={index} priority={true} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <Footer />
