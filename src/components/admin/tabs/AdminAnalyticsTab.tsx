@@ -7,7 +7,10 @@ import PopularPagesCard from '../analytics/PopularPagesCard';
 import SearchAnalyticsCard from '../analytics/SearchAnalyticsCard';
 import Phase8AnalyticsManager from '../enhanced/Phase8AnalyticsManager';
 import Phase9MobileManager from '../enhanced/Phase9MobileManager';
-import { BarChart3, Activity, TrendingUp, Users, Smartphone } from 'lucide-react';
+import Phase6AdvancedAnalytics from '../enhanced/Phase6AdvancedAnalytics';
+import Phase6PerformanceEngine from '../enhanced/Phase6PerformanceEngine';
+import Phase6SecurityMonitor from '../enhanced/Phase6SecurityMonitor';
+import { BarChart3, Activity, TrendingUp, Users, Smartphone, Zap, Shield } from 'lucide-react';
 
 const AdminAnalyticsTab = () => {
   const [activeView, setActiveView] = useState('overview');
@@ -22,7 +25,19 @@ const AdminAnalyticsTab = () => {
       </div>
 
       <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="phase6-analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Phase 6A
+          </TabsTrigger>
+          <TabsTrigger value="phase6-performance" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Phase 6P
+          </TabsTrigger>
+          <TabsTrigger value="phase6-security" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Phase 6S
+          </TabsTrigger>
           <TabsTrigger value="phase9" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             Phase 9
@@ -48,6 +63,18 @@ const AdminAnalyticsTab = () => {
             Trends
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="phase6-analytics" className="space-y-6">
+          <Phase6AdvancedAnalytics />
+        </TabsContent>
+
+        <TabsContent value="phase6-performance" className="space-y-6">
+          <Phase6PerformanceEngine />
+        </TabsContent>
+
+        <TabsContent value="phase6-security" className="space-y-6">
+          <Phase6SecurityMonitor />
+        </TabsContent>
 
         <TabsContent value="phase9" className="space-y-6">
           <Phase9MobileManager />
