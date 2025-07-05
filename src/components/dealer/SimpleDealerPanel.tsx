@@ -20,6 +20,7 @@ import { useDatabaseStats } from '@/hooks/useDatabaseStats';
 import { useAnalyticsStats } from '@/hooks/useAnalyticsStats';
 import { toast } from 'sonner';
 import WalletManagementTab from './WalletManagementTab';
+import ConnectedAIAnalysis from './ConnectedAIAnalysis';
 
 interface UploadedImage {
   id: string;
@@ -794,7 +795,7 @@ const SimpleDealerPanel = () => {
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="upload" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
             Upload Coins
@@ -802,6 +803,10 @@ const SimpleDealerPanel = () => {
           <TabsTrigger value="wallets" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             My Wallets
+          </TabsTrigger>
+          <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            AI Brain
           </TabsTrigger>
         </TabsList>
 
@@ -1351,6 +1356,19 @@ const SimpleDealerPanel = () => {
 
         <TabsContent value="wallets">
           <WalletManagementTab />
+        </TabsContent>
+
+        <TabsContent value="ai-analysis">
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
+                <Brain className="h-6 w-6 text-blue-600" />
+                AI Analysis Brain
+              </h2>
+              <p className="text-muted-foreground">Live connection to Admin Panel AI Brain - Phase 2 Complete</p>
+            </div>
+            <ConnectedAIAnalysis />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
