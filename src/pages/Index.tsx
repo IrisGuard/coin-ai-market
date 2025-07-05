@@ -11,7 +11,7 @@ import AdvancedSearchInterface from "@/components/search/AdvancedSearchInterface
 import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
-import PhaseCompletionButton from "@/components/ui/PhaseCompletionButton";
+
 
 const Index = () => {
   // Always use hooks - no conditional calls
@@ -82,18 +82,6 @@ const Index = () => {
 
         <Footer />
         <VoiceInterface />
-        
-        {/* Phase 2 Completion Button */}
-        <PhaseCompletionButton
-          phase={2}
-          nextPhase={3}
-          completionPercentage={100}
-          isVisible={true}
-          onProceed={() => {
-            console.log('Phase 2 Complete - Proceeding to Phase 3');
-            alert('🎉 Phase 2 Complete!\n\n✅ Advanced Search Integration\n✅ Performance Optimizations\n✅ Mobile Experience Enhancements\n✅ Real-time Data Integration\n\nReady for Phase 3!');
-          }}
-        />
       </div>
     </ErrorBoundaryWrapper>
   );
