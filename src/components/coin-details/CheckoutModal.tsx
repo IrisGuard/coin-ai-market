@@ -169,7 +169,12 @@ const CheckoutModal = ({
     setPaymentStep(method);
   };
 
-  const handlePaymentSuccess = (transactionId: string) => {
+  const handlePaymentSuccess = (transactionId?: string) => {
+    onTransakSuccess();
+    onClose();
+  };
+
+  const handleTransakSuccess = () => {
     onTransakSuccess();
     onClose();
   };
@@ -205,7 +210,7 @@ const CheckoutModal = ({
               coinId={coin.id}
               coinName={coin.name}
               price={coin.price}
-              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentSuccess={handleTransakSuccess}
             />
           </div>
         </DialogContent>
