@@ -7,13 +7,14 @@ import PopularPagesCard from '../analytics/PopularPagesCard';
 import SearchAnalyticsCard from '../analytics/SearchAnalyticsCard';
 import Phase8AIPredictiveIntelligence from '../enhanced/Phase8AIPredictiveIntelligence';
 import Phase9MobileManager from '../enhanced/Phase9MobileManager';
+import Phase9CompleteIntegration from '../enhanced/Phase9CompleteIntegration';
 import Phase6AdvancedAnalytics from '../enhanced/Phase6AdvancedAnalytics';
 import Phase6PerformanceEngine from '../enhanced/Phase6PerformanceEngine';
 import Phase6SecurityMonitor from '../enhanced/Phase6SecurityMonitor';
-import { BarChart3, Activity, TrendingUp, Users, Smartphone, Zap, Shield, Brain } from 'lucide-react';
+import { BarChart3, Activity, TrendingUp, Users, Smartphone, Zap, Shield, Brain, CheckCircle } from 'lucide-react';
 
 const AdminAnalyticsTab = () => {
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState('phase9-complete');
 
   return (
     <div className="space-y-6">
@@ -25,7 +26,11 @@ const AdminAnalyticsTab = () => {
       </div>
 
       <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
+          <TabsTrigger value="phase9-complete" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Phase 9 Complete
+          </TabsTrigger>
           <TabsTrigger value="phase6-analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Phase 6A
@@ -40,7 +45,7 @@ const AdminAnalyticsTab = () => {
           </TabsTrigger>
           <TabsTrigger value="phase9" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
-            Phase 9
+            Phase 9M
           </TabsTrigger>
           <TabsTrigger value="phase8" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
@@ -63,6 +68,10 @@ const AdminAnalyticsTab = () => {
             Trends
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="phase9-complete" className="space-y-6">
+          <Phase9CompleteIntegration />
+        </TabsContent>
 
         <TabsContent value="phase6-analytics" className="space-y-6">
           <Phase6AdvancedAnalytics />
