@@ -1,16 +1,12 @@
-// PHASE 5: High-performance lazy loading image component
-import React from 'react';
-import { useLazyLoading } from '@/hooks/useIntersectionObserver';
-import { optimizeImageForMobile, isMobilePerformanceMode } from '@/utils/responsiveUtils';
-import { useIsMobile } from '@/hooks/use-mobile';
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
-  placeholderClassName?: string;
-  sizes?: string;
-  priority?: boolean;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -19,95 +15,63 @@ const LazyImage: React.FC<LazyImageProps> = ({
   src,
   alt,
   className = '',
-  placeholderClassName = '',
-  sizes,
-  priority = false,
   onLoad,
-  onError,
+  onError
 }) => {
-  const isMobile = useIsMobile();
-  const isPerformanceMode = isMobilePerformanceMode();
-  
-  // Optimize image source based on device capabilities
-  const optimizedSrc = React.useMemo(() => {
-    if (isPerformanceMode) {
-      return optimizeImageForMobile(src, 'small');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const currentRef = imgRef.current;
+    
+    if (currentRef && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: '50px 0px', threshold: 0.1 }
+      );
+      
+      observer.observe(currentRef);
+      return () => observer.disconnect();
+    } else {
+      setIsInView(true);
     }
-    return optimizeImageForMobile(src, isMobile ? 'medium' : 'large');
-  }, [src, isMobile, isPerformanceMode]);
+  }, []);
 
-  const {
-    elementRef,
-    src: lazySrc,
-    isLoaded,
-    error,
-    handleLoad,
-    handleError,
-    isIntersecting,
-  } = useLazyLoading(priority ? optimizedSrc : undefined);
-
-  // For priority images, load immediately
-  React.useEffect(() => {
-    if (priority && !lazySrc && optimizedSrc) {
-      // Force load priority images
-      const img = elementRef.current as HTMLImageElement;
-      if (img) {
-        img.src = optimizedSrc;
-      }
-    }
-  }, [priority, lazySrc, optimizedSrc, elementRef]);
-
-  const handleImageLoad = () => {
-    handleLoad();
+  const handleLoad = () => {
+    setIsLoaded(true);
     onLoad?.();
   };
 
-  const handleImageError = () => {
-    handleError();
+  const handleError = () => {
+    setHasError(true);
     onError?.();
   };
 
   return (
-    <div 
-      ref={elementRef as React.RefObject<HTMLDivElement>}
-      className={`relative overflow-hidden ${className}`}
-    >
-      {/* Placeholder/Loading state */}
-      {!isLoaded && !error && (
-        <div className={`absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 ${placeholderClassName}`}>
-          <div className="absolute inset-0 shimmer"></div>
-          {isIntersecting && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-200 border-t-blue-600"></div>
-            </div>
-          )}
-        </div>
+    <div className={`relative overflow-hidden ${className}`}>
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
       )}
-
-      {/* Error state */}
-      {error && (
-        <div className={`absolute inset-0 bg-gray-100 flex items-center justify-center ${placeholderClassName}`}>
-          <div className="text-center text-gray-500">
-            <div className="text-3xl mb-2">🖼️</div>
-            <div className="text-sm">Image unavailable</div>
-          </div>
-        </div>
-      )}
-
-      {/* Actual image */}
-      {(lazySrc || priority) && (
-        <img
-          src={lazySrc || optimizedSrc}
+      
+      {isInView && (
+        <motion.img
+          ref={imgRef}
+          src={hasError ? 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2Y5ZmFmYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjOTdhM2FmIj7gjJIgSW1hZ2UgdW5hdmFpbGFibGU8L3RleHQ+PC9zdmc+' : src}
           alt={alt}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          sizes={sizes}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-          draggable={false}
+          className="w-full h-full object-cover"
+          onLoad={handleLoad}
+          onError={handleError}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isLoaded ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+          loading="lazy"
         />
       )}
     </div>

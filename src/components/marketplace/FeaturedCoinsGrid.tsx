@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ImageGallery from '@/components/ui/ImageGallery';
 import CoinCard from './CoinCard';
+import LazyImage from '@/components/ui/LazyImage';
 import { Coin } from '@/types/coin';
 import {
   Pagination,
@@ -80,22 +81,38 @@ const FeaturedCoinsGrid = () => {
     }
   };
 
-  // Show loading state for SSR and client-side loading
+  // Enhanced loading state with better performance
   if (!isClient || isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl mb-3">
-              <div className="absolute inset-0 shimmer"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded shimmer"></div>
-              <div className="h-3 bg-gray-200 rounded w-2/3 shimmer"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2 shimmer"></div>
-            </div>
-          </div>
-        ))}
+      <div className="space-y-6">
+        {/* Enhanced Search Bar Skeleton */}
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="h-16 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-2xl animate-pulse shadow-lg" />
+        </div>
+        
+        {/* Enhanced Grid Skeleton */}
+        <div className="loading-grid">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <motion.div 
+              key={i} 
+              className="gpu-accelerated"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
+            >
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="aspect-square bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite] -translate-x-full" />
+                </div>
+                <div className="p-4 space-y-3">
+                  <div className="h-5 bg-gray-200 rounded-lg animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse" />
+                  <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     );
   }
