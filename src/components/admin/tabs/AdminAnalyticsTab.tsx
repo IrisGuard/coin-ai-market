@@ -5,6 +5,7 @@ import AnalyticsOverviewCards from '../analytics/AnalyticsOverviewCards';
 import SystemPerformanceCard from '../analytics/SystemPerformanceCard';
 import PopularPagesCard from '../analytics/PopularPagesCard';
 import SearchAnalyticsCard from '../analytics/SearchAnalyticsCard';
+import Phase8AnalyticsManager from '../enhanced/Phase8AnalyticsManager';
 import { BarChart3, Activity, TrendingUp, Users } from 'lucide-react';
 
 const AdminAnalyticsTab = () => {
@@ -20,7 +21,11 @@ const AdminAnalyticsTab = () => {
       </div>
 
       <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="phase8" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Phase 8
+          </TabsTrigger>
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -38,6 +43,10 @@ const AdminAnalyticsTab = () => {
             Trends
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="phase8" className="space-y-6">
+          <Phase8AnalyticsManager />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
           <AnalyticsOverviewCards />
