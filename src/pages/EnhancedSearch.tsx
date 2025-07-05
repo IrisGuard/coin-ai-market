@@ -73,8 +73,6 @@ const EnhancedSearch = () => {
               <div className="lg:col-span-3 space-y-6">
                 <AdvancedSearchInterface
                   onSearch={handleSearch}
-                  searchResults={searchResults}
-                  isLoading={isLoading}
                 />
 
                 {searchResults.length > 0 && (
