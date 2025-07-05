@@ -7,7 +7,7 @@ import { useSearchEnhancement } from '@/hooks/useSearchEnhancement';
 import Navbar from "@/components/Navbar";
 import CategoryNavigationFix from "@/components/marketplace/CategoryNavigationFix";
 import EnhancedSearchBar from "@/components/search/EnhancedSearchBar";
-
+import FeaturedCoinsSection from "@/components/marketplace/FeaturedCoinsSection";
 import Footer from "@/components/Footer";
 import VoiceInterface from "@/components/VoiceInterface";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
@@ -64,6 +64,8 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <CategoryNavigationFix />
         </div>
+
+        <FeaturedCoinsSection />
 
         <Footer />
         <VoiceInterface />
