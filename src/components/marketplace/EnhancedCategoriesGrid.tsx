@@ -1,9 +1,10 @@
 
 import React from 'react';
-import CategoryNavigationFromDatabase from './CategoryNavigationFromDatabase';
+import CategoryNavigationFix from './CategoryNavigationFix';
 
 const EnhancedCategoriesGrid = () => {
-  return <CategoryNavigationFromDatabase />;
+  // Phase 4: Use the updated CategoryNavigationFix with real database categories
+  return <CategoryNavigationFix />;
 };
 
 export default EnhancedCategoriesGrid;

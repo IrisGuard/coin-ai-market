@@ -4287,6 +4287,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_category_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_coin_images: {
         Args: { coin_row: Database["public"]["Tables"]["coins"]["Row"] }
         Returns: string[]
