@@ -489,8 +489,13 @@ export type Database = {
         Row: {
           confidence_score: number | null
           created_at: string | null
+          discovery_version: string | null
+          error_patterns: Json | null
+          global_sources_count: number | null
           id: string
           image_hash: string
+          market_analysis: Json | null
+          multi_language_data: Json | null
           processing_time_ms: number | null
           recognition_results: Json
           sources_consulted: string[] | null
@@ -499,8 +504,13 @@ export type Database = {
         Insert: {
           confidence_score?: number | null
           created_at?: string | null
+          discovery_version?: string | null
+          error_patterns?: Json | null
+          global_sources_count?: number | null
           id?: string
           image_hash: string
+          market_analysis?: Json | null
+          multi_language_data?: Json | null
           processing_time_ms?: number | null
           recognition_results?: Json
           sources_consulted?: string[] | null
@@ -509,8 +519,13 @@ export type Database = {
         Update: {
           confidence_score?: number | null
           created_at?: string | null
+          discovery_version?: string | null
+          error_patterns?: Json | null
+          global_sources_count?: number | null
           id?: string
           image_hash?: string
+          market_analysis?: Json | null
+          multi_language_data?: Json | null
           processing_time_ms?: number | null
           recognition_results?: Json
           sources_consulted?: string[] | null
@@ -1069,6 +1084,42 @@ export type Database = {
           },
         ]
       }
+      coin_inscriptions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          english_translation: string | null
+          id: string
+          image_hash: string
+          ocr_engine: string | null
+          original_language: string | null
+          original_text: string | null
+          translation_engine: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          english_translation?: string | null
+          id?: string
+          image_hash: string
+          ocr_engine?: string | null
+          original_language?: string | null
+          original_text?: string | null
+          translation_engine?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          english_translation?: string | null
+          id?: string
+          image_hash?: string
+          ocr_engine?: string | null
+          original_language?: string | null
+          original_text?: string | null
+          translation_engine?: string | null
+        }
+        Relationships: []
+      }
       coin_price_history: {
         Row: {
           coin_identifier: string
@@ -1527,21 +1578,25 @@ export type Database = {
           created_at: string
           cross_reference_coins: string[] | null
           description: string
+          detection_algorithm: string | null
           detection_difficulty: number | null
           detection_keywords: string[] | null
           error_category: string
           error_name: string
           error_type: string
+          false_positive_rate: number | null
           historical_significance: string | null
           id: string
           identification_techniques: string[] | null
           market_premium_multiplier: number | null
+          pattern_signature: Json | null
           rarity_score: number | null
           reference_links: string[] | null
           severity_level: number | null
           technical_specifications: Json | null
           updated_at: string
           visual_markers: Json | null
+          visual_markers_ai: Json | null
         }
         Insert: {
           ai_detection_markers?: Json | null
@@ -1549,21 +1604,25 @@ export type Database = {
           created_at?: string
           cross_reference_coins?: string[] | null
           description: string
+          detection_algorithm?: string | null
           detection_difficulty?: number | null
           detection_keywords?: string[] | null
           error_category: string
           error_name: string
           error_type: string
+          false_positive_rate?: number | null
           historical_significance?: string | null
           id?: string
           identification_techniques?: string[] | null
           market_premium_multiplier?: number | null
+          pattern_signature?: Json | null
           rarity_score?: number | null
           reference_links?: string[] | null
           severity_level?: number | null
           technical_specifications?: Json | null
           updated_at?: string
           visual_markers?: Json | null
+          visual_markers_ai?: Json | null
         }
         Update: {
           ai_detection_markers?: Json | null
@@ -1571,21 +1630,25 @@ export type Database = {
           created_at?: string
           cross_reference_coins?: string[] | null
           description?: string
+          detection_algorithm?: string | null
           detection_difficulty?: number | null
           detection_keywords?: string[] | null
           error_category?: string
           error_name?: string
           error_type?: string
+          false_positive_rate?: number | null
           historical_significance?: string | null
           id?: string
           identification_techniques?: string[] | null
           market_premium_multiplier?: number | null
+          pattern_signature?: Json | null
           rarity_score?: number | null
           reference_links?: string[] | null
           severity_level?: number | null
           technical_specifications?: Json | null
           updated_at?: string
           visual_markers?: Json | null
+          visual_markers_ai?: Json | null
         }
         Relationships: []
       }
@@ -1966,6 +2029,93 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      global_coin_learning: {
+        Row: {
+          accuracy_score: number | null
+          coin_identifier: string
+          created_at: string | null
+          id: string
+          image_hash: string | null
+          learned_data: Json
+          source_urls: string[] | null
+          updated_at: string | null
+          verification_count: number | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          coin_identifier: string
+          created_at?: string | null
+          id?: string
+          image_hash?: string | null
+          learned_data: Json
+          source_urls?: string[] | null
+          updated_at?: string | null
+          verification_count?: number | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          coin_identifier?: string
+          created_at?: string | null
+          id?: string
+          image_hash?: string | null
+          learned_data?: Json
+          source_urls?: string[] | null
+          updated_at?: string | null
+          verification_count?: number | null
+        }
+        Relationships: []
+      }
+      global_coin_sources: {
+        Row: {
+          base_url: string
+          country: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          language: string | null
+          last_scraped: string | null
+          rate_limit_per_minute: number | null
+          response_time_avg: number | null
+          scraping_config: Json | null
+          source_name: string
+          source_type: string
+          success_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_url: string
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          last_scraped?: string | null
+          rate_limit_per_minute?: number | null
+          response_time_avg?: number | null
+          scraping_config?: Json | null
+          source_name: string
+          source_type?: string
+          success_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_url?: string
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          last_scraped?: string | null
+          rate_limit_per_minute?: number | null
+          response_time_avg?: number | null
+          scraping_config?: Json | null
+          source_name?: string
+          source_type?: string
+          success_rate?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -4136,6 +4286,39 @@ export type Database = {
           },
         ]
       }
+      web_discovery_sessions: {
+        Row: {
+          coin_query: Json
+          created_at: string | null
+          id: string
+          processing_time_ms: number | null
+          results_found: Json | null
+          session_id: string
+          sources_attempted: number | null
+          sources_successful: number | null
+        }
+        Insert: {
+          coin_query: Json
+          created_at?: string | null
+          id?: string
+          processing_time_ms?: number | null
+          results_found?: Json | null
+          session_id: string
+          sources_attempted?: number | null
+          sources_successful?: number | null
+        }
+        Update: {
+          coin_query?: Json
+          created_at?: string | null
+          id?: string
+          processing_time_ms?: number | null
+          results_found?: Json | null
+          session_id?: string
+          sources_attempted?: number | null
+          sources_successful?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -4447,6 +4630,14 @@ export type Database = {
       }
       set_tenant_context: {
         Args: { tenant_uuid: string }
+        Returns: undefined
+      }
+      update_source_success_rate: {
+        Args: {
+          source_url: string
+          was_successful: boolean
+          response_time?: number
+        }
         Returns: undefined
       }
       validate_all_security_warnings_resolved: {
