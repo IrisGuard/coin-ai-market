@@ -344,41 +344,62 @@ const CoinCard = ({ coin, index, onCoinClick, showManagementOptions = false, hid
           {/* PHASE 4: Dual-Function Store & Purchase Buttons */}
           {coin.user_id && (
             <div className="flex gap-2 mt-2">
-              <Button 
-                variant="outline" 
-                className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
-                onClick={async (e) => {
-                  e.stopPropagation();
+            <Button 
+              variant="outline" 
+              className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+              onClick={async (e) => {
+                e.stopPropagation();
+                
+                try {
+                  let store = null;
                   
-                  if (!coin.user_id || typeof coin.user_id !== 'string') {
-                    console.error('❌ Invalid user_id for Visit Store:', coin.user_id);
-                    alert('Store information not available');
-                    return;
+                  // FIXED: Try to use store_id from coin first, then fallback to user_id search
+                  if (coin.store_id) {
+                    console.log('🔍 Finding store by store_id:', coin.store_id);
+                    const { data: storeById, error: storeError } = await supabase
+                      .from('stores')
+                      .select('id, name, user_id, is_active')
+                      .eq('id', coin.store_id)
+                      .eq('is_active', true)
+                      .single();
+                    
+                    if (storeById && !storeError) {
+                      store = storeById;
+                      console.log('✅ Found store by ID:', store.name);
+                    }
                   }
-
-                  try {
-                    // Find the store for this user
-                    const { data: store, error } = await supabase
+                  
+                  // Fallback: Find any active store for this user
+                  if (!store && coin.user_id) {
+                    console.log('🔍 Fallback: Finding store by user_id:', coin.user_id);
+                    const { data: storeByUser, error: userError } = await supabase
                       .from('stores')
                       .select('id, name, user_id, is_active')
                       .eq('user_id', coin.user_id)
                       .eq('is_active', true)
+                      .limit(1)
                       .single();
-
-                    if (error || !store) {
-                      console.error('❌ Store not found for user:', coin.user_id, error);
-                      alert('This dealer\'s store is not available at the moment.');
-                      return;
+                    
+                    if (storeByUser && !userError) {
+                      store = storeByUser;
+                      console.log('✅ Found store by user_id:', store.name);
                     }
-
-                    console.log('✅ Store found, navigating to store page:', store);
-                    // Navigate using the user_id (dealerId parameter in DealerStorePage)
-                    navigate(`/store/${store.user_id}`);
-                  } catch (error) {
-                    console.error('❌ Error checking store:', error);
-                    alert('Unable to access store at the moment.');
                   }
-                }}
+
+                  if (!store) {
+                    console.error('❌ No store found for coin:', coin.id);
+                    alert('This dealer\'s store is not available at the moment.');
+                    return;
+                  }
+
+                  console.log('✅ Navigating to store:', store.name, 'with user_id:', store.user_id);
+                  // Navigate using the store owner's user_id
+                  navigate(`/store/${store.user_id}`);
+                } catch (error) {
+                  console.error('❌ Error accessing store:', error);
+                  alert('Unable to access store at the moment.');
+                }
+              }}
               >
                 <Store className="h-4 w-4 mr-2" />
                 Visit Store
