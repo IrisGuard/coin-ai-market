@@ -423,7 +423,27 @@ async function generatePerformanceAnalytics(dealerData: any, analysisResult: any
   return { analytics };
 }
 
-// Enhanced Helper Functions with Real Learning Capabilities
+// Enhanced Helper Functions with Real Learning Capabilities - IMPORTED FROM MISSING FUNCTIONS
+import { 
+  analyzeAdvancedErrorPatterns,
+  analyzeComprehensiveMarketPatterns,
+  analyzeCrossReferencePatterns,
+  analyzeTemporalPatterns,
+  calculateAdvancedGradingAccuracy,
+  checkGradingConsistency,
+  extractWearIndicators,
+  analyzeSurfaceQuality,
+  analyzeStrikeQuality,
+  extractGradingFactors,
+  calculateWearLevel,
+  analyzeLusterQuality,
+  identifySurfaceMarks,
+  calculateEyeAppeal,
+  calculateVisualTrainingValue,
+  calculateInscriptionClarity,
+  calculateTranslationAccuracy
+} from './missing-functions.ts';
+
 async function analyzeAdvancedVisualPatterns(images: string[], analysisResult: any, dealerData: any) {
   console.log('🖼️ Analyzing advanced visual patterns...');
   const patterns = [];
@@ -442,7 +462,13 @@ async function analyzeAdvancedVisualPatterns(images: string[], analysisResult: a
             visual_features: visualAnalysis.features,
             edge_detection: visualAnalysis.edges,
             texture_analysis: visualAnalysis.textures,
-            color_patterns: visualAnalysis.colors
+            color_patterns: visualAnalysis.colors,
+            wear_indicators: await extractWearIndicators(images),
+            surface_quality: await analyzeSurfaceQuality(images),
+            strike_quality: await analyzeStrikeQuality(images),
+            luster_quality: await analyzeLusterQuality(images),
+            surface_marks: await identifySurfaceMarks(images),
+            eye_appeal: await calculateEyeAppeal(images)
           },
           expected_result: {
             coin_identification: analysisResult,

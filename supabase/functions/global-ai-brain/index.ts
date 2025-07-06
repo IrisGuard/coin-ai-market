@@ -159,14 +159,43 @@ async function performInitialAnalysis(image: string) {
   return { initialAnalysis };
 }
 
-// Phase 2: Multi-Language OCR & Translation
+// Phase 2: Enhanced Multi-Language OCR & Translation
 async function processMultiLanguage(image: string, initialAnalysis: any) {
-  // OCR Implementation would go here
-  // For now, returning placeholder data
+  console.log('🌍 Processing Multi-Language OCR...');
+  
+  try {
+    // Use the multi-language OCR function for comprehensive language processing
+    const { data: ocrResults } = await supabase.functions.invoke('multi-language-ocr', {
+      body: {
+        image: image,
+        targetLanguage: 'en'
+      }
+    });
+
+    if (ocrResults?.success) {
+      const languageData = {
+        detectedLanguages: ocrResults.ocr_results.detected_languages || ['english'],
+        translatedInscriptions: [ocrResults.ocr_results.english_translation],
+        originalText: ocrResults.ocr_results.original_text,
+        ocrConfidence: ocrResults.ocr_results.confidence_score || 0.8,
+        supportedLanguages: ocrResults.supported_languages || [],
+        processingTime: ocrResults.ocr_results.processing_time || 0,
+        multiLanguageSupport: true
+      };
+
+      console.log(`✅ Multi-Language OCR Complete: ${languageData.detectedLanguages.length} languages, confidence: ${languageData.ocrConfidence}`);
+      return { languageData };
+    }
+  } catch (error) {
+    console.warn('⚠️ Multi-Language OCR failed, using fallback:', error);
+  }
+
+  // Fallback to basic language data
   const languageData = {
     detectedLanguages: ['english'],
     translatedInscriptions: [],
-    ocrConfidence: 0.8
+    ocrConfidence: 0.6,
+    multiLanguageSupport: false
   };
 
   return { languageData };
@@ -373,7 +402,16 @@ async function fuseAllAnalysisData(data: any) {
     global_analysis: true,
     multi_source_verified: webDiscoveryData.successfulSources > 3,
     error_coin_detected: errorAnalysis.patternsFound.length > 0,
-    languages_processed: languageData.detectedLanguages
+    languages_processed: languageData.detectedLanguages,
+    
+    // Enhanced Global AI capabilities
+    multi_language_processed: languageData.multiLanguageSupport || false,
+    original_inscriptions: languageData.originalText || '',
+    translated_inscriptions: languageData.translatedInscriptions || [],
+    dynamic_sources_discovered: webDiscoveryData.dynamicallyDiscovered || 0,
+    fallback_chain_executed: webDiscoveryData.fallbackChainUsed || 0,
+    ml_enhanced_analysis: webDiscoveryData.mlEnhanced || false,
+    real_time_discovery: webDiscoveryData.realTimeDiscovery || false
   };
 }
 
