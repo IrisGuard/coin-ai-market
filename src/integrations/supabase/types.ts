@@ -2077,6 +2077,8 @@ export type Database = {
           is_active: boolean | null
           language: string | null
           last_scraped: string | null
+          metadata: Json | null
+          priority: number | null
           rate_limit_per_minute: number | null
           response_time_avg: number | null
           scraping_config: Json | null
@@ -2093,6 +2095,8 @@ export type Database = {
           is_active?: boolean | null
           language?: string | null
           last_scraped?: string | null
+          metadata?: Json | null
+          priority?: number | null
           rate_limit_per_minute?: number | null
           response_time_avg?: number | null
           scraping_config?: Json | null
@@ -2109,6 +2113,8 @@ export type Database = {
           is_active?: boolean | null
           language?: string | null
           last_scraped?: string | null
+          metadata?: Json | null
+          priority?: number | null
           rate_limit_per_minute?: number | null
           response_time_avg?: number | null
           scraping_config?: Json | null
