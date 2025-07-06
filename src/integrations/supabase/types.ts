@@ -2743,6 +2743,39 @@ export type Database = {
         }
         Relationships: []
       }
+      production_test_results: {
+        Row: {
+          created_at: string | null
+          id: string
+          overall_score: number | null
+          overall_status: string
+          samples_tested: number | null
+          test_duration: number | null
+          test_results: Json
+          test_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          overall_score?: number | null
+          overall_status: string
+          samples_tested?: number | null
+          test_duration?: number | null
+          test_results: Json
+          test_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          overall_score?: number | null
+          overall_status?: string
+          samples_tested?: number | null
+          test_duration?: number | null
+          test_results?: Json
+          test_type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: Json | null
@@ -4602,6 +4635,14 @@ export type Database = {
       monitor_query_performance: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      record_phase_completion: {
+        Args: {
+          phase_number: string
+          completion_percentage: number
+          validation_results?: Json
+        }
+        Returns: string
       }
       record_system_metric: {
         Args: {
