@@ -825,6 +825,138 @@ export type Database = {
         }
         Relationships: []
       }
+      banknotes: {
+        Row: {
+          ai_confidence: number | null
+          ai_provider: string | null
+          auction_end: string | null
+          authentication_status: string | null
+          category: Database["public"]["Enums"]["coin_category"] | null
+          condition: string | null
+          country: string | null
+          created_at: string
+          denomination: string | null
+          description: string | null
+          error_description: string | null
+          error_type: string | null
+          favorites: number | null
+          featured: boolean | null
+          grade: string
+          id: string
+          image: string
+          images: string[] | null
+          is_auction: boolean | null
+          listing_type: string | null
+          name: string
+          obverse_image: string | null
+          owner_id: string | null
+          price: number
+          printer: string | null
+          rarity: string
+          reserve_price: number | null
+          reverse_image: string | null
+          security_features: string[] | null
+          seller_id: string | null
+          serial_number: string | null
+          series: string | null
+          sold: boolean | null
+          sold_at: string | null
+          starting_bid: number | null
+          store_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+          user_id: string
+          views: number | null
+          year: number
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_provider?: string | null
+          auction_end?: string | null
+          authentication_status?: string | null
+          category?: Database["public"]["Enums"]["coin_category"] | null
+          condition?: string | null
+          country?: string | null
+          created_at?: string
+          denomination?: string | null
+          description?: string | null
+          error_description?: string | null
+          error_type?: string | null
+          favorites?: number | null
+          featured?: boolean | null
+          grade?: string
+          id?: string
+          image: string
+          images?: string[] | null
+          is_auction?: boolean | null
+          listing_type?: string | null
+          name: string
+          obverse_image?: string | null
+          owner_id?: string | null
+          price?: number
+          printer?: string | null
+          rarity?: string
+          reserve_price?: number | null
+          reverse_image?: string | null
+          security_features?: string[] | null
+          seller_id?: string | null
+          serial_number?: string | null
+          series?: string | null
+          sold?: boolean | null
+          sold_at?: string | null
+          starting_bid?: number | null
+          store_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          user_id: string
+          views?: number | null
+          year: number
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_provider?: string | null
+          auction_end?: string | null
+          authentication_status?: string | null
+          category?: Database["public"]["Enums"]["coin_category"] | null
+          condition?: string | null
+          country?: string | null
+          created_at?: string
+          denomination?: string | null
+          description?: string | null
+          error_description?: string | null
+          error_type?: string | null
+          favorites?: number | null
+          featured?: boolean | null
+          grade?: string
+          id?: string
+          image?: string
+          images?: string[] | null
+          is_auction?: boolean | null
+          listing_type?: string | null
+          name?: string
+          obverse_image?: string | null
+          owner_id?: string | null
+          price?: number
+          printer?: string | null
+          rarity?: string
+          reserve_price?: number | null
+          reverse_image?: string | null
+          security_features?: string[] | null
+          seller_id?: string | null
+          serial_number?: string | null
+          series?: string | null
+          sold?: boolean | null
+          sold_at?: string | null
+          starting_bid?: number | null
+          store_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          user_id?: string
+          views?: number | null
+          year?: number
+        }
+        Relationships: []
+      }
       bids: {
         Row: {
           amount: number
@@ -935,6 +1067,138 @@ export type Database = {
           status?: string | null
           target_table?: string
           total_records?: number | null
+        }
+        Relationships: []
+      }
+      bullion_bars: {
+        Row: {
+          ai_confidence: number | null
+          ai_provider: string | null
+          assay_certificate: boolean | null
+          auction_end: string | null
+          authentication_status: string | null
+          brand: string | null
+          category: Database["public"]["Enums"]["coin_category"] | null
+          certificate_image: string | null
+          condition: string | null
+          created_at: string
+          description: string | null
+          dimensions: Json | null
+          favorites: number | null
+          featured: boolean | null
+          grade: string | null
+          hallmarks: string[] | null
+          id: string
+          image: string
+          images: string[] | null
+          is_auction: boolean | null
+          listing_type: string | null
+          metal_type: string
+          name: string
+          obverse_image: string | null
+          owner_id: string | null
+          price: number
+          purity: number
+          refinery: string | null
+          reserve_price: number | null
+          reverse_image: string | null
+          seller_id: string | null
+          serial_number: string | null
+          sold: boolean | null
+          sold_at: string | null
+          starting_bid: number | null
+          store_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+          user_id: string
+          views: number | null
+          weight: number
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_provider?: string | null
+          assay_certificate?: boolean | null
+          auction_end?: string | null
+          authentication_status?: string | null
+          brand?: string | null
+          category?: Database["public"]["Enums"]["coin_category"] | null
+          certificate_image?: string | null
+          condition?: string | null
+          created_at?: string
+          description?: string | null
+          dimensions?: Json | null
+          favorites?: number | null
+          featured?: boolean | null
+          grade?: string | null
+          hallmarks?: string[] | null
+          id?: string
+          image: string
+          images?: string[] | null
+          is_auction?: boolean | null
+          listing_type?: string | null
+          metal_type?: string
+          name: string
+          obverse_image?: string | null
+          owner_id?: string | null
+          price?: number
+          purity?: number
+          refinery?: string | null
+          reserve_price?: number | null
+          reverse_image?: string | null
+          seller_id?: string | null
+          serial_number?: string | null
+          sold?: boolean | null
+          sold_at?: string | null
+          starting_bid?: number | null
+          store_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          user_id: string
+          views?: number | null
+          weight: number
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_provider?: string | null
+          assay_certificate?: boolean | null
+          auction_end?: string | null
+          authentication_status?: string | null
+          brand?: string | null
+          category?: Database["public"]["Enums"]["coin_category"] | null
+          certificate_image?: string | null
+          condition?: string | null
+          created_at?: string
+          description?: string | null
+          dimensions?: Json | null
+          favorites?: number | null
+          featured?: boolean | null
+          grade?: string | null
+          hallmarks?: string[] | null
+          id?: string
+          image?: string
+          images?: string[] | null
+          is_auction?: boolean | null
+          listing_type?: string | null
+          metal_type?: string
+          name?: string
+          obverse_image?: string | null
+          owner_id?: string | null
+          price?: number
+          purity?: number
+          refinery?: string | null
+          reserve_price?: number | null
+          reverse_image?: string | null
+          seller_id?: string | null
+          serial_number?: string | null
+          sold?: boolean | null
+          sold_at?: string | null
+          starting_bid?: number | null
+          store_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          user_id?: string
+          views?: number | null
+          weight?: number
         }
         Relationships: []
       }
