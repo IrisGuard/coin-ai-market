@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import AdminOverviewTab from '@/components/admin/tabs/AdminOverviewTab';
 import AdminUsersTab from '@/components/admin/tabs/AdminUsersTab';
 import AdminCoinsTab from '@/components/admin/tabs/AdminCoinsTab';
+import AdminBanknotesTab from '@/components/admin/tabs/AdminBanknotesTab';
+import AdminBullionTab from '@/components/admin/tabs/AdminBullionTab';
 import AdminAIBrainTab from '@/components/admin/tabs/AdminAIBrainTab';
 import AdminSecurityTab from '@/components/admin/tabs/AdminSecurityTab';
 import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
@@ -143,8 +145,10 @@ const FullSystemAdminPanel = () => {
 
             {/* ROW 3 - COIN & MARKET DATA */}
             <div className="flex flex-wrap gap-1 mb-2 p-2 bg-yellow-50 rounded-lg">
-              <div className="text-xs font-semibold text-yellow-700 w-full mb-1">🪙 COIN & MARKET DATA</div>
+              <div className="text-xs font-semibold text-yellow-700 w-full mb-1">🪙 MULTI-CATEGORY LISTINGS</div>
               <TabsTrigger value="coins-table" className="text-xs px-2 py-1">🪙 Coins</TabsTrigger>
+              <TabsTrigger value="banknotes-table" className="text-xs px-2 py-1 bg-green-100 hover:bg-green-200">💵 Banknotes</TabsTrigger>
+              <TabsTrigger value="bullion-table" className="text-xs px-2 py-1 bg-yellow-100 hover:bg-yellow-200">🥇 Bullion</TabsTrigger>
               <TabsTrigger value="coin-price-history" className="text-xs px-2 py-1">📈 Price History</TabsTrigger>
               <TabsTrigger value="coin-analysis-logs" className="text-xs px-2 py-1">🪙 Analysis Logs</TabsTrigger>
               <TabsTrigger value="coin-data-cache" className="text-xs px-2 py-1">🪙 Data Cache</TabsTrigger>
@@ -258,6 +262,11 @@ const FullSystemAdminPanel = () => {
           <TabsContent value="overview"><AdminOverviewTab /></TabsContent>
           <TabsContent value="users"><AdminUsersTab /></TabsContent>
           <TabsContent value="coins"><AdminCoinsTab /></TabsContent>
+          
+          {/* NEW MULTI-CATEGORY ADMIN TABS */}
+          <TabsContent value="coins-table"><AdminCoinsTab /></TabsContent>
+          <TabsContent value="banknotes-table"><AdminBanknotesTab /></TabsContent>
+          <TabsContent value="bullion-table"><AdminBullionTab /></TabsContent>
           <TabsContent value="security"><AdminSecurityTab /></TabsContent>
           <TabsContent value="analytics"><AdminAnalyticsTab /></TabsContent>
           <TabsContent value="system-phases"><AdminSystemPhasesTab /></TabsContent>
