@@ -17,6 +17,12 @@ export const getCategoryTitle = (cat: string): string => {
     'tokens': 'Tokens & Medals',
     'bullion': 'Bullion Bars',
     
+    // New categories - Banknotes & Bullion
+    'banknotes': 'Banknotes',
+    'error_banknotes': 'Error Banknotes',
+    'gold_bullion': 'Gold Bullion',
+    'silver_bullion': 'Silver Bullion',
+    
     // Regional categories
     'american': 'American Coins',
     'european': 'European Coins',
@@ -64,6 +70,12 @@ export const getCategoryDescription = (cat: string): string => {
     'uncirculated': 'Mint state coins that have never been in circulation, maintaining their original luster.',
     'tokens': 'Non-currency items including tokens, medals, and commemorative pieces.',
     'bullion': 'Precious metal bars and rounds valued primarily for their metal content.',
+    
+    // New categories - Banknotes & Bullion
+    'banknotes': 'Paper money and currency notes from around the world, including historical and modern banknotes.',
+    'error_banknotes': 'Banknotes with printing errors, misprints, missing serial numbers, and other production varieties.',
+    'gold_bullion': 'Gold bars, ingots, and rounds from certified refineries. Investment-grade precious metals.',
+    'silver_bullion': 'Silver bars, ingots, and rounds from certified refineries. Investment-grade precious metals.',
     
     // Regional categories
     'american': 'Coins from the United States, Canada and Mexico, representing the diverse numismatic traditions of North America.',

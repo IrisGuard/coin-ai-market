@@ -25,6 +25,8 @@ export interface AIBrainAnalysis {
   errors: string[];
   market_trend: string;
   description: string;
+  category?: string; // 🧠 Phase 2B.2: Add detected category
+  specificFields?: Record<string, any>; // 🧠 Phase 2B.2: Add category-specific fields
   market_intelligence: {
     web_sources_count: number;
     discovery_sources: string[];
@@ -175,30 +177,51 @@ export const useGlobalAIBrainIntegration = () => {
     // Simulate advanced analysis with global sources
     const fileName = imageFile.name.toLowerCase();
     
-    // Determine most likely coin type and country
-    let coinCountry = 'Unknown';
-    let coinType = 'Unknown Coin';
-    let estimatedValue = 5;
+    // 🧠 Phase 2B.2: Smart Category Detection
+    const detectedCategory = detectCategoryFromImage(fileName, imageFile);
     
-    // Enhanced country detection using global sources
-    if (fileName.includes('greece') || fileName.includes('greek') || fileName.includes('drachm')) {
-      coinCountry = 'Greece';
-      coinType = 'Greek Coin';
-      estimatedValue = 8;
-    } else if (fileName.includes('usa') || fileName.includes('america') || fileName.includes('dollar')) {
-      coinCountry = 'United States';
-      coinType = 'American Coin';
-      estimatedValue = 12;
-    } else if (fileName.includes('china') || fileName.includes('yuan')) {
-      coinCountry = 'China';
-      coinType = 'Chinese Yuan';
-      estimatedValue = 6;
+    // Determine most likely item type, country, and value based on category
+    let itemCountry = 'Unknown';
+    let itemType = 'Unknown Item';
+    let estimatedValue = 5;
+    let category = detectedCategory.category;
+    let specificFields: Record<string, any> = {};
+    
+    // Enhanced category-specific analysis
+    switch (detectedCategory.category) {
+      case 'banknotes':
+      case 'error_banknotes':
+        const banknoteAnalysis = analyzeBanknote(fileName, sourcesData);
+        itemCountry = banknoteAnalysis.country;
+        itemType = banknoteAnalysis.type;
+        estimatedValue = banknoteAnalysis.value;
+        specificFields = banknoteAnalysis.fields;
+        break;
+        
+      case 'gold_bullion':
+      case 'silver_bullion':
+        const bullionAnalysis = analyzeBullion(fileName, sourcesData);
+        itemCountry = bullionAnalysis.country;
+        itemType = bullionAnalysis.type;
+        estimatedValue = bullionAnalysis.value;
+        specificFields = bullionAnalysis.fields;
+        break;
+        
+      default:
+        // Enhanced coin detection using global sources
+        const coinAnalysis = analyzeCoin(fileName, sourcesData);
+        itemCountry = coinAnalysis.country;
+        itemType = coinAnalysis.type;
+        estimatedValue = coinAnalysis.value;
+        specificFields = coinAnalysis.fields;
+        break;
     }
 
-    // Calculate confidence based on available sources for this country
-    const countrySourceCount = sourcesData.by_country[coinCountry] || 0;
+    // Calculate confidence based on available sources for this country and category
+    const countrySourceCount = sourcesData.by_country[itemCountry] || 0;
+    const categorySourceCount = sourcesData.by_type[category] || 0;
     const baseConfidence = 0.75;
-    const sourceBonus = Math.min(0.2, countrySourceCount * 0.02);
+    const sourceBonus = Math.min(0.2, (countrySourceCount + categorySourceCount) * 0.01);
     const totalConfidence = Math.min(0.98, baseConfidence + sourceBonus);
 
     // Determine sources consulted
@@ -206,39 +229,38 @@ export const useGlobalAIBrainIntegration = () => {
     const priorityMatches = [];
 
     if (countrySourceCount > 0) {
-      sourcesConsulted.push(`${countrySourceCount} ${coinCountry} specialized sources`);
+      sourcesConsulted.push(`${countrySourceCount} ${itemCountry} specialized sources`);
       priorityMatches.push({
-        source_name: `${coinCountry} Numismatic Database`,
+        source_name: `${itemCountry} ${category} Database`,
         confidence: totalConfidence,
-        verification: 'country_match'
+        verification: 'country_category_match'
       });
     }
 
-    // Add global verification sources
+    // Add category-specific verification sources
     sourcesConsulted.push(
-      'Heritage Auctions Database',
-      'PCGS Price Guide',
-      'NGC Coin Explorer',
-      'Coin Archives'
+      ...getVerificationSources(category)
     );
 
     // Error detection
-    const hasError = fileName.includes('error') || fileName.includes('double') || fileName.includes('off');
-    const errors = hasError ? ['Potential minting error detected'] : [];
+    const hasError = fileName.includes('error') || fileName.includes('double') || fileName.includes('off') || fileName.includes('misprint');
+    const errors = hasError ? ['Potential production error detected'] : [];
 
     return {
-      name: coinType,
+      name: itemType,
       year: new Date().getFullYear() - Math.floor(Math.random() * 50),
-      country: coinCountry,
-      denomination: 'Unknown',
-      grade: 'VF-30',
-      composition: 'Mixed alloy',
+      country: itemCountry,
+      denomination: specificFields.denomination || 'Unknown',
+      grade: specificFields.grade || 'VF-30',
+      composition: specificFields.composition || 'Mixed alloy',
       estimatedValue: estimatedValue,
       confidence: totalConfidence,
-      rarity: hasError ? 'Rare' : 'Common',
+      rarity: hasError ? 'Rare' : specificFields.rarity || 'Common',
       errors: errors,
       market_trend: 'Stable',
-      description: `${coinType} from ${coinCountry}. Global AI Brain analysis with ${sourcesData.total_sources} sources.`,
+      description: `${itemType} from ${itemCountry}. Global AI Brain analysis with ${sourcesData.total_sources} sources.`,
+      category: category, // Add category to response
+      specificFields: specificFields, // Add category-specific fields
       market_intelligence: {
         web_sources_count: sourcesConsulted.length,
         discovery_sources: sourcesConsulted,
@@ -251,6 +273,195 @@ export const useGlobalAIBrainIntegration = () => {
         geographic_verification: countrySourceCount > 0
       }
     };
+  };
+
+  // 🧠 Phase 2B.2: Smart Category Detection from Image
+  const detectCategoryFromImage = (fileName: string, imageFile: File) => {
+    // Banknote detection patterns
+    if (fileName.includes('bill') || fileName.includes('note') || 
+        fileName.includes('dollar') || fileName.includes('euro') ||
+        fileName.includes('pound') || fileName.includes('yen') ||
+        fileName.includes('paper') || fileName.includes('banknote') ||
+        fileName.includes('currency')) {
+      
+      if (fileName.includes('error') || fileName.includes('misprint') || 
+          fileName.includes('double') || fileName.includes('offset')) {
+        return { category: 'error_banknotes', confidence: 0.85 };
+      }
+      return { category: 'banknotes', confidence: 0.8 };
+    }
+    
+    // Bullion detection patterns
+    if (fileName.includes('bar') || fileName.includes('bullion') ||
+        fileName.includes('ingot') || fileName.includes('troy') ||
+        fileName.includes('ounce') || fileName.includes('oz')) {
+      
+      if (fileName.includes('gold') || fileName.includes('au')) {
+        return { category: 'gold_bullion', confidence: 0.9 };
+      }
+      if (fileName.includes('silver') || fileName.includes('ag')) {
+        return { category: 'silver_bullion', confidence: 0.9 };
+      }
+      return { category: 'gold_bullion', confidence: 0.7 }; // Default to gold
+    }
+    
+    // Default to coin analysis
+    return { category: 'modern', confidence: 0.6 };
+  };
+
+  // 🧠 Phase 2B.2: Banknote Analysis
+  const analyzeBanknote = (fileName: string, sourcesData: GlobalSourcesData) => {
+    const banknotePatterns = {
+      'dollar': { type: 'US Dollar Bill', country: 'United States', value: 15, denomination: '$1', grade: 'Very Fine' },
+      'euro': { type: 'Euro Banknote', country: 'European Union', value: 25, denomination: '€10', grade: 'Very Fine' },
+      'pound': { type: 'British Pound Note', country: 'United Kingdom', value: 35, denomination: '£5', grade: 'Very Fine' },
+      'yen': { type: 'Japanese Yen Note', country: 'Japan', value: 20, denomination: '¥1000', grade: 'Very Fine' },
+      'yuan': { type: 'Chinese Yuan Note', country: 'China', value: 18, denomination: '¥10', grade: 'Very Fine' }
+    };
+
+    let detected = banknotePatterns['dollar']; // Default
+    for (const [pattern, data] of Object.entries(banknotePatterns)) {
+      if (fileName.includes(pattern)) {
+        detected = data;
+        break;
+      }
+    }
+
+    return {
+      country: detected.country,
+      type: detected.type,
+      value: detected.value,
+      fields: {
+        denomination: detected.denomination,
+        grade: detected.grade,
+        rarity: 'Common',
+        series: 'Modern',
+        composition: 'Paper/Cotton blend'
+      }
+    };
+  };
+
+  // 🧠 Phase 2B.2: Bullion Analysis  
+  const analyzeBullion = (fileName: string, sourcesData: GlobalSourcesData) => {
+    const bullionPatterns = {
+      'gold': { type: 'Gold Bar', country: 'Various', value: 2000, metal: 'Gold', purity: 0.9999 },
+      'silver': { type: 'Silver Bar', country: 'Various', value: 300, metal: 'Silver', purity: 0.999 },
+      'pamp': { type: 'PAMP Suisse Gold Bar', country: 'Switzerland', value: 2100, metal: 'Gold', purity: 0.9999 },
+      'perth': { type: 'Perth Mint Gold Bar', country: 'Australia', value: 2050, metal: 'Gold', purity: 0.9999 }
+    };
+
+    let detected = bullionPatterns['gold']; // Default
+    for (const [pattern, data] of Object.entries(bullionPatterns)) {
+      if (fileName.includes(pattern)) {
+        detected = data;
+        break;
+      }
+    }
+
+    return {
+      country: detected.country,
+      type: detected.type,
+      value: detected.value,
+      fields: {
+        metal_type: detected.metal,
+        purity: detected.purity,
+        weight: '1 troy oz',
+        grade: 'Mint State',
+        rarity: 'Common',
+        composition: `${detected.purity * 100}% ${detected.metal}`
+      }
+    };
+  };
+
+  // 🧠 Phase 2B.2: Enhanced Coin Analysis
+  const analyzeCoin = (fileName: string, sourcesData: GlobalSourcesData) => {
+    // Enhanced country detection using global sources
+    if (fileName.includes('greece') || fileName.includes('greek') || fileName.includes('drachm')) {
+      return {
+        country: 'Greece',
+        type: 'Greek Coin',
+        value: 8,
+        fields: {
+          denomination: 'Drachma',
+          grade: 'VF-30',
+          rarity: 'Common',
+          composition: 'Mixed alloy'
+        }
+      };
+    } else if (fileName.includes('usa') || fileName.includes('america') || fileName.includes('dollar')) {
+      return {
+        country: 'United States',
+        type: 'American Coin', 
+        value: 12,
+        fields: {
+          denomination: 'Dollar',
+          grade: 'VF-30',
+          rarity: 'Common',
+          composition: 'Silver/Copper'
+        }
+      };
+    } else if (fileName.includes('china') || fileName.includes('yuan')) {
+      return {
+        country: 'China',
+        type: 'Chinese Yuan',
+        value: 6,
+        fields: {
+          denomination: 'Yuan',
+          grade: 'VF-30', 
+          rarity: 'Common',
+          composition: 'Brass/Nickel'
+        }
+      };
+    }
+
+    return {
+      country: 'Unknown',
+      type: 'World Coin',
+      value: 5,
+      fields: {
+        denomination: 'Unknown',
+        grade: 'VF-30',
+        rarity: 'Common', 
+        composition: 'Mixed alloy'
+      }
+    };
+  };
+
+  // 🧠 Phase 2B.2: Category-specific verification sources
+  const getVerificationSources = (category: string): string[] => {
+    const sources = {
+      banknotes: [
+        'Banknote Museum Database',
+        'Paper Money Guaranty (PMG)',
+        'World Banknote Gallery',
+        'Central Bank Archives'
+      ],
+      error_banknotes: [
+        'Error Banknote Registry',
+        'PMG Error Database',
+        'Currency Error Collectors',
+        'Misprinted Banknote Archive'
+      ],
+      gold_bullion: [
+        'LBMA Good Delivery List',
+        'Precious Metals Verifier',
+        'Refinery Authentication Database',
+        'Bullion Directory'
+      ],
+      silver_bullion: [
+        'Silver Institute Database',
+        'Precious Metals Verifier', 
+        'Refinery Authentication Database',
+        'Bullion Exchange Records'
+      ]
+    };
+
+    return sources[category] || [
+      'Heritage Auctions Database',
+      'PCGS Price Guide',
+      'NGC Coin Explorer',
+      'Coin Archives'
+    ];
   };
 
   // Convert image to base64 for API
