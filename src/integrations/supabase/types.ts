@@ -4847,6 +4847,10 @@ export type Database = {
         | "gold"
         | "commemorative"
         | "unclassified"
+        | "banknotes"
+        | "error_banknotes"
+        | "gold_bullion"
+        | "silver_bullion"
       user_role: "admin" | "moderator" | "user" | "dealer" | "buyer"
     }
     CompositeTypes: {
@@ -4976,6 +4980,10 @@ export const Constants = {
         "gold",
         "commemorative",
         "unclassified",
+        "banknotes",
+        "error_banknotes",
+        "gold_bullion",
+        "silver_bullion",
       ],
       user_role: ["admin", "moderator", "user", "dealer", "buyer"],
     },
