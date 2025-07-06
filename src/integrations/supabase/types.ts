@@ -414,6 +414,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_learning_sessions: {
+        Row: {
+          accuracy_score: number | null
+          category: string
+          contribution_score: number | null
+          created_at: string
+          id: string
+          learning_applied: boolean | null
+          original_analysis: Json
+          updated_at: string
+          upload_id: string | null
+          user_corrections: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          category: string
+          contribution_score?: number | null
+          created_at?: string
+          id?: string
+          learning_applied?: boolean | null
+          original_analysis: Json
+          updated_at?: string
+          upload_id?: string | null
+          user_corrections?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          category?: string
+          contribution_score?: number | null
+          created_at?: string
+          id?: string
+          learning_applied?: boolean | null
+          original_analysis?: Json
+          updated_at?: string
+          upload_id?: string | null
+          user_corrections?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_performance_analytics: {
         Row: {
           command_id: string | null
@@ -2437,13 +2479,16 @@ export type Database = {
       global_coin_sources: {
         Row: {
           base_url: string
+          category_search_params: Json | null
           country: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
           language: string | null
+          last_multi_category_sync: string | null
           last_scraped: string | null
           metadata: Json | null
+          multi_category_support: boolean | null
           priority: number | null
           rate_limit_per_minute: number | null
           response_time_avg: number | null
@@ -2452,17 +2497,21 @@ export type Database = {
           source_type: string
           specialization: string[] | null
           success_rate: number | null
+          supported_categories: string[] | null
           updated_at: string | null
         }
         Insert: {
           base_url: string
+          category_search_params?: Json | null
           country?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
           language?: string | null
+          last_multi_category_sync?: string | null
           last_scraped?: string | null
           metadata?: Json | null
+          multi_category_support?: boolean | null
           priority?: number | null
           rate_limit_per_minute?: number | null
           response_time_avg?: number | null
@@ -2471,17 +2520,21 @@ export type Database = {
           source_type?: string
           specialization?: string[] | null
           success_rate?: number | null
+          supported_categories?: string[] | null
           updated_at?: string | null
         }
         Update: {
           base_url?: string
+          category_search_params?: Json | null
           country?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
           language?: string | null
+          last_multi_category_sync?: string | null
           last_scraped?: string | null
           metadata?: Json | null
+          multi_category_support?: boolean | null
           priority?: number | null
           rate_limit_per_minute?: number | null
           response_time_avg?: number | null
@@ -2490,6 +2543,7 @@ export type Database = {
           source_type?: string
           specialization?: string[] | null
           success_rate?: number | null
+          supported_categories?: string[] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -3599,6 +3653,78 @@ export type Database = {
           icon?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      source_category_mapping: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          last_success: string | null
+          priority: number | null
+          search_template: string | null
+          source_id: string
+          success_rate: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          last_success?: string | null
+          priority?: number | null
+          search_template?: string | null
+          source_id: string
+          success_rate?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          last_success?: string | null
+          priority?: number | null
+          search_template?: string | null
+          source_id?: string
+          success_rate?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      source_performance_logs: {
+        Row: {
+          category: string
+          confidence_avg: number | null
+          created_at: string
+          id: string
+          response_time_ms: number | null
+          results_count: number | null
+          search_query: string | null
+          source_id: string
+          success: boolean | null
+        }
+        Insert: {
+          category: string
+          confidence_avg?: number | null
+          created_at?: string
+          id?: string
+          response_time_ms?: number | null
+          results_count?: number | null
+          search_query?: string | null
+          source_id: string
+          success?: boolean | null
+        }
+        Update: {
+          category?: string
+          confidence_avg?: number | null
+          created_at?: string
+          id?: string
+          response_time_ms?: number | null
+          results_count?: number | null
+          search_query?: string | null
+          source_id?: string
+          success?: boolean | null
         }
         Relationships: []
       }
