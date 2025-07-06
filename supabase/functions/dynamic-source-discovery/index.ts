@@ -93,17 +93,43 @@ serve(async (req) => {
   }
 });
 
-// Phase 1: AI-Powered Web Research
+// Phase 1: AI-Powered Web Research with Advanced Intelligence
 async function performAIWebResearch(discoveryType: string, targetRegion: string, coinCategory: string) {
-  console.log('🤖 Starting AI-powered web research...');
+  console.log('🤖 Starting enhanced AI-powered web research...');
   
   const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  const searchQueries = generateSearchQueries(discoveryType, targetRegion, coinCategory);
+  const searchQueries = generateAdvancedSearchQueries(discoveryType, targetRegion, coinCategory);
   const discoveredSources = [];
+  
+  // Enhanced AI research with multiple strategies
+  const researchStrategies = [
+    'marketplace_discovery',
+    'auction_house_detection', 
+    'forum_community_mapping',
+    'grading_service_identification',
+    'regional_dealer_networks'
+  ];
 
-  for (const query of searchQueries) {
+  // Execute advanced research strategies in parallel
+  const researchPromises = researchStrategies.map(async (strategy) => {
+    return await performSpecializedResearch(strategy, targetRegion, coinCategory, anthropicApiKey);
+  });
+
+  const strategyResults = await Promise.allSettled(researchPromises);
+  
+  strategyResults.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value?.length > 0) {
+      console.log(`✅ Strategy ${researchStrategies[index]} found ${result.value.length} sources`);
+      discoveredSources.push(...result.value);
+    } else {
+      console.warn(`⚠️ Strategy ${researchStrategies[index]} failed or found no sources`);
+    }
+  });
+
+  // Traditional query-based research as backup
+  for (const query of searchQueries.slice(0, 3)) { // Limit to top 3 queries
     try {
-      console.log('🔍 Researching:', query);
+      console.log('🔍 Traditional research:', query);
       
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -114,20 +140,24 @@ async function performAIWebResearch(discoveryType: string, targetRegion: string,
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
+          max_tokens: 2000,
           messages: [{
             role: 'user',
-            content: `${DISCOVERY_PROMPTS.coin_marketplaces}
+            content: `You are a specialized web researcher finding numismatic and coin-related websites.
 
-Research query: "${query}"
+Research focus: "${query}"
+Target region: ${targetRegion}
+Coin category: ${coinCategory}
 
-Find 5-10 legitimate websites. For each site, provide:
-1. Full domain name (e.g., "example.com")
-2. Site type (auction_house, marketplace, forum, database)
-3. Brief description
-4. Estimated activity level (high/medium/low)
+Find 8-12 legitimate, active websites. For each site provide:
+1. Full domain name (no protocols, just domain.com)
+2. Site type: auction_house, marketplace, forum, database, grading_service, dealer, mint
+3. Brief description (1-2 sentences)
+4. Activity level: high/medium/low
+5. Specialized focus if any
 
-Format as JSON array with objects containing: domain, type, description, activity_level`
+Respond ONLY with a JSON array. Example:
+[{"domain": "example.com", "type": "auction_house", "description": "Major coin auction house", "activity_level": "high", "specialty": "ancient coins"}]`
           }]
         })
       });
@@ -139,14 +169,16 @@ Format as JSON array with objects containing: domain, type, description, activit
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           const sources = JSON.parse(jsonMatch[0]);
-          discoveredSources.push(...sources);
+          if (Array.isArray(sources)) {
+            discoveredSources.push(...sources.filter(s => s.domain && s.type));
+          }
         }
       } catch (parseError) {
         console.warn('Failed to parse AI response for query:', query);
       }
       
-      // Rate limiting
-      await delay(1000);
+      // Intelligent rate limiting
+      await delay(1500 + Math.random() * 1000);
       
     } catch (error) {
       console.warn(`AI research failed for query "${query}":`, error.message);
@@ -384,22 +416,76 @@ async function saveAndRankNewSources(sources: any[]) {
   return savedSources;
 }
 
+// Enhanced specialized research function
+async function performSpecializedResearch(strategy: string, targetRegion: string, coinCategory: string, apiKey: string) {
+  const strategyPrompts = {
+    marketplace_discovery: `Find active online coin marketplaces and trading platforms. Focus on sites where collectors buy/sell coins directly. Include both large platforms and specialized niche marketplaces.`,
+    
+    auction_house_detection: `Identify coin auction houses and auction platforms. Include major international houses and regional specialists. Focus on sites that conduct regular coin auctions.`,
+    
+    forum_community_mapping: `Locate active numismatic forums, collector communities, and discussion boards. Include both general coin forums and specialized communities for specific types of coins.`,
+    
+    grading_service_identification: `Find coin grading services, authentication services, and professional numismatic evaluation companies. Include both major services and regional/specialized graders.`,
+    
+    regional_dealer_networks: `Discover coin dealer networks, professional numismatic associations, and dealer directories. Focus on verified professional dealers and their online presence.`
+  };
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: `${strategyPrompts[strategy]}
+
+Region focus: ${targetRegion}
+Coin category: ${coinCategory}
+
+Find 6-10 specific websites. Return ONLY a JSON array with this exact structure:
+[{"domain": "site.com", "type": "marketplace", "description": "brief description", "activity_level": "high", "regional_focus": "${targetRegion}"}]
+
+Valid types: auction_house, marketplace, forum, database, grading_service, dealer, mint, association`
+        }]
+      })
+    });
+
+    const result = await response.json();
+    const content = result.content[0]?.text;
+    
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      const sources = JSON.parse(jsonMatch[0]);
+      return Array.isArray(sources) ? sources.filter(s => s.domain && s.type) : [];
+    }
+  } catch (error) {
+    console.warn(`Specialized research failed for ${strategy}:`, error.message);
+  }
+  
+  return [];
+}
+
 // Helper Functions
-function generateSearchQueries(discoveryType: string, targetRegion: string, coinCategory: string): string[] {
+function generateAdvancedSearchQueries(discoveryType: string, targetRegion: string, coinCategory: string): string[] {
   const baseQueries = [
-    `${targetRegion} coin auction houses`,
-    `${targetRegion} numismatic marketplaces`,
-    `${targetRegion} rare coin dealers`,
-    `${coinCategory} coin trading platforms`,
-    `${coinCategory} collector marketplaces`
+    `${targetRegion} premium coin auction houses and marketplaces`,
+    `${targetRegion} professional numismatic dealers and specialists`,
+    `${coinCategory} specialized trading platforms and exchanges`,
+    `${targetRegion} certified coin grading and authentication services`
   ];
   
   if (discoveryType === 'comprehensive') {
     baseQueries.push(
-      `${targetRegion} coin forums`,
-      `${targetRegion} numismatic databases`,
-      `${coinCategory} error coin specialists`,
-      `${targetRegion} mint websites`
+      `${targetRegion} active numismatic forums and collector communities`,
+      `${coinCategory} error coin specialists and variety experts`,
+      `${targetRegion} official mint websites and government coin programs`,
+      `${coinCategory} rare coin investment platforms and advisory services`
     );
   }
   

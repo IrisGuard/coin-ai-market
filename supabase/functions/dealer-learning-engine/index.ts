@@ -98,44 +98,53 @@ serve(async (req) => {
   }
 });
 
-// Phase 1: Pattern Recognition from Successful Identifications
+// Phase 1: Advanced Pattern Recognition from Successful Identifications
 async function recognizeSuccessfulPatterns(dealerData: any, analysisResult: any) {
-  console.log('🔍 Recognizing successful identification patterns...');
+  console.log('🔍 Recognizing advanced identification patterns...');
   
   const patterns = [];
   
-  // Visual Pattern Recognition
+  // Enhanced Visual Pattern Recognition with AI Analysis
   if (dealerData.images && dealerData.images.length > 0) {
-    const visualPatterns = await analyzeVisualPatterns(dealerData.images, analysisResult);
+    const visualPatterns = await analyzeAdvancedVisualPatterns(dealerData.images, analysisResult, dealerData);
     patterns.push(...visualPatterns);
   }
   
-  // Text Pattern Recognition (from coin inscriptions)
+  // Multi-Language Text Pattern Recognition
   if (analysisResult.inscriptions || dealerData.coin_inscriptions) {
-    const textPatterns = await analyzeTextPatterns(
+    const textPatterns = await analyzeMultiLanguageTextPatterns(
       analysisResult.inscriptions || dealerData.coin_inscriptions, 
-      analysisResult
+      analysisResult,
+      dealerData
     );
     patterns.push(...textPatterns);
   }
   
-  // Grading Pattern Recognition
+  // Professional Grading Pattern Recognition
   if (dealerData.grade && analysisResult.grade) {
-    const gradingPatterns = await analyzeGradingPatterns(dealerData.grade, analysisResult.grade);
+    const gradingPatterns = await analyzeProfessionalGradingPatterns(dealerData.grade, analysisResult.grade, dealerData);
     patterns.push(...gradingPatterns);
   }
   
-  // Error Pattern Recognition
+  // Advanced Error Pattern Recognition with CONECA Integration
   if (analysisResult.error_types && analysisResult.error_types.length > 0) {
-    const errorPatterns = await analyzeErrorPatterns(dealerData, analysisResult.error_types);
+    const errorPatterns = await analyzeAdvancedErrorPatterns(dealerData, analysisResult.error_types, analysisResult);
     patterns.push(...errorPatterns);
   }
   
-  // Market Pattern Recognition
+  // Comprehensive Market Pattern Recognition
   if (dealerData.price && analysisResult.estimated_value) {
-    const marketPatterns = await analyzeMarketPatterns(dealerData.price, analysisResult.estimated_value, analysisResult);
+    const marketPatterns = await analyzeComprehensiveMarketPatterns(dealerData.price, analysisResult.estimated_value, analysisResult, dealerData);
     patterns.push(...marketPatterns);
   }
+  
+  // Cross-Reference Pattern Recognition
+  const crossRefPatterns = await analyzeCrossReferencePatterns(dealerData, analysisResult);
+  patterns.push(...crossRefPatterns);
+  
+  // Temporal Pattern Recognition (pricing trends, market cycles)
+  const temporalPatterns = await analyzeTemporalPatterns(dealerData, analysisResult);
+  patterns.push(...temporalPatterns);
   
   return { patterns };
 }
@@ -414,46 +423,216 @@ async function generatePerformanceAnalytics(dealerData: any, analysisResult: any
   return { analytics };
 }
 
-// Helper Functions
-async function analyzeVisualPatterns(images: string[], analysisResult: any) {
-  // Placeholder for visual pattern analysis
-  return [
-    {
-      type: 'visual_similarity',
-      confidence: 0.8,
-      input_features: { image_characteristics: 'extracted_features' },
-      expected_result: analysisResult,
-      training_value: 0.7
+// Enhanced Helper Functions with Real Learning Capabilities
+async function analyzeAdvancedVisualPatterns(images: string[], analysisResult: any, dealerData: any) {
+  console.log('🖼️ Analyzing advanced visual patterns...');
+  const patterns = [];
+  
+  for (const imageUrl of images) {
+    try {
+      // Use Claude AI for detailed visual analysis
+      const visualAnalysis = await performImageAnalysis(imageUrl, analysisResult);
+      
+      if (visualAnalysis.success) {
+        patterns.push({
+          type: 'visual_feature_recognition',
+          confidence: visualAnalysis.confidence,
+          input_features: {
+            image_url: imageUrl,
+            visual_features: visualAnalysis.features,
+            edge_detection: visualAnalysis.edges,
+            texture_analysis: visualAnalysis.textures,
+            color_patterns: visualAnalysis.colors
+          },
+          expected_result: {
+            coin_identification: analysisResult,
+            dealer_verification: true,
+            grade_confirmation: dealerData.grade
+          },
+          training_value: calculateVisualTrainingValue(visualAnalysis, analysisResult),
+          pattern_strength: visualAnalysis.pattern_strength || 0.7
+        });
+      }
+    } catch (error) {
+      console.warn('Visual pattern analysis failed for image:', imageUrl, error.message);
     }
-  ];
+  }
+  
+  return patterns;
 }
 
-async function analyzeTextPatterns(inscriptions: any, analysisResult: any) {
-  // Placeholder for text pattern analysis
-  return [
-    {
-      type: 'inscription_pattern',
-      confidence: 0.9,
-      input_features: { text_patterns: inscriptions },
+async function performImageAnalysis(imageUrl: string, analysisResult: any) {
+  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  
+  try {
+    // Convert image URL to base64 for analysis
+    const imageResponse = await fetch(imageUrl);
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+    
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicApiKey!,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: [{
+            type: 'text',
+            text: `Analyze this coin image for visual patterns that can be used for machine learning training. Focus on:
+            1. Edge patterns and rim characteristics
+            2. Surface textures and wear patterns
+            3. Relief depth and strike quality
+            4. Color variations and patina
+            5. Unique identifying features
+            
+            Expected coin: ${analysisResult.name} from ${analysisResult.year}
+            
+            Respond with JSON containing: features, edges, textures, colors, pattern_strength (0-1), confidence (0-1)`
+          }, {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: 'image/jpeg',
+              data: base64Image
+            }
+          }]
+        }]
+      })
+    });
+
+    const result = await response.json();
+    const content = result.content[0]?.text;
+    
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+      
+      return {
+        success: true,
+        ...analysis,
+        confidence: analysis.confidence || 0.7
+      };
+    } catch {
+      return { success: false, confidence: 0.3 };
+    }
+  } catch (error) {
+    console.warn('Image analysis failed:', error.message);
+    return { success: false, confidence: 0.2 };
+  }
+}
+
+async function analyzeMultiLanguageTextPatterns(inscriptions: any, analysisResult: any, dealerData: any) {
+  console.log('📝 Analyzing multi-language text patterns...');
+  const patterns = [];
+  
+  if (!inscriptions) return patterns;
+  
+  try {
+    // Enhanced text pattern analysis with OCR and translation
+    const { data: ocrResults } = await supabase.functions.invoke('multi-language-ocr', {
+      body: {
+        image: dealerData.images?.[0] || '',
+        targetLanguage: 'en'
+      }
+    });
+    
+    if (ocrResults?.success) {
+      patterns.push({
+        type: 'multi_language_inscription',
+        confidence: ocrResults.ocr_results.confidence_score,
+        input_features: {
+          original_text: ocrResults.ocr_results.original_text,
+          detected_languages: ocrResults.ocr_results.detected_languages,
+          english_translation: ocrResults.ocr_results.english_translation,
+          text_positions: 'analyzed',
+          inscription_clarity: calculateInscriptionClarity(ocrResults.ocr_results)
+        },
+        expected_result: {
+          coin_identification: analysisResult,
+          language_confirmed: ocrResults.ocr_results.detected_languages[0],
+          translation_accuracy: calculateTranslationAccuracy(ocrResults.ocr_results, analysisResult)
+        },
+        training_value: ocrResults.ocr_results.confidence_score * 0.9,
+        pattern_strength: 0.85
+      });
+    }
+    
+    // Additional pattern for inscription-based identification
+    patterns.push({
+      type: 'inscription_identification',
+      confidence: 0.8,
+      input_features: {
+        text_patterns: inscriptions,
+        coin_context: {
+          country: analysisResult.country,
+          year: analysisResult.year,
+          mint: analysisResult.mint
+        }
+      },
       expected_result: analysisResult,
       training_value: 0.8
-    }
-  ];
+    });
+    
+  } catch (error) {
+    console.warn('Text pattern analysis failed:', error.message);
+  }
+  
+  return patterns;
 }
 
-async function analyzeGradingPatterns(dealerGrade: string, analysisGrade: string) {
+async function analyzeProfessionalGradingPatterns(dealerGrade: string, analysisGrade: string, dealerData: any) {
+  console.log('🏆 Analyzing professional grading patterns...');
   const patterns = [];
   
   if (dealerGrade && analysisGrade) {
-    const gradingAccuracy = calculateGradingAccuracy(dealerGrade, analysisGrade);
+    const gradingAccuracy = calculateAdvancedGradingAccuracy(dealerGrade, analysisGrade);
+    const gradingConsistency = await checkGradingConsistency(dealerData.dealer_id, dealerGrade);
     
     patterns.push({
-      type: 'grading_validation',
+      type: 'professional_grading_validation',
       confidence: gradingAccuracy,
-      input_features: { dealer_grade: dealerGrade, visual_indicators: 'extracted' },
-      expected_result: { grade: analysisGrade },
-      training_value: gradingAccuracy
+      input_features: { 
+        dealer_grade: dealerGrade,
+        ai_grade: analysisGrade,
+        visual_wear_indicators: await extractWearIndicators(dealerData.images),
+        surface_quality: await analyzeSurfaceQuality(dealerData.images),
+        strike_quality: await analyzeStrikeQuality(dealerData.images),
+        dealer_experience_level: gradingConsistency.experience_level
+      },
+      expected_result: { 
+        verified_grade: analysisGrade,
+        grade_confidence: gradingAccuracy,
+        grading_factors: extractGradingFactors(dealerGrade, analysisGrade)
+      },
+      training_value: gradingAccuracy * gradingConsistency.consistency_score,
+      pattern_strength: 0.9
     });
+    
+    // Additional pattern for grade prediction
+    if (gradingAccuracy > 0.8) {
+      patterns.push({
+        type: 'grade_prediction_model',
+        confidence: gradingAccuracy,
+        input_features: {
+          wear_level: await calculateWearLevel(dealerData.images),
+          luster_quality: await analyzeLusterQuality(dealerData.images),
+          surface_marks: await identifySurfaceMarks(dealerData.images),
+          eye_appeal: await calculateEyeAppeal(dealerData.images)
+        },
+        expected_result: {
+          predicted_grade: analysisGrade,
+          grade_factors: extractGradingFactors(dealerGrade, analysisGrade)
+        },
+        training_value: 0.95,
+        pattern_strength: gradingAccuracy
+      });
+    }
   }
   
   return patterns;

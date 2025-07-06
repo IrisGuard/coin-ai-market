@@ -114,16 +114,16 @@ serve(async (req) => {
   }
 });
 
-// Phase 1: Build Intelligent Source Chain
+// Phase 1: Build Intelligent Source Chain with Machine Learning
 async function buildIntelligentSourceChain(
   coinQuery: any, 
   userLocation: string, 
   primarySources: string[], 
   config: FallbackChainConfig
 ) {
-  console.log('🧠 Building intelligent source chain...');
+  console.log('🧠 Building intelligent source chain with ML optimization...');
   
-  // Get all active sources with performance metrics
+  // Get all active sources with enhanced performance metrics
   const { data: allSources } = await supabase
     .from('global_coin_sources')
     .select('*')
@@ -134,12 +134,18 @@ async function buildIntelligentSourceChain(
     throw new Error('No sources available for fallback chain');
   }
 
-  // Phase 1.1: Calculate Priority Scores
-  const sourcesWithPriority = allSources.map(source => ({
+  // Apply machine learning-based source selection
+  const enhancedSources = await applyMLSourceSelection(allSources, coinQuery, userLocation);
+
+  // Phase 1.1: Calculate Enhanced Priority Scores with ML Insights
+  const sourcesWithPriority = enhancedSources.map(source => ({
     ...source,
-    priority_score: calculatePriorityScore(source, coinQuery, userLocation, config.priorityWeights),
+    priority_score: calculateEnhancedPriorityScore(source, coinQuery, userLocation, config.priorityWeights),
     geographic_match: calculateGeographicMatch(source, userLocation),
-    source_type_relevance: calculateSourceTypeRelevance(source, coinQuery)
+    source_type_relevance: calculateSourceTypeRelevance(source, coinQuery),
+    ml_confidence: source.ml_confidence || 0.5,
+    historical_performance: await getHistoricalPerformance(source.id, coinQuery),
+    time_based_adjustment: calculateTimeBasedAdjustment(source)
   }));
 
   // Phase 1.2: Apply Intelligent Sorting
@@ -328,8 +334,123 @@ async function updateAdaptiveSourceRanking(results: any[], patterns: any) {
   console.log('✅ Adaptive ranking updated for', updates.length, 'sources');
 }
 
+// Machine Learning Enhanced Functions
+async function applyMLSourceSelection(sources: any[], coinQuery: any, userLocation: string) {
+  console.log('🤖 Applying ML-based source selection...');
+  
+  // Get recent performance data for ML insights
+  const { data: recentPerformance } = await supabase
+    .from('ai_performance_metrics')
+    .select('*')
+    .eq('metric_type', 'source_performance')
+    .gte('recorded_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
+    .order('recorded_at', { ascending: false });
+
+  // Apply ML insights to enhance source selection
+  return sources.map(source => {
+    const performanceHistory = recentPerformance?.filter(p => 
+      p.metadata?.source_id === source.id
+    ) || [];
+
+    // Calculate ML confidence based on recent performance patterns
+    const mlConfidence = calculateMLConfidence(source, performanceHistory, coinQuery);
+    
+    // Calculate adaptive success prediction
+    const predictedSuccess = predictSourceSuccess(source, coinQuery, performanceHistory);
+    
+    return {
+      ...source,
+      ml_confidence: mlConfidence,
+      predicted_success: predictedSuccess,
+      performance_trend: calculatePerformanceTrend(performanceHistory),
+      coin_type_affinity: calculateCoinTypeAffinity(source, coinQuery)
+    };
+  });
+}
+
+function calculateMLConfidence(source: any, performanceHistory: any[], coinQuery: any): number {
+  let confidence = 0.5; // Base confidence
+  
+  if (performanceHistory.length > 0) {
+    // Recent success rate
+    const recentSuccesses = performanceHistory.filter(p => p.metric_value > 0.5).length;
+    const recentSuccessRate = recentSuccesses / performanceHistory.length;
+    confidence += (recentSuccessRate - 0.5) * 0.3;
+    
+    // Performance consistency
+    const values = performanceHistory.map(p => p.metric_value);
+    const variance = calculateVariance(values);
+    const consistencyBonus = Math.max(0, (0.1 - variance) * 2); // Lower variance = higher consistency
+    confidence += consistencyBonus;
+  }
+  
+  // Coin type specific performance
+  const coinTypeMatch = calculateCoinTypeMatch(source, coinQuery);
+  confidence += coinTypeMatch * 0.2;
+  
+  return Math.min(1.0, Math.max(0.1, confidence));
+}
+
+function predictSourceSuccess(source: any, coinQuery: any, performanceHistory: any[]): number {
+  // Weighted prediction based on multiple factors
+  let prediction = source.success_rate || 0.5;
+  
+  // Factor 1: Recent trend (40% weight)
+  if (performanceHistory.length >= 3) {
+    const recentTrend = calculateTrendDirection(performanceHistory.slice(-5));
+    prediction += recentTrend * 0.4;
+  }
+  
+  // Factor 2: Coin type affinity (30% weight)
+  const typeAffinity = calculateCoinTypeAffinity(source, coinQuery);
+  prediction += typeAffinity * 0.3;
+  
+  // Factor 3: Time of day performance (20% weight)
+  const timeAdjustment = calculateTimeBasedAdjustment(source);
+  prediction += timeAdjustment * 0.2;
+  
+  // Factor 4: Source stability (10% weight)
+  const stabilityScore = calculateSourceStability(source, performanceHistory);
+  prediction += stabilityScore * 0.1;
+  
+  return Math.min(1.0, Math.max(0.0, prediction));
+}
+
+async function getHistoricalPerformance(sourceId: string, coinQuery: any) {
+  try {
+    const { data } = await supabase
+      .from('ai_performance_metrics')
+      .select('metric_value, recorded_at, metadata')
+      .eq('related_id', sourceId)
+      .eq('metric_type', 'source_query_success')
+      .order('recorded_at', { ascending: false })
+      .limit(20);
+    
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+function calculateTimeBasedAdjustment(source: any): number {
+  const currentHour = new Date().getHours();
+  
+  // Peak hours for different source types (simplified model)
+  const peakHours = {
+    auction_house: [9, 10, 11, 14, 15, 16, 17], // Business hours
+    marketplace: [12, 13, 19, 20, 21], // Lunch and evening
+    forum: [18, 19, 20, 21, 22], // Evening hours
+    database: Array.from({length: 24}, (_, i) => i) // Always available
+  };
+  
+  const sourcePeakHours = peakHours[source.source_type] || peakHours.database;
+  const isPeakHour = sourcePeakHours.includes(currentHour);
+  
+  return isPeakHour ? 0.1 : -0.05; // Boost during peak hours
+}
+
 // Helper Functions
-function calculatePriorityScore(
+function calculateEnhancedPriorityScore(
   source: any, 
   coinQuery: any, 
   userLocation: string, 
@@ -337,20 +458,28 @@ function calculatePriorityScore(
 ): number {
   let score = 0;
   
-  // Success rate component
+  // Base success rate component (30%)
   score += (source.success_rate || 0.5) * weights.success_rate;
   
-  // Response time component (lower is better)
+  // Response time component (20%)
   const normalizedResponseTime = Math.max(0, 1 - ((source.response_time_avg || 3000) / 10000));
   score += normalizedResponseTime * weights.response_time;
   
-  // Geographic priority component
+  // Geographic priority component (15%)
   const geographicMatch = calculateGeographicMatch(source, userLocation);
   score += geographicMatch * weights.geographic_priority;
   
-  // Source type relevance component
+  // Source type relevance component (15%)
   const typeRelevance = calculateSourceTypeRelevance(source, coinQuery);
   score += typeRelevance * weights.source_type;
+  
+  // ML enhanced components (20%)
+  if (source.ml_confidence) {
+    score += source.ml_confidence * 0.1;
+  }
+  if (source.predicted_success) {
+    score += source.predicted_success * 0.1;
+  }
   
   return Math.min(1.0, Math.max(0.0, score));
 }
@@ -550,4 +679,87 @@ async function getSourceUrl(sourceId: string): Promise<string> {
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Additional ML Helper Functions
+function calculateVariance(values: number[]): number {
+  if (values.length === 0) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  return variance;
+}
+
+function calculateTrendDirection(performanceHistory: any[]): number {
+  if (performanceHistory.length < 2) return 0;
+  
+  // Simple linear trend calculation
+  const recent = performanceHistory.slice(-3);
+  const older = performanceHistory.slice(-6, -3);
+  
+  if (older.length === 0) return 0;
+  
+  const recentAvg = recent.reduce((sum, p) => sum + p.metric_value, 0) / recent.length;
+  const olderAvg = older.reduce((sum, p) => sum + p.metric_value, 0) / older.length;
+  
+  return Math.max(-0.2, Math.min(0.2, recentAvg - olderAvg));
+}
+
+function calculateCoinTypeAffinity(source: any, coinQuery: any): number {
+  // Analyze source's historical performance with similar coin types
+  let affinity = 0.5; // Base affinity
+  
+  const sourceType = source.source_type;
+  const coinCountry = coinQuery.country?.toLowerCase() || '';
+  const coinCategory = coinQuery.category?.toLowerCase() || '';
+  const coinRarity = coinQuery.rarity?.toLowerCase() || '';
+  
+  // Source type specific affinities
+  if (sourceType === 'auction_house') {
+    if (coinRarity.includes('rare') || coinRarity.includes('ultra')) affinity += 0.3;
+    if (coinCategory.includes('ancient') || coinCategory.includes('medieval')) affinity += 0.2;
+  }
+  
+  if (sourceType === 'marketplace') {
+    if (coinRarity.includes('common') || coinRarity.includes('uncommon')) affinity += 0.2;
+    if (coinCategory.includes('modern') || coinCategory.includes('bullion')) affinity += 0.1;
+  }
+  
+  if (sourceType === 'database' || sourceType === 'grading_service') {
+    affinity += 0.1; // Databases are generally good for all types
+  }
+  
+  if (sourceType === 'forum') {
+    if (coinCategory.includes('error') || coinCategory.includes('variety')) affinity += 0.3;
+  }
+  
+  // Geographic affinity
+  const sourceCountry = source.country?.toLowerCase() || '';
+  if (sourceCountry === coinCountry) affinity += 0.2;
+  
+  return Math.min(1.0, Math.max(0.1, affinity));
+}
+
+function calculateCoinTypeMatch(source: any, coinQuery: any): number {
+  // Simplified coin type matching logic
+  return calculateCoinTypeAffinity(source, coinQuery);
+}
+
+function calculatePerformanceTrend(performanceHistory: any[]): string {
+  if (performanceHistory.length < 3) return 'stable';
+  
+  const trend = calculateTrendDirection(performanceHistory);
+  
+  if (trend > 0.05) return 'improving';
+  if (trend < -0.05) return 'declining';
+  return 'stable';
+}
+
+function calculateSourceStability(source: any, performanceHistory: any[]): number {
+  if (performanceHistory.length < 3) return 0.5;
+  
+  const values = performanceHistory.map(p => p.metric_value);
+  const variance = calculateVariance(values);
+  
+  // Lower variance = higher stability
+  return Math.max(0, Math.min(1, 1 - (variance * 5)));
 }

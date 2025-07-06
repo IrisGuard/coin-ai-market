@@ -222,49 +222,145 @@ async function performIntelligentScraping(
   };
 }
 
-// Single scrape attempt with advanced techniques
+// Advanced scraping with real browser-like behavior
 async function performSingleScrape(url: string, query: any, userAgent: string, sourceAnalysis: any) {
   const startTime = Date.now();
   
   // Build search URL based on source type
   const searchUrl = buildSearchUrl(url, query, sourceAnalysis);
   
-  console.log('🌐 Fetching:', searchUrl);
+  console.log('🌐 Advanced Scraping:', searchUrl);
   
-  const response = await fetch(searchUrl, {
-    method: 'GET',
-    headers: {
-      'User-Agent': userAgent,
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.5',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'DNT': '1',
-      'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'none',
-      'Cache-Control': 'max-age=0'
+  // Enhanced headers with real browser fingerprinting
+  const headers = {
+    'User-Agent': userAgent,
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'DNT': '1',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'cross-site',
+    'Sec-Fetch-User': '?1',
+    'Cache-Control': 'max-age=0',
+    'sec-ch-ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"'
+  };
+
+  // Add source-specific headers for better success rates
+  if (sourceAnalysis.domain.includes('heritage.com')) {
+    headers['Referer'] = 'https://www.google.com/';
+    headers['X-Requested-With'] = 'XMLHttpRequest';
+  } else if (sourceAnalysis.domain.includes('ebay.com')) {
+    headers['Accept-Language'] = 'en-US,en;q=0.9,es;q=0.8';
+    headers['Pragma'] = 'no-cache';
+  }
+
+  try {
+    // Primary request with enhanced error handling
+    const response = await fetch(searchUrl, {
+      method: 'GET',
+      headers,
+      signal: AbortSignal.timeout(15000) // 15 second timeout
+    });
+
+    if (!response.ok) {
+      // Try alternative approach for blocked requests
+      if (response.status === 403 || response.status === 429) {
+        await delay(Math.random() * 3000 + 2000); // Random delay 2-5 seconds
+        return await performAlternativeScrape(searchUrl, userAgent, sourceAnalysis);
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+
+    const html = await response.text();
+    const responseTime = Date.now() - startTime;
+    
+    // Advanced bot detection and content validation
+    if (isContentBlocked(html)) {
+      throw new Error('Content blocked - trying alternative approach');
+    }
+
+    // Validate content quality
+    const contentQuality = validateContentQuality(html, query);
+    if (contentQuality.score < 0.3) {
+      throw new Error(`Low content quality: ${contentQuality.reason}`);
+    }
+    
+    return {
+      success: true,
+      data: html,
+      responseTime,
+      contentLength: html.length,
+      quality_score: contentQuality.score
+    };
+
+  } catch (error) {
+    // Fallback to simplified request on failure
+    if (error.name === 'TimeoutError') {
+      return await performSimplifiedScrape(searchUrl, userAgent);
+    }
+    throw error;
+  }
+}
+
+// Alternative scraping method for blocked requests
+async function performAlternativeScrape(url: string, userAgent: string, sourceAnalysis: any) {
+  console.log('🔄 Trying alternative scraping approach...');
+  
+  // Use mobile headers as they're often less blocked
+  const mobileHeaders = {
+    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Accept-Encoding': 'gzip, deflate',
+    'Connection': 'keep-alive'
+  };
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: mobileHeaders,
+    signal: AbortSignal.timeout(10000)
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(`Alternative scraping failed: ${response.status}`);
   }
 
   const html = await response.text();
-  const responseTime = Date.now() - startTime;
-  
-  // Basic bot detection check
-  if (html.includes('captcha') || html.includes('blocked') || html.includes('Access Denied')) {
-    throw new Error('Bot detection triggered');
-  }
   
   return {
     success: true,
     data: html,
-    responseTime,
-    contentLength: html.length
+    responseTime: 0,
+    contentLength: html.length,
+    method: 'alternative'
+  };
+}
+
+// Simplified scraping for timeout recovery
+async function performSimplifiedScrape(url: string, userAgent: string) {
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'User-Agent': userAgent },
+    signal: AbortSignal.timeout(5000)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Simplified scraping failed: ${response.status}`);
+  }
+
+  const html = await response.text();
+  
+  return {
+    success: true,
+    data: html,
+    responseTime: 0,
+    contentLength: html.length,
+    method: 'simplified'
   };
 }
 
@@ -425,4 +521,49 @@ function calculateDataConfidence(prices: number[], descriptions: string[], query
   if (matchingDescriptions.length > 0) confidence += 0.3;
   
   return Math.min(1.0, confidence);
+}
+
+// Content validation functions
+function isContentBlocked(html: string): boolean {
+  const blockingPatterns = [
+    /captcha/i,
+    /blocked/i,
+    /access.denied/i,
+    /rate.limit/i,
+    /please.wait/i,
+    /cloudflare/i,
+    /checking.your.browser/i,
+    /ddos.protection/i
+  ];
+  
+  return blockingPatterns.some(pattern => pattern.test(html));
+}
+
+function validateContentQuality(html: string, query: any): { score: number; reason: string } {
+  let score = 0.5;
+  let reason = 'acceptable';
+  
+  // Check content length
+  if (html.length < 1000) {
+    return { score: 0.1, reason: 'content too short' };
+  }
+  
+  // Check for relevant content indicators
+  const coinIndicators = [
+    /coin/i, /numismatic/i, /auction/i, /price/i, /grade/i,
+    /\$\d+/i, /€\d+/i, /£\d+/i, /sold/i, /estimate/i
+  ];
+  
+  const foundIndicators = coinIndicators.filter(pattern => pattern.test(html)).length;
+  score += (foundIndicators / coinIndicators.length) * 0.4;
+  
+  // Check for specific query matches
+  if (query.year && html.includes(query.year.toString())) score += 0.1;
+  if (query.country && html.toLowerCase().includes(query.country.toLowerCase())) score += 0.1;
+  if (query.denomination && html.toLowerCase().includes(query.denomination.toLowerCase())) score += 0.1;
+  
+  if (score < 0.3) reason = 'low relevance to coin query';
+  else if (score > 0.8) reason = 'high quality content';
+  
+  return { score: Math.min(1.0, score), reason };
 }
