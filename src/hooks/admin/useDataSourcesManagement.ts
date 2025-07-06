@@ -42,6 +42,24 @@ export const useDataSourcesManagement = () => {
     },
   });
 
+  const { data: globalCoinSources = [] } = useQuery({
+    queryKey: ['admin-global-coin-sources'],
+    queryFn: async () => {
+      console.log('🔍 Fetching premium global coin sources...');
+      const { data, error } = await supabase
+        .from('global_coin_sources')
+        .select('*')
+        .order('priority', { ascending: true });
+      
+      if (error) {
+        console.error('❌ Error fetching global coin sources:', error);
+        throw error;
+      }
+      console.log('✅ Premium global coin sources loaded:', data?.length || 0);
+      return data || [];
+    },
+  });
+
   const { data: scrapingJobs = [] } = useQuery({
     queryKey: ['admin-scraping-jobs'],
     queryFn: async () => {
@@ -71,6 +89,8 @@ export const useDataSourcesManagement = () => {
           activeDataSources,
           totalExternalSources,
           activeExternalSources,
+          totalGlobalSources,
+          activeGlobalSources,
           totalScrapingJobs,
           recentJobs
         ] = await Promise.all([
@@ -78,6 +98,8 @@ export const useDataSourcesManagement = () => {
           supabase.from('data_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('external_price_sources').select('id', { count: 'exact', head: true }),
           supabase.from('external_price_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
+          supabase.from('global_coin_sources').select('id', { count: 'exact', head: true }),
+          supabase.from('global_coin_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('scraping_jobs').select('id', { count: 'exact', head: true }),
           supabase.from('scraping_jobs')
             .select('status')
@@ -89,6 +111,8 @@ export const useDataSourcesManagement = () => {
           activeDataSources: activeDataSources.count || 0,
           totalExternalSources: totalExternalSources.count || 0,
           activeExternalSources: activeExternalSources.count || 0,
+          totalGlobalSources: totalGlobalSources.count || 0,
+          activeGlobalSources: activeGlobalSources.count || 0,
           totalScrapingJobs: totalScrapingJobs.count || 0,
           jobsLast24h: recentJobs.count || 0,
         };
@@ -102,6 +126,8 @@ export const useDataSourcesManagement = () => {
           activeDataSources: 0,
           totalExternalSources: 0,
           activeExternalSources: 0,
+          totalGlobalSources: 0,
+          activeGlobalSources: 0,
           totalScrapingJobs: 0,
           jobsLast24h: 0,
         };
@@ -157,6 +183,7 @@ export const useDataSourcesManagement = () => {
   return {
     dataSources,
     externalSources,
+    globalCoinSources,
     scrapingJobs,
     sourceStats,
     sourcesLoading,

@@ -16,6 +16,7 @@ const AdminDataSourcesTab = () => {
   const {
     dataSources,
     externalSources,
+    globalCoinSources,
     scrapingJobs,
     sourceStats,
     sourcesLoading,
@@ -37,6 +38,7 @@ const AdminDataSourcesTab = () => {
       <DataSourcesStatsCards 
         sourceStats={sourceStats}
         dataSources={dataSources}
+        globalCoinSources={globalCoinSources}
       />
 
       {/* Tabs για διαφορετικές ενότητες */}
@@ -70,6 +72,7 @@ const AdminDataSourcesTab = () => {
           </div>
           <ExternalSourcesTable
             externalSources={externalSources}
+            globalCoinSources={globalCoinSources}
             searchTerm={searchTerm}
           />
         </TabsContent>
