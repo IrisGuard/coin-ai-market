@@ -172,61 +172,52 @@ async function processMultiLanguage(image: string, initialAnalysis: any) {
   return { languageData };
 }
 
-// Phase 3: Global Web Discovery Engine
+// Phase 3: Global Web Discovery Engine with Real Scraping
 async function performGlobalWebDiscovery(initialAnalysis: any, languageData: any) {
-  console.log('🌐 Starting Global Web Discovery...');
+  console.log('🌐 Starting Real Global Web Discovery...');
   
-  // Get known sources from database
-  const { data: knownSources } = await supabase
-    .from('global_coin_sources')
-    .select('*')
-    .eq('is_active', true)
-    .order('success_rate', { ascending: false });
+  // Phase 3.1: Dynamic Source Discovery
+  const { data: newSources } = await supabase.functions.invoke('dynamic-source-discovery', {
+    body: {
+      discoveryType: 'comprehensive',
+      targetRegion: 'global',
+      coinCategory: initialAnalysis.category || 'all',
+      maxNewSources: 10
+    }
+  });
 
-  const sourcesToCheck = [
-    // Auction Houses
-    'https://www.heritage.com',
-    'https://www.stacksbowers.com',
-    'https://www.ngccoin.com',
-    'https://www.pcgs.com',
-    
-    // International Sources
-    'https://www.sixbid.com',
-    'https://www.ma-shops.com',
-    'https://www.coinarchives.com',
-    
-    // Forums & Communities
-    'https://www.coincommunity.com',
-    'https://www.cointalk.com',
-    
-    // Add more sources dynamically
-    ...(knownSources?.map(s => s.base_url) || [])
-  ];
+  // Phase 3.2: Get all active sources with intelligent fallback
+  const { data: fallbackResults } = await supabase.functions.invoke('intelligent-fallback-system', {
+    body: {
+      coinQuery: initialAnalysis,
+      userLocation: 'global',
+      config: {
+        maxAttempts: 15,
+        timeoutMs: 25000
+      }
+    }
+  });
 
   const webDiscoveryData = {
-    sourcesConsulted: sourcesToCheck.length,
-    successfulSources: 0,
+    sourcesConsulted: fallbackResults?.results?.total_attempts || 0,
+    successfulSources: fallbackResults?.results?.successful_results?.length || 0,
     priceRanges: [],
     similarCoins: [],
-    marketTrends: []
+    marketTrends: [],
+    dynamicallyDiscovered: newSources?.discovered_sources?.length || 0
   };
 
-  // Perform web discovery (simplified for now)
-  for (const source of sourcesToCheck.slice(0, 20)) { // Limit for demo
-    try {
-      const searchResult = await performSourceSearch(source, initialAnalysis);
-      if (searchResult.found) {
-        webDiscoveryData.successfulSources++;
-        webDiscoveryData.priceRanges.push(searchResult.priceRange);
-        webDiscoveryData.similarCoins.push(...(searchResult.similarCoins || []));
+  // Extract price data from successful results
+  if (fallbackResults?.results?.successful_results) {
+    for (const result of fallbackResults.results.successful_results) {
+      if (result.data?.prices) {
+        webDiscoveryData.priceRanges.push(...result.data.prices);
       }
-    } catch (error) {
-      console.warn(`Source ${source} failed:`, error.message);
+      if (result.data?.descriptions) {
+        webDiscoveryData.similarCoins.push(...result.data.descriptions.slice(0, 2));
+      }
     }
   }
-
-  // Save discovered sources to database
-  await saveDiscoveredSources(webDiscoveryData);
 
   return { webDiscoveryData };
 }
