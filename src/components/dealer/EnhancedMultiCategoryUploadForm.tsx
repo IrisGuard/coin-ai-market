@@ -211,27 +211,27 @@ const EnhancedMultiCategoryUploadForm: React.FC<EnhancedMultiCategoryUploadFormP
       }
 
       // 🧠 Phase 2B.2: Route to appropriate table based on category
-      const recordData = buildRecordData(data, effectiveStoreId, imageUrl, imageUrls);
       let result, tableName;
       
       if (data.category === 'banknotes' || data.category === 'error_banknotes') {
         tableName = 'banknotes';
+        const recordData = buildRecordData(data, effectiveStoreId, imageUrl, imageUrls) as any;
         const { data: banknoteResult, error } = await supabase.from('banknotes').insert(recordData).select().single();
         if (error) throw error;
         result = banknoteResult;
       } else if (data.category === 'gold_bullion' || data.category === 'silver_bullion') {
         tableName = 'bullion_bars';
+        const recordData = buildRecordData(data, effectiveStoreId, imageUrl, imageUrls) as any;
         const { data: bullionResult, error } = await supabase.from('bullion_bars').insert(recordData).select().single();
         if (error) throw error;
         result = bullionResult;
       } else {
         tableName = 'coins';
+        const recordData = buildRecordData(data, effectiveStoreId, imageUrl, imageUrls) as any;
         const { data: coinResult, error } = await supabase.from('coins').insert(recordData).select().single();
         if (error) throw error;
         result = coinResult;
       }
-
-      if (error) throw error;
       return { result, tableName };
     },
     onSuccess: ({ result, tableName }) => {
