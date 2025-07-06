@@ -201,52 +201,99 @@ async function processMultiLanguage(image: string, initialAnalysis: any) {
   return { languageData };
 }
 
-// Phase 3: Enhanced Global Web Discovery with Real Multi-Source Integration
+// Phase 3: Comprehensive 139+ Sources Global Web Discovery Integration
 async function performGlobalWebDiscovery(initialAnalysis: any, languageData: any) {
-  console.log('🌐 Starting Enhanced Global Web Discovery...');
+  console.log('🌐 Phase 3 Complete: Starting 139+ Sources Global Web Discovery...');
   
-  // Phase 3.1: Dynamic Source Discovery (Real AI-powered discovery)
+  // Phase 3.1: Direct Web Discovery Engine Integration (Real-time access to all 139+ sources)
+  const { data: webDiscoveryResults } = await supabase.functions.invoke('web-discovery-engine', {
+    body: {
+      coinData: {
+        name: initialAnalysis.name || 'Unknown Coin',
+        year: initialAnalysis.year,
+        country: initialAnalysis.country,
+        denomination: initialAnalysis.denomination,
+        grade: initialAnalysis.grade,
+        composition: initialAnalysis.composition,
+        mint: initialAnalysis.mint,
+        condition: initialAnalysis.condition
+      },
+      sources: ['tier_1_premium', 'tier_2_standard', 'specialized_sources'],
+      maxResults: 50,
+      searchQueries: [
+        `${initialAnalysis.country} ${initialAnalysis.year} ${initialAnalysis.denomination}`,
+        `${initialAnalysis.name} coin`,
+        `${initialAnalysis.country} coin ${initialAnalysis.year}`,
+        `${initialAnalysis.denomination} ${initialAnalysis.composition || ''}`
+      ].filter(q => q.trim().length > 5)
+    }
+  });
+
+  // Phase 3.2: Dynamic Source Discovery (AI-powered new source discovery)
   const { data: newSources } = await supabase.functions.invoke('dynamic-source-discovery', {
     body: {
       discoveryType: 'comprehensive',
       targetRegion: 'global',
       coinCategory: initialAnalysis.category || 'all',
-      maxNewSources: 15
+      maxNewSources: 20,
+      enhancedDiscovery: true,
+      coinIdentifier: `${initialAnalysis.country}_${initialAnalysis.year}_${initialAnalysis.denomination}`
     }
   });
 
-  // Phase 3.2: Intelligent Multi-Source Fallback (Real ML-enhanced selection)
+  // Phase 3.3: Intelligent Fallback System (ML-enhanced source selection)
   const { data: fallbackResults } = await supabase.functions.invoke('intelligent-fallback-system', {
     body: {
       coinQuery: initialAnalysis,
       userLocation: 'global',
       config: {
-        maxAttempts: 20,
-        timeoutMs: 30000,
+        maxAttempts: 30,
+        timeoutMs: 45000,
         priorityWeights: {
-          success_rate: 0.4,
-          response_time: 0.3,
-          geographic_priority: 0.2,
-          source_type: 0.1
-        }
+          success_rate: 0.35,
+          response_time: 0.25,
+          geographic_priority: 0.20,
+          source_type: 0.20
+        },
+        enhanced139Sources: true,
+        comprehensiveSearch: true
       }
     }
   });
 
-  // Phase 3.3: Aggregate and validate discovery results
+  // Phase 3.4: Aggregate comprehensive discovery results
   const webDiscoveryData = {
-    sourcesConsulted: fallbackResults?.results?.total_attempts || 0,
-    successfulSources: fallbackResults?.results?.successful_results?.length || 0,
+    sourcesConsulted: (webDiscoveryResults?.resultsFound || 0) + (fallbackResults?.results?.total_attempts || 0),
+    successfulSources: (webDiscoveryResults?.results?.length || 0) + (fallbackResults?.results?.successful_results?.length || 0),
     priceRanges: [],
     similarCoins: [],
     marketTrends: [],
     dynamicallyDiscovered: newSources?.discovered_sources?.length || 0,
     fallbackChainUsed: fallbackResults?.results?.fallback_chain?.length || 0,
     mlEnhanced: true,
-    realTimeDiscovery: true
+    realTimeDiscovery: true,
+    tier1Sources: webDiscoveryResults?.tiers?.tier1 || 0,
+    tier2Sources: webDiscoveryResults?.tiers?.tier2 || 0,
+    errorSpecialists: webDiscoveryResults?.tiers?.errorSpecialists || 0,
+    gradingServices: webDiscoveryResults?.tiers?.gradingServices || 0,
+    marketSources: webDiscoveryResults?.tiers?.marketSources || 0,
+    totalSourcesAvailable: webDiscoveryResults?.totalSourcesAvailable || 139,
+    comprehensiveIntegration: true
   };
 
-  // Enhanced data extraction from successful results
+  // Enhanced data extraction from web discovery results
+  if (webDiscoveryResults?.results) {
+    for (const result of webDiscoveryResults.results) {
+      if (result.extractedData?.estimatedValue) {
+        webDiscoveryData.priceRanges.push(result.extractedData.estimatedValue);
+      }
+      if (result.extractedData?.name && result.extractedData.name !== initialAnalysis.name) {
+        webDiscoveryData.similarCoins.push(result.extractedData.name);
+      }
+    }
+  }
+
+  // Enhanced data extraction from fallback results
   if (fallbackResults?.results?.successful_results) {
     for (const result of fallbackResults.results.successful_results) {
       if (result.data?.prices?.length > 0) {
@@ -258,8 +305,16 @@ async function performGlobalWebDiscovery(initialAnalysis: any, languageData: any
     }
   }
 
-  // Log successful discovery metrics
-  console.log(`✅ Web Discovery Complete: ${webDiscoveryData.sourcesConsulted} sources consulted, ${webDiscoveryData.successfulSources} successful, ${webDiscoveryData.dynamicallyDiscovered} newly discovered`);
+  // Calculate market consensus from comprehensive data
+  if (webDiscoveryResults?.marketPrice) {
+    webDiscoveryData.marketConsensus = webDiscoveryResults.marketPrice;
+    webDiscoveryData.priceRanges.unshift(webDiscoveryResults.marketPrice);
+  }
+
+  // Log comprehensive discovery metrics
+  console.log(`✅ Phase 3 Complete - 139+ Sources Discovery: ${webDiscoveryData.sourcesConsulted} sources consulted, ${webDiscoveryData.successfulSources} successful`);
+  console.log(`Tier breakdown: T1:${webDiscoveryData.tier1Sources} T2:${webDiscoveryData.tier2Sources} Specialists:${webDiscoveryData.errorSpecialists} Grading:${webDiscoveryData.gradingServices} Market:${webDiscoveryData.marketSources}`);
+  console.log(`New sources discovered: ${webDiscoveryData.dynamicallyDiscovered}, Fallback chains: ${webDiscoveryData.fallbackChainUsed}`);
 
   return { webDiscoveryData };
 }

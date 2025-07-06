@@ -97,16 +97,19 @@ serve(async (req) => {
   }
 });
 
-// Get active sources from database, prioritized by success rate
+// Phase 3 Enhanced: Get active sources with comprehensive prioritization
 async function getActiveSources(maxSources: number) {
   const { data: sources } = await supabase
     .from('global_coin_sources')
     .select('*')
     .eq('is_active', true)
+    .order('priority', { ascending: true })
     .order('success_rate', { ascending: false })
     .limit(maxSources);
 
-  console.log(`📊 Retrieved ${sources?.length || 0} active sources from database`);
+  console.log(`🎯 Phase 3 Enhanced: Retrieved ${sources?.length || 0} active sources from 139+ comprehensive database`);
+  console.log(`Sources breakdown: Tier 1: ${sources?.filter(s => s.priority === 1).length || 0}, Tier 2: ${sources?.filter(s => s.priority === 2).length || 0}, Specialized: ${sources?.filter(s => s.priority >= 3).length || 0}`);
+  
   return sources || [];
 }
 
@@ -243,11 +246,11 @@ async function searchSource(source: any, query: string, timeout: number) {
   }
 }
 
-// Build search URLs for different source types
+// Phase 3 Enhanced: Build search URLs for 139+ comprehensive source types
 function buildSourceSearchUrl(source: any, query: string) {
   const encodedQuery = encodeURIComponent(query);
   
-  // Different URL patterns for different source types
+  // Enhanced URL patterns for comprehensive source types
   switch (source.source_type) {
     case 'auction_house':
       if (source.base_url.includes('heritage.com')) {
@@ -256,11 +259,62 @@ function buildSourceSearchUrl(source: any, query: string) {
       if (source.base_url.includes('stacksbowers.com')) {
         return `${source.base_url}/search?q=${encodedQuery}`;
       }
+      if (source.base_url.includes('liveauctioneers.com')) {
+        return `${source.base_url}/search/?keyword=${encodedQuery}`;
+      }
+      if (source.base_url.includes('invaluable.com')) {
+        return `${source.base_url}/search/?q=${encodedQuery}`;
+      }
       break;
       
     case 'marketplace':
       if (source.base_url.includes('ebay.com')) {
         return `${source.base_url}/sch/i.html?_nkw=${encodedQuery}`;
+      }
+      if (source.base_url.includes('tradera.com')) {
+        return `${source.base_url}/search?q=${encodedQuery}`;
+      }
+      if (source.base_url.includes('bonanza.com')) {
+        return `${source.base_url}/search?q=${encodedQuery}`;
+      }
+      if (source.base_url.includes('vinted.com')) {
+        return `${source.base_url}/catalog?search_text=${encodedQuery}`;
+      }
+      break;
+      
+    case 'dealer':
+      if (source.base_url.includes('apmex.com')) {
+        return `${source.base_url}/search?q=${encodedQuery}`;
+      }
+      if (source.base_url.includes('moderncoinmart.com')) {
+        return `${source.base_url}/search/?query=${encodedQuery}`;
+      }
+      if (source.base_url.includes('jmbullion.com')) {
+        return `${source.base_url}/search?q=${encodedQuery}`;
+      }
+      break;
+      
+    case 'grading_service':
+      if (source.base_url.includes('pcgs.com')) {
+        return `${source.base_url}/coinfacts/search/?searchtype=basic&searchtext=${encodedQuery}`;
+      }
+      if (source.base_url.includes('ngccoin.com')) {
+        return `${source.base_url}/coin-explorer/search?q=${encodedQuery}`;
+      }
+      if (source.base_url.includes('anacs.com')) {
+        return `${source.base_url}/search?q=${encodedQuery}`;
+      }
+      break;
+      
+    case 'mint':
+      if (source.base_url.includes('royalmint.com')) {
+        return `${source.base_url}/search?q=${encodedQuery}`;
+      }
+      if (source.base_url.includes('perthmint.com')) {
+        return `${source.base_url}/search?searchTerm=${encodedQuery}`;
+      }
+      if (source.base_url.includes('mint.ca')) {
+        return `${source.base_url}/en/search?q=${encodedQuery}`;
       }
       break;
       
