@@ -10,8 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStore } from '@/contexts/AdminStoreContext';
-import ProductionCoinUploadManager from './ProductionCoinUploadManager';
-import CoinListingForm from './CoinListingForm';
+import EnhancedMultiCategoryUploadForm from './EnhancedMultiCategoryUploadForm';
 import BulkUploadManager from './BulkUploadManager';
 import MarketIntelligenceDashboard from './MarketIntelligenceDashboard';
 import DraftManager from './DraftManager';
@@ -158,83 +157,7 @@ const AdvancedDealerUploadPanelRefactored: React.FC = () => {
 
           <TabsContent value="upload" className="space-y-6">
             {(!isAdminUser || effectiveSelectedStoreId) && (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ProductionCoinUploadManager
-                    onImagesProcessed={handleImagesProcessed}
-                    onAIAnalysisComplete={handleAIAnalysisComplete}
-                    maxImages={10}
-                  />
-                  <CoinListingForm
-                    images={uploadedImages}
-                    aiResults={aiAnalysisResults}
-                    coinData={coinData}
-                    onCoinDataChange={setCoinData}
-                  />
-                </div>
-
-                {/* Recent Coins Image Management */}
-                {dealerCoins.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Camera className="h-5 w-5" />
-                        Recent Coins - Quick Image Management
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {dealerCoins.map((coin) => {
-                          const validImages = getValidImages(coin);
-                          return (
-                            <div key={coin.id} className="border rounded-lg p-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <img 
-                                  src={validImages[0] || '/placeholder.svg'} 
-                                  alt={coin.name}
-                                  className="w-16 h-16 object-cover rounded"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = '/placeholder.svg';
-                                  }}
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-medium truncate">{coin.name}</h4>
-                                  <p className="text-sm text-gray-500">
-                                    {coin.year} • {coin.country}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    {validImages.length} image{validImages.length !== 1 ? 's' : ''}
-                                  </p>
-                                </div>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                  <span>Price: ${coin.price}</span>
-                                  <span className={coin.featured ? 'text-yellow-600' : 'text-gray-500'}>
-                                    {coin.featured ? 'Featured' : 'Standard'}
-                                  </span>
-                                </div>
-                                
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditImages(coin)}
-                                  className="w-full"
-                                >
-                                  <Camera className="h-4 w-4 mr-2" />
-                                  Manage Images ({validImages.length})
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
+              <EnhancedMultiCategoryUploadForm />
             )}
           </TabsContent>
 

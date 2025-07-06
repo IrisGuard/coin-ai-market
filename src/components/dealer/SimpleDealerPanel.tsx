@@ -114,14 +114,16 @@ const SimpleDealerPanel = () => {
     enabled: !!user?.id,
   });
 
-  // 30 Categories for selection - EXACT SAME AS HOME PAGE
+  // 30 Categories for selection - EXACT SAME AS HOME PAGE + NEW CATEGORIES
   const categories = [
     'US Coins', 'World Coins', 'Ancient Coins', 'Modern Coins', 'Gold Coins',
     'Silver Coins', 'Platinum Coins', 'Paper Money', 'Graded Coins', 'Commemorative Coins',
     'Proof Coins', 'Uncirculated Coins', 'Tokens & Medals', 'Bullion Bars', 'American Coins',
     'European Coins', 'Asian Coins', 'African Coins', 'Australian Coins', 'South American Coins',
     'Error Coins', 'Double Die', 'Off-Center Strike', 'Clipped Planchet', 'Broadstrike',
-    'Die Crack', 'Lamination Error', 'Wrong Planchet', 'Rotated Die', 'Cud Error'
+    'Die Crack', 'Lamination Error', 'Wrong Planchet', 'Rotated Die', 'Cud Error',
+    // 🧠 Phase 2B.2: NEW MULTI-CATEGORY ADDITIONS
+    'Banknotes', 'Error Banknotes', 'Gold Bullion', 'Silver Bullion'
   ];
 
   // 🎯 ADVANCED IMAGE PROCESSING WITH DRAG & DROP AND BULK UPLOAD

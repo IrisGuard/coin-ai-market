@@ -11,13 +11,15 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Coins, Upload, Zap, Brain, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useCoinSubmission } from '@/hooks/upload/useCoinSubmission';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { useEnhancedCoinRecognition } from '@/hooks/useEnhancedCoinRecognition';
 import EnhancedImageUploadZone from '@/components/upload/EnhancedImageUploadZone';
 import EnhancedMobileAIUpload from '@/components/mobile/EnhancedMobileAIUpload';
 import type { CoinData, UploadedImage } from '@/types/upload';
 
 const MobileCoinUploadForm = () => {
+  const { user } = useAuth();
   const [coinData, setCoinData] = useState<CoinData>({
     title: '',
     description: '',
@@ -41,8 +43,8 @@ const MobileCoinUploadForm = () => {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
   const [aiAnalysisComplete, setAiAnalysisComplete] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { isSubmitting, submitListing } = useCoinSubmission();
   const { 
     performEnhancedAnalysis, 
     performBulkAnalysis,
@@ -70,7 +72,104 @@ const MobileCoinUploadForm = () => {
       return;
     }
 
-    await submitListing(coinData, images);
+    // 🧠 Phase 2B.2: Multi-category mobile submission routing
+    try {
+      setIsSubmitting(true);
+      
+      // Upload image to storage first
+      const imageUrl = images[0]?.url || '';
+      const imageUrls = images.map(img => img.url).filter(Boolean);
+      
+      // Build record data based on category
+      const baseData = {
+        name: coinData.title,
+        description: coinData.description,
+        year: parseInt(coinData.year) || new Date().getFullYear(),
+        price: parseFloat(coinData.price) || 0,
+        country: coinData.country,
+        grade: coinData.grade,
+        condition: coinData.condition,
+        composition: coinData.composition,
+        image: imageUrl,
+        images: imageUrls,
+        category: coinData.category as any,
+        user_id: user?.id,
+        rarity: coinData.rarity,
+        ai_confidence: 0.85,
+        ai_provider: 'mobile_enhanced_ai'
+      };
+
+      let result, tableName;
+      
+      if (coinData.category === 'banknotes' || coinData.category === 'error_banknotes') {
+        tableName = 'banknotes';
+        const banknoteData = {
+          ...baseData,
+          denomination: coinData.denomination,
+          series: '', // Mobile form doesn't have series field
+          serial_number: '',
+          printer: '',
+          security_features: [],
+          error_type: coinData.category === 'error_banknotes' ? 'Error Banknote' : '',
+          error_description: coinData.category === 'error_banknotes' ? 'Mobile detected error banknote' : ''
+        };
+        
+        const { data: banknoteResult, error } = await supabase.from('banknotes').insert(banknoteData as any).select().single();
+        if (error) throw error;
+        result = banknoteResult;
+      } else if (coinData.category === 'gold_bullion' || coinData.category === 'silver_bullion') {
+        tableName = 'bullion_bars';
+        const bullionData = {
+          ...baseData,
+          metal_type: coinData.category === 'gold_bullion' ? 'gold' : 'silver',
+          weight: parseFloat(coinData.weight) || 1,
+          purity: 0.999,
+          brand: 'Unknown',
+          refinery: 'Unknown',
+          serial_number: '',
+          assay_certificate: false,
+          hallmarks: [],
+          dimensions: {},
+          condition: 'Mint',
+          grade: 'Mint State'
+        };
+        
+        const { data: bullionResult, error } = await supabase.from('bullion_bars').insert(bullionData as any).select().single();
+        if (error) throw error;
+        result = bullionResult;
+      } else {
+        tableName = 'coins';
+        const coinDataFormatted = {
+          ...baseData,
+          denomination: coinData.denomination,
+          mint: coinData.mint,
+          diameter: parseFloat(coinData.diameter) || null,
+          weight: parseFloat(coinData.weight) || null
+        };
+        
+        const { data: coinResult, error } = await supabase.from('coins').insert(coinDataFormatted as any).select().single();
+        if (error) throw error;
+        result = coinResult;
+      }
+
+      toast({
+        title: "✅ Mobile Upload Successful!",
+        description: `${coinData.title} uploaded to ${tableName} successfully`,
+      });
+
+      // Reset form
+      resetForm();
+      
+    } catch (error: any) {
+      console.error('Mobile submission error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: keyof CoinData, value: string | boolean) => {
@@ -151,11 +250,39 @@ const MobileCoinUploadForm = () => {
     const claudeData = analysisResult?.claude_analysis;
     if (!claudeData) return 'modern';
 
-    // Enhanced error coin detection
+    // Phase 2B.2: Multi-category detection for Coins, Banknotes, and Bullion
     const name = (claudeData.name || '').toLowerCase();
     const description = (claudeData.description || '').toLowerCase();
     const errors = claudeData.errors || [];
     
+    // 💵 BANKNOTE DETECTION
+    if (name.includes('banknote') || name.includes('bill') || name.includes('note') || 
+        name.includes('currency') || name.includes('paper money') ||
+        description.includes('banknote') || description.includes('paper money')) {
+      console.log('💵 BANKNOTE DETECTED by Enhanced AI!');
+      
+      // Check for error banknotes
+      if (errors.length > 0 || name.includes('error') || name.includes('misprint') ||
+          description.includes('error') || description.includes('misprint')) {
+        return 'error_banknotes';
+      }
+      return 'banknotes';
+    }
+    
+    // 🟡 BULLION DETECTION
+    if (name.includes('bullion') || name.includes('bar') || name.includes('ingot') ||
+        description.includes('bullion') || description.includes('bar') || description.includes('ingot')) {
+      console.log('🟡 BULLION DETECTED by Enhanced AI!');
+      
+      // Determine metal type
+      const composition = (claudeData.composition || '').toLowerCase();
+      if (composition.includes('silver')) {
+        return 'silver_bullion';
+      }
+      return 'gold_bullion'; // Default to gold bullion
+    }
+
+    // Enhanced error coin detection for COINS
     if (errors.length > 0 || 
         name.includes('error') || 
         name.includes('double') || 
@@ -165,14 +292,14 @@ const MobileCoinUploadForm = () => {
       return 'error_coin';
     }
 
-    // Country-based categorization
+    // Country-based categorization for COINS
     const country = (claudeData.country || '').toLowerCase();
     if (country.includes('usa') || country.includes('united states')) return 'american';
     if (country.includes('china') || country.includes('chinese')) return 'asian';
     if (country.includes('britain') || country.includes('england')) return 'british';
     if (country.includes('europe') || country.includes('germany') || country.includes('france')) return 'european';
     
-    // Composition-based categorization
+    // Composition-based categorization for COINS
     const composition = (claudeData.composition || '').toLowerCase();
     if (composition.includes('gold')) return 'gold';
     if (composition.includes('silver')) return 'silver';
@@ -375,6 +502,18 @@ const MobileCoinUploadForm = () => {
                 <SelectContent>
                   <SelectItem value="error_coin">
                     🚨 Error Coin (Auto-Featured)
+                  </SelectItem>
+                  <SelectItem value="banknotes">
+                    💵 Banknotes
+                  </SelectItem>
+                  <SelectItem value="error_banknotes">
+                    🚫💵 Error Banknotes
+                  </SelectItem>
+                  <SelectItem value="gold_bullion">
+                    🟡 Gold Bullion
+                  </SelectItem>
+                  <SelectItem value="silver_bullion">
+                    ⚪ Silver Bullion
                   </SelectItem>
                   <SelectItem value="american">American</SelectItem>
                   <SelectItem value="european">European</SelectItem>
