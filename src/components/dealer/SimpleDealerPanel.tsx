@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import { useGlobalAIBrainIntegration, type AIBrainAnalysis } from '@/hooks/dealer/useGlobalAIBrainIntegration';
 import { useAIStats } from '@/hooks/useAIStats';
 import { useDatabaseStats } from '@/hooks/useDatabaseStats';
 import { useAnalyticsStats } from '@/hooks/useAnalyticsStats';
@@ -33,8 +34,9 @@ interface UploadedImage {
 const SimpleDealerPanel = () => {
   const { user } = useAuth();
   
-  // 🧠 AI ANALYSIS HOOKS
+  // 🧠 AI ANALYSIS HOOKS - PHASE 2A INTEGRATION
   const { analyzeImage, isAnalyzing } = useRealAICoinRecognition();
+  const { analyzeImageWithGlobalBrain, sourcesData } = useGlobalAIBrainIntegration();
   const { data: dbStats, isLoading: dbLoading } = useDatabaseStats();
   const { data: aiStats, isLoading: aiLoading } = useAIStats();
   const { data: analyticsStats, isLoading: analyticsLoading } = useAnalyticsStats();
@@ -166,9 +168,9 @@ const SimpleDealerPanel = () => {
     const allImages = [...currentImages, ...newImages];
     setImages(allImages);
     
-    // 🧠 ENHANCED AI ANALYSIS WITH WEB SCRAPING
-    toast.info('🌐 Starting Advanced Global Coin Recognition...', {
-      description: 'Analyzing with Claude AI + scanning worldwide databases'
+    // 🧠 PHASE 2A: GLOBAL AI BRAIN INTEGRATION
+    toast.info('🌍 Starting Global AI Brain Analysis...', {
+      description: `Connecting to 171 worldwide sources across ${Object.keys(sourcesData?.by_country || {}).length || 34} countries`
     });
     
     // Process AI analysis for each new image in parallel for faster processing
@@ -176,8 +178,8 @@ const SimpleDealerPanel = () => {
       try {
         console.log(`🔍 Analyzing image ${index + 1}/${newImages.length}...`);
         
-        // Enhanced AI analysis with web scraping
-        const analysis = await analyzeImageWithWebScraping(imageData.file);
+        // Enhanced AI analysis with Global Brain (Phase 2A)
+        const analysis = await analyzeImageWithGlobalBrain(imageData.file);
         
         if (analysis) {
           // Update the specific image with analysis results
@@ -302,45 +304,8 @@ const SimpleDealerPanel = () => {
       }
     });
 
-    // Wait for all analyses to complete
+   // Wait for all analyses to complete
     await Promise.all(analysisPromises);
-  };
-
-  // 🧠 ENHANCED AI ANALYSIS WITH WEB SCRAPING
-  const analyzeImageWithWebScraping = async (imageFile: File) => {
-    try {
-      // First get Claude AI analysis
-      const claudeAnalysis = await analyzeImage(imageFile);
-      
-      if (!claudeAnalysis) {
-        throw new Error('Claude AI analysis failed');
-      }
-
-      // 🌐 WEB SCRAPING FOR ENHANCED ACCURACY
-      console.log('🌍 Starting web scraping for enhanced accuracy...');
-      
-      // Simulate web scraping (in production, this would use real APIs)
-      const webData = await simulateWebScraping(claudeAnalysis);
-      
-      // Merge Claude AI with web data for enhanced accuracy
-      const enhancedAnalysis = {
-        ...claudeAnalysis,
-        // Override with more accurate web data if available
-        name: webData.name || claudeAnalysis.name,
-        country: webData.country || claudeAnalysis.country,
-        year: webData.year || claudeAnalysis.year,
-        composition: webData.composition || claudeAnalysis.composition,
-        estimatedValue: webData.estimatedValue || claudeAnalysis.estimatedValue,
-        confidence: Math.min(1, (claudeAnalysis.confidence || 0) + 0.1), // Boost confidence with web verification
-        market_trend: webData.market_trend || 'Stable'
-      };
-
-      return enhancedAnalysis;
-      
-    } catch (error) {
-      console.error('Enhanced AI analysis failed:', error);
-      throw error;
-    }
   };
 
   // 🌐 SIMULATE WEB SCRAPING (Replace with real implementation)
