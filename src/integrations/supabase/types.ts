@@ -414,6 +414,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_learning_performance: {
+        Row: {
+          accuracy_improvement: number | null
+          category: string
+          confidence_score_avg: number | null
+          created_at: string
+          id: string
+          last_learning_update: string | null
+          total_learning_sessions: number | null
+          user_corrections_applied: number | null
+        }
+        Insert: {
+          accuracy_improvement?: number | null
+          category: string
+          confidence_score_avg?: number | null
+          created_at?: string
+          id?: string
+          last_learning_update?: string | null
+          total_learning_sessions?: number | null
+          user_corrections_applied?: number | null
+        }
+        Update: {
+          accuracy_improvement?: number | null
+          category?: string
+          confidence_score_avg?: number | null
+          created_at?: string
+          id?: string
+          last_learning_update?: string | null
+          total_learning_sessions?: number | null
+          user_corrections_applied?: number | null
+        }
+        Relationships: []
+      }
       ai_learning_sessions: {
         Row: {
           accuracy_score: number | null
@@ -2548,6 +2581,45 @@ export type Database = {
         }
         Relationships: []
       }
+      global_source_intelligence: {
+        Row: {
+          auto_discovered: boolean | null
+          confidence_level: number | null
+          created_at: string
+          geographic_region: string | null
+          id: string
+          intelligence_data: Json
+          intelligence_type: string
+          language_support: string[] | null
+          last_intelligence_update: string | null
+          source_id: string
+        }
+        Insert: {
+          auto_discovered?: boolean | null
+          confidence_level?: number | null
+          created_at?: string
+          geographic_region?: string | null
+          id?: string
+          intelligence_data?: Json
+          intelligence_type: string
+          language_support?: string[] | null
+          last_intelligence_update?: string | null
+          source_id: string
+        }
+        Update: {
+          auto_discovered?: boolean | null
+          confidence_level?: number | null
+          created_at?: string
+          geographic_region?: string | null
+          id?: string
+          intelligence_data?: Json
+          intelligence_type?: string
+          language_support?: string[] | null
+          last_intelligence_update?: string | null
+          source_id?: string
+        }
+        Relationships: []
+      }
       lock_options: {
         Row: {
           benefit_percentage: number
@@ -3689,6 +3761,42 @@ export type Database = {
           source_id?: string
           success_rate?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      source_discovery_config: {
+        Row: {
+          created_at: string
+          discovery_type: string
+          id: string
+          is_active: boolean | null
+          last_run: string | null
+          max_sources_per_run: number
+          quality_threshold: number
+          search_patterns: Json
+          target_regions: Json
+        }
+        Insert: {
+          created_at?: string
+          discovery_type: string
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          max_sources_per_run?: number
+          quality_threshold?: number
+          search_patterns?: Json
+          target_regions?: Json
+        }
+        Update: {
+          created_at?: string
+          discovery_type?: string
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          max_sources_per_run?: number
+          quality_threshold?: number
+          search_patterns?: Json
+          target_regions?: Json
         }
         Relationships: []
       }

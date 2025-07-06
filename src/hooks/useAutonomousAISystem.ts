@@ -165,20 +165,18 @@ export const useAutonomousAISystem = () => {
     },
   });
 
-  // Get basic analytics from existing tables
+  // Get real-time data from new autonomous AI tables
   const discoveryConfigs = useQuery({
     queryKey: ['source-discovery-configs'],
     queryFn: async () => {
-      // Use existing analytics_events table for now
       const { data, error } = await supabase
-        .from('analytics_events')
+        .from('source_discovery_config')
         .select('*')
-        .eq('event_type', 'source_discovery_config')
-        .order('timestamp', { ascending: false })
-        .limit(10);
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.log('Discovery configs not available yet, using mock data');
+        console.log('Discovery configs error:', error);
         return [];
       }
       return data || [];
@@ -189,13 +187,12 @@ export const useAutonomousAISystem = () => {
     queryKey: ['ai-learning-performance'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ai_learning_sessions')
+        .from('ai_learning_performance')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('last_learning_update', { ascending: false });
 
       if (error) {
-        console.log('Learning performance data not available yet');
+        console.log('Learning performance error:', error);
         return [];
       }
       return data || [];
@@ -205,16 +202,15 @@ export const useAutonomousAISystem = () => {
   const sourceIntelligence = useQuery({
     queryKey: ['global-source-intelligence'],
     queryFn: async () => {
-      // Use existing data sources for now
       const { data, error } = await supabase
-        .from('data_sources')
+        .from('global_source_intelligence')
         .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
+        .eq('auto_discovered', true)
+        .order('last_intelligence_update', { ascending: false })
         .limit(10);
 
       if (error) {
-        console.log('Source intelligence data not available yet');
+        console.log('Source intelligence error:', error);
         return [];
       }
       return data || [];

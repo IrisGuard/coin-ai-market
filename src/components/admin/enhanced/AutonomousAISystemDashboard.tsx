@@ -245,20 +245,20 @@ const AutonomousAISystemDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {learningPerformance.data.slice(0, 5).map((session: any, index: number) => (
-                <div key={session.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {learningPerformance.data.slice(0, 5).map((performance: any, index: number) => (
+                <div key={performance.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <div className="font-medium">{session.category || 'General'}</div>
+                    <div className="font-medium">{performance.category || 'General'}</div>
                     <div className="text-sm text-gray-600">
-                      Sessions: {session.total_learning_sessions || 0}
+                      Sessions: {performance.total_learning_sessions || 0}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-medium text-green-600">
-                      +{Math.round((session.accuracy_improvement || 0) * 100)}%
+                      +{Math.round((performance.accuracy_improvement || 0) * 100)}%
                     </div>
                     <div className="text-sm text-gray-600">
-                      Confidence: {Math.round((session.confidence_score_avg || 0) * 100)}%
+                      Confidence: {Math.round((performance.confidence_score_avg || 0) * 100)}%
                     </div>
                   </div>
                 </div>
