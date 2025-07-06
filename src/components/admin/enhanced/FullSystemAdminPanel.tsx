@@ -13,6 +13,7 @@ import AdminAnalyticsTab from '@/components/admin/tabs/AdminAnalyticsTab';
 import AdminSystemPhasesTab from '@/components/admin/tabs/AdminSystemPhasesTab';
 import AdminCleanupTab from '@/components/admin/tabs/AdminCleanupTab';
 import AdminStoreManagerTab from '@/components/admin/AdminStoreManagerTab';
+import AdminMonitoringTab from '@/components/admin/tabs/AdminMonitoringTab';
 import ImageDebugTool from '@/components/admin/ImageDebugTool';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -197,6 +198,7 @@ const FullSystemAdminPanel = () => {
             {/* ROW 6 - ANALYTICS & MONITORING */}
             <div className="flex flex-wrap gap-1 mb-2 p-2 bg-indigo-50 rounded-lg">
               <div className="text-xs font-semibold text-indigo-700 w-full mb-1">📊 ANALYTICS & MONITORING</div>
+              <TabsTrigger value="ai-monitoring" className="text-xs px-3 py-2 bg-purple-100 hover:bg-purple-200">🤖 AI System Monitor</TabsTrigger>
               <TabsTrigger value="analytics-events" className="text-xs px-2 py-1">📊 Analytics Events</TabsTrigger>
               <TabsTrigger value="page-views" className="text-xs px-2 py-1">👁️ Page Views</TabsTrigger>
               <TabsTrigger value="search-analytics" className="text-xs px-2 py-1">🔍 Search Analytics</TabsTrigger>
@@ -331,6 +333,7 @@ const FullSystemAdminPanel = () => {
           <TabsContent value="user-subscriptions"><DatabaseTableTab tableName="user_subscriptions" displayName="User Subscriptions" /></TabsContent>
           
           {/* ANALYTICS & MONITORING */}
+          <TabsContent value="ai-monitoring"><AdminMonitoringTab /></TabsContent>
           <TabsContent value="analytics-events"><DatabaseTableTab tableName="analytics_events" displayName="Analytics Events" /></TabsContent>
           <TabsContent value="page-views"><DatabaseTableTab tableName="page_views" displayName="Page Views" /></TabsContent>
           <TabsContent value="search-analytics"><DatabaseTableTab tableName="search_analytics" displayName="Search Analytics" /></TabsContent>
