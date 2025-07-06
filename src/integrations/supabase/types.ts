@@ -2032,6 +2032,108 @@ export type Database = {
         }
         Relationships: []
       }
+      global_banknote_sources: {
+        Row: {
+          base_url: string
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          language: string
+          last_scraped: string | null
+          priority: number
+          response_time_avg: number | null
+          source_name: string
+          source_type: string
+          specialization: string[] | null
+          success_rate: number
+          updated_at: string
+        }
+        Insert: {
+          base_url: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          last_scraped?: string | null
+          priority?: number
+          response_time_avg?: number | null
+          source_name: string
+          source_type?: string
+          specialization?: string[] | null
+          success_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          last_scraped?: string | null
+          priority?: number
+          response_time_avg?: number | null
+          source_name?: string
+          source_type?: string
+          specialization?: string[] | null
+          success_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      global_bullion_sources: {
+        Row: {
+          base_url: string
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          language: string
+          last_scraped: string | null
+          metal_types: string[] | null
+          priority: number
+          response_time_avg: number | null
+          source_name: string
+          source_type: string
+          success_rate: number
+          updated_at: string
+        }
+        Insert: {
+          base_url: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          last_scraped?: string | null
+          metal_types?: string[] | null
+          priority?: number
+          response_time_avg?: number | null
+          source_name: string
+          source_type?: string
+          success_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          last_scraped?: string | null
+          metal_types?: string[] | null
+          priority?: number
+          response_time_avg?: number | null
+          source_name?: string
+          source_type?: string
+          success_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       global_coin_learning: {
         Row: {
           accuracy_score: number | null
@@ -2084,6 +2186,7 @@ export type Database = {
           scraping_config: Json | null
           source_name: string
           source_type: string
+          specialization: string[] | null
           success_rate: number | null
           updated_at: string | null
         }
@@ -2102,6 +2205,7 @@ export type Database = {
           scraping_config?: Json | null
           source_name: string
           source_type?: string
+          specialization?: string[] | null
           success_rate?: number | null
           updated_at?: string | null
         }
@@ -2120,6 +2224,7 @@ export type Database = {
           scraping_config?: Json | null
           source_name?: string
           source_type?: string
+          specialization?: string[] | null
           success_rate?: number | null
           updated_at?: string | null
         }
