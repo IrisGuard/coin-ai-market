@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useAICoinRecognition } from '@/hooks/useAICoinRecognition';
-import { triggerWebDiscovery, enrichCoinDataWithWebResults } from './enhanced-coin-recognition/webDiscovery';
+import { useGlobalAIBrainIntegration, AIBrainAnalysis } from '@/hooks/dealer/useGlobalAIBrainIntegration';
 import { toast } from 'sonner';
 
 export interface EnhancedAIResult {
@@ -28,151 +27,86 @@ export interface EnhancedAIResult {
   ai_confidence?: number;
 }
 
-// Simple marketplace intelligence function
-const extractMarketplaceIntelligence = async (claudeResult: any) => {
-  return {
-    priceIntelligence: {
-      averagePrice: claudeResult.estimated_value || 0,
-      priceRange: { low: 0, high: claudeResult.estimated_value * 2 || 0 }
-    },
-    categoryValidation: {
-      suggestedCategory: 'WORLD COINS',
-      confidence: 0.8
-    },
-    gradeAssessment: {
-      suggestedGrade: claudeResult.grade || 'Ungraded',
-      confidence: 0.7
-    },
-    insights: ['AI-powered analysis completed'],
-    overallConfidence: 0.85
-  };
-};
-
-// Enhanced data merger function with cache clearing and validation
-const mergeAnalysisData = async (claudeResult: any, webResults: any[]) => {
-  // Return ONLY Claude data - NO fallbacks whatsoever
-  const sanitizedData = {
-    name: claudeResult.name,
-    country: claudeResult.country,
-    year: claudeResult.year,
-    denomination: claudeResult.denomination,
-    composition: claudeResult.composition,
-    grade: claudeResult.grade,
-    rarity: claudeResult.rarity,
-    estimated_value: claudeResult.estimated_value || 0,
-    mint: claudeResult.mint,
-    diameter: claudeResult.diameter,
-    weight: claudeResult.weight,
-    errors: claudeResult.errors || [],
-    confidence: claudeResult.confidence || 0.75
-  };
-  
-  return {
-    ...sanitizedData,
-    enhanced_with_marketplace: true,
-    final_confidence: sanitizedData.confidence
-  };
-};
-
 export const useRealAICoinRecognition = () => {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<EnhancedAIResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const { mutateAsync: recognizeCoin } = useAICoinRecognition();
+  // 🧠 NEW: Use Global AI Brain Integration with 171 sources
+  const { analyzeImageWithGlobalBrain, isAnalyzing } = useGlobalAIBrainIntegration();
 
   const analyzeImage = async (imageFile: File): Promise<EnhancedAIResult | null> => {
-    setIsAnalyzing(true);
     setError(null);
-    
     const startTime = Date.now();
     
     try {
-      console.log('🧠 Starting complete AI coin recognition...');
+      console.log('🌍 Starting Global AI Brain Analysis (171 sources)...');
       
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(imageFile);
-      });
-
-      console.log('🎯 Claude AI Analysis...');
-      const claudeResult = await recognizeCoin({
-        image: base64,
-        aiProvider: 'claude'
-      });
-
-      if (!claudeResult.success) {
-        throw new Error('Claude AI analysis failed');
+      // Use Global AI Brain Integration
+      const brainResult = await analyzeImageWithGlobalBrain(imageFile);
+      
+      if (!brainResult) {
+        throw new Error('Global AI Brain analysis failed');
       }
 
-      console.log('🌐 External Web Discovery Integration...');
-      const webResults = await triggerWebDiscovery(claudeResult.analysis);
+      console.log('✅ Global AI Brain Analysis Complete:', brainResult);
       
-      console.log('🔗 Enhanced Data Enrichment with Web Results...');
-      const enrichedData = await enrichCoinDataWithWebResults(claudeResult.analysis, webResults);
-      
-      console.log('🏪 Marketplace Intelligence Integration...');
-      const marketplaceIntelligence = await extractMarketplaceIntelligence(enrichedData);
-      
-      console.log('🔗 Enhanced Data Merger with Web Enhancement...');
-      const mergedData = await mergeAnalysisData(enrichedData, webResults);
-      
-      // Enhanced data validation with web discovery results
-      const validatedCountry = validateCountryData(mergedData.country || enrichedData.country);
-      const validatedName = validateCoinName(mergedData.name || enrichedData.name, validatedCountry);
-      
-      const structuredDescription = generateEnhancedStructuredDescription(mergedData, enrichedData);
-      const autoDescription = enrichedData.enhanced_description || generateAutoDescription(mergedData, enrichedData);
-      const suggestedCategory = determineEnhancedCategory(validatedCountry, mergedData.denomination || enrichedData.denomination);
-      
+      // Convert AIBrainAnalysis to EnhancedAIResult format for backward compatibility
       const enhancedResult: EnhancedAIResult = {
-        name: validatedName,
-        year: mergedData.year || enrichedData.year,
-        country: validatedCountry,
-        denomination: mergedData.denomination || enrichedData.denomination,
-        composition: mergedData.composition || enrichedData.composition,
-        grade: mergedData.grade || enrichedData.grade,
-        estimatedValue: mergedData.estimated_value || enrichedData.estimated_value || 0,
-        rarity: mergedData.rarity || enrichedData.rarity,
-        mint: mergedData.mint || enrichedData.mint,
-        diameter: mergedData.diameter || enrichedData.diameter,
-        weight: mergedData.weight || enrichedData.weight,
-        errors: mergedData.errors || enrichedData.errors || [],
-        confidence: Math.min((mergedData.final_confidence || enrichedData.confidence || 0.75) + (enrichedData.web_confidence_boost || 0), 0.95),
-        aiProvider: 'claude-enhanced-web-discovery',
+        name: brainResult.name,
+        year: brainResult.year,
+        country: brainResult.country,
+        denomination: brainResult.denomination,
+        composition: brainResult.composition,
+        grade: brainResult.grade,
+        estimatedValue: brainResult.estimatedValue,
+        rarity: brainResult.rarity,
+        mint: brainResult.specificFields?.mint,
+        diameter: brainResult.specificFields?.diameter,
+        weight: brainResult.specificFields?.weight,
+        errors: brainResult.errors,
+        confidence: brainResult.confidence,
+        aiProvider: 'global-ai-brain-171-sources',
         processingTime: Date.now() - startTime,
-        description: autoDescription,
-        structured_description: structuredDescription,
-        category: suggestedCategory,
+        description: brainResult.description,
+        structured_description: generateStructuredDescription(brainResult),
+        category: brainResult.category || determineCategoryFromResult(brainResult),
         market_intelligence: {
-          ...marketplaceIntelligence,
-          web_sources_count: webResults.length,
-          discovery_sources: enrichedData.discovery_sources || [],
-          market_price_sources: enrichedData.market_price_sources || 0
+          priceIntelligence: {
+            averagePrice: brainResult.estimatedValue,
+            priceRange: { low: brainResult.estimatedValue * 0.8, high: brainResult.estimatedValue * 1.2 }
+          },
+          categoryValidation: {
+            suggestedCategory: brainResult.category || 'WORLD COINS',
+            confidence: brainResult.confidence
+          },
+          gradeAssessment: {
+            suggestedGrade: brainResult.grade,
+            confidence: brainResult.confidence
+          },
+          insights: [`Global AI Brain analysis with ${brainResult.market_intelligence.web_sources_count} sources`],
+          overallConfidence: brainResult.confidence,
+          web_sources_count: brainResult.market_intelligence.web_sources_count,
+          discovery_sources: brainResult.market_intelligence.discovery_sources,
+          market_price_sources: brainResult.source_analysis.sources_consulted.length
         },
-        condition: mergedData.grade || enrichedData.grade,
-        authentication_status: webResults.length > 0 ? 'web_verified' : 'ai_verified',
-        ai_confidence: Math.min((mergedData.final_confidence || enrichedData.confidence || 0.75) + (enrichedData.web_confidence_boost || 0), 0.95)
+        condition: brainResult.grade,
+        authentication_status: brainResult.market_intelligence.authentication_status,
+        ai_confidence: brainResult.confidence
       };
 
-      console.log('✅ Complete Analysis Ready:', enhancedResult);
       setResult(enhancedResult);
       
-      const webSourcesText = webResults.length > 0 ? ` (verified by ${webResults.length} external sources)` : '';
       toast.success(
-        `Analysis Complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence${webSourcesText}.`
+        `🌍 Global AI Analysis Complete! ${enhancedResult.name} identified with ${Math.round(enhancedResult.confidence * 100)}% confidence from ${brainResult.market_intelligence.web_sources_count} global sources.`
       );
 
       return enhancedResult;
       
     } catch (error: any) {
-      console.error('❌ AI analysis failed:', error);
+      console.error('❌ Global AI Brain analysis failed:', error);
       setError(error.message || 'Analysis failed');
-      toast.error(`Analysis failed: ${error.message}`);
+      toast.error(`Global AI analysis failed: ${error.message}`);
       return null;
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -190,97 +124,60 @@ export const useRealAICoinRecognition = () => {
   };
 };
 
-const generateAutoDescription = (mergedData: any, claudeData: any): string => {
-  const name = mergedData.name || claudeData.name;
-  const year = mergedData.year || claudeData.year;
-  const grade = mergedData.grade || claudeData.grade;
-  const composition = mergedData.composition || claudeData.composition;
-  const rarity = mergedData.rarity || claudeData.rarity;
-  const weight = mergedData.weight || claudeData.weight || 0;
-  const diameter = mergedData.diameter || claudeData.diameter || 0;
-  const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
-  
-  return `${name} from ${year}. Grade: ${grade}. Composition: ${composition}. Weight: ${weight}g, Diameter: ${diameter}mm. ${rarity} rarity coin with AI analysis. Estimated value: $${estimatedValue}.`;
+// 🧠 NEW: Generate structured description from Global AI Brain result
+const generateStructuredDescription = (brainResult: AIBrainAnalysis): string => {
+  return `PROFESSIONAL ANALYSIS: ${brainResult.name} (${brainResult.year}) - ${brainResult.grade} grade ${brainResult.composition} ${brainResult.category || 'item'} from ${brainResult.country}. RARITY: ${brainResult.rarity}. VALUATION: $${brainResult.estimatedValue}. AUTHENTICATION: Global AI Brain verified with ${Math.round(brainResult.confidence * 100)}% confidence from ${brainResult.market_intelligence.web_sources_count} sources.`;
 };
 
-const generateEnhancedStructuredDescription = (mergedData: any, claudeData: any): string => {
-  const name = mergedData.name || claudeData.name;
-  const year = mergedData.year || claudeData.year;
-  const grade = mergedData.grade || claudeData.grade;
-  const composition = mergedData.composition || claudeData.composition;
-  const country = mergedData.country || claudeData.country;
-  const rarity = mergedData.rarity || claudeData.rarity;
-  const estimatedValue = mergedData.estimated_value || claudeData.estimated_value || 0;
-  const confidence = mergedData.final_confidence || claudeData.confidence || 0.75;
-  
-  return `PROFESSIONAL ANALYSIS: ${name} (${year}) - ${grade} grade ${composition} coin from ${country}. RARITY: ${rarity}. VALUATION: $${estimatedValue}. AUTHENTICATION: AI-verified with ${Math.round(confidence * 100)}% confidence.`;
-};
-
-const validateCountryData = (country?: string): string => {
-  if (!country) {
-    return '';
+// 🧠 NEW: Determine category from Global AI Brain result
+const determineCategoryFromResult = (brainResult: AIBrainAnalysis): string => {
+  // Use the category from Global AI Brain, or determine from country/type
+  if (brainResult.category) {
+    return mapCategoryToDisplayName(brainResult.category);
   }
   
-  const countryLower = country.toLowerCase().trim();
-  
-  // Greece-specific validation
-  if (countryLower.includes('greece') || countryLower.includes('greek') || countryLower.includes('ελλαδα')) {
-    return 'Greece';
+  // Fallback category determination based on country
+  const country = brainResult.country.toLowerCase();
+  if (country.includes('greece') || country.includes('greek')) {
+    return 'WORLD COINS';
   }
-  
-  // Remove any "coin" suffixes that might be cached
-  const cleanCountry = country.replace(/\s*coin\s*$/i, '').trim();
-  return cleanCountry;
-};
-
-const validateCoinName = (name?: string, country?: string): string => {
-  if (!name) {
-    return '';
+  if (country.includes('united states') || country.includes('usa')) {
+    return 'USA COINS';
   }
-  
-  // Remove conflicting country data from name
-  const cleanName = name
-    .replace(/USA\s*COIN/gi, '')
-    .replace(/United States/gi, '')
-    .trim();
-  
-  // If we have a valid country, ensure consistency
-  if (country && country !== '') {
-    if (!cleanName.toLowerCase().includes(country.toLowerCase())) {
-      return `${country} ${cleanName}`.trim();
-    }
-  }
-  
-  return cleanName;
-};
-
-const determineEnhancedCategory = (country?: string, denomination?: string): string => {
-  if (!country) return '';
-  
-  const countryLower = country.toLowerCase();
-  
-  // Greece gets priority if detected
-  if (countryLower.includes('greece') || countryLower.includes('greek')) {
-    return 'WORLD COINS'; // Greece coins go under WORLD COINS
-  }
-  
-  // Other countries...
-  if (countryLower.includes('russia') || countryLower.includes('soviet')) {
-    return 'RUSSIA COINS';
-  }
-  if (countryLower.includes('china') || countryLower.includes('chinese')) {
+  if (country.includes('china') || country.includes('chinese')) {
     return 'CHINESE COINS';
   }
-  if (countryLower.includes('britain') || countryLower.includes('england') || countryLower.includes('uk')) {
+  if (country.includes('britain') || country.includes('england') || country.includes('uk')) {
     return 'BRITISH COINS';
   }
-  if (countryLower.includes('canada') || countryLower.includes('canadian')) {
+  if (country.includes('canada') || country.includes('canadian')) {
     return 'CANADIAN COINS';
   }
-  // USA comes AFTER other countries to avoid override
-  if (countryLower.includes('usa') || countryLower.includes('united states')) {
-    return 'USA COINS';
+  if (country.includes('russia') || country.includes('soviet')) {
+    return 'RUSSIA COINS';
   }
   
   return 'WORLD COINS';
 };
+
+// 🧠 NEW: Map Global AI Brain categories to display names
+const mapCategoryToDisplayName = (category: string): string => {
+  const categoryMap: Record<string, string> = {
+    'banknotes': 'BANKNOTES',
+    'error_banknotes': 'ERROR BANKNOTES',
+    'gold_bullion': 'GOLD BULLION',
+    'silver_bullion': 'SILVER BULLION',
+    'modern': 'MODERN COINS',
+    'ancient': 'ANCIENT COINS',
+    'world': 'WORLD COINS',
+    'usa': 'USA COINS',
+    'canadian': 'CANADIAN COINS',
+    'british': 'BRITISH COINS',
+    'chinese': 'CHINESE COINS',
+    'russian': 'RUSSIA COINS'
+  };
+  
+  return categoryMap[category] || 'WORLD COINS';
+};
+
+// Legacy validation functions removed - Global AI Brain handles all validation internally

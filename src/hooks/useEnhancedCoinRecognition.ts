@@ -1,29 +1,13 @@
 import { useState } from 'react';
-import { useRealAICoinRecognition } from '@/hooks/useRealAICoinRecognition';
+import { useGlobalAIBrainIntegration } from '@/hooks/dealer/useGlobalAIBrainIntegration';
 import { toast } from 'sonner';
 
 import { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
-import { triggerWebDiscovery } from './enhanced-coin-recognition/webDiscovery';
-import { mergeAnalysisData } from './enhanced-coin-recognition/dataMerger';
-import { saveEnhancedResults } from './enhanced-coin-recognition/storageHelpers';
-import { generateAutoFillData } from './enhanced-coin-recognition/autoDescriptionGenerator';
 
 export type { EnhancedAnalysisResult } from './enhanced-coin-recognition/types';
 
-// Simple data extraction functions
-const extractDataSources = (webResults: any[]) => {
-  return webResults.map(result => result.source || 'unknown');
-};
-
-const calculateEnrichmentScore = (claudeResult: any, webResults: any[]) => {
-  let score = claudeResult.confidence || 0.5;
-  if (webResults.length > 0) score += 0.2;
-  if (webResults.length > 3) score += 0.1;
-  return Math.min(score, 1.0);
-};
-
 export const useEnhancedCoinRecognition = () => {
-  const { analyzeImage, isAnalyzing, result, error, clearResults } = useRealAICoinRecognition();
+  const { analyzeImageWithGlobalBrain, isAnalyzing } = useGlobalAIBrainIntegration();
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichmentProgress, setEnrichmentProgress] = useState(0);
   const [enhancedResult, setEnhancedResult] = useState<EnhancedAnalysisResult | null>(null);
@@ -31,54 +15,84 @@ export const useEnhancedCoinRecognition = () => {
 
   const performEnhancedAnalysis = async (imageFile: File): Promise<EnhancedAnalysisResult | null> => {
     try {
-      console.log('🚀 Starting Enhanced Coin Analysis Pipeline...');
+      console.log('🚀 Starting Enhanced Coin Analysis Pipeline with Global AI Brain...');
       
-      // Step 1: Claude AI Recognition
+      setIsEnriching(true);
       setEnrichmentProgress(20);
-      const claudeResult = await analyzeImage(imageFile);
+
+      // Step 1: Global AI Brain Analysis (replaces Claude + Web Discovery)
+      const brainResult = await analyzeImageWithGlobalBrain(imageFile);
       
-      if (!claudeResult) {
-        throw new Error('Claude AI analysis failed');
+      if (!brainResult) {
+        throw new Error('Global AI Brain analysis failed');
       }
 
-      console.log('✅ Claude analysis completed:', claudeResult.name);
-      
-      // Step 2: Web Discovery
-      setIsEnriching(true);
-      setEnrichmentProgress(40);
-      
-      const webDiscoveryResults = await triggerWebDiscovery(claudeResult);
-      
-      setEnrichmentProgress(70);
-      
-      // Step 3: Merge and Enrich Data
-      const mergedData = await mergeAnalysisData(claudeResult, webDiscoveryResults);
+      console.log('✅ Global AI Brain analysis completed:', brainResult.name);
       
       setEnrichmentProgress(85);
       
-      // Step 4: Generate Enhanced Result
+      // Step 2: Generate Enhanced Result with Global AI Brain data
       const enhancedResult: EnhancedAnalysisResult = {
-        claude_analysis: claudeResult,
-        web_discovery_results: webDiscoveryResults,
-        merged_data: mergedData,
-        data_sources: extractDataSources(webDiscoveryResults),
-        enrichment_score: calculateEnrichmentScore(claudeResult, webDiscoveryResults)
+        claude_analysis: {
+          name: brainResult.name,
+          year: brainResult.year,
+          country: brainResult.country,
+          estimated_value: brainResult.estimatedValue,
+          market_value: brainResult.estimatedValue,
+          confidence: brainResult.confidence,
+          grade: brainResult.grade,
+          composition: brainResult.composition,
+          rarity: brainResult.rarity,
+          denomination: brainResult.denomination,
+          weight: brainResult.specificFields?.weight,
+          diameter: brainResult.specificFields?.diameter,
+          mint: brainResult.specificFields?.mint,
+          errors: brainResult.errors,
+          market_trend: brainResult.market_trend
+        },
+        web_discovery_results: brainResult.source_analysis.sources_consulted.map(source => ({
+          source: source,
+          data: { verified: true }
+        })),
+        merged_data: {
+          name: brainResult.name,
+          year: brainResult.year,
+          country: brainResult.country,
+          denomination: brainResult.denomination,
+          estimated_value: brainResult.estimatedValue,
+          market_value: brainResult.estimatedValue,
+          confidence: brainResult.confidence,
+          grade: brainResult.grade,
+          composition: brainResult.composition,
+          rarity: brainResult.rarity
+        },
+        data_sources: brainResult.source_analysis.sources_consulted,
+        enrichment_score: brainResult.confidence
       };
       
-      // Step 5: Generate auto-fill data
-      const autoFill = generateAutoFillData(enhancedResult);
+      // Step 3: Generate auto-fill data
+      const autoFill = {
+        name: brainResult.name,
+        year: brainResult.year,
+        country: brainResult.country,
+        denomination: brainResult.denomination,
+        grade: brainResult.grade,
+        composition: brainResult.composition,
+        rarity: brainResult.rarity,
+        estimated_value: brainResult.estimatedValue,
+        description: brainResult.description,
+        category: brainResult.category,
+        confidence: brainResult.confidence,
+        sources_count: brainResult.market_intelligence.web_sources_count
+      };
       setAutoFillData(autoFill);
       
-      setEnrichmentProgress(95);
-      
-      // Step 6: Save Enhanced Results
-      const analysisId = await saveEnhancedResults(mergedData, imageFile);
-      
-      setEnhancedResult(enhancedResult);
       setEnrichmentProgress(100);
       
+      setEnhancedResult(enhancedResult);
+      
       toast.success(
-        `🎯 Analysis Complete: ${mergedData.name} - ${Math.round(mergedData.confidence * 100)}% confidence`
+        `🎯 Global AI Analysis Complete: ${brainResult.name} - ${Math.round(brainResult.confidence * 100)}% confidence from ${brainResult.market_intelligence.web_sources_count} sources`
       );
       
       return enhancedResult;
@@ -94,7 +108,7 @@ export const useEnhancedCoinRecognition = () => {
   };
 
   const performBulkAnalysis = async (imageFiles: File[]): Promise<any[]> => {
-    console.log(`🔄 Starting bulk analysis for ${imageFiles.length} images...`);
+    console.log(`🔄 Starting bulk analysis for ${imageFiles.length} images with Global AI Brain...`);
     
     if (imageFiles.length < 2) {
       toast.error('Please upload at least 2 images (front and back)');
@@ -105,7 +119,7 @@ export const useEnhancedCoinRecognition = () => {
       setIsEnriching(true);
       setEnrichmentProgress(10);
 
-      // Analyze primary image
+      // Analyze primary image with Global AI Brain
       const primaryResult = await performEnhancedAnalysis(imageFiles[0]);
       
       if (!primaryResult) {
@@ -118,7 +132,7 @@ export const useEnhancedCoinRecognition = () => {
       const additionalAnalyses = [];
       for (let i = 1; i < Math.min(imageFiles.length, 10); i++) {
         try {
-          const additionalResult = await analyzeImage(imageFiles[i]);
+          const additionalResult = await analyzeImageWithGlobalBrain(imageFiles[i]);
           if (additionalResult) {
             additionalAnalyses.push({
               imageIndex: i,
@@ -143,11 +157,11 @@ export const useEnhancedCoinRecognition = () => {
       setAutoFillData(combinedAutoFill);
 
       toast.success(
-        `🎯 Bulk Analysis Complete: ${imageFiles.length} images analyzed!`
+        `🎯 Bulk Analysis Complete: ${imageFiles.length} images analyzed with Global AI Brain!`
       );
 
       return [primaryResult, ...additionalAnalyses];
-
+      
     } catch (error: any) {
       console.error('❌ Bulk analysis failed:', error);
       toast.error(`Bulk analysis failed: ${error.message}`);
@@ -166,13 +180,9 @@ export const useEnhancedCoinRecognition = () => {
     enrichmentProgress,
     enhancedResult,
     autoFillData,
-    claudeResult: result,
-    error,
     clearResults: () => {
-      clearResults();
       setEnhancedResult(null);
       setAutoFillData(null);
-      setEnrichmentProgress(0);
     }
   };
 };
