@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Wallet, CreditCard, Bitcoin, Loader2, ExternalLink } from 'lucide-react';
 import { useEnhancedTransakPayment } from '@/hooks/useEnhancedTransakPayment';
 import { toast } from 'sonner';
+import TransakWidget from './TransakWidget';
 
 interface EnhancedTransakPaymentProps {
   orderType: 'coin_purchase' | 'subscription' | 'store_upgrade';
@@ -26,6 +27,7 @@ const EnhancedTransakPayment = ({
 }: EnhancedTransakPaymentProps) => {
   const { createPayment, isLoading } = useEnhancedTransakPayment();
   const [selectedCrypto, setSelectedCrypto] = useState<string>('BTC');
+  const [useWidget, setUseWidget] = useState<boolean>(true);
 
   const cryptoOptions = [
     { code: 'BTC', name: 'Bitcoin', icon: Bitcoin },
@@ -34,7 +36,16 @@ const EnhancedTransakPayment = ({
     { code: 'SOL', name: 'Solana', icon: Wallet }
   ];
 
-  const handlePayment = async () => {
+  const handlePaymentSuccess = (transactionId: string) => {
+    toast.success('Payment completed successfully!');
+    onPaymentSuccess();
+  };
+
+  const handlePaymentFailed = (error: string) => {
+    toast.error(`Payment failed: ${error}`);
+  };
+
+  const handleLegacyPayment = async () => {
     try {
       const result = await createPayment({
         orderType,
@@ -72,6 +83,24 @@ const EnhancedTransakPayment = ({
     }
   };
 
+  // Use the new TransakWidget for better integration
+  if (useWidget) {
+    return (
+      <TransakWidget
+        orderType={orderType}
+        coinId={coinId}
+        coinName={coinName}
+        amount={price}
+        currency="USD"
+        cryptoCurrency={selectedCrypto}
+        subscriptionPlan={subscriptionPlan}
+        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentFailed={handlePaymentFailed}
+      />
+    );
+  }
+
+  // Fallback to legacy implementation
   return (
     <Card className="w-full">
       <CardHeader>
@@ -82,6 +111,24 @@ const EnhancedTransakPayment = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Payment Method Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={useWidget ? 'default' : 'outline'}
+            onClick={() => setUseWidget(true)}
+            size="sm"
+          >
+            Widget Mode
+          </Button>
+          <Button
+            variant={!useWidget ? 'default' : 'outline'}
+            onClick={() => setUseWidget(false)}
+            size="sm"
+          >
+            Popup Mode
+          </Button>
+        </div>
+
         {/* Order Summary */}
         <div className="space-y-2">
           <h4 className="font-medium">Order Summary</h4>
@@ -123,7 +170,7 @@ const EnhancedTransakPayment = ({
 
         {/* Payment Button */}
         <Button
-          onClick={handlePayment}
+          onClick={handleLegacyPayment}
           disabled={isLoading}
           className="w-full h-12 text-lg"
         >

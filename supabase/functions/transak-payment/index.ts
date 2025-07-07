@@ -50,8 +50,12 @@ serve(async (req) => {
       disableWalletAddressForm: true
     }
 
-    // Create production Transak URL
-    const transakUrl = `https://staging-global.transak.com?apiKey=${transakConfig.apiKey}&partnerOrderId=${transakConfig.partnerOrderId}&cryptoCurrencyCode=${cryptoCurrency}&fiatCurrency=${currency}&fiatAmount=${amount}&redirectURL=${encodeURIComponent(transakConfig.redirectURL)}`
+    // Create production Transak URL with webhook
+    const baseUrl = transakConfig.environment === 'PRODUCTION' 
+      ? 'https://global.transak.com' 
+      : 'https://staging-global.transak.com';
+    
+    const transakUrl = `${baseUrl}?apiKey=${transakConfig.apiKey}&partnerOrderId=${transakConfig.partnerOrderId}&cryptoCurrencyCode=${cryptoCurrency}&fiatCurrency=${currency}&fiatAmount=${amount}&redirectURL=${encodeURIComponent(transakConfig.redirectURL)}&webhookURL=${encodeURIComponent(`${req.headers.get('origin')}/functions/v1/transak-webhook`)}`
 
     return new Response(
       JSON.stringify({
