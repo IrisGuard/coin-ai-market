@@ -134,15 +134,16 @@ class AuctionService {
       const user = await supabase.auth.getUser();
       if (!user.data.user) throw new Error('Not authenticated');
 
-      // Get current auction details
+      // Get current auction details (including coin_id for the bid record)
       const { data: auction, error: auctionError } = await supabase
         .from('marketplace_listings')
-        .select('current_price, ends_at, seller_id')
+        .select('current_price, ends_at, seller_id, coin_id')
         .eq('id', bidData.listing_id)
         .single();
 
       if (auctionError) throw auctionError;
       if (!auction) throw new Error('Auction not found');
+      if (!auction.coin_id) throw new Error('Auction has no associated coin');
 
       // Validate bid amount (using default increment of 1)
       const minimumBid = auction.current_price + 1;
@@ -169,7 +170,7 @@ class AuctionService {
           user_id: user.data.user.id,
           amount: bidData.amount,
           auto_bid_max: bidData.auto_bid_max,
-          coin_id: 'placeholder' // Will be updated with actual coin_id
+          coin_id: auction.coin_id
         })
         .select()
         .single();
