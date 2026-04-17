@@ -4,10 +4,6 @@ import App from './App.tsx';
 import './index.css';
 import './i18n/config';
 
-// Force deployment check
-console.log('🔥 VERCEL DEPLOYMENT CHECK:', new Date().toISOString());
-console.log('✅ All systems operational - Real AI Recognition Active');
-
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 

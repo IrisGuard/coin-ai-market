@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { usePageView } from '@/hooks/usePageView';
-import { useDealerStores } from '@/hooks/useDealerStores';
-import { useAuth } from '@/contexts/AuthContext';
-import Navbar from "@/components/Navbar";
-import NavigationBreadcrumb from '@/components/navigation/NavigationBreadcrumb';
-import BackButton from '@/components/navigation/BackButton';
+import { useTranslation } from 'react-i18next';
+import { Store, ArrowRight, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Store, Shield, Star, ArrowRight, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import DealerStoreCard from '@/components/marketplace/DealerStoreCard';
 import DealerAuthModal from '@/components/auth/DealerAuthModal';
 import DealerUpgradeModal from '@/components/auth/DealerUpgradeModal';
+import { usePageView } from '@/hooks/usePageView';
+import { useDealerStores } from '@/hooks/useDealerStores';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -22,174 +22,149 @@ const ActiveMarketplace = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, session } = useAuth();
-  
+  const { t } = useTranslation();
+
   const [showDealerAuth, setShowDealerAuth] = useState(false);
   const [showDealerUpgrade, setShowDealerUpgrade] = useState(false);
-  
-  const { data: dealers, isLoading: dealersLoading, refetch: refetchDealers } = useDealerStores();
+  const [search, setSearch] = useState('');
 
-  // Force refresh on component mount to ensure clean data
+  const { data: dealers, isLoading: dealersLoading } = useDealerStores();
+
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ['dealer-stores'] });
     queryClient.invalidateQueries({ queryKey: ['store-coin-counts'] });
   }, [queryClient]);
 
-  // Handle Open Store button click
   const handleOpenStore = () => {
     if (!user || !session) {
-      // User not authenticated - show dealer auth modal
       setShowDealerAuth(true);
+    } else if (user.user_metadata?.role === 'dealer') {
+      navigate('/dealer-direct');
     } else {
-      // User authenticated - check if they have dealer role or need to upgrade
-      if (user.user_metadata?.role === 'dealer') {
-        navigate('/dealer-direct');
-      } else {
-        setShowDealerUpgrade(true);
-      }
+      setShowDealerUpgrade(true);
     }
   };
 
-  // Get coin counts for stores
   const { data: storeCounts = {} } = useQuery({
     queryKey: ['store-coin-counts'],
     queryFn: async () => {
-      const { data: coins, error } = await supabase
+      const { data: coins } = await supabase
         .from('coins')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            role,
-            avatar_url
-          )
-        `)
+        .select('user_id')
         .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      
+        .limit(2000);
       const counts: Record<string, number> = {};
-      coins?.forEach(coin => {
-        counts[coin.user_id] = (counts[coin.user_id] || 0) + 1;
+      coins?.forEach((c) => {
+        if (c.user_id) counts[c.user_id] = (counts[c.user_id] || 0) + 1;
       });
-      
       return counts;
-    }
+    },
+  });
+
+  const filteredDealers = (dealers || []).filter((d) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      d.name?.toLowerCase().includes(q) ||
+      d.description?.toLowerCase().includes(q) ||
+      d.profiles?.username?.toLowerCase().includes(q)
+    );
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      
-      <NavigationBreadcrumb />
-      
-      {/* Back Button Row */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <BackButton to="/" label="Back to Home" />
-      </div>
-      
-      {/* Simple Marketplace Header with Green Open Store Button */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-electric-blue via-electric-purple to-electric-pink bg-clip-text text-transparent mb-3">
-              Discover the Best Coin Stores
+
+      <header className="relative border-b border-border overflow-hidden">
+        <div className="pointer-events-none absolute -top-32 right-0 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-[120px]" />
+        <div className="max-w-7xl mx-auto container-padding py-16">
+          <div className="max-w-3xl">
+            <Badge variant="outline" className="mb-5 border-primary/30 text-primary">{t('marketplace.title', 'NovaCoin Marketplace')}</Badge>
+            <h1 className="text-display font-semibold tracking-tight mb-4">
+              {t('marketplace.subtitle', 'Browse verified dealer storefronts and live listings.')}
             </h1>
-            <p className="text-lg text-gray-600 mb-6">
-              Explore authentic coins from verified dealers worldwide
+            <p className="text-muted-foreground text-lg max-w-2xl mb-8">
+              Discover verified storefronts curated by collectors and professional dealers worldwide.
             </p>
-            
-            {/* Green Open Store Button */}
-            <Button
-              onClick={handleOpenStore}
-              size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg"
-            >
-              <Store className="w-5 h-5 mr-2" />
-              Open Store
-            </Button>
+
+            <div className="flex flex-col sm:flex-row gap-3 max-w-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search stores, dealers, regions…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-12 bg-card border-border"
+                />
+              </div>
+              <Button onClick={handleOpenStore} size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow">
+                <Store className="w-4 h-4 mr-2" /> {t('marketplace.openStore', 'Open your store')}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Dealer Stores Section - USER STORES */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <Store className="w-6 h-6 text-electric-orange" />
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-              All Stores
-            </h2>
-            <Badge variant="secondary" className="bg-electric-orange/10 text-electric-orange border-electric-orange/20">
-              {dealers?.length || 0} Stores Online
-            </Badge>
+      </header>
+
+      <main className="max-w-7xl mx-auto container-padding py-14">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h2 className="text-h1 font-semibold">{t('marketplace.allStores', 'All stores')}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {filteredDealers.length} {t('marketplace.storesOnline', 'stores online')}
+            </p>
           </div>
-          
-          {dealersLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="glass-card animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                      </div>
-                    </div>
-                    <div className="h-16 bg-gray-200 rounded"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : dealers?.length === 0 ? (
-            <div className="text-center py-16">
-              <Store className="w-16 h-16 mx-auto mb-6 text-gray-300" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Stores Yet</h3>
-              <p className="text-gray-500">
-                Stores from admins and dealers will appear here.
+          <Link to="/" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+            Back to home <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {dealersLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="aspect-[4/5] rounded-2xl animate-shimmer" />
+            ))}
+          </div>
+        ) : filteredDealers.length === 0 ? (
+          <Card className="border-border">
+            <CardContent className="py-20 text-center">
+              <Store className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-1">{t('marketplace.noStores', 'No stores yet')}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t('marketplace.noStoresDesc', 'Stores from verified dealers will appear here.')}
               </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dealers?.map((dealer) => {
-                const profile = dealer.profiles;
-                return (
-                  <DealerStoreCard
-                    key={dealer.id}
-                    id={dealer.id}
-                    avatar_url={profile?.avatar_url || dealer.logo_url}
-                    username={profile?.username}
-                    full_name={profile?.full_name}
-                    bio={profile?.bio}
-                    rating={profile?.rating}
-                    location={profile?.location}
-                    verified_dealer={profile?.role === 'admin'}
-                    totalCoins={storeCounts[dealer.user_id] || 0}
-                    storeName={dealer.name}
-                    storeDescription={dealer.description}
-                    storeAddress={dealer.address}
-                    created_at={dealer.created_at}
-                  />
-                );
-              }) || []}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Dealer Auth Modal */}
-      <DealerAuthModal 
-        isOpen={showDealerAuth} 
-        onClose={() => setShowDealerAuth(false)} 
-      />
-      
-      {/* Dealer Upgrade Modal */}
-      <DealerUpgradeModal 
-        isOpen={showDealerUpgrade} 
-        onClose={() => setShowDealerUpgrade(false)} 
-      />
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredDealers.map((dealer) => {
+              const profile = dealer.profiles;
+              return (
+                <DealerStoreCard
+                  key={dealer.id}
+                  id={dealer.id}
+                  avatar_url={profile?.avatar_url || dealer.logo_url}
+                  username={profile?.username}
+                  full_name={profile?.full_name}
+                  bio={profile?.bio}
+                  rating={profile?.rating}
+                  location={profile?.location}
+                  verified_dealer={profile?.role === 'admin' || dealer.verified}
+                  totalCoins={storeCounts[dealer.user_id] || 0}
+                  storeName={dealer.name}
+                  storeDescription={dealer.description}
+                  storeAddress={dealer.address}
+                  created_at={dealer.created_at}
+                />
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      <Footer />
+
+      <DealerAuthModal isOpen={showDealerAuth} onClose={() => setShowDealerAuth(false)} />
+      <DealerUpgradeModal isOpen={showDealerUpgrade} onClose={() => setShowDealerUpgrade(false)} />
     </div>
   );
 };

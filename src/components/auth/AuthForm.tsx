@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Coins } from 'lucide-react';
 import LoginTab from './LoginTab';
 import SignupTab from './SignupTab';
 
@@ -9,27 +9,32 @@ const AuthForm = () => {
   const [activeTab, setActiveTab] = useState('login');
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+    <Card className="w-full glass-panel-strong border-border shadow-elevated">
       <CardHeader className="text-center pb-4">
-        <CardTitle className="text-2xl font-bold bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
-          Welcome to CoinAI
+        <div className="flex justify-center mb-3">
+          <span className="grid place-items-center w-12 h-12 rounded-2xl bg-gradient-primary shadow-glow">
+            <Coins className="w-6 h-6 text-primary-foreground" />
+          </span>
+        </div>
+        <CardTitle className="text-2xl font-semibold tracking-tight">
+          Welcome to <span className="text-gradient-primary">NovaCoin</span>
         </CardTitle>
-        <p className="text-gray-600 text-sm">
-          Join the future of coin collecting and trading
+        <p className="text-sm text-muted-foreground mt-1">
+          Premium AI marketplace for collectors
         </p>
       </CardHeader>
-      
+
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Join as Buyer</TabsTrigger>
+            <TabsTrigger value="login">Sign in</TabsTrigger>
+            <TabsTrigger value="signup">Join as buyer</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="login" className="space-y-4">
             <LoginTab />
           </TabsContent>
-          
+
           <TabsContent value="signup" className="space-y-4">
             <SignupTab />
           </TabsContent>
