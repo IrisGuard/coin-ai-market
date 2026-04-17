@@ -411,18 +411,24 @@ const AutonomousAIMonitoringDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {['coins', 'banknotes', 'bullion', 'error_coins', 'error_banknotes'].map((category) => (
-                  <div key={category} className="text-center p-4 border rounded">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
-                      {Math.floor(Math.random() * 200) + 50}
+                {['coins', 'banknotes', 'bullion', 'error_coins', 'error_banknotes'].map((category) => {
+                  const performance = learningPerformance.data?.find((item) => item.category === category);
+                  const totalSessions = performance?.total_learning_sessions || 0;
+                  const successRate = performance ? Math.round(performance.confidence_score_avg * 100) : 0;
+
+                  return (
+                    <div key={category} className="text-center p-4 border rounded">
+                      <div className="text-2xl font-bold text-primary mb-2">
+                        {totalSessions}
+                      </div>
+                      <div className="text-sm font-medium capitalize mb-1">{category.replace('_', ' ')}</div>
+                      <Progress value={successRate} className="w-full" />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {performance ? `${successRate}% confidence score` : 'Awaiting real data'}
+                      </div>
                     </div>
-                    <div className="text-sm font-medium capitalize mb-1">{category.replace('_', ' ')}</div>
-                    <Progress value={Math.floor(Math.random() * 40) + 60} className="w-full" />
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {Math.floor(Math.random() * 40) + 60}% success rate
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
