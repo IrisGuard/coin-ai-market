@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Начало",
+    "marketplace": "Пазар",
+    "auctions": "Търгове",
+    "dealerPanel": "Панел на дилъра",
+    "profile": "Профил",
+    "signIn": "Вход",
+    "signOut": "Изход",
+    "aiAdmin": "AI Админ"
+  },
+  "common": { "language": "Език", "loading": "Зареждане...", "search": "Търсене" }
+}

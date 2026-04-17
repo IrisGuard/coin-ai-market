@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Главная",
+    "marketplace": "Маркетплейс",
+    "auctions": "Аукционы",
+    "dealerPanel": "Панель дилера",
+    "profile": "Профиль",
+    "signIn": "Войти",
+    "signOut": "Выйти",
+    "aiAdmin": "AI Админ"
+  },
+  "common": { "language": "Язык", "loading": "Загрузка...", "search": "Поиск" }
+}

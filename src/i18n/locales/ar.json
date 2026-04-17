@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "marketplace": "السوق",
+    "auctions": "المزادات",
+    "dealerPanel": "لوحة التاجر",
+    "profile": "الملف الشخصي",
+    "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج",
+    "aiAdmin": "مشرف الذكاء الاصطناعي"
+  },
+  "common": { "language": "اللغة", "loading": "جارٍ التحميل...", "search": "بحث" }
+}
