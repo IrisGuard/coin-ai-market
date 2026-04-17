@@ -20,27 +20,30 @@ const LanguageSwitcher = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="flex items-center gap-2"
+          className="gap-2 h-9 px-3 rounded-lg hover:bg-secondary"
           aria-label="Change language"
         >
-          <Globe className="w-4 h-4" />
-          <span className="font-semibold">{current.country}</span>
+          <Globe className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs font-mono font-semibold tracking-wider">{current.country}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto w-56">
+      <DropdownMenuContent
+        align="end"
+        className="max-h-80 overflow-y-auto w-64 glass-panel-strong border-border"
+      >
         {SUPPORTED_LANGUAGES.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => i18n.changeLanguage(lang.code)}
-            className="flex items-center justify-between cursor-pointer"
+            className="flex items-center justify-between cursor-pointer focus:bg-secondary"
           >
             <span className="flex items-center gap-3">
               <span className="text-xs font-mono font-bold text-muted-foreground w-7">
                 {lang.country}
               </span>
-              <span>{lang.label}</span>
+              <span className="text-sm">{lang.label}</span>
             </span>
             {current.code === lang.code && <Check className="w-4 h-4 text-primary" />}
           </DropdownMenuItem>

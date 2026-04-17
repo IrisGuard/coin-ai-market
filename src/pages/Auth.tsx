@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -6,38 +5,28 @@ import AuthForm from '@/components/auth/AuthForm';
 
 const Auth = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-primary via-electric-blue to-brand-accent relative overflow-hidden">
-      {/* Navigation */}
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <Navbar />
 
-      {/* Animated background */}
-      <div className="absolute inset-0">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1],
-            rotate: [0, 90, 180],
-            opacity: [0.3, 0.6, 0.3]
-          }}
-          transition={{ duration: 20, repeat: Infinity }}
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-white/20 to-brand-accent/30 rounded-full blur-3xl"
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.6, 0.4] }}
+          transition={{ duration: 14, repeat: Infinity }}
+          className="absolute top-1/4 left-1/4 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-[140px]"
         />
-        <motion.div 
-          animate={{ 
-            scale: [1.3, 1, 1.3],
-            rotate: [180, 90, 0],
-            opacity: [0.4, 0.7, 0.4]
-          }}
-          transition={{ duration: 25, repeat: Infinity, delay: 5 }}
-          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-electric-emerald/30 to-electric-pink/30 rounded-full blur-3xl"
+        <motion.div
+          animate={{ scale: [1.15, 1, 1.15], opacity: [0.5, 0.7, 0.5] }}
+          transition={{ duration: 18, repeat: Infinity, delay: 4 }}
+          className="absolute bottom-1/4 right-1/4 w-[32rem] h-[32rem] rounded-full bg-accent/15 blur-[140px]"
         />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-6 pt-20">
+      <div className="relative z-10 grid place-items-center min-h-[calc(100vh-4rem)] container-padding pt-12 pb-20">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-md"
         >
           <AuthForm />

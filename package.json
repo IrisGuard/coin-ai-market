@@ -1,7 +1,7 @@
 {
-  "name": "coin-ai-market",
+  "name": "novacoin-market",
   "private": true,
-  "version": "2.1.0",
+  "version": "3.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -89,5 +89,5 @@
     "typescript": "^5.2.2",
     "vite": "^5.4.19"
   },
-  "description": "CoinVault - AI-Powered Coin Marketplace v2.1.0 - DEPLOYMENT ACTIVE 2025-01-25 - Real AI Recognition System"
+  "description": "NovaCoin — Premium AI-Powered Marketplace for Coins, Banknotes & Bullion (Neo Fintech Edition)"
 }

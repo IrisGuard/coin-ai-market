@@ -1,8 +1,7 @@
-
 // Global type declarations for window extensions
 declare global {
   interface Window {
-    CoinAI: {
+    NovaCoin: {
       showMonitoringStatus(): void;
       testConsoleMonitoring(): void;
       exportMonitoringReport(): void;
@@ -10,7 +9,7 @@ declare global {
       testSecurity(): Promise<void>;
       help(): void;
     };
-    MonitoringUtils: {
+    MonitoringUtils?: {
       getPerformanceMetrics(): any;
       monitorNetworkRequests(): any;
       checkMemoryUsage(): any;
@@ -18,7 +17,6 @@ declare global {
       setupAutomaticMonitoring(): void;
     };
     createFirstAdmin?: (email: string) => Promise<any>;
-    TransakSDK?: any;
   }
 }
 

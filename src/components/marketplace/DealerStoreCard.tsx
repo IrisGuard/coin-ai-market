@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,53 +23,17 @@ interface DealerStoreCardProps {
   storeAddress?: any;
 }
 
-// Country flag mapping for common countries
-const countryFlags: Record<string, string> = {
-  'US': '🇺🇸',
-  'GB': '🇬🇧', 
-  'CA': '🇨🇦',
-  'DE': '🇩🇪',
-  'FR': '🇫🇷',
-  'IT': '🇮🇹',
-  'ES': '🇪🇸',
-  'JP': '🇯🇵',
-  'AU': '🇦🇺',
-  'NZ': '🇳🇿',
-  'CH': '🇨🇭',
-  'AT': '🇦🇹',
-  'NL': '🇳🇱',
-  'BE': '🇧🇪',
-  'DK': '🇩🇰',
-  'SE': '🇸🇪',
-  'NO': '🇳🇴',
-  'FI': '🇫🇮',
-  'GR': '🇬🇷',
-  'IN': '🇮🇳',
-  'GI': '🇬🇮'
+const COUNTRY_FLAGS: Record<string, string> = {
+  US: '🇺🇸', GB: '🇬🇧', CA: '🇨🇦', DE: '🇩🇪', FR: '🇫🇷', IT: '🇮🇹', ES: '🇪🇸',
+  JP: '🇯🇵', AU: '🇦🇺', NZ: '🇳🇿', CH: '🇨🇭', AT: '🇦🇹', NL: '🇳🇱', BE: '🇧🇪',
+  DK: '🇩🇰', SE: '🇸🇪', NO: '🇳🇴', FI: '🇫🇮', GR: '🇬🇷', IN: '🇮🇳', GI: '🇬🇮',
 };
 
-const countryNames: Record<string, string> = {
-  'US': 'United States',
-  'GB': 'United Kingdom',
-  'CA': 'Canada',
-  'DE': 'Germany',
-  'FR': 'France',
-  'IT': 'Italy',
-  'ES': 'Spain',
-  'JP': 'Japan',
-  'AU': 'Australia',
-  'NZ': 'New Zealand',
-  'CH': 'Switzerland',
-  'AT': 'Austria',
-  'NL': 'Netherlands',
-  'BE': 'Belgium',
-  'DK': 'Denmark',
-  'SE': 'Sweden',
-  'NO': 'Norway',
-  'FI': 'Finland',
-  'GR': 'Greece',
-  'IN': 'India',
-  'GI': 'Gibraltar'
+const COUNTRY_NAMES: Record<string, string> = {
+  US: 'United States', GB: 'United Kingdom', CA: 'Canada', DE: 'Germany', FR: 'France',
+  IT: 'Italy', ES: 'Spain', JP: 'Japan', AU: 'Australia', NZ: 'New Zealand', CH: 'Switzerland',
+  AT: 'Austria', NL: 'Netherlands', BE: 'Belgium', DK: 'Denmark', SE: 'Sweden',
+  NO: 'Norway', FI: 'Finland', GR: 'Greece', IN: 'India', GI: 'Gibraltar',
 };
 
 const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
@@ -86,150 +49,97 @@ const DealerStoreCard: React.FC<DealerStoreCardProps> = ({
   storeName,
   storeDescription,
   created_at,
-  storeAddress
+  storeAddress,
 }) => {
   const navigate = useNavigate();
-
-  const handleVisitStore = () => {
-    navigate(`/store/${id}`);
-  };
+  const visit = () => navigate(`/store/${id}`);
 
   const displayName = storeName || full_name || username || 'Dealer Store';
   const displayDescription = storeDescription || bio || 'Professional coin dealer';
 
-  const formatCreatedDate = (dateString?: string) => {
-    if (!dateString) return 'Recently created';
-    try {
-      return format(new Date(dateString), 'MMMM yyyy');
-    } catch {
-      return 'Recently created';
-    }
+  const formatCreated = (d?: string) => {
+    if (!d) return 'Recently created';
+    try { return format(new Date(d), 'MMMM yyyy'); } catch { return 'Recently created'; }
   };
 
-  const getCountryDisplay = () => {
-    if (!storeAddress || typeof storeAddress !== 'object') return null;
-    
-    const countryCode = storeAddress.country;
-    if (!countryCode) return null;
-    
-    const flag = countryFlags[countryCode];
-    const name = countryNames[countryCode] || countryCode;
-    
-    return { flag, name, code: countryCode };
-  };
-
-  const renderStars = (rating?: number) => {
-    if (!rating || rating === 0) {
-      return (
-        <div className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-gray-300" />
-          <span className="text-sm text-brand-medium">Not yet rated</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-1">
-        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-        <span className="text-sm font-medium text-brand-primary">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
-
-  const getCoinCountMessage = () => {
-    if (totalCoins === 0) return 'No coins listed';
-    if (totalCoins === 1) return '1 Coin';
-    return `${totalCoins} Coins`;
-  };
-
-  const countryInfo = getCountryDisplay();
+  const country = storeAddress && typeof storeAddress === 'object' ? storeAddress.country : null;
+  const countryFlag = country ? COUNTRY_FLAGS[country] : null;
+  const countryName = country ? COUNTRY_NAMES[country] || country : null;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border-2 border-electric-blue/20 hover:border-electric-blue/40 bg-gradient-to-br from-white to-electric-blue/5" onClick={handleVisitStore}>
+    <Card
+      className="group cursor-pointer overflow-hidden border-border bg-card hover:border-primary/40 hover:shadow-elevated transition-all"
+      onClick={visit}
+    >
       <CardContent className="p-6">
-        <div className="flex items-start gap-4 mb-4">
-          <Avatar className="w-16 h-16 border-2 border-electric-blue/30">
+        <div className="flex items-start gap-4 mb-5">
+          <Avatar className="w-14 h-14 border border-border">
             <AvatarImage src={avatar_url} alt={displayName} />
-            <AvatarFallback className="bg-gradient-to-br from-brand-primary to-electric-purple text-white text-lg font-semibold">
-              <Store className="w-8 h-8" />
+            <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+              <Store className="w-6 h-6" />
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 
-                className="font-semibold text-lg text-brand-primary max-w-full" 
-                title={displayName}
-              >
-                {displayName}
-              </h3>
-              {verified_dealer && (
-                <CheckCircle className="w-5 h-5 text-electric-blue flex-shrink-0" />
-              )}
+              <h3 className="font-semibold text-base truncate" title={displayName}>{displayName}</h3>
+              {verified_dealer && <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />}
             </div>
-            
-            <p className="text-sm text-brand-medium line-clamp-2 mb-2">
-              {displayDescription}
-            </p>
+            <p className="text-sm text-muted-foreground line-clamp-2">{displayDescription}</p>
           </div>
         </div>
 
-        <div className="space-y-3">
-          {renderStars(rating)}
-
+        <div className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-electric-purple" />
-              <span className="text-sm font-medium text-brand-primary">
-                {getCoinCountMessage()}
+              <Package className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">
+                {totalCoins === 0 ? 'No coins listed' : `${totalCoins} coin${totalCoins !== 1 ? 's' : ''}`}
               </span>
             </div>
-            
-            {location && (
+            {rating && rating > 0 ? (
               <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-electric-purple" />
-                <span className="text-xs text-brand-medium truncate max-w-20">
-                  {location}
-                </span>
+                <Star className="w-4 h-4 text-warning fill-warning" />
+                <span className="font-medium">{rating.toFixed(1)}</span>
               </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">Not yet rated</span>
             )}
           </div>
 
-          {/* Country Display */}
-          {countryInfo && (
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-electric-blue" />
-              <div className="flex items-center gap-1">
-                {countryInfo.flag && <span>{countryInfo.flag}</span>}
-                <span className="text-sm text-brand-medium">
-                  {countryInfo.name}
-                </span>
-              </div>
+          {location && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="w-4 h-4" />
+              <span className="truncate">{location}</span>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-electric-blue" />
-            <span className="text-xs text-brand-medium">
-              Created: {formatCreatedDate(created_at)}
-            </span>
-          </div>
+          {countryName && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Globe className="w-4 h-4" />
+              <span>{countryFlag} {countryName}</span>
+            </div>
+          )}
 
-          <div className="flex gap-2 pt-2">
-            <Badge className="bg-gradient-to-r from-electric-blue to-electric-purple text-white border-0">
-              <Store className="w-3 h-3 mr-1" />
-              Verified Dealer
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Established {formatCreated(created_at)}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mt-5 pt-5 border-t border-border">
+          {verified_dealer && (
+            <Badge variant="outline" className="border-primary/30 text-primary gap-1.5">
+              <CheckCircle className="w-3 h-3" /> Verified
             </Badge>
-          </div>
-
-          <Button 
-            className="w-full mt-3 bg-gradient-to-r from-brand-primary to-electric-purple hover:from-brand-primary/90 hover:to-electric-purple/90 text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleVisitStore();
-            }}
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-auto text-primary hover:bg-primary/10 hover:text-primary"
+            onClick={(e) => { e.stopPropagation(); visit(); }}
           >
-            Visit Store
+            Visit store →
           </Button>
         </div>
       </CardContent>
