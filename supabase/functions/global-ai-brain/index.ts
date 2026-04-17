@@ -108,10 +108,8 @@ serve(async (req) => {
   }
 });
 
-// Phase 1: Initial AI Recognition via Lovable AI Gateway
+// Phase 1: Initial AI Recognition via Google Gemini
 async function performInitialAnalysis(image: string) {
-  const { callAIGateway, buildImageMessage, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
-
   let initialAnalysis: any;
   try {
     const { callAIGateway, buildImageMessage, extractStructuredOutput, FLASH_MODEL } = await import("../_shared/aiGateway.ts");
