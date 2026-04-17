@@ -488,67 +488,35 @@ async function analyzeAdvancedVisualPatterns(images: string[], analysisResult: a
 }
 
 async function performImageAnalysis(imageUrl: string, analysisResult: any) {
-  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  
+  const { callAIGateway, buildImageMessage, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
+
   try {
-    // Convert image URL to base64 for analysis
     const imageResponse = await fetch(imageUrl);
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
-    
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey!,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{
-          role: 'user',
-          content: [{
-            type: 'text',
-            text: `Analyze this coin image for visual patterns that can be used for machine learning training. Focus on:
-            1. Edge patterns and rim characteristics
-            2. Surface textures and wear patterns
-            3. Relief depth and strike quality
-            4. Color variations and patina
-            5. Unique identifying features
-            
-            Expected coin: ${analysisResult.name} from ${analysisResult.year}
-            
-            Respond with JSON containing: features, edges, textures, colors, pattern_strength (0-1), confidence (0-1)`
-          }, {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: 'image/jpeg',
-              data: base64Image
-            }
-          }]
-        }]
-      })
-    });
 
-    const result = await response.json();
-    const content = result.content[0]?.text;
-    
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
-      
-      return {
-        success: true,
-        ...analysis,
-        confidence: analysis.confidence || 0.7
-      };
-    } catch {
-      return { success: false, confidence: 0.3 };
-    }
-  } catch (error) {
-    console.warn('Image analysis failed:', error.message);
+    const aiResponse = await callAIGateway({
+      max_tokens: 1500,
+      messages: [
+        buildImageMessage(
+          `Analyze this coin image for visual patterns that can be used for machine learning training. Focus on:
+1. Edge patterns and rim characteristics
+2. Surface textures and wear patterns
+3. Relief depth and strike quality
+4. Color variations and patina
+5. Unique identifying features
+
+Expected coin: ${analysisResult.name} from ${analysisResult.year}
+
+Respond with JSON containing: features, edges, textures, colors, pattern_strength (0-1), confidence (0-1)`,
+          base64Image,
+        ),
+      ],
+    });
+    const analysis = extractStructuredOutput(aiResponse) || {};
+    return { success: true, ...analysis, confidence: analysis.confidence || 0.7 };
+  } catch (error: any) {
+    console.warn('Image analysis failed:', error?.message);
     return { success: false, confidence: 0.2 };
   }
 }

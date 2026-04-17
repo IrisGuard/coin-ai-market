@@ -336,9 +336,7 @@ function buildSourceSearchUrl(source: any, query: string) {
 
 // Extract coin data from web page content using AI
 async function extractCoinDataFromContent(content: string, originalQuery: string) {
-  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  
-  if (!anthropicApiKey || content.length < 100) {
+  if (content.length < 100) {
     return { coins: [], prices: [], similar_coins: [] };
   }
 
@@ -363,36 +361,13 @@ Content to analyze: ${content.substring(0, 2000)}...
 `;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: extractionPrompt
-        }]
-      })
+    const { callAIGateway, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
+    const aiResponse = await callAIGateway({
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: extractionPrompt }],
     });
-
-    if (response.ok) {
-      const result = await response.json();
-      const extractedContent = result.content[0]?.text;
-      
-      try {
-        const jsonMatch = extractedContent.match(/\{[\s\S]*\}/);
-        const extractedData = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(extractedContent);
-        return extractedData;
-      } catch {
-        // Fallback to basic extraction
-        return extractBasicData(content, originalQuery);
-      }
-    }
+    const extracted = extractStructuredOutput(aiResponse);
+    if (extracted) return extracted;
   } catch (error) {
     console.warn('AI extraction failed, using basic extraction:', error);
   }

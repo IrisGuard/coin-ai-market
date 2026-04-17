@@ -97,14 +97,13 @@ serve(async (req) => {
 async function performAIWebResearch(discoveryType: string, targetRegion: string, coinCategory: string) {
   console.log('🤖 Starting enhanced AI-powered web research...');
   
-  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
   const searchQueries = generateAdvancedSearchQueries(discoveryType, targetRegion, coinCategory);
   const discoveredSources = [];
-  
+
   // Enhanced AI research with multiple strategies
   const researchStrategies = [
     'marketplace_discovery',
-    'auction_house_detection', 
+    'auction_house_detection',
     'forum_community_mapping',
     'grading_service_identification',
     'regional_dealer_networks'
@@ -112,7 +111,7 @@ async function performAIWebResearch(discoveryType: string, targetRegion: string,
 
   // Execute advanced research strategies in parallel
   const researchPromises = researchStrategies.map(async (strategy) => {
-    return await performSpecializedResearch(strategy, targetRegion, coinCategory, anthropicApiKey);
+    return await performSpecializedResearch(strategy, targetRegion, coinCategory);
   });
 
   const strategyResults = await Promise.allSettled(researchPromises);
@@ -131,19 +130,12 @@ async function performAIWebResearch(discoveryType: string, targetRegion: string,
     try {
       console.log('🔍 Traditional research:', query);
       
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': anthropicApiKey!,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{
-            role: 'user',
-            content: `You are a specialized web researcher finding numismatic and coin-related websites.
+      const { callAIGateway, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
+      const aiResponse = await callAIGateway({
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: `You are a specialized web researcher finding numismatic and coin-related websites.
 
 Research focus: "${query}"
 Target region: ${targetRegion}
@@ -158,20 +150,12 @@ Find 8-12 legitimate, active websites. For each site provide:
 
 Respond ONLY with a JSON array. Example:
 [{"domain": "example.com", "type": "auction_house", "description": "Major coin auction house", "activity_level": "high", "specialty": "ancient coins"}]`
-          }]
-        })
+        }],
       });
-
-      const result = await response.json();
-      const content = result.content[0]?.text;
-      
       try {
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          const sources = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(sources)) {
-            discoveredSources.push(...sources.filter(s => s.domain && s.type));
-          }
+        const sources = extractStructuredOutput(aiResponse);
+        if (Array.isArray(sources)) {
+          discoveredSources.push(...sources.filter((s: any) => s.domain && s.type));
         }
       } catch (parseError) {
         console.warn('Failed to parse AI response for query:', query);
@@ -417,7 +401,7 @@ async function saveAndRankNewSources(sources: any[]) {
 }
 
 // Enhanced specialized research function
-async function performSpecializedResearch(strategy: string, targetRegion: string, coinCategory: string, apiKey: string) {
+async function performSpecializedResearch(strategy: string, targetRegion: string, coinCategory: string) {
   const strategyPrompts = {
     marketplace_discovery: `Find active online coin marketplaces and trading platforms. Focus on sites where collectors buy/sell coins directly. Include both large platforms and specialized niche marketplaces.`,
     
@@ -431,19 +415,12 @@ async function performSpecializedResearch(strategy: string, targetRegion: string
   };
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages: [{
-          role: 'user',
-          content: `${strategyPrompts[strategy]}
+    const { callAIGateway, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
+    const aiResponse = await callAIGateway({
+      max_tokens: 2000,
+      messages: [{
+        role: 'user',
+        content: `${strategyPrompts[strategy]}
 
 Region focus: ${targetRegion}
 Coin category: ${coinCategory}
@@ -452,22 +429,14 @@ Find 6-10 specific websites. Return ONLY a JSON array with this exact structure:
 [{"domain": "site.com", "type": "marketplace", "description": "brief description", "activity_level": "high", "regional_focus": "${targetRegion}"}]
 
 Valid types: auction_house, marketplace, forum, database, grading_service, dealer, mint, association`
-        }]
-      })
+      }],
     });
-
-    const result = await response.json();
-    const content = result.content[0]?.text;
-    
-    const jsonMatch = content.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      const sources = JSON.parse(jsonMatch[0]);
-      return Array.isArray(sources) ? sources.filter(s => s.domain && s.type) : [];
-    }
-  } catch (error) {
-    console.warn(`Specialized research failed for ${strategy}:`, error.message);
+    const sources = extractStructuredOutput(aiResponse);
+    return Array.isArray(sources) ? sources.filter((s: any) => s.domain && s.type) : [];
+  } catch (error: any) {
+    console.warn(`Specialized research failed for ${strategy}:`, error?.message);
   }
-  
+
   return [];
 }
 
