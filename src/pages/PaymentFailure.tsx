@@ -86,10 +86,8 @@ const PaymentFailure = () => {
 
   const handleRetryPayment = async () => {
     if (!failedTransaction) return;
-    
     setRetrying(true);
     try {
-      // Navigate back to the coin details page with checkout intent
       navigate(`/coin/${failedTransaction.coin_id}?checkout=true`);
     } catch (error) {
       console.error('Error retrying payment:', error);
@@ -101,52 +99,40 @@ const PaymentFailure = () => {
 
   const getErrorTitle = (code?: string) => {
     switch (code) {
-      case 'card_declined':
-        return 'Card Declined';
-      case 'insufficient_funds':
-        return 'Insufficient Funds';
-      case 'expired_card':
-        return 'Card Expired';
-      case 'invalid_cvc':
-        return 'Invalid Security Code';
-      case 'processing_error':
-        return 'Processing Error';
-      default:
-        return 'Payment Failed';
+      case 'card_declined': return 'Card Declined';
+      case 'insufficient_funds': return 'Insufficient Funds';
+      case 'expired_card': return 'Card Expired';
+      case 'invalid_cvc': return 'Invalid Security Code';
+      case 'processing_error': return 'Processing Error';
+      default: return 'Payment Failed';
     }
   };
 
   const getErrorDescription = (code?: string) => {
     switch (code) {
-      case 'card_declined':
-        return 'Your card was declined. Please contact your bank or try a different payment method.';
-      case 'insufficient_funds':
-        return 'There are insufficient funds on your card. Please check your balance or use a different card.';
-      case 'expired_card':
-        return 'Your card has expired. Please use a different card or update your payment method.';
-      case 'invalid_cvc':
-        return 'The security code you entered is invalid. Please check and try again.';
-      case 'processing_error':
-        return 'There was a technical issue processing your payment. Please try again.';
-      default:
-        return 'We were unable to process your payment. Please try again or contact support.';
+      case 'card_declined': return 'Your card was declined. Please contact your bank or try a different payment method.';
+      case 'insufficient_funds': return 'There are insufficient funds on your card. Please check your balance or use a different card.';
+      case 'expired_card': return 'Your card has expired. Please use a different card or update your payment method.';
+      case 'invalid_cvc': return 'The security code you entered is invalid. Please check and try again.';
+      case 'processing_error': return 'There was a technical issue processing your payment. Please try again.';
+      default: return 'We were unable to process your payment. Please try again or contact support.';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-destructive"></div>
       </div>
     );
   }
 
   if (!failedTransaction) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="p-6 text-center">
-            <p className="text-gray-600 mb-4">Transaction not found</p>
+            <p className="text-muted-foreground mb-4">Transaction not found</p>
             <Button onClick={() => navigate('/marketplace')}>
               Return to Marketplace
             </Button>
@@ -157,69 +143,62 @@ const PaymentFailure = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-4">
-        {/* Failure Header */}
         <div className="text-center mb-8">
-          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <XCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             {getErrorTitle(failedTransaction.error_code)}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {getErrorDescription(failedTransaction.error_code)}
           </p>
         </div>
 
-        {/* Transaction Details */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Transaction Details
-              <Badge variant="destructive">
-                Failed
-              </Badge>
+              <Badge variant="destructive">Failed</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Coin Info */}
-            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-4 p-4 bg-muted rounded-lg">
               <img 
                 src={failedTransaction.coin_image} 
                 alt={failedTransaction.coin_name}
                 className="w-16 h-16 object-cover rounded-lg"
               />
               <div>
-                <h3 className="font-semibold text-lg">{failedTransaction.coin_name}</h3>
-                <p className="text-gray-600">Sold by {failedTransaction.seller_name}</p>
+                <h3 className="font-semibold text-lg text-foreground">{failedTransaction.coin_name}</h3>
+                <p className="text-muted-foreground">Sold by {failedTransaction.seller_name}</p>
               </div>
             </div>
 
-            {/* Payment Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Attempted Amount</label>
-                <p className="text-xl font-bold text-gray-900">
+                <label className="text-sm font-medium text-muted-foreground">Attempted Amount</label>
+                <p className="text-xl font-bold text-foreground">
                   ${failedTransaction.amount.toFixed(2)}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Failed At</label>
-                <p className="text-gray-900">
+                <label className="text-sm font-medium text-muted-foreground">Failed At</label>
+                <p className="text-foreground">
                   {new Date().toLocaleDateString()}
                 </p>
               </div>
             </div>
 
-            {/* Error Details */}
             {failedTransaction.error_code && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                  <XCircle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-red-800">
+                    <p className="text-sm font-medium text-destructive">
                       Error Code: {failedTransaction.error_code}
                     </p>
-                    <p className="text-sm text-red-700 mt-1">
+                    <p className="text-sm text-destructive/90 mt-1">
                       {failedTransaction.error_message}
                     </p>
                   </div>
@@ -229,17 +208,12 @@ const PaymentFailure = () => {
           </CardContent>
         </Card>
 
-        {/* Actions */}
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Button 
-              onClick={handleRetryPayment}
-              disabled={retrying}
-              className="flex items-center justify-center gap-2"
-            >
+            <Button onClick={handleRetryPayment} disabled={retrying} className="flex items-center justify-center gap-2">
               {retrying ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
                   Retrying...
                 </>
               ) : (
@@ -250,11 +224,7 @@ const PaymentFailure = () => {
               )}
             </Button>
             
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/marketplace')}
-              className="flex items-center justify-center gap-2"
-            >
+            <Button variant="outline" onClick={() => navigate('/marketplace')} className="flex items-center justify-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               Back to Marketplace
             </Button>
@@ -270,15 +240,14 @@ const PaymentFailure = () => {
           </Button>
         </div>
 
-        {/* Help Section */}
         <Card className="mt-8">
           <CardHeader>
             <CardTitle className="text-lg">Need Help?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <h4 className="font-medium">Common Solutions:</h4>
-              <ul className="text-sm text-gray-600 mt-2 space-y-1">
+              <h4 className="font-medium text-foreground">Common Solutions:</h4>
+              <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                 <li>• Check your card details and try again</li>
                 <li>• Ensure your card has sufficient funds</li>
                 <li>• Contact your bank to authorize the transaction</li>
@@ -286,8 +255,8 @@ const PaymentFailure = () => {
               </ul>
             </div>
             <div>
-              <h4 className="font-medium">Still Having Issues?</h4>
-              <p className="text-sm text-gray-600 mt-1">
+              <h4 className="font-medium text-foreground">Still Having Issues?</h4>
+              <p className="text-sm text-muted-foreground mt-1">
                 Our support team is here to help. Contact us at support@coinai.com
               </p>
             </div>

@@ -148,31 +148,31 @@ const DealerStorePage = () => {
 
   const getRarityColor = (rarity?: string) => {
     switch (rarity) {
-      case 'Key Date': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Ultra Rare': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Rare': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'Scarce': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Common': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Key Date': return 'bg-destructive/15 text-destructive border-destructive/30';
+      case 'Ultra Rare': return 'bg-accent/15 text-accent border-accent/30';
+      case 'Rare': return 'bg-warning/15 text-warning border-warning/30';
+      case 'Scarce': return 'bg-warning/10 text-warning border-warning/20';
+      case 'Common': return 'bg-success/15 text-success border-success/30';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   if (storeLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="pt-20 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+              <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-1">
-                  <div className="h-64 bg-gray-200 rounded-2xl"></div>
+                  <div className="h-64 bg-muted rounded-2xl"></div>
                 </div>
                 <div className="lg:col-span-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="h-80 bg-gray-200 rounded-xl"></div>
+                      <div key={i} className="h-80 bg-muted rounded-xl"></div>
                     ))}
                   </div>
                 </div>
@@ -186,16 +186,16 @@ const DealerStorePage = () => {
 
   if (!store) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="pt-20 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center py-16">
               <div className="text-6xl mb-4">🏪</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Store Not Found</h2>
-              <p className="text-gray-600 mb-6">The store you're looking for doesn't exist or has been removed.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Store Not Found</h2>
+              <p className="text-muted-foreground mb-6">The store you're looking for doesn't exist or has been removed.</p>
               <Link to="/marketplace">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button>
                   Browse Marketplace
                 </Button>
               </Link>
@@ -207,7 +207,7 @@ const DealerStorePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="pt-20 pb-12">
@@ -218,17 +218,17 @@ const DealerStorePage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="glass-panel rounded-2xl shadow-lg p-8">
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <h1 className="text-4xl font-bold text-foreground mb-4 flex items-center gap-3">
                     {store.name}
                   </h1>
                   {store.description && (
-                    <p className="text-lg text-gray-600 mb-4">{store.description}</p>
+                    <p className="text-lg text-muted-foreground mb-4">{store.description}</p>
                   )}
                   
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                     {store.location && (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
@@ -273,8 +273,8 @@ const DealerStorePage = () => {
             transition={{ delay: 0.2 }}
           >
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Available Coins</h2>
-              <p className="text-gray-600">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Available Coins</h2>
+              <p className="text-muted-foreground">
                 {coinsLoading ? 'Loading coins...' : `${coins?.length || 0} coins available`}
               </p>
             </div>
@@ -283,11 +283,11 @@ const DealerStorePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
-                    <div className="h-64 bg-gray-200 rounded-t-xl"></div>
-                    <div className="p-6 space-y-3 bg-white rounded-b-xl">
-                      <div className="h-4 bg-gray-200 rounded"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-64 bg-muted rounded-t-xl"></div>
+                    <div className="p-6 space-y-3 bg-card rounded-b-xl">
+                      <div className="h-4 bg-muted rounded"></div>
+                      <div className="h-3 bg-muted rounded w-2/3"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
                     </div>
                   </div>
                 ))}
@@ -304,7 +304,7 @@ const DealerStorePage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <Card className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] border-0 rounded-xl">
+                      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] border-border rounded-xl">
                         {/* Enhanced Image Gallery */}
                         <div className="relative">
                           <ImageGallery 
@@ -316,7 +316,7 @@ const DealerStorePage = () => {
                           {/* Overlay Badges */}
                           <div className="absolute top-4 left-4 flex flex-col gap-2">
                             {coin.featured && (
-                              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white border-0 shadow-lg">
+                              <Badge className="bg-warning text-warning-foreground border-0 shadow-lg">
                                 <Star className="h-3 w-3 mr-1 fill-current" />
                                 Featured
                               </Badge>
@@ -330,7 +330,7 @@ const DealerStorePage = () => {
 
                           {/* Views Counter */}
                           <div className="absolute top-4 right-4">
-                            <Badge variant="secondary" className="bg-black/70 text-white border-0 backdrop-blur-sm">
+                            <Badge variant="secondary" className="bg-background/70 text-foreground border-0 backdrop-blur-sm">
                               <Eye className="h-3 w-3 mr-1" />
                               {coin.views || 0}
                             </Badge>
@@ -341,10 +341,10 @@ const DealerStorePage = () => {
                         <CardContent className="p-6 space-y-4">
                           {/* Coin Title & Details */}
                           <div className="space-y-2">
-                            <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+                            <h3 className="font-bold text-lg text-foreground line-clamp-2">
                               {coin.name}
                             </h3>
-                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
                               <span className="font-medium">{coin.year}</span>
                               <span>•</span>
                               <span>{coin.grade}</span>
@@ -356,17 +356,17 @@ const DealerStorePage = () => {
                           {/* Price & Actions */}
                           <div className="flex items-center justify-between pt-2">
                             <div>
-                              <div className="text-sm text-gray-500 mb-1">Price</div>
-                              <div className="text-2xl font-bold text-blue-600">
+                              <div className="text-sm text-muted-foreground mb-1">Price</div>
+                              <div className="text-2xl font-bold text-primary">
                                 ${coin.price.toLocaleString()}
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button variant="outline" size="icon" className="hover:bg-red-50 hover:border-red-200">
-                                <Heart className="h-4 w-4 hover:fill-red-500 hover:text-red-500 transition-colors" />
+                              <Button variant="outline" size="icon" className="hover:bg-destructive/10 hover:border-destructive/30">
+                                <Heart className="h-4 w-4 hover:fill-destructive hover:text-destructive transition-colors" />
                               </Button>
                               <Link to={`/coin/${coin.id}`}>
-                                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
+                                <Button>
                                   View
                                 </Button>
                               </Link>
@@ -381,8 +381,8 @@ const DealerStorePage = () => {
             ) : (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">🪙</div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-900">No Coins Available</h3>
-                <p className="text-gray-600">This store doesn't have any coins listed yet.</p>
+                <h3 className="text-xl font-semibold mb-2 text-foreground">No Coins Available</h3>
+                <p className="text-muted-foreground">This store doesn't have any coins listed yet.</p>
               </div>
             )}
           </motion.div>

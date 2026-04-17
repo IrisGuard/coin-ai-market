@@ -19,10 +19,10 @@ const CoinUpload = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3">
-          <Loader2 className="animate-spin h-8 w-8 text-electric-blue" />
-          <span className="text-electric-blue font-medium">Initializing...</span>
+          <Loader2 className="animate-spin h-8 w-8 text-primary" />
+          <span className="text-primary font-medium">Initializing...</span>
         </div>
       </div>
     );
@@ -34,10 +34,10 @@ const CoinUpload = () => {
 
   if (roleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3">
-          <Loader2 className="animate-spin h-8 w-8 text-electric-blue" />
-          <span className="text-electric-blue font-medium">Loading dealer panel...</span>
+          <Loader2 className="animate-spin h-8 w-8 text-primary" />
+          <span className="text-primary font-medium">Loading dealer panel...</span>
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ const CoinUpload = () => {
   // Mobile/Tablet Layout
   if (isMobile || isTablet) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         
         <div className="pt-20 pb-6">
@@ -61,10 +61,10 @@ const CoinUpload = () => {
             className="container mx-auto px-4"
           >
             <div className="mb-6 text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-foreground mb-2">
                 {isAdminUser ? 'Admin Dealer Panel' : 'Dealer Panel'}
               </h1>
-              <p className="text-gray-600 text-sm">
+              <p className="text-muted-foreground text-sm">
                 AI-powered coin listing for mobile
                 {isAdminUser && ' - Admin Mode'}
               </p>
@@ -78,7 +78,7 @@ const CoinUpload = () => {
 
   // Desktop Layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="relative overflow-hidden pt-20">

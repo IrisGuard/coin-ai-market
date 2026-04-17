@@ -46,14 +46,13 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl mx-auto p-6 space-y-6 pt-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
+          <h1 className="text-3xl font-bold text-foreground">Profile</h1>
           <Button
             onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-            className="bg-purple-600 hover:bg-purple-700"
           >
             {isEditing ? 'Save Changes' : 'Edit Profile'}
           </Button>
@@ -67,7 +66,7 @@ const Profile = () => {
                 <div className="flex justify-center">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={profile.avatar_url} />
-                    <AvatarFallback className="text-xl bg-purple-100 text-purple-600">
+                    <AvatarFallback className="text-xl bg-primary/10 text-primary">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
@@ -89,7 +88,7 @@ const Profile = () => {
                     Verified
                   </Badge>
                 </div>
-                <div className="text-center text-sm text-gray-600">
+                <div className="text-center text-sm text-muted-foreground">
                   Member since {new Date(user?.created_at || '').toLocaleDateString()}
                 </div>
               </CardContent>
@@ -110,7 +109,7 @@ const Profile = () => {
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Full Name</Label>
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-500" />
+                      <User className="h-4 w-4 text-muted-foreground" />
                       <Input
                         id="fullName"
                         value={profile.full_name}
@@ -122,7 +121,7 @@ const Profile = () => {
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-500" />
+                      <Mail className="h-4 w-4 text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
@@ -134,7 +133,7 @@ const Profile = () => {
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
+                      <Phone className="h-4 w-4 text-muted-foreground" />
                       <Input
                         id="phone"
                         value={profile.phone}
@@ -146,7 +145,7 @@ const Profile = () => {
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-500" />
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
                       <Input
                         id="location"
                         value={profile.location}

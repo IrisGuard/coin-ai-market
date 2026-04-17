@@ -84,8 +84,8 @@ const CategoryStats: React.FC<CategoryStatsProps> = ({
                     {stat.icon}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">{stat.label}</p>
-                    <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-lg font-semibold text-foreground">{stat.value}</p>
                   </div>
                 </div>
               </CardContent>
@@ -103,40 +103,40 @@ const CategoryStats: React.FC<CategoryStatsProps> = ({
           className="grid grid-cols-1 md:grid-cols-3 gap-4"
         >
           {mostExpensive && (
-            <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200">
+            <Card className="bg-warning/10 border-warning/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-4 h-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-yellow-800">Most Expensive</span>
+                  <DollarSign className="w-4 h-4 text-warning" />
+                  <span className="text-sm font-medium text-warning">Most Expensive</span>
                 </div>
-                <p className="text-sm text-gray-700 truncate">{mostExpensive.name}</p>
-                <p className="text-lg font-bold text-yellow-700">{formatPrice(mostExpensive.price)}</p>
+                <p className="text-sm text-foreground/80 truncate">{mostExpensive.name}</p>
+                <p className="text-lg font-bold text-warning">{formatPrice(mostExpensive.price)}</p>
               </CardContent>
             </Card>
           )}
 
           {oldestCoin && (
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+            <Card className="bg-accent/10 border-accent/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-amber-600" />
-                  <span className="text-sm font-medium text-amber-800">Oldest Coin</span>
+                  <Clock className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-medium text-accent">Oldest Coin</span>
                 </div>
-                <p className="text-sm text-gray-700 truncate">{oldestCoin.name}</p>
-                <p className="text-lg font-bold text-amber-700">{oldestCoin.year} AD</p>
+                <p className="text-sm text-foreground/80 truncate">{oldestCoin.name}</p>
+                <p className="text-lg font-bold text-accent">{oldestCoin.year} AD</p>
               </CardContent>
             </Card>
           )}
 
           {newestCoin && (
-            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+            <Card className="bg-primary/10 border-primary/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">Newest Coin</span>
+                  <Star className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Newest Coin</span>
                 </div>
-                <p className="text-sm text-gray-700 truncate">{newestCoin.name}</p>
-                <p className="text-lg font-bold text-blue-700">{newestCoin.year}</p>
+                <p className="text-sm text-foreground/80 truncate">{newestCoin.name}</p>
+                <p className="text-lg font-bold text-primary">{newestCoin.year}</p>
               </CardContent>
             </Card>
           )}
