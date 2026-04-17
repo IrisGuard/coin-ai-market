@@ -1,338 +1,196 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced animations for Phase 2 */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
+/*
+ * NovaCoin Design System — Neo Fintech
+ * All colors HSL. Use semantic tokens, never hardcoded colors in components.
+ */
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@layer base {
+  :root {
+    /* Neo Fintech — Dark Glass UI */
+    --background: 222 28% 6%;
+    --foreground: 210 25% 96%;
+
+    --card: 222 26% 9%;
+    --card-foreground: 210 25% 96%;
+
+    --popover: 222 30% 8%;
+    --popover-foreground: 210 25% 96%;
+
+    /* Primary: electric cyan */
+    --primary: 188 95% 55%;
+    --primary-foreground: 222 30% 6%;
+    --primary-glow: 188 100% 70%;
+
+    /* Secondary: deep slate glass */
+    --secondary: 222 22% 14%;
+    --secondary-foreground: 210 25% 96%;
+
+    --muted: 222 18% 14%;
+    --muted-foreground: 215 16% 65%;
+
+    /* Accent: violet pulse */
+    --accent: 264 90% 66%;
+    --accent-foreground: 210 25% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 25% 98%;
+
+    --success: 152 76% 50%;
+    --success-foreground: 210 25% 98%;
+
+    --warning: 38 95% 60%;
+    --warning-foreground: 222 30% 6%;
+
+    --border: 222 22% 18%;
+    --input: 222 22% 14%;
+    --ring: 188 95% 55%;
+
+    --radius: 1rem;
+
+    /* Surfaces */
+    --surface-1: 222 26% 9%;
+    --surface-2: 222 24% 12%;
+    --surface-3: 222 22% 16%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(188 95% 55%), hsl(264 90% 66%));
+    --gradient-glow: radial-gradient(circle at 30% 20%, hsl(188 95% 55% / 0.18), transparent 60%),
+                     radial-gradient(circle at 80% 70%, hsl(264 90% 66% / 0.15), transparent 55%);
+    --gradient-card: linear-gradient(180deg, hsl(222 26% 11% / 0.9), hsl(222 28% 7% / 0.9));
+    --gradient-border: linear-gradient(135deg, hsl(188 95% 55% / 0.4), hsl(264 90% 66% / 0.4));
+
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(188 95% 55% / 0.25);
+    --shadow-elevated: 0 24px 60px -20px hsl(222 50% 2% / 0.6);
+    --shadow-soft: 0 8px 24px -8px hsl(222 50% 2% / 0.4);
+
+    /* Sidebar */
+    --sidebar-background: 222 30% 5%;
+    --sidebar-foreground: 210 25% 92%;
+    --sidebar-primary: 188 95% 55%;
+    --sidebar-primary-foreground: 222 30% 6%;
+    --sidebar-accent: 222 22% 12%;
+    --sidebar-accent-foreground: 210 25% 96%;
+    --sidebar-border: 222 22% 16%;
+    --sidebar-ring: 188 95% 55%;
+
+    /* Motion */
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  /* Light theme — kept neutral for forms & receipts */
+  .light {
+    --background: 210 33% 98%;
+    --foreground: 222 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 12%;
+    --primary: 188 95% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 18% 95%;
+    --secondary-foreground: 222 30% 12%;
+    --muted: 222 18% 96%;
+    --muted-foreground: 222 12% 38%;
+    --accent: 264 90% 56%;
+    --accent-foreground: 0 0% 100%;
+    --border: 222 18% 90%;
+    --input: 222 18% 92%;
+    --ring: 188 95% 42%;
+    --surface-1: 0 0% 100%;
+    --surface-2: 222 22% 97%;
+    --surface-3: 222 18% 94%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 30% 14%;
+    --sidebar-primary: 188 95% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 18% 95%;
+    --sidebar-accent-foreground: 222 30% 12%;
+    --sidebar-border: 222 18% 90%;
+    --sidebar-ring: 188 95% 42%;
   }
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
+@layer base {
+  * { @apply border-border; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "ss01", "cv11";
+    background-image: var(--gradient-glow);
+    background-attachment: fixed;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+  ::selection { background-color: hsl(var(--primary) / 0.4); color: hsl(var(--foreground)); }
+}
+
+@layer components {
+  .glass-panel {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid hsl(var(--border));
   }
-}
-
-@keyframes bounce-gentle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.4s ease-out;
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s infinite;
-}
-
-/* Enhanced loading states */
-.loading-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-}
-
-@media (max-width: 640px) {
-  .loading-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+  .glass-panel-strong {
+    background: hsl(var(--card) / 0.9);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid hsl(var(--border));
   }
-}
-
-/* Smooth transitions for search */
-.search-transition {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Enhanced mobile optimizations */
-@media (max-width: 768px) {
-  .mobile-optimized {
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
+  .grad-border {
+    position: relative;
+    background-clip: padding-box;
   }
-  
-  .mobile-touch-target {
-    min-height: 44px;
-    min-width: 44px;
+  .grad-border::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--gradient-border);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
-}
-
-/* Performance optimizations */
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: auto;
-}
-
-.smooth-scroll {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  .text-gradient-primary {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ring-glow:focus-visible { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.25); }
 }
 
 @layer utilities {
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
+  .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+  .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+  .container-padding { @apply px-4 sm:px-6 lg:px-8; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
 
-:root {
-  /* Electric theme colors */
-  --electric-blue: #00d4ff;
-  --electric-purple: #7c3aed;
-  --electric-pink: #ff0080;
-  --electric-orange: #ff6600;
-  --electric-green: #00ff88;
-  --electric-red: #ff1744;
-  
-  /* Brand colors */
-  --brand-primary: #6366f1;
-  --brand-secondary: #8b5cf6;
-  --brand-accent: #06b6d4;
-  --brand-light: #f8fafc;
-  --brand-dark: #1e293b;
-  --brand-medium: #64748b;
-  --brand-success: #10b981;
-  --brand-warning: #f59e0b;
-  --brand-error: #ef4444;
-  
-  /* Background colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-  
-  /* Text colors */
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  
-  /* Border colors */
-  --border-primary: #e2e8f0;
-  --border-secondary: #cbd5e1;
-  
-  /* Coin-specific colors */
-  --coin-gold: #ffd700;
-  --coin-silver: #c0c0c0;
-  --coin-bronze: #cd7f32;
-  --coin-copper: #b87333;
+/* Animations */
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.animate-fade-in-up { animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-shimmer {
+  background: linear-gradient(90deg, hsl(var(--surface-2)) 0px, hsl(var(--surface-3)) 40px, hsl(var(--surface-2)) 80px);
+  background-size: 200%;
+  animation: shimmer 1.6s linear infinite;
 }
 
-* {
-  border-color: hsl(var(--border));
+/* RTL support for Arabic */
+html[dir="rtl"] body { direction: rtl; }
+
+/* Print receipts */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
 }
-
-body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
-  font-feature-settings: "rlig" 1, "calt" 1;
-}
-
-/* PHASE 5: Enhanced mobile-first animations and effects */
-@keyframes shimmer-enhanced {
-  0% { background-position: -200px 0; }
-  100% { background-position: calc(200px + 100%) 0; }
-}
-
-.shimmer {
-  background: linear-gradient(90deg, #f0f0f0 0px, #e0e0e0 40px, #f0f0f0 80px);
-  background-size: 200px;
-  animation: shimmer-enhanced 1.5s infinite linear;
-}
-
-/* PHASE 5: Touch-friendly interactive elements */
-.touch-manipulation {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* PHASE 5: Smooth scrolling for mobile */
-.scroll-smooth {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* PHASE 5: Hide scrollbars on mobile for cleaner look */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* PHASE 5: Mobile-optimized card hover effects */
-@media (hover: hover) {
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* PHASE 5: Touch feedback for mobile */
-@media (hover: none) {
-  .touch-feedback:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
-  }
-}
-
-/* Glass effect */
-.glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Brand gradient text */
-.brand-gradient-text {
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Electric gradients */
-.electric-gradient {
-  background: linear-gradient(135deg, var(--electric-blue), var(--electric-purple));
-}
-
-.electric-gradient-text {
-  background: linear-gradient(135deg, var(--electric-blue), var(--electric-purple));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Typography classes */
-.text-hero { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; line-height: 1.1; }
-.text-section { font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; line-height: 1.2; }
-.text-subsection { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; line-height: 1.3; }
-.text-body-large { font-size: 1.25rem; line-height: 1.6; }
-.text-body { font-size: 1rem; line-height: 1.6; }
-.text-body-small { font-size: 0.875rem; line-height: 1.5; }
-
-/* Spacing utilities */
-.container-padding { padding: 0 1rem; }
-.section-spacing { padding: 4rem 0; }
-
-@media (min-width: 640px) {
-  .container-padding { padding: 0 1.5rem; }
-  .section-spacing { padding: 6rem 0; }
-}
-
-@media (min-width: 1024px) {
-  .container-padding { padding: 0 2rem; }
-  .section-spacing { padding: 8rem 0; }
-}
-
-/* Phase panel animations */
-.phase-panel-enter {
-  opacity: 0;
-  transform: scale(0.9) translateY(20px);
-}
-
-.phase-panel-enter-active {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  transition: opacity 300ms, transform 300ms;
-}
-
-.phase-panel-exit {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-}
-
-.phase-panel-exit-active {
-  opacity: 0;
-  transform: scale(0.9) translateY(20px);
-  transition: opacity 300ms, transform 300ms;
-}
-
-/* Scrollbar styling for phase panel */
-.phase-panel-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.phase-panel-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 2px;
-}
-
-.phase-panel-scroll::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 2px;
-}
-
-.phase-panel-scroll::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.section-box {
-  background-color: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 24px;
-  font-family: 'Inter', 'Roboto', 'Open Sans', Arial, sans-serif;
-  box-shadow: 0 0.5px 2.5px 0 rgba(30, 41, 59, 0.04);
-  transition: box-shadow 0.2s;
-}
-.section-box:last-child { margin-bottom: 0; }
-
-.section-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--brand-primary, #6366f1);
-  margin-bottom: 32px;
-  letter-spacing: -0.02em;
-  font-family: 'Inter', 'Roboto', 'Open Sans', Arial, sans-serif;
-}
-
-.wp-box, .roadmap-box, .tokenomics-box {
-  /* Inherit .section-box styling for consistency */
-}
-
-/* Lists and bullets inside boxes */
-.section-box ul { margin: 10px 0 0 0; }
-.section-box li { margin-bottom: 6px; }
