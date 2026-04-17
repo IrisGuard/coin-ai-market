@@ -47,7 +47,7 @@ const Navbar = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">CoinVault</span>
+              <span className="text-xl font-bold text-gray-900">NovaCoin</span>
             </Link>
             
             {/* Desktop Navigation */}
