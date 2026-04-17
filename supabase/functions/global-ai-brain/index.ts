@@ -108,51 +108,28 @@ serve(async (req) => {
   }
 });
 
-// Phase 1: Initial Claude AI Recognition
+// Phase 1: Initial AI Recognition via Lovable AI Gateway
 async function performInitialAnalysis(image: string) {
-  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': anthropicApiKey!,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      messages: [{
-        role: 'user',
-        content: [{
-          type: 'text',
-          text: `You are the world's most advanced numismatic AI. Analyze this coin image and provide comprehensive identification. Focus on: visible text/inscriptions, country/origin, denomination, year, condition, and any error characteristics. Respond in JSON format with all data in ENGLISH only, regardless of original language on coin.`
-        }, {
-          type: 'image',
-          source: {
-            type: 'base64',
-            media_type: 'image/jpeg',
-            data: image
-          }
-        }]
-      }]
-    })
-  });
+  const { callAIGateway, buildImageMessage, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
 
-  const result = await response.json();
-  const content = result.content[0]?.text;
-  
-  let initialAnalysis;
+  let initialAnalysis: any;
   try {
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    initialAnalysis = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
-  } catch {
+    const aiResponse = await callAIGateway({
+      max_tokens: 2000,
+      messages: [
+        buildImageMessage(
+          `You are the world's most advanced numismatic AI. Analyze this coin image and provide comprehensive identification. Focus on: visible text/inscriptions, country/origin, denomination, year, condition, and any error characteristics. Respond in JSON format with all data in ENGLISH only, regardless of original language on coin.`,
+          image,
+        ),
+      ],
+    });
+    initialAnalysis = extractStructuredOutput(aiResponse) || {
+      name: 'Unidentified Coin', country: 'Unknown', year: null, denomination: 'Unknown', confidence: 0.3,
+    };
+  } catch (e) {
+    console.warn('initial analysis failed:', e);
     initialAnalysis = {
-      name: 'Unidentified Coin',
-      country: 'Unknown',
-      year: null,
-      denomination: 'Unknown',
-      confidence: 0.3
+      name: 'Unidentified Coin', country: 'Unknown', year: null, denomination: 'Unknown', confidence: 0.3,
     };
   }
 

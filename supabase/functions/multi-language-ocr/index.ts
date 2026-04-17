@@ -76,10 +76,10 @@ serve(async (req) => {
   }
 });
 
-// Advanced OCR using Claude AI (supports all scripts)
+// Advanced OCR using Lovable AI Gateway (supports all scripts)
 async function performAdvancedOCR(image: string) {
-  const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  
+  const { callAIGateway, buildImageMessage, extractStructuredOutput } = await import("../_shared/aiGateway.ts");
+
   const ocrPrompt = `
 You are an advanced OCR system that can read text in ANY language or script. 
 Analyze this coin image and extract ALL visible text, inscriptions, numbers, and symbols.
@@ -103,46 +103,18 @@ Respond in this format:
 }
 `;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': anthropicApiKey!,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      messages: [{
-        role: 'user',
-        content: [{
-          type: 'text',
-          text: ocrPrompt
-        }, {
-          type: 'image',
-          source: {
-            type: 'base64',
-            media_type: 'image/jpeg',
-            data: image
-          }
-        }]
-      }]
-    })
-  });
-
-  const result = await response.json();
-  const content = result.content[0]?.text;
-  
-  let ocrData;
+  let ocrData: any;
   try {
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    ocrData = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
-  } catch {
-    ocrData = {
-      extracted_text: [],
-      confidence: 0.3,
-      notes: 'OCR parsing failed'
+    const aiResponse = await callAIGateway({
+      max_tokens: 1500,
+      messages: [buildImageMessage(ocrPrompt, image)],
+    });
+    ocrData = extractStructuredOutput(aiResponse) || {
+      extracted_text: [], confidence: 0.3, notes: 'OCR parsing failed',
     };
+  } catch (e) {
+    console.warn('OCR via gateway failed:', e);
+    ocrData = { extracted_text: [], confidence: 0.3, notes: 'OCR call failed' };
   }
 
   return {
