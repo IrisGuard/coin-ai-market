@@ -36,7 +36,6 @@ const Navbar = () => {
     { name: 'Home', path: '/', icon: <Home className="w-4 h-4" /> },
     { name: 'Marketplace', path: '/marketplace', icon: <Coins className="w-4 h-4" /> },
     { name: 'Auctions', path: '/auctions', icon: <Store className="w-4 h-4" /> },
-    { name: 'GCAI Token', path: '/token', icon: <Coins className="w-4 h-4" /> },
   ];
 
   return (
