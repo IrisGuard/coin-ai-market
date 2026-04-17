@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +24,7 @@ import {
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { isAdmin } = useAdmin();
   const { data: userRole } = useSmartUserRole();
@@ -33,9 +36,9 @@ const Navbar = () => {
   };
 
   const navigationItems = [
-    { name: 'Home', path: '/', icon: <Home className="w-4 h-4" /> },
-    { name: 'Marketplace', path: '/marketplace', icon: <Coins className="w-4 h-4" /> },
-    { name: 'Auctions', path: '/auctions', icon: <Store className="w-4 h-4" /> },
+    { name: t('nav.home'), path: '/', icon: <Home className="w-4 h-4" /> },
+    { name: t('nav.marketplace'), path: '/marketplace', icon: <Coins className="w-4 h-4" /> },
+    { name: t('nav.auctions'), path: '/auctions', icon: <Store className="w-4 h-4" /> },
   ];
 
   return (
@@ -70,19 +73,20 @@ const Navbar = () => {
                   className="flex items-center space-x-1 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   <Store className="w-4 h-4" />
-                  <span>Dealer Panel</span>
+                  <span>{t('nav.dealerPanel')}</span>
                 </Link>
               )}
             </div>
           </div>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <LanguageSwitcher />
             {isAdmin && (
               <Link to="/admin">
                 <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 cursor-pointer">
                   <Brain className="w-3 h-3 mr-1" />
-                  AI Admin
+                  {t('nav.aiAdmin')}
                 </Badge>
               </Link>
             )}
@@ -92,7 +96,7 @@ const Navbar = () => {
                 <Link to="/profile">
                   <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                     <User className="w-4 h-4" />
-                    <span className="hidden sm:inline">Profile</span>
+                    <span className="hidden sm:inline">{t('nav.profile')}</span>
                   </Button>
                 </Link>
                 <Button 
@@ -102,13 +106,13 @@ const Navbar = () => {
                   className="flex items-center space-x-2 text-red-600 hover:text-red-700"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden sm:inline">Sign Out</span>
+                  <span className="hidden sm:inline">{t('nav.signOut')}</span>
                 </Button>
               </div>
             ) : (
               <Link to="/auth">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Sign In
+                  {t('nav.signIn')}
                 </Button>
               </Link>
             )}
@@ -147,7 +151,7 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Store className="w-4 h-4" />
-                  <span>Dealer Panel</span>
+                  <span>{t('nav.dealerPanel')}</span>
                 </Link>
               )}
             </div>
