@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "首页",
+    "marketplace": "市场",
+    "auctions": "拍卖",
+    "dealerPanel": "经销商面板",
+    "profile": "个人资料",
+    "signIn": "登录",
+    "signOut": "退出",
+    "aiAdmin": "AI 管理员"
+  },
+  "common": { "language": "语言", "loading": "加载中...", "search": "搜索" }
+}

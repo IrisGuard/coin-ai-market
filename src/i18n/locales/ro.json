@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Acasă",
+    "marketplace": "Piață",
+    "auctions": "Licitații",
+    "dealerPanel": "Panou Dealer",
+    "profile": "Profil",
+    "signIn": "Autentificare",
+    "signOut": "Deconectare",
+    "aiAdmin": "Admin AI"
+  },
+  "common": { "language": "Limbă", "loading": "Se încarcă...", "search": "Caută" }
+}

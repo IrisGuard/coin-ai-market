@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Ana Sayfa",
+    "marketplace": "Pazar",
+    "auctions": "Açık Artırmalar",
+    "dealerPanel": "Bayi Paneli",
+    "profile": "Profil",
+    "signIn": "Giriş",
+    "signOut": "Çıkış",
+    "aiAdmin": "AI Yönetici"
+  },
+  "common": { "language": "Dil", "loading": "Yükleniyor...", "search": "Ara" }
+}
