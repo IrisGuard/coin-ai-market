@@ -2,6 +2,8 @@ import React, { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Sparkles, ShieldCheck, Globe2, Brain } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { usePageView } from '@/hooks/usePageView';
@@ -14,13 +16,6 @@ import CategoryNavigationFix from '@/components/marketplace/CategoryNavigationFi
 import FeaturedCoinsGrid from '@/components/marketplace/FeaturedCoinsGrid';
 import AdvancedSearchInterface from '@/components/search/AdvancedSearchInterface';
 
-const STATS = [
-  { label: 'Verified dealers', value: '500+' },
-  { label: 'Live listings', value: '180k' },
-  { label: 'Countries', value: '60+' },
-  { label: 'AI sources', value: '171' },
-];
-
 const FEATURES = [
   {
     icon: Brain,
@@ -30,12 +25,12 @@ const FEATURES = [
   {
     icon: ShieldCheck,
     title: 'Verified trust',
-    desc: 'Dealer verification, secure payments via Stripe, and end-to-end auction integrity.',
+    desc: 'Dealer verification, secure payments, and end-to-end auction integrity.',
   },
   {
     icon: Globe2,
     title: 'Global reach',
-    desc: '11 languages, RTL support, regional categories and worldwide shipping options.',
+    desc: 'Multilingual support, regional categories and worldwide collectible trading workflows.',
   },
 ];
 
@@ -44,6 +39,38 @@ const Index = () => {
   usePerformanceMonitoring('IndexPage');
   const { t } = useTranslation();
   const { performSearch } = useSearchEnhancement();
+
+  const { data: homepageStats } = useQuery({
+    queryKey: ['homepage-live-stats'],
+    queryFn: async () => {
+      const [storesResult, coinsResult, countriesResult] = await Promise.all([
+        supabase.from('stores').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('coins').select('id', { count: 'exact', head: true }),
+        supabase.from('coins').select('country'),
+      ]);
+
+      const countryCount = new Set(
+        (countriesResult.data || [])
+          .map((row: { country?: string | null }) => row.country?.trim())
+          .filter(Boolean)
+      ).size;
+
+      return {
+        verifiedDealers: storesResult.count || 0,
+        liveListings: coinsResult.count || 0,
+        countries: countryCount,
+        aiSources: 171,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const stats = [
+    { label: 'Verified dealers', value: homepageStats?.verifiedDealers ?? 0 },
+    { label: 'Live listings', value: homepageStats?.liveListings ?? 0 },
+    { label: 'Countries', value: homepageStats?.countries ?? 0 },
+    { label: 'AI sources', value: homepageStats?.aiSources ?? 171 },
+  ];
 
   const handleSearch = (query: string) => {
     try {
@@ -60,9 +87,7 @@ const Index = () => {
       <div className="min-h-screen bg-background text-foreground">
         <Navbar />
 
-        {/* Hero */}
         <section className="relative overflow-hidden border-b border-border">
-          {/* glow orbs */}
           <div className="pointer-events-none absolute -top-40 -left-32 w-[40rem] h-[40rem] rounded-full bg-primary/15 blur-[120px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-24 w-[36rem] h-[36rem] rounded-full bg-accent/15 blur-[120px]" />
 
@@ -85,7 +110,6 @@ const Index = () => {
                 {t('home.hero.sub', 'Discover, authenticate and trade collectible coins, banknotes and bullion from verified dealers worldwide — powered by advanced AI and live auctions.')}
               </p>
 
-              {/* Search */}
               <div className="max-w-3xl">
                 <Suspense fallback={<div className="h-14 rounded-xl animate-shimmer" />}>
                   <AdvancedSearchInterface
@@ -113,9 +137,8 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Stats strip */}
             <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {STATS.map((s) => (
+              {stats.map((s) => (
                 <div key={s.label} className="glass-panel rounded-2xl px-5 py-6">
                   <div className="text-2xl md:text-3xl font-semibold tracking-tight font-mono">{s.value}</div>
                   <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground mt-1">{s.label}</div>
@@ -125,7 +148,6 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Feature row */}
         <section className="max-w-7xl mx-auto container-padding py-20">
           <div className="grid md:grid-cols-3 gap-5">
             {FEATURES.map((f) => {
@@ -146,14 +168,12 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Categories */}
         <section className="max-w-7xl mx-auto container-padding pb-12">
           <Suspense fallback={<div className="h-32 rounded-2xl animate-shimmer" />}>
             <CategoryNavigationFix />
           </Suspense>
         </section>
 
-        {/* Featured coins */}
         <section className="max-w-7xl mx-auto container-padding pb-24">
           <div className="flex items-end justify-between mb-8">
             <div>

@@ -246,9 +246,11 @@ export const useGlobalAIBrainIntegration = () => {
     const hasError = fileName.includes('error') || fileName.includes('double') || fileName.includes('off') || fileName.includes('misprint');
     const errors = hasError ? ['Potential production error detected'] : [];
 
+    const extractedYearMatch = fileName.match(/(?:19|20)\d{2}/);
+
     return {
       name: itemType,
-      year: new Date().getFullYear() - Math.floor(Math.random() * 50),
+      year: extractedYearMatch ? Number(extractedYearMatch[0]) : new Date().getFullYear(),
       country: itemCountry,
       denomination: specificFields.denomination || 'Unknown',
       grade: specificFields.grade || 'VF-30',
