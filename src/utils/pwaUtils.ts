@@ -1,7 +1,6 @@
 // PWA / Service Worker disabled.
-// This shim actively unregisters any previously-installed service workers
-// and clears caches so a stale homepage cannot be served from cache.
-// Kept exporting `pwaManager` so legacy imports keep compiling.
+// Actively unregisters previously-installed service workers and clears caches
+// so a stale homepage cannot be served. Kept as a no-op shim for legacy callers.
 
 class PWAManagerShim {
   constructor() {
@@ -24,13 +23,18 @@ class PWAManagerShim {
     }
   }
 
-  // No-op API surface for backwards compatibility
+  // Backwards-compatible no-op API
+  canInstall() { return false; }
+  isAppInstalled() { return false; }
+  isStandalone() { return false; }
+  async addToHomeScreen() { return false; }
   async showInstallPrompt() { return false; }
+  async updateApp() { return false; }
+  async enableNotifications(): Promise<NotificationPermission> { return 'denied'; }
+  async sendNotification(_title: string, _options?: NotificationOptions) { return false; }
   async requestNotificationPermission(): Promise<NotificationPermission> { return 'denied'; }
   async subscribeToPush() { return null; }
   async unsubscribeFromPush() { return false; }
-  isAppInstalled() { return false; }
-  isStandalone() { return false; }
 }
 
 export const pwaManager = new PWAManagerShim();
