@@ -1,16 +1,25 @@
-// Shared Lovable AI Gateway helper for all edge functions.
-// Centralizes the AI provider so swapping to a custom Gemini key later
-// only requires editing this file.
+// Shared Google Gemini helper for all edge functions.
+// Uses ONLY Google Gemini API directly with the user's GEMINI_API_KEY.
+// No Lovable AI Gateway, no OpenAI, no Anthropic.
 
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-export const DEFAULT_MODEL = 'google/gemini-2.5-flash';
-export const FAST_MODEL = 'google/gemini-2.5-flash-lite';
-export const PRO_MODEL = 'google/gemini-2.5-pro';
+// Model selection per cost/capability:
+// - LITE: cheapest, used by default for text/JSON tasks (OCR JSON, source discovery, web extraction, single-image basic recognition)
+// - FLASH: harder vision tasks (dual-side, multi-step coin reasoning)
+// - PRO: only if explicitly requested for the hardest cases
+export const LITE_MODEL = 'gemini-2.5-flash-lite';
+export const FLASH_MODEL = 'gemini-2.5-flash';
+export const PRO_MODEL = 'gemini-3.1-pro-preview';
+export const DEFAULT_MODEL = LITE_MODEL;
+
+export type ChatPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } };
 
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
-  content: any;
+  content: string | ChatPart[];
 };
 
 export interface AIGatewayOptions {
@@ -30,42 +39,123 @@ export class AIGatewayError extends Error {
   }
 }
 
-export async function callAIGateway(options: AIGatewayOptions): Promise<any> {
-  const apiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (!apiKey) {
-    throw new AIGatewayError('LOVABLE_API_KEY is not configured', 500);
+// Convert OpenAI-style messages to Gemini contents/systemInstruction
+function toGeminiPayload(opts: AIGatewayOptions) {
+  const systemTexts: string[] = [];
+  const contents: any[] = [];
+
+  for (const msg of opts.messages) {
+    if (msg.role === 'system') {
+      systemTexts.push(typeof msg.content === 'string' ? msg.content : msg.content.map(p => p.type === 'text' ? p.text : '').join('\n'));
+      continue;
+    }
+
+    const parts: any[] = [];
+    if (typeof msg.content === 'string') {
+      parts.push({ text: msg.content });
+    } else {
+      for (const p of msg.content) {
+        if (p.type === 'text') parts.push({ text: p.text });
+        else if (p.type === 'image_url') {
+          const url = p.image_url.url;
+          const m = url.match(/^data:([^;]+);base64,(.+)$/);
+          if (m) parts.push({ inlineData: { mimeType: m[1], data: m[2] } });
+          else parts.push({ text: `[image: ${url}]` });
+        }
+      }
+    }
+
+    contents.push({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts,
+    });
   }
 
-  const body: Record<string, any> = {
-    model: options.model || DEFAULT_MODEL,
-    messages: options.messages,
-  };
-  if (options.tools) body.tools = options.tools;
-  if (options.tool_choice) body.tool_choice = options.tool_choice;
-  if (options.max_tokens) body.max_tokens = options.max_tokens;
-  if (options.temperature !== undefined) body.temperature = options.temperature;
+  const body: Record<string, any> = { contents };
+  if (systemTexts.length) body.systemInstruction = { parts: [{ text: systemTexts.join('\n\n') }] };
 
-  const response = await fetch(GATEWAY_URL, {
+  const generationConfig: Record<string, any> = {};
+  if (opts.max_tokens) generationConfig.maxOutputTokens = opts.max_tokens;
+  if (opts.temperature !== undefined) generationConfig.temperature = opts.temperature;
+  if (Object.keys(generationConfig).length) body.generationConfig = generationConfig;
+
+  // Map OpenAI-style tools (tool_choice forced function) to Gemini function calling
+  if (opts.tools && opts.tools.length) {
+    const functionDeclarations = opts.tools
+      .filter((t: any) => t.type === 'function')
+      .map((t: any) => ({
+        name: t.function.name,
+        description: t.function.description,
+        parameters: t.function.parameters,
+      }));
+    body.tools = [{ functionDeclarations }];
+    if (opts.tool_choice?.type === 'function' && opts.tool_choice.function?.name) {
+      body.toolConfig = {
+        functionCallingConfig: {
+          mode: 'ANY',
+          allowedFunctionNames: [opts.tool_choice.function.name],
+        },
+      };
+    }
+  }
+
+  return body;
+}
+
+export async function callAIGateway(options: AIGatewayOptions): Promise<any> {
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
+  if (!apiKey) throw new AIGatewayError('GEMINI_API_KEY is not configured', 500);
+
+  const model = options.model || DEFAULT_MODEL;
+  const url = `${BASE_URL}/${model}:generateContent?key=${apiKey}`;
+  const body = toGeminiPayload(options);
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const text = await response.text().catch(() => '');
-    if (response.status === 429) {
-      throw new AIGatewayError('Rate limit exceeded, please try again shortly.', 429);
+    if (response.status === 429) throw new AIGatewayError('Gemini rate limit exceeded, please try again shortly.', 429);
+    if (response.status === 402 || response.status === 403) {
+      throw new AIGatewayError(`Gemini API auth/quota error: ${text}`, response.status);
     }
-    if (response.status === 402) {
-      throw new AIGatewayError('AI credits exhausted. Please add credits in Workspace Usage.', 402);
-    }
-    throw new AIGatewayError(`AI gateway error ${response.status}: ${text}`, response.status);
+    throw new AIGatewayError(`Gemini API error ${response.status}: ${text}`, response.status);
   }
 
-  return await response.json();
+  const geminiResponse = await response.json();
+
+  // Adapt Gemini response into an OpenAI-compatible shape so existing extractors work
+  const candidate = geminiResponse?.candidates?.[0];
+  const parts = candidate?.content?.parts || [];
+
+  let textContent = '';
+  const tool_calls: any[] = [];
+  for (const p of parts) {
+    if (p.text) textContent += p.text;
+    if (p.functionCall) {
+      tool_calls.push({
+        type: 'function',
+        function: {
+          name: p.functionCall.name,
+          arguments: JSON.stringify(p.functionCall.args ?? {}),
+        },
+      });
+    }
+  }
+
+  return {
+    choices: [{
+      message: {
+        role: 'assistant',
+        content: textContent,
+        ...(tool_calls.length ? { tool_calls } : {}),
+      },
+    }],
+    _gemini: geminiResponse,
+  };
 }
 
 /** Build a vision message that includes a base64 image as a data URL. */
@@ -91,9 +181,11 @@ export function extractStructuredOutput(aiResponse: any): any {
     try { return JSON.parse(toolCall.function.arguments); } catch { /* fallthrough */ }
   }
   const content = aiResponse?.choices?.[0]?.message?.content || '';
-  const objMatch = content.match(/\{[\s\S]*\}/);
+  // Strip markdown fences if present
+  const cleaned = content.replace(/```json\s*|\s*```/g, '');
+  const objMatch = cleaned.match(/\{[\s\S]*\}/);
   if (objMatch) { try { return JSON.parse(objMatch[0]); } catch { /* fallthrough */ } }
-  const arrMatch = content.match(/\[[\s\S]*\]/);
+  const arrMatch = cleaned.match(/\[[\s\S]*\]/);
   if (arrMatch) { try { return JSON.parse(arrMatch[0]); } catch { /* fallthrough */ } }
   return null;
 }
