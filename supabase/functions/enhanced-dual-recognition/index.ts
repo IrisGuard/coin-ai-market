@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { callAIGateway, extractStructuredOutput, AIGatewayError } from "../_shared/aiGateway.ts";
+import { callAIGateway, extractStructuredOutput, AIGatewayError, FLASH_MODEL } from "../_shared/aiGateway.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,6 +42,7 @@ serve(async (req) => {
 }`;
 
     const aiResponse = await callAIGateway({
+      model: FLASH_MODEL,
       max_tokens: 3000,
       messages: [{
         role: 'user',
