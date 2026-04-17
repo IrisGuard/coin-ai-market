@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "marketplace": "Mercado",
+    "auctions": "Subastas",
+    "dealerPanel": "Panel de Distribuidor",
+    "profile": "Perfil",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "aiAdmin": "Admin IA"
+  },
+  "common": { "language": "Idioma", "loading": "Cargando...", "search": "Buscar" }
+}

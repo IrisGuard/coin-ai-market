@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "marketplace": "Marché",
+    "auctions": "Enchères",
+    "dealerPanel": "Espace Revendeur",
+    "profile": "Profil",
+    "signIn": "Connexion",
+    "signOut": "Déconnexion",
+    "aiAdmin": "Admin IA"
+  },
+  "common": { "language": "Langue", "loading": "Chargement...", "search": "Rechercher" }
+}
