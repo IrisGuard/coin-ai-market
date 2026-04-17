@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { generateSecureRandomNumber } from '@/utils/productionRandomUtils';
 
 export interface ExtractedMarketData {
   averagePrice: number;
@@ -13,7 +12,6 @@ export interface ExtractedMarketData {
 
 export const extractMarketData = async (coinIdentifier: string): Promise<ExtractedMarketData> => {
   try {
-    // Get real market data from database
     const { data: coins, error: coinsError } = await supabase
       .from('coins')
       .select('price, created_at, sold')
@@ -36,24 +34,22 @@ export const extractMarketData = async (coinIdentifier: string): Promise<Extract
       console.error('Error fetching transactions data:', transactionsError);
     }
 
-    // Calculate market data from real data
     const validCoins = coins || [];
     const validTransactions = transactions || [];
-    
+
     const prices = validCoins.map(coin => coin.price).filter(price => price > 0);
     const recentSales = validCoins.filter(coin => coin.sold).length;
-    
+
     let averagePrice = 0;
     let minPrice = 0;
     let maxPrice = 0;
-    
+
     if (prices.length > 0) {
       averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
       minPrice = Math.min(...prices);
       maxPrice = Math.max(...prices);
     }
 
-    // Analyze transaction data safely
     const transactionAmounts = validTransactions.map(tx => {
       if (typeof tx.transak_data === 'object' && tx.transak_data !== null) {
         const data = tx.transak_data as Record<string, any>;
@@ -62,21 +58,22 @@ export const extractMarketData = async (coinIdentifier: string): Promise<Extract
       return tx.amount;
     }).filter(amount => amount > 0);
 
-    // Calculate trend based on recent vs older data
+    if (prices.length === 0 && transactionAmounts.length > 0) {
+      averagePrice = transactionAmounts.reduce((sum, amount) => sum + amount, 0) / transactionAmounts.length;
+      minPrice = Math.min(...transactionAmounts);
+      maxPrice = Math.max(...transactionAmounts);
+    }
+
     const recentPrices = prices.slice(0, Math.floor(prices.length / 2));
     const olderPrices = prices.slice(Math.floor(prices.length / 2));
-    
+
     let marketTrend: 'up' | 'down' | 'stable' = 'stable';
-    
     if (recentPrices.length > 0 && olderPrices.length > 0) {
       const recentAvg = recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length;
       const olderAvg = olderPrices.reduce((sum, price) => sum + price, 0) / olderPrices.length;
-      
-      if (recentAvg > olderAvg * 1.05) {
-        marketTrend = 'up';
-      } else if (recentAvg < olderAvg * 0.95) {
-        marketTrend = 'down';
-      }
+
+      if (recentAvg > olderAvg * 1.05) marketTrend = 'up';
+      else if (recentAvg < olderAvg * 0.95) marketTrend = 'down';
     }
 
     return {
@@ -85,20 +82,17 @@ export const extractMarketData = async (coinIdentifier: string): Promise<Extract
       totalListings: validCoins.length,
       recentSales,
       marketTrend,
-      confidence: Math.min(0.95, validCoins.length / 10) // Higher confidence with more data
+      confidence: Math.min(0.95, validCoins.length / 10)
     };
-
   } catch (error) {
     console.error('Error extracting market data:', error);
-    
-    // Return fallback data with lower confidence
     return {
-      averagePrice: generateSecureRandomNumber(50, 200),
-      priceRange: { min: 25, max: 500 },
-      totalListings: generateSecureRandomNumber(10, 100),
-      recentSales: generateSecureRandomNumber(1, 20),
+      averagePrice: 0,
+      priceRange: { min: 0, max: 0 },
+      totalListings: 0,
+      recentSales: 0,
       marketTrend: 'stable',
-      confidence: 0.3
+      confidence: 0
     };
   }
 };
