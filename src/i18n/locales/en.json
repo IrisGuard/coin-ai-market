@@ -3,15 +3,57 @@
     "home": "Home",
     "marketplace": "Marketplace",
     "auctions": "Auctions",
-    "dealerPanel": "Dealer Panel",
+    "dealerPanel": "Dealer panel",
     "profile": "Profile",
-    "signIn": "Sign In",
-    "signOut": "Sign Out",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
     "aiAdmin": "AI Admin"
   },
   "common": {
     "language": "Language",
     "loading": "Loading...",
-    "search": "Search"
+    "search": "Search",
+    "back": "Back",
+    "viewAll": "View all"
+  },
+  "home": {
+    "badge": "AI numismatic infrastructure",
+    "hero": {
+      "l1": "A premium marketplace",
+      "l2": "for serious collectors.",
+      "sub": "Discover, authenticate and trade collectible coins, banknotes and bullion from verified dealers worldwide — powered by advanced AI and live auctions."
+    },
+    "search": "Search coins, banknotes, bullion…",
+    "cta": { "explore": "Explore marketplace", "auctions": "See live auctions" },
+    "featured": { "title": "Featured listings", "sub": "Hand-picked coins from verified dealers worldwide.", "all": "View all" }
+  },
+  "marketplace": {
+    "title": "NovaCoin Marketplace",
+    "subtitle": "Browse verified dealer storefronts and live listings.",
+    "openStore": "Open your store",
+    "allStores": "All stores",
+    "storesOnline": "stores online",
+    "noStores": "No stores yet",
+    "noStoresDesc": "Stores from verified dealers will appear here."
+  },
+  "auctions": {
+    "title": "Live coin auctions",
+    "subtitle": "Real-time bidding on authenticated coins from verified dealers.",
+    "noAuctions": "No auctions found",
+    "noAuctionsDesc": "Try adjusting filters or check back later.",
+    "selectAuction": "Select an auction",
+    "selectDesc": "Click on any auction to view details and place bids."
+  },
+  "footer": {
+    "tagline": "Premium AI marketplace for collectible coins, banknotes and bullion.",
+    "platform": "Platform",
+    "company": "Company",
+    "connect": "Connect",
+    "sell": "Sell coins",
+    "about": "About",
+    "support": "Support",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "rights": "All rights reserved."
   }
 }

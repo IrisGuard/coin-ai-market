@@ -2,80 +2,62 @@ import { ConsoleMonitor } from './consoleMonitoring';
 import { validateOTPSecurity, validateSecurityConfig, logSecurityEvent } from '../utils/securityConfig';
 
 export const setupDevToolsExtensions = () => {
-  const consoleMonitor = ConsoleMonitor.getInstance();
+  // Pre-touch the singleton so monitoring is wired before window.NovaCoin is bound.
+  ConsoleMonitor.getInstance();
 
-  // Browser DevTools Integration
-  window.CoinAI = {
+  window.NovaCoin = {
     showMonitoringStatus() {
-      console.group('🔍 Console Monitoring Status');
+      console.group('🔍 NovaCoin · Console Monitoring');
       console.log('Console monitoring is active');
-      console.log('All console logs are being captured and sent to monitoring in production');
+      console.log('All console logs are captured and forwarded in production');
       console.groupEnd();
     },
-    
     testConsoleMonitoring() {
-      console.group('🧪 Testing Console Monitoring');
-      console.log('This is a test log message');
-      console.warn('This is a test warning message');
-      console.error('This is a test error message');
-      console.info('This is a test info message');
-      console.log('✅ Console monitoring test completed - check production logs');
+      console.group('🧪 NovaCoin · Console Monitoring Test');
+      console.log('test log');
+      console.warn('test warning');
+      console.error('test error');
+      console.info('test info');
       console.groupEnd();
     },
-    
     exportMonitoringReport() {
       const report = {
         timestamp: new Date().toISOString(),
         url: window.location.href,
         userAgent: navigator.userAgent,
         monitoringActive: true,
-        note: 'Console logs are sent to /api/console-monitor in production'
       };
-      
-      const blob = new Blob([JSON.stringify(report, null, 2)], {
-        type: 'application/json'
-      });
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `monitoring-report-${Date.now()}.json`;
+      a.download = `novacoin-monitoring-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     },
-    
-    clearConsole() {
-      console.clear();
-      console.log('✅ Console cleared');
-    },
-    
+    clearConsole() { console.clear(); console.log('✅ Console cleared'); },
     async testSecurity() {
       try {
         const otpValid = await validateOTPSecurity();
         console.log('OTP Security Valid:', otpValid);
-        
         const configIssues = validateSecurityConfig();
         console.log('Config Issues:', configIssues);
-        
         await logSecurityEvent('manual_security_test', { timestamp: new Date().toISOString() });
         console.log('✅ Security test completed');
-      } catch (error) {
-        console.error('❌ Security test failed:', error);
+      } catch (e) {
+        console.error('❌ Security test failed:', e);
       }
+    },
+    help() {
+      console.group('🚀 NovaCoin DevTools');
+      console.log('NovaCoin.showMonitoringStatus()');
+      console.log('NovaCoin.testConsoleMonitoring()');
+      console.log('NovaCoin.exportMonitoringReport()');
+      console.log('NovaCoin.clearConsole()');
+      console.log('NovaCoin.testSecurity()');
       console.groupEnd();
     },
-
-    help() {
-      console.group('🚀 CoinAI DevTools Commands');
-      console.log('showMonitoringStatus() - Check console monitoring status');
-      console.log('testConsoleMonitoring() - Test console monitoring functionality');
-      console.log('exportMonitoringReport() - Export monitoring configuration');
-      console.log('clearConsole() - Clear console logs');
-      console.log('testSecurity() - Run security validation tests');
-      console.log('help() - Show this help message');
-      console.groupEnd();
-    }
   };
 
-  // Show welcome message
-  console.log('🔧 CoinAI DevTools loaded - type CoinAI.help() for available commands');
+  console.log('🔧 NovaCoin DevTools loaded — type NovaCoin.help() for commands');
 };
