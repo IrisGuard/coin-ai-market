@@ -9,7 +9,6 @@ import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useSearchEnhancement } from '@/hooks/useSearchEnhancement';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import VoiceInterface from '@/components/VoiceInterface';
 import ErrorBoundaryWrapper from '@/components/ErrorBoundaryWrapper';
 import CategoryNavigationFix from '@/components/marketplace/CategoryNavigationFix';
 import FeaturedCoinsGrid from '@/components/marketplace/FeaturedCoinsGrid';
@@ -182,7 +181,6 @@ const Index = () => {
         </section>
 
         <Footer />
-        <VoiceInterface />
       </div>
     </ErrorBoundaryWrapper>
   );
