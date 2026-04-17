@@ -84,8 +84,8 @@ const CategoryStats: React.FC<CategoryStatsProps> = ({
                     {stat.icon}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">{stat.label}</p>
-                    <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-lg font-semibold text-foreground">{stat.value}</p>
                   </div>
                 </div>
               </CardContent>

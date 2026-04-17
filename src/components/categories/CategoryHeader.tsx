@@ -68,21 +68,21 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             {getCategoryIcon(category)}
           </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
               {title}
             </h1>
             <div className="flex items-center gap-3">
               <Badge variant="secondary" className="text-sm">
                 {isLoading ? 'Loading...' : `${coinCount} coins`}
               </Badge>
-              <Badge className={`bg-gradient-to-r ${getCategoryColor(category)} text-white border-0`}>
+              <Badge className={`bg-gradient-to-r ${getCategoryColor(category)} text-primary-foreground border-0`}>
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </Badge>
             </div>
           </div>
         </div>
         
-        <p className="text-lg text-gray-600 max-w-3xl leading-relaxed">
+        <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
           {description}
         </p>
       </div>

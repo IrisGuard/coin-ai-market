@@ -12,7 +12,7 @@ interface CategoryPageLayoutProps {
 const CategoryPageLayout: React.FC<CategoryPageLayoutProps> = ({ children }) => {
   return (
     <ErrorBoundaryWrapper>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <NavigationBreadcrumb />
         
