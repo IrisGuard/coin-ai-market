@@ -94,12 +94,12 @@ const Auctions = () => {
 
   if (auctionsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-64 bg-muted rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -112,7 +112,7 @@ const Auctions = () => {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
+    <div className="min-h-screen bg-background pt-16">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -122,8 +122,8 @@ const Auctions = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Live Coin Auctions</h1>
-          <p className="text-gray-600">Real-time bidding on authenticated coins from verified dealers</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Live Coin Auctions</h1>
+          <p className="text-muted-foreground">Real-time bidding on authenticated coins from verified dealers</p>
         </motion.div>
 
         {/* Auction Stats */}
@@ -172,8 +172,8 @@ const Auctions = () => {
             >
               {filteredAuctions.length === 0 ? (
                 <div className="text-center py-12">
-                  <h3 className="text-lg font-semibold mb-2">No auctions found</h3>
-                  <p className="text-gray-600">Try adjusting your search criteria or check back later</p>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">No auctions found</h3>
+                  <p className="text-muted-foreground">Try adjusting your search criteria or check back later</p>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -217,7 +217,7 @@ const Auctions = () => {
             {selectedAuctionData ? (
               <>
                 {/* Auction Timer */}
-                <div className="bg-white rounded-lg p-6">
+                <div className="glass-panel rounded-lg p-6">
                   <AuctionTimer 
                     endTime={selectedAuctionData.ends_at}
                     variant="large"
@@ -242,9 +242,9 @@ const Auctions = () => {
                 <BidHistory auctionId={selectedAuctionData.id} />
               </>
             ) : (
-              <div className="bg-white rounded-lg p-6 text-center">
-                <h3 className="text-lg font-semibold mb-2">Select an Auction</h3>
-                <p className="text-gray-600">Click on any auction to view details and place bids</p>
+              <div className="glass-panel rounded-lg p-6 text-center">
+                <h3 className="text-lg font-semibold mb-2 text-foreground">Select an Auction</h3>
+                <p className="text-muted-foreground">Click on any auction to view details and place bids</p>
               </div>
             )}
           </div>
