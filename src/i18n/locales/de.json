@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "marketplace": "Marktplatz",
+    "auctions": "Auktionen",
+    "dealerPanel": "Händler-Panel",
+    "profile": "Profil",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "aiAdmin": "KI-Admin"
+  },
+  "common": { "language": "Sprache", "loading": "Lädt...", "search": "Suchen" }
+}

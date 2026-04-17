@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Home",
+    "marketplace": "Mercato",
+    "auctions": "Aste",
+    "dealerPanel": "Pannello Rivenditore",
+    "profile": "Profilo",
+    "signIn": "Accedi",
+    "signOut": "Esci",
+    "aiAdmin": "Admin IA"
+  },
+  "common": { "language": "Lingua", "loading": "Caricamento...", "search": "Cerca" }
+}

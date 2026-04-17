@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "auctions": "Auctions",
+    "dealerPanel": "Dealer Panel",
+    "profile": "Profile",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "aiAdmin": "AI Admin"
+  },
+  "common": {
+    "language": "Language",
+    "loading": "Loading...",
+    "search": "Search"
+  }
+}
