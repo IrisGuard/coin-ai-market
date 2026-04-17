@@ -114,7 +114,9 @@ async function performInitialAnalysis(image: string) {
 
   let initialAnalysis: any;
   try {
+    const { callAIGateway, buildImageMessage, extractStructuredOutput, FLASH_MODEL } = await import("../_shared/aiGateway.ts");
     const aiResponse = await callAIGateway({
+      model: FLASH_MODEL,
       max_tokens: 2000,
       messages: [
         buildImageMessage(
