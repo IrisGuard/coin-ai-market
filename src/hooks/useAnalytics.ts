@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { generateSecureRandomNumber } from '@/utils/productionRandomUtils';
 
 interface AnalyticsData {
   pageViews: number;
@@ -23,7 +22,6 @@ export const useAnalytics = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        // Fetch real analytics data
         const { data: events, error } = await supabase
           .from('analytics_events')
           .select('*')
@@ -35,12 +33,9 @@ export const useAnalytics = () => {
         }
 
         const validEvents = events || [];
-        
-        // Calculate analytics from real data
         const pageViews = validEvents.filter(e => e.event_type === 'page_view').length;
         const uniqueVisitors = new Set(validEvents.map(e => e.user_id).filter(Boolean)).size;
-        
-        // Calculate session duration from metadata
+
         const sessionDurations = validEvents
           .map(event => {
             if (typeof event.metadata === 'object' && event.metadata !== null) {
@@ -53,11 +48,10 @@ export const useAnalytics = () => {
           })
           .filter(duration => duration > 0);
 
-        const avgSessionDuration = sessionDurations.length > 0 
+        const avgSessionDuration = sessionDurations.length > 0
           ? sessionDurations.reduce((sum, duration) => sum + duration, 0) / sessionDurations.length
-          : generateSecureRandomNumber(120, 300); // Fallback to 2-5 minutes
+          : 0;
 
-        // Calculate top pages from page_url
         const pageUrlCounts = validEvents.reduce((acc, event) => {
           if (event.page_url) {
             acc[event.page_url] = (acc[event.page_url] || 0) + 1;
@@ -70,37 +64,40 @@ export const useAnalytics = () => {
           .slice(0, 5)
           .map(([page, views]) => ({ page, views }));
 
+        const sessions = new Set(
+          validEvents
+            .map(event => event.user_id ? `${event.user_id}_${new Date(event.timestamp).toDateString()}` : null)
+            .filter(Boolean)
+        ).size;
+
+        const pagesPerSession = sessions > 0 ? pageViews / sessions : 0;
+        const conversionEvents = validEvents.filter(e => ['coin_purchase', 'payment_completed', 'auction_bid'].includes(e.event_type)).length;
+        const conversionRate = sessions > 0 ? (conversionEvents / sessions) * 100 : 0;
+
         setAnalyticsData({
           pageViews,
           uniqueVisitors,
           sessionDuration: avgSessionDuration,
-          conversionRate: generateSecureRandomNumber(2, 8),
+          conversionRate,
           topPages,
           userEngagement: {
             avgSessionTime: avgSessionDuration,
-            bounceRate: generateSecureRandomNumber(25, 45),
-            pagesPerSession: generateSecureRandomNumber(2, 6)
+            bounceRate: 0,
+            pagesPerSession,
           }
         });
-
       } catch (error) {
         console.error('Analytics fetch error:', error);
-        
-        // Fallback analytics data
         setAnalyticsData({
-          pageViews: generateSecureRandomNumber(1000, 5000),
-          uniqueVisitors: generateSecureRandomNumber(500, 2000),
-          sessionDuration: generateSecureRandomNumber(120, 300),
-          conversionRate: generateSecureRandomNumber(2, 8),
-          topPages: [
-            { page: '/marketplace', views: generateSecureRandomNumber(200, 800) },
-            { page: '/dashboard', views: generateSecureRandomNumber(150, 600) },
-            { page: '/coins', views: generateSecureRandomNumber(100, 400) }
-          ],
+          pageViews: 0,
+          uniqueVisitors: 0,
+          sessionDuration: 0,
+          conversionRate: 0,
+          topPages: [],
           userEngagement: {
-            avgSessionTime: generateSecureRandomNumber(120, 300),
-            bounceRate: generateSecureRandomNumber(25, 45),
-            pagesPerSession: generateSecureRandomNumber(2, 6)
+            avgSessionTime: 0,
+            bounceRate: 0,
+            pagesPerSession: 0,
           }
         });
       } finally {
