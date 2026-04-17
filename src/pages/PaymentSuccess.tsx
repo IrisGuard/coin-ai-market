@@ -53,7 +53,6 @@ const PaymentSuccess = () => {
     try {
       let transactionData = null;
 
-      // Try to fetch from payment_transactions first
       if (transactionId) {
         const { data: paymentData, error: paymentError } = await supabase
           .from('payment_transactions')
@@ -84,7 +83,6 @@ const PaymentSuccess = () => {
         }
       }
 
-      // Fallback: get coin details for display if no transaction found
       if (!transactionData && coinId && amount) {
         const { data: coinData } = await supabase
           .from('coins')
@@ -110,7 +108,6 @@ const PaymentSuccess = () => {
             status: 'completed'
           };
 
-          // Create a transaction record for tracking
           const { error: insertError } = await supabase
             .from('payment_transactions')
             .insert({
@@ -158,18 +155,18 @@ const PaymentSuccess = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!transaction) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="p-6 text-center">
-            <p className="text-gray-600 mb-4">Transaction not found</p>
+            <p className="text-muted-foreground mb-4">Transaction not found</p>
             <Button onClick={() => navigate('/marketplace')}>
               Return to Marketplace
             </Button>
@@ -180,62 +177,58 @@ const PaymentSuccess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-4">
-        {/* Success Header */}
         <div className="text-center mb-8">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <CheckCircle className="h-16 w-16 text-success mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Payment Successful!
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Your purchase has been completed successfully
           </p>
         </div>
 
-        {/* Transaction Details */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Transaction Details
-              <Badge variant="default" className="bg-green-100 text-green-800">
+              <Badge variant="default" className="bg-success/15 text-success border-success/30">
                 {transaction.status}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Coin Info */}
-            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-4 p-4 bg-muted rounded-lg">
               <img 
                 src={transaction.coin_image || '/placeholder.svg'} 
                 alt={transaction.coin_name}
                 className="w-16 h-16 object-cover rounded-lg"
               />
               <div>
-                <h3 className="font-semibold text-lg">{transaction.coin_name}</h3>
-                <p className="text-gray-600">Sold by {transaction.seller_name}</p>
+                <h3 className="font-semibold text-lg text-foreground">{transaction.coin_name}</h3>
+                <p className="text-muted-foreground">Sold by {transaction.seller_name}</p>
               </div>
             </div>
 
-            {/* Payment Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-500">Amount Paid</label>
-                <p className="text-xl font-bold text-gray-900">
+                <label className="text-sm font-medium text-muted-foreground">Amount Paid</label>
+                <p className="text-xl font-bold text-foreground">
                   ${transaction.amount.toFixed(2)}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Payment Method</label>
-                <p className="text-gray-900">{transaction.payment_method}</p>
+                <label className="text-sm font-medium text-muted-foreground">Payment Method</label>
+                <p className="text-foreground">{transaction.payment_method}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Transaction ID</label>
-                <p className="text-gray-900 font-mono text-sm">{transaction.id}</p>
+                <label className="text-sm font-medium text-muted-foreground">Transaction ID</label>
+                <p className="text-foreground font-mono text-sm">{transaction.id}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Date</label>
-                <p className="text-gray-900">
+                <label className="text-sm font-medium text-muted-foreground">Date</label>
+                <p className="text-foreground">
                   {new Date(transaction.transaction_date).toLocaleDateString()}
                 </p>
               </div>
@@ -243,57 +236,36 @@ const PaymentSuccess = () => {
           </CardContent>
         </Card>
 
-        {/* Actions */}
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Button 
-              variant="outline" 
-              onClick={handleDownloadReceipt}
-              className="flex items-center justify-center gap-2"
-            >
+            <Button variant="outline" onClick={handleDownloadReceipt} className="flex items-center justify-center gap-2">
               <Download className="h-4 w-4" />
               Download Receipt
             </Button>
             
-            <Button 
-              variant="outline"
-              onClick={() => window.print()}
-              className="flex items-center justify-center gap-2"
-            >
+            <Button variant="outline" onClick={() => window.print()} className="flex items-center justify-center gap-2">
               <Printer className="h-4 w-4" />
               Print Receipt
             </Button>
             
-            <Button 
-              variant="outline"
-              onClick={handleEmailReceipt}
-              className="flex items-center justify-center gap-2"
-            >
+            <Button variant="outline" onClick={handleEmailReceipt} className="flex items-center justify-center gap-2">
               <Mail className="h-4 w-4" />
               Email Receipt
             </Button>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/marketplace')}
-              className="flex items-center justify-center gap-2"
-            >
+            <Button variant="outline" onClick={() => navigate('/marketplace')} className="flex items-center justify-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               Continue Shopping
             </Button>
             
-            <Button 
-              onClick={() => navigate('/profile')}
-              className="flex-1"
-            >
+            <Button onClick={() => navigate('/profile')} className="flex-1">
               View Purchase History
             </Button>
           </div>
         </div>
 
-        {/* Receipt Modal */}
         {showReceiptModal && (
           <TransactionReceiptModal
             transaction={transaction}
