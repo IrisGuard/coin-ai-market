@@ -12,6 +12,7 @@ import ro from './locales/ro.json';
 import tr from './locales/tr.json';
 import ar from './locales/ar.json';
 import zh from './locales/zh.json';
+import ru from './locales/ru.json';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English', country: 'GB', dir: 'ltr' },
@@ -24,6 +25,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'tr', label: 'Türkçe', country: 'TR', dir: 'ltr' },
   { code: 'ar', label: 'العربية', country: 'SA', dir: 'rtl' },
   { code: 'zh', label: '中文', country: 'CN', dir: 'ltr' },
+  { code: 'ru', label: 'Русский', country: 'RU', dir: 'ltr' },
 ] as const;
 
 export type LanguageCode = typeof SUPPORTED_LANGUAGES[number]['code'];
@@ -43,6 +45,7 @@ i18n
       tr: { translation: tr },
       ar: { translation: ar },
       zh: { translation: zh },
+      ru: { translation: ru },
     },
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
